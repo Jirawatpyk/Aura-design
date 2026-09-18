@@ -1,6 +1,6 @@
-# AURA Design System 4.4 — `@jirawatpyk/aura-tokens` (imported as `@aura/tokens`)
+# AURA Design System — `@jirawatpyk/aura-tokens` (imported as `@aura/tokens`)
 
-Enterprise Standard, Human Creative. Tokens, Tailwind preset, Figma variables a contrast check and token lint. The components live in `../react` (`@aura/react`); `components/` here is a synced copy of their `window.Aura` bundle for `<script>`-tag use.
+Enterprise Standard, Human Creative. Tokens, Tailwind preset, Figma variables a contrast check and token lint. The components live in [`@jirawatpyk/aura-react`](https://www.npmjs.com/package/@jirawatpyk/aura-react); `components/` here is a synced copy of their `window.Aura` bundle for `<script>`-tag use.
 
 ## What's inside
 
@@ -22,6 +22,7 @@ Enterprise Standard, Human Creative. Tokens, Tailwind preset, Figma variables a 
 ```bash
 # public on npmjs; internal projects can use GitHub Packages instead (see the repository README)
 npm install @aura/tokens@npm:@jirawatpyk/aura-tokens @aura/react@npm:@jirawatpyk/aura-react
+# or plain: npm install @jirawatpyk/aura-tokens @jirawatpyk/aura-react
 ```
 
 ```tsx

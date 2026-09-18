@@ -1,11 +1,38 @@
-# @jirawatpyk/aura-react 4.4.1 (imported as `@aura/react`)
+# @jirawatpyk/aura-react
 
 AURA Design System components as a real React package — ES modules, TypeScript types, server-rendering safe, Thai-first.
 
-```bash
-# public on npmjs; internal projects can use GitHub Packages instead (see the repository README)
-npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens   # react >= 18 is a peer dependency
+## Try it without a build (CDN)
+
+One HTML file, no install — the packages are on npmjs, so jsDelivr serves them:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-tokens@4/aura.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/aura.bundle.js"></script>
+
+<div id="root"></div>
+<script>
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(Aura.AuraProvider, { locale: 'th' },
+      h(Aura.Stack, { gap: 4 },
+        h(Aura.Button, { icon: 'plus' }, 'New order'),
+        h(Aura.DatePicker, { label: 'Delivery date' }))));
+</script>
 ```
+
+## Install
+
+```bash
+npm i @jirawatpyk/aura-react @jirawatpyk/aura-tokens   # react >= 18 is a peer; import from "@jirawatpyk/aura-react"
+# or under the short names the docs use (imports stay `@aura/...`):
+npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens
+```
+
+Public on npmjs; internal projects can use GitHub Packages instead ([repository README](https://github.com/Jirawatpyk/Aura-design#use-it-in-a-project)).
 
 ```tsx
 // app root (once)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.4.2 — 2026-09-18
+
+### Changed
+- npm pages: plain install line, a no-build CDN snippet (jsDelivr) in the React README, links that work outside the repository.
+- Releases: npmjs publishing now uses trusted publishing only (OIDC, no stored token); a prerelease version (`4.5.0-rc.1`) goes to the `next` dist-tag instead of `latest`.
+
 ## 4.4.1 — 2026-09-18
 
 ### Changed
