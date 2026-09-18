@@ -8,6 +8,8 @@ Enterprise Standard, Human Creative — one design system for every project: tok
 | [`packages/react`](packages/react) · `@jirawatpyk/aura-react` | The components as ES modules (+ CJS, types, `'use client'`, SSR-safe, every component forwards `ref`), `createTheme` / `aura-theme` CLI, three pilot pages |
 | [`apps/storybook`](apps/storybook) | Storybook 8 with every component and the pilots; axe and behaviour tests |
 
+**Storybook (live components, pilots, install guide): [https://jirawatpyk.github.io/Aura-design/](https://jirawatpyk.github.io/Aura-design/)** — rebuilt from `main` after every Storybook test passes.
+
 Living documentation: the AURA design-system artifact on claude.ai (tokens, component cards, guidelines, theme builder).
 
 ## Use it in a project

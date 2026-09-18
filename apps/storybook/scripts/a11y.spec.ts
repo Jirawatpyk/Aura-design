@@ -16,5 +16,13 @@ test('AURA stories have no WCAG AA violations', async ({ page, request }) => {
       for (const v of violations) failures.push(`${theme} ${s.id}: ${v.id} — ${v.help} (${v.nodes.length})`);
     }
   }
+  /* MDX pages (Welcome): the docs frame follows Storybook's own light theme. */
+  const docs = Object.values(index.entries as Record<string, { id: string; type: string }>).filter((e) => e.type === 'docs');
+  for (const d of docs) {
+    await page.goto(`/iframe.html?id=${d.id}&viewMode=docs`);
+    await page.waitForSelector('#storybook-docs .sbdocs-content > *');
+    const { violations } = await new AxeBuilder({ page }).include('#storybook-docs').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+    for (const v of violations) failures.push(`docs ${d.id}: ${v.id} — ${v.help} (${v.nodes.length})`);
+  }
   expect(failures, failures.join('\n')).toEqual([]);
 });

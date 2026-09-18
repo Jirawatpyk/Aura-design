@@ -2,6 +2,8 @@
 
 AURA Design System components as a real React package — ES modules, TypeScript types, server-rendering safe, Thai-first.
 
+**See every component live: [Storybook](https://jirawatpyk.github.io/Aura-design/)**
+
 ## Try it without a build (CDN)
 
 One HTML file, no install — the packages are on npmjs, so jsDelivr serves them:

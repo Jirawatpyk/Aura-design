@@ -71,3 +71,26 @@ jobs:
         if: failure()
         run: |
           { echo '### Failing tests'; echo '```'; grep -E '^\s+[0-9]+\) |Error:|Expected|Received|violations|passed|failed' ci.log | head -80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Package the Storybook site
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/storybook/storybook-static
+
+  # Public Storybook on GitHub Pages — only from main, only after every Storybook test passed.
+  # One-time setup: repository Settings → Pages → Source: GitHub Actions.
+  pages:
+    name: Deploy Storybook to GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [checks, pilots, storybook]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency: { group: pages, cancel-in-progress: false }
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

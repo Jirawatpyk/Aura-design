@@ -2,3 +2,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+  /* Welcome page: AURA type inside the Storybook docs frame */
+  .aura-welcome { font-family: var(--font-sans); color: var(--aura-fg-primary); max-width: 760px; }
+  .aura-welcome h1 { font-family: var(--font-display); font-weight: 600; }
+  .aura-welcome .aura-welcome__links { margin: 24px 0 40px; }
+  /* Storybook's docs styles colour and size every <a>; the two link-buttons keep AURA's button look. */
+  .aura-welcome .sbdocs a.aura-btn, .aura-welcome a.aura-btn { text-decoration: none; font-size: 13px; line-height: inherit; }
+  .aura-welcome a.aura-btn.aura-btn--primary { color: var(--aura-button-primary-fg); }
+  .aura-welcome a.aura-btn.aura-btn--secondary { color: var(--aura-fg-primary); }
+  /* Storybook's docs link blue (2.9:1) and code colours (3.6–4:1) miss AA; the Welcome page uses AURA's accent and darker code colours. */
+  .aura-welcome a.sbdocs-a { color: var(--aura-fg-accent) !important; }
+  .aura-welcome .token.class-name { color: var(--aura-fg-accent) !important; }
+  .aura-welcome .token.attr-name { color: var(--aura-fg-danger) !important; }
+  /* Long lines wrap instead of scrolling sideways, so the code blocks have no scroll region to reach by keyboard. */
+  .aura-welcome pre, .aura-welcome pre code, .aura-welcome pre span { white-space: pre-wrap !important; overflow-wrap: anywhere; }
+</style>

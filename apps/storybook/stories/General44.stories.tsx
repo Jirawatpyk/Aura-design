@@ -1,3 +1,4 @@
+/* aura-lint: allow-colours — ThemedStory passes a sample brand colour to ThemeStyle, the input a project would give. */
 import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';

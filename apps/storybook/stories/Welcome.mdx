@@ -1,0 +1,74 @@
+import { Meta } from '@storybook/blocks';
+import * as Aura from '@aura/react';
+
+<Meta title="Welcome" />
+
+{/* aura-lint: allow-colours — the brand colour in the aura-theme CLI example is user input, not UI */}
+
+<div className="aura-welcome">
+
+# AURA Design System
+
+**Enterprise Standard, Human Creative.** One design system for every project: design tokens, 43 accessible React components and a brand layer, so each project gets its own colour without forking the system. Thai-first: Buddhist-era dates, Thai labels and fonts, 24-hour times.
+
+<Aura.Stack direction={{ base: 'column', sm: 'row' }} gap={3} className="aura-welcome__links">
+  <a className="aura-btn aura-btn--primary" href="https://www.npmjs.com/package/@jirawatpyk/aura-react" target="_blank" rel="noopener"><Aura.Icon name="external-link" />npm package</a>
+  <a className="aura-btn aura-btn--secondary" href="https://github.com/Jirawatpyk/Aura-design" target="_blank" rel="noopener"><Aura.Icon name="external-link" />GitHub</a>
+</Aura.Stack>
+
+## Install
+
+```bash
+npm i @jirawatpyk/aura-react @jirawatpyk/aura-tokens   # React 18 or newer
+```
+
+```tsx
+import '@jirawatpyk/aura-tokens/aura.css';      // tokens, light + dark
+import '@jirawatpyk/aura-react/styles.css';     // component styles
+import { AuraProvider, Button, DatePicker } from '@jirawatpyk/aura-react';
+
+export default function App() {
+  return (
+    <AuraProvider locale="th">
+      <Button icon="plus">New order</Button>
+      <DatePicker label="Delivery date" />
+    </AuraProvider>
+  );
+}
+```
+
+Fonts come from Google Fonts: add the `<link>` tags from `aura-fonts.css` to your `<head>`, or import that file.
+
+## Try it without a build
+
+Load the files from jsDelivr after React 18 and use `window.Aura`:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-tokens@4/aura.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/aura.bundle.js"></script>
+```
+
+## Your brand
+
+```bash
+npx aura-theme --brand "#0ea5e9" --out src/aura-theme.css
+```
+
+Builds a colour scale from one brand colour, maps it onto the brand tokens (links, focus ring, selection, progress) and adjusts anything that misses WCAG AA. Success, warning and danger never change.
+
+## Where to start
+
+- **Real pages built only from AURA**, at phone, tablet and desktop widths: [Orders (admin, Thai)](?path=/story/aura-responsive--pilot), [Settings (forms, react-hook-form)](?path=/story/aura-new-in-4-4--settings), [Launch page (Creative, re-branded)](?path=/story/aura-new-in-4-4--landing).
+- **Components** are grouped in the sidebar: Actions, Forms, Feedback, Pickers, Overlays, Data, Layout.
+- Use the toolbar to switch **Theme** (light / dark) and **Locale** (Thai labels).
+
+## Quality bar
+
+Every story passes axe (WCAG 2.1 AA) in light and dark on every commit, plus 37 keyboard and behaviour tests, server rendering and hydration checks, and three pilot pages tested at 390, 820 and 1440px.
+
+MIT licence · icons from Lucide (ISC).
+
+</div>

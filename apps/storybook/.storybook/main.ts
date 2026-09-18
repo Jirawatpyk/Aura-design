@@ -2,7 +2,7 @@ import type { StorybookConfig } from '@storybook/react-vite';
 import path from 'node:path';
 
 const config: StorybookConfig = {
-  stories: ['../stories/**/*.stories.@(ts|tsx)'],
+  stories: ['../stories/**/*.mdx', '../stories/**/*.stories.@(ts|tsx)'],
   addons: ['@storybook/addon-essentials', '@storybook/addon-a11y', '@chromatic-com/storybook'],
   framework: { name: '@storybook/react-vite', options: {} },
   staticDirs: [{ from: '../../../packages/tokens', to: '/aura' }],

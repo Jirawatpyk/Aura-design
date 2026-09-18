@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **Public Storybook** at https://jirawatpyk.github.io/Aura-design/: CI deploys it to GitHub Pages from `main`, only after every Storybook test passed.
+- **Welcome page** in Storybook: what AURA is, install, CDN, brand theme, links to the three pilots. Storybook is branded "AURA Design System".
+- The axe run now covers MDX docs pages too (it found Storybook's own link blue and code colours below AA on the Welcome page; fixed there).
+
 ## 4.4.2 — 2026-09-18
 
 ### Changed
