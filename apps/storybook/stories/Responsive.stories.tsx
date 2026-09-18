@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
-import { App as BookingsPage } from '../../../packages/react/examples/bookings/App.jsx';
-import '../../../packages/react/examples/bookings/pilot.css';
+import { App as OrdersPage } from '../../../packages/react/examples/orders/App.jsx';
+import '../../../packages/react/examples/orders/pilot.css';
 
 const meta: Meta = { title: 'AURA/Responsive' };
 export default meta;
@@ -26,12 +26,12 @@ export const StackGrid: StoryObj = {
   },
 };
 
-const rows = Array.from({ length: 8 }, (_, i) => ({ id: 'BK-' + (1040 + i), name: ['คุณสมชาย ใจดี', 'Anna Lee', 'คุณวิภา รักดี', 'Mark Chen'][i % 4], status: ['Ready', 'In Progress', 'Blocked', 'Backlog'][i % 4], owner: ['สมศรี', 'มาลี', 'บุญมี', '—'][i % 4] }));
+const rows = Array.from({ length: 8 }, (_, i) => ({ id: 'ORD-' + (1040 + i), name: ['คุณสมชาย ใจดี', 'Anna Lee', 'คุณวิภา รักดี', 'Mark Chen'][i % 4], status: ['Ready', 'In Progress', 'Blocked', 'Backlog'][i % 4], owner: ['กมล', 'ธนพร', 'ปิยะ', '—'][i % 4] }));
 export const StackedTable: StoryObj = {
   name: 'DataTable (stackBelow)',
   parameters: { viewport: { defaultViewport: 'mobile1' } },
   render: () => (
-    <Aura.DataTable label="Bookings" rows={rows} selectable pageSize={5} stackBelow={640}
+    <Aura.DataTable label="Orders" rows={rows} selectable pageSize={5} stackBelow={640}
       columns={[{ key: 'id', label: 'ID', width: 96, mono: true, sortable: true }, { key: 'name', label: 'NAME', width: 180 }, { key: 'status', label: 'STATUS', width: 120, pill: true }, { key: 'owner', label: 'OWNER' },
         { key: 'actions', label: '', actions: true, width: 56, render: (r: any) => <Aura.DropdownMenu label={'Actions for ' + r.id} items={[{ label: 'View', icon: 'eye', onSelect: () => {} }]} trigger={<Aura.IconButton icon="ellipsis" label={'Actions for ' + r.id} />} /> }]} />
   ),
@@ -42,10 +42,10 @@ export const Shell: StoryObj = {
   parameters: { layout: 'fullscreen' },
   decorators: [(S) => <div style={{ margin: -24 }}><S /></div>],
   render: () => {
-    const [nav, setNav] = React.useState('bookings');
+    const [nav, setNav] = React.useState('orders');
     return (
-      <Aura.AppShell header={<strong>Bookings</strong>}
-        nav={<Aura.SideNav value={nav} onChange={setNav} items={[{ id: 'home', label: 'Dashboard', icon: 'layout-dashboard' }, { id: 'bookings', label: 'Bookings', icon: 'calendar', count: 6 }, { id: 'maids', label: 'Maids', icon: 'users' }]} />}>
+      <Aura.AppShell header={<strong>Orders</strong>}
+        nav={<Aura.SideNav value={nav} onChange={setNav} items={[{ id: 'home', label: 'Dashboard', icon: 'layout-dashboard' }, { id: 'orders', label: 'Orders', icon: 'calendar', count: 6 }, { id: 'team', label: 'Team', icon: 'users' }]} />}>
         <p>Resize the canvas: the navigation is fixed from 1024px and moves into a drawer below it.</p>
       </Aura.AppShell>
     );
@@ -53,8 +53,8 @@ export const Shell: StoryObj = {
 };
 
 export const Pilot: StoryObj = {
-  name: 'Pilot: bookings page',
+  name: 'Pilot: orders page',
   parameters: { layout: 'fullscreen' },
   decorators: [(S) => <div style={{ margin: -24 }}><Aura.AuraProvider locale="th"><S /></Aura.AuraProvider></div>],
-  render: () => <BookingsPage />,
+  render: () => <OrdersPage />,
 };

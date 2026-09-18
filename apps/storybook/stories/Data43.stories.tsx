@@ -8,7 +8,7 @@ export default meta;
 export const Stats: StoryObj = {
   render: () => (
     <Aura.Grid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
-      <Aura.Stat label="Jobs today" icon="calendar" value={18} unit="jobs" caption="3 need a maid" />
+      <Aura.Stat label="Orders today" icon="calendar" value={18} unit="orders" caption="3 not assigned yet" />
       <Aura.Stat label="Revenue" value="฿31,900" change={{ value: '+12%', direction: 'up', label: 'vs Aug' }} href="#" />
       <Aura.Stat label="Cancellations" icon="ban" value={4} change={{ value: '+2', direction: 'up', tone: 'negative', label: 'vs last week' }} />
       <Aura.Stat label="Response time" icon="clock" loading />
@@ -46,13 +46,13 @@ export const FileUploadStory: StoryObj = {
   },
 };
 
-const rows = Array.from({ length: 6 }, (_, i) => ({ id: 'BK-' + (1040 + i), name: ['คุณสมชาย ใจดี', 'Anna Lee', 'คุณวิภา รักดี'][i % 3], date: '18 ก.ย. 2569', status: ['Ready', 'In Progress', 'Blocked'][i % 3], maid: 'สมศรี', amount: '฿1,050' }));
+const rows = Array.from({ length: 6 }, (_, i) => ({ id: 'ORD-' + (1040 + i), name: ['คุณสมชาย ใจดี', 'Anna Lee', 'คุณวิภา รักดี'][i % 3], date: '18 ก.ย. 2569', status: ['Ready', 'In Progress', 'Blocked'][i % 3], owner: 'กมล', amount: '฿1,050' }));
 export const TabletTable: StoryObj = {
   name: 'DataTable (hideBelow)',
   render: () => (
-    <Aura.DataTable label="Bookings" rows={rows} selectable stackBelow={640}
+    <Aura.DataTable label="Orders" rows={rows} selectable stackBelow={640}
       columns={[{ key: 'id', label: 'ID', width: 104, mono: true }, { key: 'name', label: 'NAME', width: 180 }, { key: 'date', label: 'DATE', width: 150 },
-        { key: 'maid', label: 'MAID', width: 140, hideBelow: 860 }, { key: 'status', label: 'STATUS', width: 120, pill: true }, { key: 'amount', label: 'AMOUNT', width: 96, hideBelow: 800 },
+        { key: 'owner', label: 'OWNER', width: 140, hideBelow: 860 }, { key: 'status', label: 'STATUS', width: 120, pill: true }, { key: 'amount', label: 'AMOUNT', width: 96, hideBelow: 800 },
         { key: 'actions', label: '', actions: true, width: 56, render: (r: any) => <Aura.DropdownMenu label={'Actions for ' + r.id} items={[{ label: 'View', icon: 'eye', onSelect: () => {} }]} trigger={<Aura.IconButton icon="ellipsis" label={'Actions for ' + r.id} />} /> }]} />
   ),
 };

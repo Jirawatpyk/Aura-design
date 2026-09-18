@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Example data is now neutral: the admin pilot is an **orders** page (`examples/orders`, ORD- ids, customers, owners, branches, categories) instead of cleaning-service bookings; Storybook stories, fixtures and docs use the same data. No component or token changed.
+
 ## 4.4.0 — 2026-09-18
 
 ### Added

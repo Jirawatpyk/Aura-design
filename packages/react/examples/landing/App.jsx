@@ -42,7 +42,7 @@ export function App() {
             <Stack gap={6} align="flex-start">
               <Badge tone="neutral" variant="outline">ใหม่ · เวอร์ชัน 2</Badge>
               <h1 id="hero-title" className="lp-display">ระบบหลังบ้านที่ทีมเล็ก<br />ทำงานได้เท่าทีมใหญ่</h1>
-              <p className="lp-lead">จองงาน จัดคน ส่งใบเสร็จ และดูตัวเลขทั้งหมดในหน้าเดียว ออกแบบมาสำหรับธุรกิจบริการในไทย</p>
+              <p className="lp-lead">คำสั่งซื้อ ลูกค้า ทีม ใบเสร็จ และตัวเลขทั้งหมดอยู่ในหน้าเดียว ใช้ได้กับธุรกิจทุกขนาด</p>
               <Stack direction={{ base: 'column', sm: 'row' }} gap={3} align={{ base: 'stretch', sm: 'center' }}>
                 <Button variant="creative" iconRight="arrow-right" onClick={() => document.getElementById('join-email').focus()}>ทดลองใช้ฟรี 14 วัน</Button>
                 <Button variant="secondary" icon="calendar">นัดดูเดโม</Button>
@@ -55,8 +55,8 @@ export function App() {
           <Container>
             <h2 id="stats-title" className="lp-h2">ตัวเลขจากลูกค้าจริง</h2>
             <Grid columns={{ base: 1, sm: 3 }} gap={4}>
-              <Stat label="เวลาจัดตารางต่อวัน" value="-72%" change={{ value: '3 ชม. → 50 นาที', direction: 'down', tone: 'positive' }} icon="clock" />
-              <Stat label="งานที่ยกเลิก" value="-18%" change={{ value: 'หลังเปิดเตือนล่วงหน้า', direction: 'down', tone: 'positive' }} icon="ban" />
+              <Stat label="เวลาปิดยอดต่อวัน" value="-72%" change={{ value: '3 ชม. → 50 นาที', direction: 'down', tone: 'positive' }} icon="clock" />
+              <Stat label="คำสั่งซื้อที่ตกหล่น" value="-18%" change={{ value: 'หลังเปิดแจ้งเตือนอัตโนมัติ', direction: 'down', tone: 'positive' }} icon="ban" />
               <Stat label="ธุรกิจที่ใช้งาน" value="1,240" unit="ราย" caption="ใน 38 จังหวัด" icon="users" />
             </Grid>
           </Container>
@@ -67,10 +67,10 @@ export function App() {
             <h2 id="features-title" className="lp-h2">ทุกอย่างที่ต้องใช้ ไม่มีที่เกิน</h2>
             <Grid minItemWidth={240} gap={6}>
               {[
-                ['calendar', 'จองงานในคลิกเดียว', 'ลูกค้าจองเองผ่านลิงก์ ระบบกันเวลาชนให้'],
-                ['users', 'จัดทีมอัตโนมัติ', 'เลือกคนว่างที่ใกล้ที่สุด พร้อมคะแนนรีวิว'],
-                ['file-text', 'ใบเสร็จและใบกำกับ', 'ออกเป็น PDF ส่งทางอีเมลหรือ LINE'],
-                ['chart-column', 'ตัวเลขที่อ่านรู้เรื่อง', 'รายได้ งานค้าง และคนที่ทำงานหนักเกินไป'],
+                ['file-text', 'คำสั่งซื้อในที่เดียว', 'รวมทุกช่องทาง ทั้งหน้าร้าน ออนไลน์ และแชต'],
+                ['users', 'มอบหมายงานอัตโนมัติ', 'ส่งงานให้คนที่ว่าง ตามทีมและสาขา'],
+                ['mail', 'ใบเสร็จและใบกำกับ', 'ออกเป็น PDF ส่งทางอีเมลหรือ LINE'],
+                ['chart-column', 'ตัวเลขที่อ่านรู้เรื่อง', 'รายได้ งานค้าง และสิ่งที่ต้องทำวันนี้'],
               ].map(([icon, t, d]) => (
                 <Card key={t} variant="creative" headingLevel={3} title={<span className="lp-card-title"><Icon name={icon} size="md" />{t}</span>}>{d}</Card>
               ))}

@@ -81,7 +81,7 @@ Made by the design-system owner in one pass, instead of separate Proposals. Each
 - **AURA is for every project.** Project-specific needs (recurring bookings, a scheduling calendar) are built in the project, not in the system. A component joins AURA when at least two projects need it.
 - **Brand is a theme layer.** `createTheme` / `aura-theme` / `ThemeStyle` re-map brand-carrying tokens; meaning colours never follow the brand. A theme that fails a contrast check fails the build.
 - **Every component forwards its ref** to its real DOM element.
-- **Three pilots are the acceptance test**: admin (Bookings, Thai), form-heavy (Settings, English, react-hook-form), Creative (Launch, re-branded). A change ships when all three pass axe in both themes at 390/820/1440px.
+- **Three pilots are the acceptance test**: admin (Orders, Thai), form-heavy (Settings, English, react-hook-form), Creative (Launch, re-branded). A change ships when all three pass axe in both themes at 390/820/1440px.
 - **Textures are always light**: Surface forces light-theme tokens inside.
 - **Distribution**: one GitHub repository (Jirawatpyk/Aura-design) publishing `@jirawatpyk/aura-tokens` and `@jirawatpyk/aura-react` to GitHub Packages; projects install a version, never copy files.
 

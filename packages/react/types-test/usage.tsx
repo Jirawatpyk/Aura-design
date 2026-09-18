@@ -4,7 +4,7 @@ import { AppShell, SideNav, Stack, Grid, Container, Combobox, DatePicker, DateRa
   DataTable, Stat, Badge, Tag, Progress, Skeleton, EmptyState, Pagination, Accordion, Popover, Checkbox, createTheme, ThemeStyle, TimePicker, FileUpload, formatBytes, parseTime, type UploadItem, formatDate, parseDate, useBreakpoint, useResponsive, breakpoints, toast, type DateRange } from '../index';
 
 export function Page() {
-  const [maid, setMaid] = React.useState<string | null>(null);
+  const [owner, setOwner] = React.useState<string | null>(null);
   const [date, setDate] = React.useState<string | null>('2026-09-18');
   const [range, setRange] = React.useState<DateRange>({ start: null, end: null });
   const [open, setOpen] = React.useState(false);
@@ -14,10 +14,10 @@ export function Page() {
   const cols = useResponsive<number>({ base: 1, md: 2, lg: 4 });
   const label: string = formatDate(date, { format: 'long' }) + (parseDate('18/09/2569') ?? '') + breakpoints.lg + bp + cols;
   return (
-    <AppShell nav={<SideNav items={[{ id: 'b', label: 'Bookings', icon: 'calendar' }]} value="b" />} header={label}>
+    <AppShell nav={<SideNav items={[{ id: 'b', label: 'Orders', icon: 'calendar' }]} value="b" />} header={label}>
       <Container>
         <Stack direction={{ base: 'column', md: 'row' }} gap={{ base: 2, md: 4 }} align="flex-end">
-          <Combobox label="แม่บ้าน" options={[{ value: 'a', label: 'สมศรี', keywords: ['somsri'] }, 'Mai']} value={maid} onChange={setMaid} clearable />
+          <Combobox label="ผู้ดูแล" options={[{ value: 'a', label: 'กมล', keywords: ['kamon'] }, 'Mai']} value={owner} onChange={setOwner} clearable />
           <DatePicker label="วันที่" value={date} onChange={setDate} min="2026-01-01" />
           <DateRangePicker label="ช่วงวันที่" value={range} onChange={setRange} calendar="gregory" locale="en" />
           <DropdownMenu label="Actions" trigger={<IconButton icon="ellipsis" label="Actions" />} items={[{ label: "Export", icon: "download" }]} />
@@ -29,7 +29,7 @@ export function Page() {
         <TimePicker label="เวลา" value={time} onChange={setTime} step={15} min="08:00" max="18:00" isTimeDisabled={(t) => t === '12:00'} />
         <FileUpload label="รูป" accept="image/*" multiple maxFiles={3} maxSize={5 * 1024 * 1024} value={files} onChange={setFiles} hint={formatBytes(1024)} />
       </Container>
-      <Drawer open={open} onClose={() => setOpen(false)} title="BK-1042" size="lg" footer={<Button variant="secondary">Close</Button>}>x</Drawer>
+      <Drawer open={open} onClose={() => setOpen(false)} title="ORD-1042" size="lg" footer={<Button variant="secondary">Close</Button>}>x</Drawer>
     </AppShell>
   );
 }

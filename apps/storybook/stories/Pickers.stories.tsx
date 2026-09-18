@@ -5,12 +5,12 @@ import { Aura } from './aura';
 const meta: Meta = { title: 'AURA/Pickers' };
 export default meta;
 
-const maids = [
-  { value: 'm1', label: 'สมศรี ใจดี', description: 'สุขุมวิท · 4.9★', keywords: ['somsri'] },
-  { value: 'm2', label: 'มาลี ทองคำ', description: 'สาทร · 4.8★', keywords: ['malee'] },
-  { value: 'm3', label: 'Anna Santos', description: 'สีลม · 4.7★' },
-  { value: 'm4', label: 'บุญมี ศรีสุข', description: 'นนทบุรี · 4.9★', keywords: ['boonmee'] },
-  { value: 'm5', label: 'จันทร์เพ็ญ แก้วใส', description: 'On leave', disabled: true },
+const staff = [
+  { value: 'm1', label: 'กมล ศรีวงศ์', description: 'ทีมขาย · สาขาสยาม', keywords: ['kamon'] },
+  { value: 'm2', label: 'ธนพร ใจงาม', description: 'ทีมขาย · สาขาอารีย์', keywords: ['thanaporn'] },
+  { value: 'm3', label: 'Alex Morgan', description: 'ลูกค้าองค์กร' },
+  { value: 'm4', label: 'ปิยะ รุ่งเรือง', description: 'ทีมจัดส่ง · สาขาบางนา', keywords: ['piya'] },
+  { value: 'm5', label: 'วรรณา แก้วใส', description: 'On leave', disabled: true },
 ];
 
 export const ComboboxStory: StoryObj = {
@@ -19,8 +19,8 @@ export const ComboboxStory: StoryObj = {
     const [v, setV] = React.useState<string | null>(null);
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 320px))', gap: 24 }}>
-        <Aura.Combobox label="แม่บ้าน" placeholder="พิมพ์ชื่อ หรือ somsri" options={maids} value={v} onChange={setV} hint={'Value: ' + String(v)} />
-        <Aura.Combobox label="Area" options={['Sukhumvit', 'Sathorn', 'Silom']} required error="Choose an area to see available maids." />
+        <Aura.Combobox label="ผู้ดูแล" placeholder="พิมพ์ชื่อ หรือ kamon" options={staff} value={v} onChange={setV} hint={'Value: ' + String(v)} />
+        <Aura.Combobox label="Team" options={['Sales', 'Delivery', 'Support']} required error="Choose a team to see who is available." />
       </div>
     );
   },
@@ -29,13 +29,13 @@ export const ComboboxStory: StoryObj = {
 export const ComboboxServer: StoryObj = {
   name: 'Combobox (server search)',
   render: () => {
-    const [opts, setOpts] = React.useState(maids);
+    const [opts, setOpts] = React.useState(staff);
     const [loading, setLoading] = React.useState(false);
     const t = React.useRef<any>(null);
     return (
       <div style={{ maxWidth: 320 }}>
         <Aura.Combobox label="Customer" options={opts} loading={loading}
-          onSearch={(q) => { setLoading(true); clearTimeout(t.current); t.current = setTimeout(() => { setOpts(maids.filter((m) => Aura.comboboxFilter(m, q))); setLoading(false); }, 400); }} />
+          onSearch={(q) => { setLoading(true); clearTimeout(t.current); t.current = setTimeout(() => { setOpts(staff.filter((m) => Aura.comboboxFilter(m, q))); setLoading(false); }, 400); }} />
       </div>
     );
   },
@@ -47,7 +47,7 @@ export const DatePickerStory: StoryObj = {
     const [a, setA] = React.useState<string | null>('2026-09-18');
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 320px))', gap: 24 }}>
-        <Aura.DatePicker label="วันที่นัด" value={a} onChange={setA} min="2026-09-01" hint={'ISO: ' + String(a)} />
+        <Aura.DatePicker label="วันที่ส่ง" value={a} onChange={setA} min="2026-09-01" hint={'ISO: ' + String(a)} />
         <Aura.DatePicker label="Due date" locale="en" calendar="gregory" weekStartsOn={1} optional />
         <Aura.DatePicker label="วันเกิด" required error="ใส่วันเกิดเป็น วว/ดด/ปปปป เช่น 05/12/2530" />
         <Aura.DatePicker label="Locked" defaultValue="2026-09-18" disabled />

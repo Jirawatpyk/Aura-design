@@ -30,7 +30,7 @@ export const ProgressSkeletonEmpty: StoryObj = {
       <Aura.Progress label="Storage" value={7.4} max={10} valueLabel="7.4 of 10 GB" showValue />
       <Aura.Progress aria-label="Importing" />
       <Aura.Skeleton lines={3} />
-      <Aura.EmptyState bordered icon="folder" title="No projects yet" description="Projects group bookings, files and people." action={<Aura.Button icon="plus">New Project</Aura.Button>} />
+      <Aura.EmptyState bordered icon="folder" title="No projects yet" description="Projects group orders, files and people." action={<Aura.Button icon="plus">New Project</Aura.Button>} />
     </Aura.Stack>
   ),
 };

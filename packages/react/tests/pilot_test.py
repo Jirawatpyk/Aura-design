@@ -1,8 +1,8 @@
-"""Behaviour + axe tests for the bookings pilot (examples/bookings/dist/index.html). python3 tests/pilot_test.py"""
+"""Behaviour + axe tests for the orders pilot (examples/orders/dist/index.html). python3 tests/pilot_test.py"""
 import os, re, sys
 from playwright.sync_api import sync_playwright, expect
 HERE = os.path.dirname(os.path.abspath(__file__))
-URL = 'file://' + os.path.join(HERE, '../examples/bookings/dist/index.html')
+URL = 'file://' + os.path.join(HERE, '../examples/orders/dist/index.html')
 def _axe_path():
     for c in [os.environ.get('AXE'), os.path.join(HERE, '../node_modules/axe-core/axe.min.js'), os.path.join(HERE, '../../../node_modules/axe-core/axe.min.js')]:
         if c and os.path.exists(c): return c
@@ -37,12 +37,12 @@ def d_thai_strings(pg):
     t = count_text(pg); assert 'จาก 48' in t, t
     expect(pg.get_by_text('หน้า 1 / 5')).to_be_visible()
 def d_combobox(pg):
-    cb = pg.get_by_role('combobox', name='แม่บ้าน')
-    cb.fill('somsri'); expect(pg.get_by_role('option', name=re.compile('สมศรี'))).to_be_visible()
+    cb = pg.get_by_role('combobox', name='ผู้ดูแล')
+    cb.fill('kamon'); expect(pg.get_by_role('option', name=re.compile('กมล'))).to_be_visible()
     assert pg.get_by_role('listbox').get_by_role('option').count() == 1
-    cb.press('Enter'); expect(cb).to_have_value('สมศรี ใจดี')
+    cb.press('Enter'); expect(cb).to_have_value('กมล ศรีวงศ์')
     cells = pg.locator('.aura-table__row [data-rc$=":4"]').all_inner_texts()
-    assert cells and all(c == 'สมศรี ใจดี' for c in cells), cells
+    assert cells and all(c == 'กมล ศรีวงศ์' for c in cells), cells
     cb.press('Escape'); expect(cb).to_have_value('')  # Escape clears the value
 def d_range_typed(pg):
     f = pg.get_by_label('ช่วงวันที่', exact=True)
@@ -62,65 +62,69 @@ def d_calendar_keys(pg):
         pg.keyboard.press('Tab'); assert pg.evaluate("!!document.activeElement.closest('.aura-cal__popover')")
     pg.keyboard.press('Escape'); expect(dlg).to_have_count(0)
     assert pg.evaluate('document.activeElement.id') == 'f-range'
+def first_id(pg): return pg.locator('.aura-table__row').first.locator('[data-rc$=":1"]').inner_text()
 def d_row_menu_drawer(pg):
-    pg.get_by_role('button', name='จัดการ BK-1040').click()
+    rid = first_id(pg)
+    pg.get_by_role('button', name='จัดการ ' + rid).click()
     pg.get_by_role('menuitem', name='ดูรายละเอียด').click()
-    dr = pg.get_by_role('dialog', name='BK-1040'); expect(dr).to_be_visible()
+    dr = pg.get_by_role('dialog', name=rid); expect(dr).to_be_visible()
     box = dr.bounding_box(); assert abs(box['x'] + box['width'] - 1440) < 2, box
     pg.keyboard.press('Escape'); expect(dr).to_have_count(0)
 def d_cell_enter(pg):
     cell = pg.locator('.aura-table__row').first.locator('[data-rc$=":7"]')
     cell.focus(); pg.keyboard.press('Enter')
-    assert pg.evaluate('document.activeElement.getAttribute("aria-label")') == 'จัดการ BK-1040'
+    assert pg.evaluate('document.activeElement.getAttribute("aria-label")') == 'จัดการ ' + first_id(pg)
     pg.keyboard.press('Escape'); assert pg.evaluate('document.activeElement.getAttribute("data-rc")').endswith(':7')
-def d_new_booking(pg):
-    pg.get_by_role('button', name='สร้างการจอง').click()
-    dlg = pg.get_by_role('dialog', name='สร้างการจอง'); expect(dlg).to_be_visible()
+def d_new_order(pg):
+    pg.get_by_role('button', name='สร้างคำสั่งซื้อ').click()
+    dlg = pg.get_by_role('dialog', name='สร้างคำสั่งซื้อ'); expect(dlg).to_be_visible()
     assert pg.evaluate('document.activeElement.closest(".aura-field") && document.activeElement.id') , 'autofocus'
-    pg.get_by_role('button', name='บันทึกการจอง').click()
-    expect(dlg.get_by_text('ใส่ชื่อลูกค้า')).to_be_visible(); expect(dlg.get_by_text(re.compile('เลือกแม่บ้าน'))).to_be_visible()
+    pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').click()
+    expect(dlg.get_by_text('ใส่ชื่อลูกค้า')).to_be_visible(); expect(dlg.get_by_text(re.compile('เลือกผู้ดูแล'))).to_be_visible()
     dlg.get_by_role('textbox', name=re.compile('^ลูกค้า')).fill('คุณทดสอบ ระบบ')
-    cb = dlg.get_by_role('combobox', name='แม่บ้าน'); cb.fill('มาลี'); cb.press('Enter')
+    cb = dlg.get_by_role('combobox', name=re.compile('^ผู้ดูแล')); cb.fill('ธนพร'); cb.press('Enter')
     # the calendar popover opens above the dialog (z-index) and picks a date
     dlg.get_by_role('button', name='เปิดปฏิทิน').click()
     cal = pg.locator('.aura-cal__popover'); expect(cal).to_be_visible()
     b = cal.bounding_box(); top = pg.evaluate(f"document.elementFromPoint({b['x']+b['width']/2},{b['y']+b['height']/2}).closest('.aura-cal__popover') !== null")
     assert top, 'calendar is under the dialog'
     cal.locator('[data-date="2026-09-25"]').click()
-    expect(dlg.get_by_role('textbox', name=re.compile('^วันที่'))).to_have_value('25 ก.ย. 2569')
-    tp = dlg.get_by_role('combobox', name=re.compile('^เวลาเริ่ม'))
+    expect(dlg.get_by_role('textbox', name=re.compile('^วันที่ส่ง'))).to_have_value('25 ก.ย. 2569')
+    tp = dlg.get_by_role('combobox', name=re.compile('^เวลาส่ง'))
     tp.fill('19'); tp.press('Enter')
     expect(dlg.get_by_text('เลือกเวลาระหว่าง 08:00–18:00 น.')).to_be_visible()   # out of range is refused, with a reason
     tp.fill('930'); tp.press('Enter'); expect(tp).to_have_value('09:30')
-    tp.press('ArrowDown'); expect(pg.get_by_role('listbox', name=re.compile('^เวลาเริ่ม'))).to_be_visible()
+    tp.press('ArrowDown'); expect(pg.get_by_role('listbox', name=re.compile('^เวลาส่ง'))).to_be_visible()
     tp.press('ArrowDown'); tp.press('Enter'); expect(tp).to_have_value('10:00')
-    pg.get_by_role('button', name='บันทึกการจอง').click()
-    expect(pg.get_by_text('บันทึก BK-1088 แล้ว')).to_be_visible(); expect(dlg).to_have_count(0)
+    pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').click()
+    expect(pg.get_by_text('บันทึก ORD-1088 แล้ว')).to_be_visible(); expect(dlg).to_have_count(0)
     assert 'จาก 49' in count_text(pg)
     pg.get_by_role('button', name='ปิดการแจ้งเตือน').first.click(); expect(pg.locator('.aura-toast')).to_have_count(0)
 def d_past_date(pg):
-    pg.get_by_role('button', name='สร้างการจอง').click()
-    dlg = pg.get_by_role('dialog', name='สร้างการจอง')
-    f = dlg.get_by_role('textbox', name=re.compile('^วันที่')); f.fill('2026-09-01'); f.press('Tab')
-    pg.get_by_role('button', name='บันทึกการจอง').click()
+    pg.get_by_role('button', name='สร้างคำสั่งซื้อ').click()
+    dlg = pg.get_by_role('dialog', name='สร้างคำสั่งซื้อ')
+    f = dlg.get_by_role('textbox', name=re.compile('^วันที่ส่ง')); f.fill('2026-09-01'); f.press('Tab')
+    pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').click()
     expect(dlg.get_by_text('เลือกวันนี้หรือหลังจากนี้')).to_be_visible()
     pg.keyboard.press('Escape')
 def d_cancel_undo(pg):
-    pg.get_by_role('button', name='จัดการ BK-1061').click()
-    pg.get_by_role('menuitem', name='ยกเลิกการจอง').click()
+    row = pg.locator('.aura-table__row').filter(has_not=pg.locator('.aura-pill', has_text='ยกเลิก')).nth(1)
+    rid = row.locator('[data-rc$=":1"]').inner_text(); before = row.locator('.aura-pill').inner_text()
+    pg.get_by_role('button', name='จัดการ ' + rid).click()
+    pg.get_by_role('menuitem', name='ยกเลิกคำสั่งซื้อ').click()
     ad = pg.get_by_role('alertdialog'); expect(ad).to_be_visible()
-    ad.get_by_role('button', name='ยกเลิกการจอง').click()
-    row = pg.locator('.aura-table__row', has_text='BK-1061')
+    ad.get_by_role('button', name='ยกเลิกคำสั่งซื้อ').click()
+    row = pg.locator('.aura-table__row', has_text=rid)
     expect(row.get_by_text('ยกเลิก', exact=True)).to_be_visible()
     pg.get_by_role('button', name='เลิกทำ').click()
-    expect(row.get_by_text('เสร็จแล้ว')).to_be_visible()
+    expect(row.locator('.aura-pill')).to_have_text(before)
 
 def d_upload(pg):
     import base64
     png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==')
-    pg.get_by_role('button', name='สร้างการจอง').click()
-    dlg = pg.get_by_role('dialog', name='สร้างการจอง')
-    inp = dlg.get_by_label(re.compile('^รูปหน้างาน'))
+    pg.get_by_role('button', name='สร้างคำสั่งซื้อ').click()
+    dlg = pg.get_by_role('dialog', name='สร้างคำสั่งซื้อ')
+    inp = dlg.get_by_label(re.compile('^ไฟล์แนบ'))
     inp.set_input_files([{'name': 'kitchen.png', 'mimeType': 'image/png', 'buffer': png},
                          {'name': 'huge.png', 'mimeType': 'image/png', 'buffer': b'0' * (6 * 1024 * 1024)},
                          {'name': 'notes.txt', 'mimeType': 'text/plain', 'buffer': b'hi'}])
@@ -130,7 +134,7 @@ def d_upload(pg):
     expect(items.nth(2)).to_contain_text('ไม่รองรับไฟล์ชนิดนี้')
     dlg.get_by_role('button', name='ลบ notes.txt').click(); expect(items).to_have_count(2)
     assert pg.evaluate('document.activeElement.type') == 'file'           # focus goes back to the input
-    pg.get_by_role('button', name='บันทึกการจอง').click()
+    pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').click()
     expect(dlg.get_by_text('ลบไฟล์ที่มีปัญหาก่อนบันทึก')).to_be_visible()
 def d_grid_one_tab_stop(pg):
     first = pg.locator('.aura-table__row').first.locator('[data-rc$=":1"]')
@@ -157,7 +161,7 @@ def d_themes(pg):
 # ---------- tablet ----------
 def t_table_fits(pg):
     headers = pg.locator('[role=columnheader]').all_inner_texts()
-    assert not any('แม่บ้าน' in x for x in headers) and not any('ยอด' in x for x in headers), headers
+    assert not any('ผู้ดูแล' in x for x in headers) and not any('ยอด' in x for x in headers), headers
     over = pg.evaluate("(() => { const g = document.querySelector('[role=grid]'); return g.scrollWidth - g.clientWidth; })()")
     assert over <= 1, f'table scrolls sideways by {over}px'
     assert pg.evaluate('document.documentElement.scrollWidth') <= 820
@@ -169,20 +173,20 @@ def p_axe(pg): axe(pg, 'phone')
 def p_nav_drawer(pg):
     pg.get_by_role('button', name='เปิดเมนู').click()
     nav = pg.get_by_role('dialog', name='เมนูหลัก'); expect(nav).to_be_visible()
-    nav.get_by_role('button', name=re.compile('แม่บ้าน')).click() if nav.get_by_role('button', name=re.compile('แม่บ้าน')).count() else nav.get_by_role('link', name=re.compile('แม่บ้าน')).click()
+    nav.get_by_role('button', name=re.compile('ทีม')).click() if nav.get_by_role('button', name=re.compile('ทีม')).count() else nav.get_by_role('link', name=re.compile('ทีม')).click()
     expect(nav).to_have_count(0)
 def p_filters(pg):
     pg.get_by_role('button', name='ตัวกรอง').click()
     dr = pg.get_by_role('dialog', name='ตัวกรอง'); expect(dr).to_be_visible()
     assert dr.bounding_box()['width'] >= 389, dr.bounding_box()
-    dr.get_by_label('สถานะ').select_option('เสร็จแล้ว')
+    dr.get_by_label('สถานะ').select_option('เสร็จสิ้น')
     dr.get_by_role('button', name='ดูผลลัพธ์').click()
     expect(pg.get_by_role('button', name='ตัวกรอง (1)')).to_be_visible()
-    pills = pg.locator('.aura-table__card .aura-pill').all_inner_texts(); assert pills and set(pills) == {'เสร็จแล้ว'}, pills
+    pills = pg.locator('.aura-table__card .aura-pill').all_inner_texts(); assert pills and set(pills) == {'เสร็จสิ้น'}, pills
     pg.get_by_role('button', name='ล้าง', exact=True).click()
 def p_card_detail(pg):
     pg.locator('.aura-table__card').first.locator('.aura-table__card-fields').click()
-    dr = pg.get_by_role('dialog', name=re.compile('^BK-')); expect(dr).to_be_visible()
+    dr = pg.get_by_role('dialog', name=re.compile('^ORD-')); expect(dr).to_be_visible()
     assert dr.bounding_box()['width'] >= 389
     pg.keyboard.press('Escape')
 def p_card_menu(pg):
@@ -190,16 +194,16 @@ def p_card_menu(pg):
     expect(pg.get_by_role('menu')).to_be_visible(); pg.keyboard.press('Escape')
     expect(pg.get_by_role('dialog')).to_have_count(0)  # opening the menu did not also open the detail drawer
 def p_bottom_sheet(pg):
-    pg.get_by_role('button', name='สร้างการจอง').click()
-    dlg = pg.get_by_role('dialog', name='สร้างการจอง'); b = dlg.bounding_box()
+    pg.get_by_role('button', name='สร้างคำสั่งซื้อ').click()
+    dlg = pg.get_by_role('dialog', name='สร้างคำสั่งซื้อ'); b = dlg.bounding_box()
     assert abs(b['y'] + b['height'] - 844) < 2 and b['width'] >= 389, b
-    save = pg.get_by_role('button', name='บันทึกการจอง').bounding_box(); assert save['y'] + save['height'] <= 844, ('Save below the fold', save)
+    save = pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').bounding_box(); assert save['y'] + save['height'] <= 844, ('Save below the fold', save)
     expect(dlg.get_by_text('(ไม่บังคับ)').first).to_be_visible()
     pg.get_by_role('button', name='ยกเลิก', exact=True).click()
 
 with sync_playwright() as p:
     br = p.chromium.launch(**({'executable_path': CHROMIUM} if CHROMIUM else {}))
-    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_booking, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes]),
+    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes]),
                              ('tablet 820', {'width': 820, 'height': 1100}, [t_table_fits, t_axe]),
                              ('phone 390', {'width': 390, 'height': 844}, [p_no_overflow, p_axe, p_nav_drawer, p_filters, p_card_detail, p_card_menu, p_bottom_sheet])]:
         print(label)

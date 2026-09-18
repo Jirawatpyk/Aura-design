@@ -171,14 +171,14 @@ test.describe('DataTable', () => {
 test.describe('Combobox', () => {
   test('filters Thai and keywords, picks with Enter, Escape clears', async ({ page }) => {
     await story(page, 'aura-pickers--combobox-story');
-    const cb = page.getByRole('combobox', { name: 'แม่บ้าน' });
-    await cb.fill('somsri');
+    const cb = page.getByRole('combobox', { name: 'ผู้ดูแล' });
+    await cb.fill('kamon');
     await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(1);
     await cb.press('Enter');
-    await expect(cb).toHaveValue('สมศรี ใจดี');
+    await expect(cb).toHaveValue('กมล ศรีวงศ์');
     await expect(page.getByText('Value: m1')).toBeVisible();
-    await cb.fill('มา');
-    await expect(page.getByRole('option', { name: /มาลี/ })).toBeVisible();
+    await cb.fill('ธน');
+    await expect(page.getByRole('option', { name: /ธนพร/ })).toBeVisible();
     await cb.press('Escape'); await cb.press('Escape');
     await expect(page.getByText('Value: null')).toBeVisible();
   });
@@ -187,7 +187,7 @@ test.describe('Combobox', () => {
 test.describe('DatePicker', () => {
   test('shows พ.ศ., accepts typed Buddhist and Christian years, keeps ISO', async ({ page }) => {
     await story(page, 'aura-pickers--date-picker-story');
-    const f = page.getByRole('textbox', { name: 'วันที่นัด' });
+    const f = page.getByRole('textbox', { name: 'วันที่ส่ง' });
     await expect(f).toHaveValue('18 ก.ย. 2569');
     await f.fill('05/12/2569'); await f.press('Enter');
     await expect(page.getByText('ISO: 2026-12-05')).toBeVisible();
@@ -197,7 +197,7 @@ test.describe('DatePicker', () => {
   test('calendar: focus moves in, arrows move, Enter picks, Escape returns focus', async ({ page }) => {
     await story(page, 'aura-pickers--date-picker-story');
     await page.getByRole('button', { name: 'เปิดปฏิทิน' }).first().click();
-    await expect(page.getByRole('dialog', { name: 'วันที่นัด' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'วันที่ส่ง' })).toBeVisible();
     await expect(page.locator(':focus')).toHaveAttribute('data-date', '2026-09-18');
     await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
     await expect(page.getByText('ISO: 2026-09-25')).toBeVisible();
@@ -229,7 +229,7 @@ test.describe('Drawer and DropdownMenu', () => {
     await story(page, 'aura-overlays--drawer-story');
     const opener = page.getByRole('button', { name: 'Open md' });
     await opener.click();
-    const dr = page.getByRole('dialog', { name: 'BK-1042' });
+    const dr = page.getByRole('dialog', { name: 'ORD-1042' });
     await expect(dr).toBeVisible();
     for (let i = 0; i < 12; i++) { await page.keyboard.press('Tab'); expect(await page.evaluate(() => !!document.activeElement?.closest('.aura-drawer, .aura-cal__popover, .aura-combo__popover'))).toBe(true); }
     await page.keyboard.press('Escape');
@@ -238,11 +238,11 @@ test.describe('Drawer and DropdownMenu', () => {
   });
   test('dropdown opens with ArrowDown, runs the item, focus returns', async ({ page }) => {
     await story(page, 'aura-overlays--dropdown-menu-story');
-    const trigger = page.getByRole('button', { name: 'Actions for BK-1042' });
+    const trigger = page.getByRole('button', { name: 'Actions for ORD-1042' });
     await trigger.focus(); await page.keyboard.press('ArrowDown');
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
     await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
-    await expect(page.getByTestId('last')).toHaveText('Last: Edit booking');
+    await expect(page.getByTestId('last')).toHaveText('Last: Edit order');
     await expect(trigger).toBeFocused();
   });
 });
@@ -256,7 +256,7 @@ test.describe('Responsive', () => {
     await page.setViewportSize({ width: 390, height: 800 });
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Open navigation' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: /Maids/ }).or(page.getByRole('dialog').getByRole('link', { name: /Maids/ })).click();
+    await page.getByRole('dialog').getByRole('button', { name: /Team/ }).or(page.getByRole('dialog').getByRole('link', { name: /Team/ })).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
   test('Stack and Grid follow breakpoints', async ({ page }) => {
@@ -326,12 +326,12 @@ test.describe('4.3', () => {
   test('DataTable hideBelow drops secondary columns on tablets; grid is one tab stop', async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 900 });
     await story(page, 'aura-new-in-4-3--tablet-table');
-    await expect(page.getByRole('columnheader', { name: 'MAID' })).toHaveCount(0);
+    await expect(page.getByRole('columnheader', { name: 'OWNER' })).toHaveCount(0);
     await expect(page.getByRole('columnheader', { name: 'AMOUNT' })).toHaveCount(0);
     const over = await page.getByRole('grid').evaluate((g) => g.scrollWidth - g.clientWidth);
     expect(over).toBeLessThanOrEqual(1);
     await page.setViewportSize({ width: 1280, height: 900 });
-    await expect(page.getByRole('columnheader', { name: 'MAID' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'OWNER' })).toBeVisible();
     await page.locator('[data-rc="1:1"]').focus();
     await page.keyboard.press('Tab');
     expect(await page.evaluate(() => !!document.activeElement?.closest('[role=grid]'))).toBe(false);
