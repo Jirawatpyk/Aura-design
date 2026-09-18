@@ -1,8 +1,8 @@
 {
   "name": "aura-design",
   "private": true,
-  "version": "4.4.0",
-  "description": "AURA Design System \u2014 tokens, React components, Storybook. Enterprise Standard, Human Creative.",
+  "version": "4.4.1",
+  "description": "AURA Design System — tokens, React components, Storybook. Enterprise Standard, Human Creative.",
   "workspaces": [
     "packages/tokens",
     "packages/react",
@@ -18,5 +18,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "license": "MIT"
 }

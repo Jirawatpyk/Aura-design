@@ -1,7 +1,7 @@
 {
   "name": "@jirawatpyk/aura-tokens",
-  "version": "4.4.0",
-  "description": "AURA Design System \u2014 tokens (CSS variables, Tailwind preset, Figma variables), theme contrast checks and token lint.",
+  "version": "4.4.1",
+  "description": "AURA Design System — tokens (CSS variables, Tailwind preset, Figma variables), theme contrast checks and token lint.",
   "main": "tailwind.tokens.cjs",
   "types": "components/index.d.ts",
   "files": [
@@ -18,7 +18,8 @@
     "scripts/a11y-check.js",
     "scripts/lint-tokens.js",
     "GOVERNANCE.md",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
     "./aura.css": "./aura.css",
@@ -44,13 +45,17 @@
     "figma",
     "react"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jirawatpyk/Aura-design.git",
     "directory": "packages/tokens"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
+  },
+  "homepage": "https://github.com/Jirawatpyk/Aura-design#readme",
+  "bugs": {
+    "url": "https://github.com/Jirawatpyk/Aura-design/issues"
   }
 }

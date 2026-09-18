@@ -1,9 +1,9 @@
-# @jirawatpyk/aura-react 4.4 (imported as `@aura/react`)
+# @jirawatpyk/aura-react 4.4.1 (imported as `@aura/react`)
 
 AURA Design System components as a real React package — ES modules, TypeScript types, server-rendering safe, Thai-first.
 
 ```bash
-# .npmrc: @jirawatpyk:registry=https://npm.pkg.github.com (see the repository README)
+# public on npmjs; internal projects can use GitHub Packages instead (see the repository README)
 npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens   # react >= 18 is a peer dependency
 ```
 

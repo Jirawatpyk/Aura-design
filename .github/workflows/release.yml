@@ -1,5 +1,10 @@
 name: Release
-# Push a tag like v4.4.0 → tests run → @jirawatpyk/aura-tokens and @jirawatpyk/aura-react are published to GitHub Packages.
+# Push a tag like v4.4.1 → tests run → @jirawatpyk/aura-tokens and @jirawatpyk/aura-react are published twice:
+#   GitHub Packages (npm.pkg.github.com) — internal projects, uses GITHUB_TOKEN;
+#   npmjs (registry.npmjs.org, public)   — anyone, no token needed to install.
+# npmjs auth: trusted publishing (OIDC, no secret) once it is set up on npmjs.com for both packages;
+# until then an NPM_TOKEN repository secret is used if present.
+# A version already on a registry is skipped, so a failed run can simply be re-run.
 on:
   push:
     tags: ['v*']
@@ -7,6 +12,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write   # npm trusted publishing + provenance
 
 jobs:
   publish:
@@ -17,8 +23,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          registry-url: https://npm.pkg.github.com
-          scope: '@jirawatpyk'
+      - name: npm with trusted publishing (>= 11.5.1)
+        run: npm install -g npm@^11.5.1 && npm --version
       - run: npm ci
       - name: Tag matches package versions
         run: |
@@ -31,6 +37,36 @@ jobs:
       - run: npm run build
       - name: Package contents
         run: npm pack --dry-run -w packages/tokens -w packages/react 2>&1 | tail -40
-      - run: npm publish -w packages/tokens -w packages/react
+
+      - name: Publish to GitHub Packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RC="$RUNNER_TEMP/github.npmrc"
+          printf '@jirawatpyk:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > "$RC"
+          for p in packages/tokens packages/react; do
+            N=$(node -p "require('./$p/package.json').name"); V=$(node -p "require('./$p/package.json').version")
+            if npm view "$N@$V" version --userconfig "$RC" --registry https://npm.pkg.github.com >/dev/null 2>&1; then
+              echo "::notice::$N@$V is already on GitHub Packages — skipped"; continue
+            fi
+            npm publish -w "$p" --userconfig "$RC" --registry https://npm.pkg.github.com
+          done
+
+      - name: Publish to npmjs (public)
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          RC="$RUNNER_TEMP/npmjs.npmrc"
+          echo "registry=https://registry.npmjs.org/" > "$RC"
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> "$RC"; echo "npmjs auth: NPM_TOKEN"
+          else
+            echo "npmjs auth: trusted publishing (OIDC)"
+          fi
+          for p in packages/tokens packages/react; do
+            N=$(node -p "require('./$p/package.json').name"); V=$(node -p "require('./$p/package.json').version")
+            if npm view "$N@$V" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+              echo "::notice::$N@$V is already on npmjs — skipped"; continue
+            fi
+            npm publish -w "$p" --userconfig "$RC" --registry https://registry.npmjs.org --access public --provenance
+          done

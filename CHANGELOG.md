@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## 4.4.1 — 2026-09-18
 
 ### Changed
+- **Published to npmjs too** (public): `npm i @jirawatpyk/aura-react` works with no `.npmrc` or token. GitHub Packages keeps getting every release for internal use. The release workflow publishes to both, skips a version a registry already has, and uses npm trusted publishing (OIDC, with provenance) or an `NPM_TOKEN` secret.
+- **Licence: MIT** (was UNLICENSED). Lucide icon paths stay under ISC; both notices are in `LICENSE`.
 - Example data is now neutral: the admin pilot is an **orders** page (`examples/orders`, ORD- ids, customers, owners, branches, categories) instead of cleaning-service bookings; Storybook stories, fixtures and docs use the same data. No component or token changed.
 
 ## 4.4.0 — 2026-09-18

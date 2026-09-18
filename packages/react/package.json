@@ -1,8 +1,8 @@
 {
   "name": "@jirawatpyk/aura-react",
-  "version": "4.4.0",
-  "description": "AURA Design System \u2014 React components (Enterprise Standard, Human Creative). Thai-first: Buddhist-era dates, Thai collation.",
-  "license": "UNLICENSED",
+  "version": "4.4.1",
+  "description": "AURA Design System — React components (Enterprise Standard, Human Creative). Thai-first: Buddhist-era dates, Thai collation.",
+  "license": "MIT",
   "type": "module",
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",
@@ -21,7 +21,8 @@
     "dist",
     "scripts/aura-theme.mjs",
     "src/theme.js",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "sideEffects": [
     "*.css"
@@ -52,7 +53,7 @@
     "axe-core": "^4.10.0"
   },
   "bin": {
-    "aura-theme": "./scripts/aura-theme.mjs"
+    "aura-theme": "scripts/aura-theme.mjs"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,18 @@
     "directory": "packages/react"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  }
+    "access": "public"
+  },
+  "homepage": "https://github.com/Jirawatpyk/Aura-design#readme",
+  "bugs": {
+    "url": "https://github.com/Jirawatpyk/Aura-design/issues"
+  },
+  "keywords": [
+    "design-system",
+    "react",
+    "components",
+    "thai",
+    "tailwind",
+    "accessibility"
+  ]
 }

@@ -20,7 +20,7 @@ Enterprise Standard, Human Creative. Tokens, Tailwind preset, Figma variables a 
 ## ใช้งาน (5 นาที)
 
 ```bash
-# .npmrc: @jirawatpyk:registry=https://npm.pkg.github.com (see the repository README)
+# public on npmjs; internal projects can use GitHub Packages instead (see the repository README)
 npm install @aura/tokens@npm:@jirawatpyk/aura-tokens @aura/react@npm:@jirawatpyk/aura-react
 ```
 

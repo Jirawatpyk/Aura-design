@@ -12,20 +12,30 @@ Living documentation: the AURA design-system artifact on claude.ai (tokens, comp
 
 ## Use it in a project
 
-GitHub Packages needs a token even to install. Create a personal access token with **read:packages**, then in the project:
+Published to two registries with the same names and versions:
 
-```ini
-# .npmrc
-@jirawatpyk:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+| Registry | For | Setup |
+|---|---|---|
+| **npmjs** (public) | anyone — try it in a minute | none |
+| **GitHub Packages** | internal projects that want everything behind GitHub | `.npmrc` + a token with **read:packages** (below) |
+
+```bash
+npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens   # react >= 18 is a peer
 ```
 
 ```jsonc
 // package.json — install under the short names so imports stay `@aura/...`
 "dependencies": {
-  "@aura/tokens": "npm:@jirawatpyk/aura-tokens@^4.4.0",
-  "@aura/react": "npm:@jirawatpyk/aura-react@^4.4.0"
+  "@aura/tokens": "npm:@jirawatpyk/aura-tokens@^4.4.1",
+  "@aura/react": "npm:@jirawatpyk/aura-react@^4.4.1"
 }
+```
+
+Internal projects on GitHub Packages add this `.npmrc` (same `package.json`):
+
+```ini
+@jirawatpyk:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
 ```tsx
@@ -67,7 +77,9 @@ Change tokens only in `packages/tokens/tokens.json`, then `npm run build -w pack
 ## Release
 
 1. Bump `version` in `packages/tokens/package.json` and `packages/react/package.json` (same number), update `CHANGELOG.md`.
-2. `git tag v4.4.1 && git push --tags` — the Release workflow tests and publishes both packages to GitHub Packages.
+2. `git tag v4.4.2 && git push --tags` — the Release workflow tests and publishes both packages to GitHub Packages **and** npmjs. A version a registry already has is skipped, so a failed run can be re-run.
+
+npmjs auth, once per package: npmjs.com → the package → Settings → **Trusted publisher** → GitHub Actions, repository `Jirawatpyk/Aura-design`, workflow `release.yml`. After that no secret is needed. Before it (the very first publish) the workflow uses an `NPM_TOKEN` repository secret.
 
 ## Rules that keep it one system
 
