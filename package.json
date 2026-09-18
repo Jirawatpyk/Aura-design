@@ -1,0 +1,22 @@
+{
+  "name": "aura-design",
+  "private": true,
+  "version": "4.4.0",
+  "description": "AURA Design System \u2014 tokens, React components, Storybook. Enterprise Standard, Human Creative.",
+  "workspaces": [
+    "packages/tokens",
+    "packages/react",
+    "apps/storybook"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/tokens && npm run build -w packages/react",
+    "test": "npm run a11y -w packages/tokens && npm run lint:tokens -w packages/tokens && npm run test:ssr -w packages/react && npm run typecheck -w packages/react",
+    "test:pilots": "npm run test:pilots -w packages/react",
+    "storybook": "npm run storybook -w apps/storybook",
+    "test:storybook": "npm test -w apps/storybook",
+    "theme": "npm run theme -w packages/react --"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

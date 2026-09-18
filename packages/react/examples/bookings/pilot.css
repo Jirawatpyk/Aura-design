@@ -1,0 +1,14 @@
+/* Page-level styles for the pilot. Tokens only — no raw colours. */
+body { margin: 0; background: var(--aura-bg-canvas); color: var(--aura-fg-primary); font-family: var(--font-sans); font-size: 14px; }
+.pilot-brand { font-family: var(--font-display); font-size: 20px; }
+.pilot-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-3); width: 100%; }
+.pilot-account { border: 0; background: none; padding: var(--aura-space-1); border-radius: var(--aura-radius-full); cursor: pointer; display: inline-flex; }
+.pilot-account:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+.pilot-h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.2; margin: 0; }
+.pilot-sub { margin: var(--aura-space-1) 0 0; color: var(--aura-fg-secondary); }
+.pilot-filters { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1fr) minmax(240px, 1.3fr) minmax(140px, .8fr); gap: var(--aura-space-4); align-items: start; }
+@media (max-width: 1279px) { .pilot-filters { grid-template-columns: 1fr 1fr; } }
+.pilot-dl { margin: 0; }
+.pilot-dl > div { display: grid; grid-template-columns: 96px 1fr; gap: var(--aura-space-2); padding: var(--aura-space-3) 0; border-bottom: 1px solid var(--aura-border-subtle); }
+.pilot-dl dt { color: var(--aura-fg-secondary); font-size: 13px; }
+.pilot-dl dd { margin: 0; }

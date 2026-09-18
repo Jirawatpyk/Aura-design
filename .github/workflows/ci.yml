@@ -1,0 +1,45 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  checks:
+    name: Tokens, lint, SSR, types, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: Generated token files are committed
+        run: npm run check:generated -w packages/tokens
+      - run: npm test            # contrast (94 pairs), token lint, server rendering, tsc --strict
+      - run: npm run build
+      - name: Bundle in packages/tokens matches the React source
+        run: git diff --exit-code -- packages/tokens/components
+
+  pilots:
+    name: Pilot pages (axe + behaviour, 390/820/1440px, 4 brand themes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: npm ci
+      - run: pip install playwright==1.56.* && python -m playwright install --with-deps chromium
+      - run: npm run test:pilots
+
+  storybook:
+    name: Storybook (axe on every story × 2 themes, behaviour tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/storybook
+      - run: npm run test:storybook

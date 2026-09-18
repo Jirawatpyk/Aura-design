@@ -1,0 +1,10 @@
+node_modules/
+dist/
+storybook-static/
+test-results/
+playwright-report/
+packages/react/tests/themes/
+packages/react/examples/*/dist/
+a11y-report.json
+telemetry-report.json
+.DS_Store

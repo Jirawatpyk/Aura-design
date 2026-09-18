@@ -1,0 +1,56 @@
+{
+  "name": "@jirawatpyk/aura-tokens",
+  "version": "4.4.0",
+  "description": "AURA Design System \u2014 tokens (CSS variables, Tailwind preset, Figma variables), theme contrast checks and token lint.",
+  "main": "tailwind.tokens.cjs",
+  "types": "components/index.d.ts",
+  "files": [
+    "tokens.json",
+    "aura.css",
+    "aura-fonts.css",
+    "tailwind.config.ts",
+    "tailwind.tokens.cjs",
+    "figma-variables.csv",
+    "eslint-plugin-aura.js",
+    "components/aura.bundle.js",
+    "components/aura.components.css",
+    "components/index.d.ts",
+    "scripts/a11y-check.js",
+    "scripts/lint-tokens.js",
+    "GOVERNANCE.md",
+    "README.md"
+  ],
+  "exports": {
+    "./aura.css": "./aura.css",
+    "./aura-fonts.css": "./aura-fonts.css",
+    "./tokens.json": "./tokens.json",
+    "./tailwind": "./tailwind.tokens.cjs",
+    "./components.js": "./components/aura.bundle.js",
+    "./components.css": "./components/aura.components.css",
+    "./eslint-plugin": "./eslint-plugin-aura.js"
+  },
+  "scripts": {
+    "build": "node scripts/build-tokens.js",
+    "a11y": "node scripts/a11y-check.js",
+    "lint:tokens": "node scripts/lint-tokens.js ../react/src && node scripts/lint-tokens.js ../react/styles",
+    "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css tailwind.tokens.cjs figma-variables.csv",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "design-system",
+    "tokens",
+    "enterprise",
+    "tailwind",
+    "figma",
+    "react"
+  ],
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jirawatpyk/Aura-design.git",
+    "directory": "packages/tokens"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

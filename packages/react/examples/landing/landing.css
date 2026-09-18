@@ -1,0 +1,19 @@
+body { margin: 0; background: var(--aura-bg-canvas); color: var(--aura-fg-primary); font-family: var(--font-sans); font-size: 15px; }
+.lp-bar { position: sticky; top: 0; z-index: 10; background: var(--aura-bg-surface); border-bottom: 1px solid var(--aura-border-default); }
+.lp-bar__in { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-3); flex-wrap: wrap; min-height: 64px; padding: var(--aura-space-2) 0; }
+.lp-logo { font-family: var(--font-display); font-size: 24px; display: inline-flex; align-items: center; gap: 6px; }
+.lp-dot { width: 8px; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-accent-dot); }
+.lp-brands { display: flex; gap: var(--aura-space-2); flex-wrap: wrap; }
+.lp-muted { color: var(--aura-fg-secondary); font-size: 13px; }
+.lp-hero { padding: var(--aura-space-16) 0; border-radius: 0; }
+.lp-cta { border-radius: 0; }
+.lp-display { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(36px, 7vw, 72px); line-height: 1.1; letter-spacing: -0.02em; }
+.lp-lead { margin: 0; max-width: 52ch; font-size: 18px; line-height: 1.6; }
+.lp-section { padding: var(--aura-space-16) 0; }
+.lp-alt { background: var(--aura-bg-surface); }
+.lp-h2 { margin: 0 0 var(--aura-space-6); font-family: var(--font-sans); font-size: 28px; line-height: 1.25; font-weight: 600; }
+.lp-card-title { display: inline-flex; align-items: center; gap: var(--aura-space-2); }
+.lp-cta .lp-h2 { margin: 0; }
+.lp-join { margin-top: 26px; }
+@media (max-width: 639.98px) { .lp-join { margin-top: 0; } .lp-hero, .lp-section { padding: var(--aura-space-10) 0; } }
+.lp-foot { padding: var(--aura-space-8) 0; }

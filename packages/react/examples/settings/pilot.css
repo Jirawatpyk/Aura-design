@@ -1,0 +1,10 @@
+body { margin: 0; background: var(--aura-bg-canvas); color: var(--aura-fg-primary); font-family: var(--font-sans); font-size: 14px; }
+.pilot-brand { font-family: var(--font-display); font-size: 20px; }
+.pilot-h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.2; margin: 0; }
+.pilot-sub, .pilot-muted { margin: var(--aura-space-1) 0 0; color: var(--aura-fg-secondary); }
+.pilot-muted { margin: 0; font-size: 13px; white-space: nowrap; }
+.pilot-p { margin: 0; line-height: 1.6; }
+.pilot-list { list-style: none; margin: 0; padding: 0; }
+.pilot-list > li { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-3); min-height: 48px; border-bottom: 1px solid var(--aura-border-subtle); }
+.pilot-list > li:last-child { border-bottom: 0; }
+.pilot-list strong { font-weight: 600; margin-right: var(--aura-space-1); }

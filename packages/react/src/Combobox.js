@@ -1,0 +1,135 @@
+import * as React from 'react';
+import { useStrings, useAuraLocale } from './locale.js';
+import { createPortal } from 'react-dom';
+import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef } from './internal.js';
+import { Icon } from './Icon.js';
+import { Field } from './forms.js';
+const h = React.createElement;
+
+function norm(s) { return String(s == null ? '' : s).normalize('NFC').toLocaleLowerCase('th'); }
+function toOpt(o) { return typeof o === 'object' ? o : { value: String(o), label: String(o) }; }
+export function defaultFilter(option, query) {
+  var q = norm(query).trim();
+  if (!q) return true;
+  return norm(option.label).indexOf(q) >= 0 || (option.description && norm(option.description).indexOf(q) >= 0) ||
+    (option.keywords || []).some(function (k) { return norm(k).indexOf(q) >= 0; });
+}
+
+/* Combobox — a text field that filters a list as you type (ARIA 1.2 combobox + listbox).
+ * Pick one value; `onSearch` + `loading` for server-side results. */
+export const Combobox = React.forwardRef(function Combobox(props, ref) {
+  var t = useStrings();
+  var auto = uid(), id = props.id || auto, listId = id + '-list';
+  var options = (props.options || []).map(toOpt);
+  var st = useMaybeControlled(props.value, props.defaultValue == null ? null : props.defaultValue, props.onChange);
+  var value = st[0], setValue = st[1];
+  var selected = options.filter(function (o) { return o.value === value; })[0] || null;
+  var openState = React.useState(false), open = openState[0], setOpen = openState[1];
+  var qState = React.useState(null), query = qState[0], setQuery = qState[1]; /* null = show the selected label */
+  var aState = React.useState(0), active = aState[0], setActive = aState[1];
+  var posState = React.useState(null);
+  var inputRef = React.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React.useRef(null), listRef = React.useRef(null);
+  var mounted = useMounted();
+  var limit = props.limit || 200;
+
+  var filter = props.filter || defaultFilter;
+  var shown = props.onSearch || query == null ? options : options.filter(function (o) { return filter(o, query); });
+  var more = shown.length > limit;
+  shown = shown.slice(0, limit);
+  var activeIdx = Math.min(active, shown.length - 1);
+
+  function place() {
+    if (!boxRef.current) return;
+    var r = boxRef.current.getBoundingClientRect();
+    var maxH = 320, below = window.innerHeight - r.bottom - 8, up = below < 200 && r.top > below;
+    posState[1]({ left: r.left, width: r.width, top: up ? undefined : r.bottom + 4, bottom: up ? window.innerHeight - r.top + 4 : undefined, maxHeight: Math.min(maxH, (up ? r.top : below) - 8) });
+  }
+  useIsoLayoutEffect(function () { if (open) place(); }, [open, shown.length]);
+  React.useEffect(function () {
+    if (!open) return;
+    function outside(e) {
+      if (boxRef.current && boxRef.current.contains(e.target)) return;
+      if (listRef.current && listRef.current.contains(e.target)) return;
+      close(false);
+    }
+    function onScroll(e) { if (!listRef.current || !listRef.current.contains(e.target)) place(); }
+    document.addEventListener('pointerdown', outside, true);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', place);
+    return function () {
+      document.removeEventListener('pointerdown', outside, true);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', place);
+    };
+  }, [open]);
+  React.useEffect(function () {
+    if (!open || !listRef.current) return;
+    var el = listRef.current.querySelector('[data-idx="' + activeIdx + '"]');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+  }, [activeIdx, open]);
+
+  function openList() { if (!open && !props.disabled && !props.readOnly) { setOpen(true); var i = selected ? shown.indexOf(selected) : 0; setActive(i < 0 ? 0 : i); } }
+  function close(restoreLabel) { setOpen(false); setQuery(null); }
+  function choose(o) {
+    if (!o || o.disabled) return;
+    setValue(o.value); setQuery(null); setOpen(false);
+    if (inputRef.current) inputRef.current.focus();
+  }
+  function onKeyDown(e) {
+    var k = e.key;
+    if (k === 'ArrowDown') { e.preventDefault(); if (!open) openList(); else setActive(Math.min(activeIdx + 1, shown.length - 1)); }
+    else if (k === 'ArrowUp') { e.preventDefault(); if (!open) openList(); else setActive(Math.max(activeIdx - 1, 0)); }
+    else if (k === 'Home' && open) { e.preventDefault(); setActive(0); }
+    else if (k === 'End' && open) { e.preventDefault(); setActive(shown.length - 1); }
+    else if (k === 'Enter') { if (open && shown[activeIdx]) { e.preventDefault(); choose(shown[activeIdx]); } }
+    else if (k === 'Escape') { if (open) { e.preventDefault(); e.stopPropagation(); close(); } else if (props.clearable !== false && value != null && query == null) { setValue(null); } }
+    else if (k === 'Tab') { if (open) close(); }
+  }
+  var text = query != null ? query : selected ? selected.label : '';
+  var optId = function (i) { return id + '-opt-' + i; };
+  var list = open && mounted && posState[0] ? createPortal(
+    h('div', { ref: listRef, className: 'aura-combo__popover', style: posState[0] },
+      h('ul', { id: listId, role: 'listbox', 'aria-label': props.label, className: 'aura-combo__list' },
+        props.loading ? h('li', { className: 'aura-combo__note', role: 'presentation' }, h(Icon, { name: 'loader-circle', className: 'aura-spin' }), props.loadingText || t.searching)
+        : !shown.length ? h('li', { className: 'aura-combo__note', role: 'presentation' }, props.emptyText || t.noMatches)
+        : shown.map(function (o, i) {
+            var isSel = selected && o.value === selected.value;
+            return h('li', {
+              key: o.value, id: optId(i), role: 'option', 'data-idx': i, 'aria-selected': isSel, 'aria-disabled': o.disabled || undefined,
+              className: cx('aura-combo__option', i === activeIdx && 'is-active', isSel && 'is-selected', o.disabled && 'is-disabled'),
+              onPointerDown: function (e) { e.preventDefault(); }, onClick: function () { choose(o); },
+              onPointerMove: function () { if (activeIdx !== i) setActive(i); }
+            },
+              o.icon ? h(Icon, { name: o.icon }) : null,
+              h('span', { className: 'aura-combo__text' },
+                h('span', { className: 'aura-combo__label' }, o.label),
+                o.description ? h('span', { className: 'aura-combo__desc' }, o.description) : null),
+              isSel ? h(Icon, { name: 'check', className: 'aura-combo__check' }) : null);
+          }),
+        more && !props.loading ? h('li', { className: 'aura-combo__note', role: 'presentation' }, t.keepTyping((props.options || []).length)) : null)),
+    document.body) : null;
+
+  return h(Field, { id: id, label: props.label, hint: props.hint, error: props.error, required: props.required, optional: props.optional, disabled: props.disabled, className: props.className },
+    h('div', { ref: boxRef, className: cx('aura-input aura-combo has-icon', open && 'is-open') },
+      h(Icon, { name: props.icon || 'search', className: 'aura-input__icon' }),
+      h('input', {
+        ref: inputMerged, id: id, type: 'text', role: 'combobox', className: 'aura-input__control', autoComplete: 'off',
+        'aria-expanded': open, 'aria-controls': listId, 'aria-autocomplete': 'list',
+        'aria-activedescendant': open && shown[activeIdx] ? optId(activeIdx) : undefined,
+        'aria-invalid': props.error ? true : undefined,
+        'aria-describedby': props.error ? id + '-error' : props.hint ? id + '-hint' : undefined,
+        placeholder: props.placeholder, disabled: props.disabled, readOnly: props.readOnly, required: props.required, name: props.name,
+        value: text,
+        onChange: function (e) { setQuery(e.target.value); setActive(0); if (!open) setOpen(true); if (props.onSearch) props.onSearch(e.target.value); },
+        onClick: openList, onKeyDown: onKeyDown,
+        onBlur: function () { setTimeout(function () { if (listRef.current && listRef.current.contains(document.activeElement)) return; setOpen(false); setQuery(null); }, 0); }
+      }),
+      props.clearable !== false && value != null && !props.disabled ? h('button', {
+        type: 'button', className: 'aura-combo__clear', 'aria-label': t.clear(props.label), tabIndex: -1,
+        onClick: function () { setValue(null); setQuery(null); if (inputRef.current) inputRef.current.focus(); }
+      }, h(Icon, { name: 'x' })) : null,
+      h('button', { type: 'button', tabIndex: -1, 'aria-hidden': true, className: 'aura-combo__toggle',
+        onPointerDown: function (e) { e.preventDefault(); }, onClick: function () { if (open) close(); else { openList(); inputRef.current && inputRef.current.focus(); } } },
+        h(Icon, { name: 'chevron-down' }))),
+    list);
+});

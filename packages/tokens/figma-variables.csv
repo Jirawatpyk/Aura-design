@@ -1,0 +1,205 @@
+name,type,mode,value,description,scope
+primitive/violet/50,color,light,#f5f3ff,Primitive violet 50. Reference only — code uses semantic tokens (token-lint forbids raw hex).,
+primitive/violet/100,color,light,#ede9fe,Primitive violet 100. Reference only — code uses semantic tokens (token-lint forbids raw hex).,
+primitive/violet/200,color,light,#ddd6fe,Primitive violet 200. Reference only — code uses semantic tokens (token-lint forbids raw hex).,
+primitive/violet/300,color,light,#c4b5fd,Primitive. Dark-theme aura-fg-accent (9.6:1 on dark aura-bg-surface).,
+primitive/violet/400,color,light,#a78bfa,Primitive. Dark-theme aura-accent-violet (6.5:1 on dark aura-bg-surface).,
+primitive/violet/500,color,light,#8b5cf6,Primitive violet 500. Reference only — code uses semantic tokens (token-lint forbids raw hex).,
+primitive/violet/600,color,light,#7c3aed,Primitive. Primary brand violet (Figma: 'Primary brand'). Never in product code directly — reach it through a semantic token.,
+primitive/violet/700,color,light,#6d28d9,Primitive. Light-theme accent: resolves aura-fg-accent and aura-accent-violet. 7.1:1 on aura-bg-surface.,
+primitive/violet/800,color,light,#5b21b6,Primitive violet 800. Reference only — code uses semantic tokens (token-lint forbids raw hex).,
+primitive/violet/900,color,light,#4c1d95,Primitive violet 900. Reference only — code uses semantic tokens (token-lint forbids raw hex).,
+primitive/zinc/0,color,light,#ffffff,"Primitive white. Light aura-bg-surface, aura-fg-inverted; dark aura-fg-primary, aura-border-strong.",
+primitive/zinc/50,color,light,#fafafa,Primitive. Light aura-bg-canvas and aura-bg-surface-hover.,
+primitive/zinc/100,color,light,#f4f4f5,Primitive. Light aura-border-subtle.,
+primitive/zinc/200,color,light,#e4e4e7,"Primitive. Light aura-border-default, card border.",
+primitive/zinc/300,color,light,#d4d4d8,Primitive zinc 300. Reference only — code uses semantic tokens.,
+primitive/zinc/400,color,light,#a1a1aa,Primitive. Light aura-fg-tertiary; dark aura-fg-secondary.,
+primitive/zinc/450,color,light,#8e8e97,Primitive between zinc-400 and -500. Dark-theme aura-fg-tertiary (5.5:1 on dark surface). ADDED so tertiary text passes AA.,
+primitive/zinc/500,color,light,#71717a,Primitive zinc 500. Reference only — code uses semantic tokens.,
+primitive/zinc/600,color,light,#52525b,Primitive. Light aura-fg-secondary; dark aura-fg-tertiary.,
+primitive/zinc/700,color,light,#3f3f46,Primitive zinc 700. Reference only — code uses semantic tokens.,
+primitive/zinc/800,color,light,#27272a,Primitive. Dark aura-bg-surface-hover; primary button hover fill.,
+primitive/zinc/900,color,light,#18181b,"Primitive 'Ink'. Light aura-fg-primary, aura-bg-surface-strong, aura-border-strong; dark aura-bg-surface; the brutal Creative shadow colour.",
+primitive/zinc/950,color,light,#08080a,Primitive. Dark aura-bg-canvas.,
+primitive/lime/50,color,light,#f7fee7,Primitive lime 50. Reference only.,
+primitive/lime/100,color,light,#ecfccb,Primitive lime 100. Reference only.,
+primitive/lime/200,color,light,#d9f99d,"Primitive 'Accent dot'. aura-accent-dot / aura-accent-lime and the Ready status fill. A fill only — 1.17:1 against white, so never text and never a mark that must be seen on a light surface.",
+primitive/lime/300,color,light,#bef264,Primitive lime 300 (also exported in the Tailwind config).,
+primitive/lime/400,color,light,#a3e635,Primitive lime 400. Reference only.,
+primitive/lime/500,color,light,#84cc16,Primitive lime 500. Reference only.,
+primitive/lime/600,color,light,#65a30d,Primitive lime 600. Reference only.,
+primitive/lime/800,color,light,#3f6212,Primitive. Success alert text on aura-lime-50 (6.8:1). ADDED.,
+primitive/red/50,color,light,#fef2f2,Primitive. Danger alert fill (light). ADDED.,
+primitive/red/200,color,light,#fecaca,Primitive. Danger alert edge (light). ADDED.,
+primitive/red/300,color,light,#fca5a5,"Primitive. Danger alert text (dark), 8.1:1. ADDED.",
+primitive/red/400,color,light,#f87171,Primitive. Dark-theme aura-fg-danger: 6.4:1 on dark surface. ADDED.,
+primitive/red/700,color,light,#b91c1c,"Primitive red 700 (Tailwind red, like the other scales). The Blocked status fill; white on it 6.5:1. ADDED — the source palette has no warm hue.",
+primitive/amber/50,color,light,#fffbeb,Primitive. Warning alert fill (light). ADDED.,
+primitive/amber/200,color,light,#fde68a,Primitive. Warning alert edge (light). ADDED.,
+primitive/amber/300,color,light,#fcd34d,"Primitive. Warning alert text (dark), 9.6:1. ADDED.",
+primitive/amber/800,color,light,#92400e,"Primitive. Warning alert text (light), 6.8:1 on amber-50. ADDED.",
+primitive/ink,color,light,#08080a,Primitive ink (= zinc-950). Text on lime fills: the Ready status label (15:1 on aura-lime-200).,
+primitive/white,color,light,#ffffff,Primitive white. The Creative button fill in every theme.,
+semantic/bg-surface,color,light,{primitive/zinc/0},"Default surface: cards, tables, panels, page body. Grounds aura-fg-primary, -secondary and -accent.",FRAME_FILL
+semantic/bg-surface-hover,color,light,{primitive/zinc/50},"Hover fill for rows, secondary buttons and list items. aura-fg-primary and -secondary still pass on it (≥5.8:1).",FRAME_FILL
+semantic/bg-surface-strong,color,light,{primitive/zinc/900},"High-emphasis block (the wordmark tile, inverted callouts). Text on it: aura-fg-inverted.",FRAME_FILL
+semantic/bg-canvas,color,light,{primitive/zinc/50},App background behind surfaces; the data-table header band.,FRAME_FILL
+semantic/bg-inverted,color,light,{primitive/zinc/900},Inverted ground: tooltips. Text on it: aura-fg-inverted (17.7:1).,FRAME_FILL
+semantic/fg-primary,color,light,{primitive/zinc/900},Body and heading text on aura-bg-surface and aura-bg-canvas (≥16.9:1 both themes).,TEXT_FILL
+semantic/fg-secondary,color,light,{primitive/zinc/600},"Supporting text, labels, captions on aura-bg-surface / -canvas / -surface-hover (≥5.8:1 both themes).",TEXT_FILL
+semantic/fg-tertiary,color,light,{primitive/zinc/500},"Placeholders, hints, timestamps, breadcrumb separators. Fixed in 4.1 to pass AA: 4.8:1 light / 5.5:1 dark on aura-bg-surface, ≥4.6:1 on -canvas and -surface-hover. Not for text on aura-bg-selected (4.4:1).",TEXT_FILL
+semantic/fg-inverted,color,light,{primitive/zinc/0},Text on aura-bg-surface-strong and aura-bg-inverted (17.7:1).,TEXT_FILL
+semantic/fg-accent,color,light,{primitive/violet/700},"Links and accent text on aura-bg-surface / -canvas (≥6.8:1 light, ≥9.6:1 dark).",TEXT_FILL
+semantic/border-default,color,light,{primitive/zinc/200},"Hairline dividers and card/table outlines. Decorative only: ~1.3:1, below the 3:1 a control boundary needs.",STROKE_COLOR
+semantic/border-strong,color,light,{primitive/zinc/900},Creative 2px borders and any boundary that must be seen (17.7:1).,STROKE_COLOR
+semantic/border-subtle,color,light,{primitive/zinc/100},Faintest separators inside a surface (e.g. between grouped list items).,STROKE_COLOR
+semantic/accent-dot,color,light,{primitive/lime/200},The lime signal dot beside the AURA wordmark and live/status dots. Visible on dark and strong grounds; invisible on white (1.17:1).,ALL_FILLS
+semantic/accent-violet,color,light,{primitive/violet/700},"Violet accent fills and marks (selection, focus-adjacent emphasis, charts' first series).",ALL_FILLS
+semantic/accent-lime,color,light,{primitive/lime/200},"Lime accent fill (highlights, the Ready status). Label on it in aura-ink.",ALL_FILLS
+semantic/focus-ring,color,light,{primitive/violet/700},"Keyboard focus ring on every interactive element: 2px solid, 2px offset. Lands on aura-bg-surface / -canvas / -surface-hover at ≥6.8:1 light and ≥5.4:1 dark. On mesh and grain surfaces the ring switches to aura-on-texture (violet-700 on the violet-400 pool is only 2.6:1). ADDED — the source defines no focus style.",ALL_FILLS
+semantic/mesh-from,color,light,{primitive/violet/400},Creative mesh: the violet pool (top-left). Same in both themes — mesh is a light-surface treatment. ADDED from the source's 'violet → lime gradient'.,ALL_FILLS
+semantic/mesh-to,color,light,{primitive/lime/200},Creative mesh: the lime pool (bottom-right).,ALL_FILLS
+semantic/mesh-ground,color,light,{primitive/white},Creative mesh: the ground between the pools.,ALL_FILLS
+semantic/on-texture,color,light,{primitive/ink},"Text and icons on a mesh or grain surface in every theme: ≥7.3:1 on the darkest mesh point (violet-400), 15:1 on lime, 20:1 on white.",ALL_FILLS
+semantic/grain,color,light,{primitive/ink},"Grain speckle colour, drawn at aura-grain-opacity. Visible only on light grounds.",ALL_FILLS
+semantic/status-neutral-bg,color,light,{primitive/zinc/100},"Status pill fill for not-started / unknown states (To Do, Draft). Same in both themes. ADDED.",ALL_FILLS
+semantic/status-neutral-fg,color,light,{primitive/zinc/700},Label and icon on aura-status-neutral-bg (9.5:1).,ALL_FILLS
+semantic/status-progress-bg,color,light,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). ADDED.",ALL_FILLS
+semantic/status-progress-fg,color,light,{primitive/violet/800},Label and icon on aura-status-progress-bg (7.6:1).,ALL_FILLS
+semantic/status-ready-bg,color,light,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. ADDED as a named token.",ALL_FILLS
+semantic/status-ready-fg,color,light,{primitive/ink},Label and icon on aura-status-ready-bg (15.2:1).,ALL_FILLS
+semantic/status-blocked-bg,color,light,{primitive/red/700},"Status pill fill for stopped / failed states (Blocked, Failed). Dark on purpose: 5.5:1 lighter-to-darker against the lime Ready fill, so Ready and Blocked differ by lightness, not only red vs green. ADDED.",ALL_FILLS
+semantic/status-blocked-fg,color,light,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
+semantic/bg-selected,color,light,{primitive/violet/50},"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
+semantic/border-control,color,light,{primitive/zinc/500},"Outline of unchecked checkboxes and other small controls that must be seen: ≥4.4:1 on aura-bg-surface, -canvas and aura-bg-selected (the 3:1 a control boundary needs). ADDED.",STROKE_COLOR
+semantic/bg-skeleton,color,light,{primitive/zinc/100},Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
+semantic/fg-danger,color,light,{primitive/red/700},"Error messages, destructive labels and invalid-field text on aura-bg-surface / -canvas: ≥6.2:1 light, ≥5.4:1 dark. ADDED.",TEXT_FILL
+semantic/border-danger,color,light,{primitive/red/700},Outline of an invalid input (≥5.4:1 on its ground). ADDED.,STROKE_COLOR
+semantic/bg-input,color,light,{primitive/zinc/0},"Text fields, selects, textareas. Always paired with a 1px aura-border-control outline. ADDED.",FRAME_FILL
+semantic/bg-input-disabled,color,light,{primitive/zinc/50},Disabled and read-only inputs; text on it stays aura-fg-secondary. ADDED.,FRAME_FILL
+semantic/bg-scrim,color,light,"rgba(8,8,10,0.48)",The dimmed layer behind a Dialog. ADDED.,FRAME_FILL
+semantic/alert-info-bg,color,light,{primitive/violet/50},Info alert fill. ADDED.,ALL_FILLS
+semantic/alert-info-fg,color,light,{primitive/violet/800},"Info alert title and icon: 8.2:1 light, 7.7:1 dark. Body text on the fill stays aura-fg-primary.",ALL_FILLS
+semantic/alert-info-border,color,light,{primitive/violet/200},Info alert 1px edge (decorative).,ALL_FILLS
+semantic/alert-success-bg,color,light,{primitive/lime/50},Success alert fill. ADDED.,ALL_FILLS
+semantic/alert-success-fg,color,light,{primitive/lime/800},"Success alert title and icon: 6.8:1 light, 10.4:1 dark.",ALL_FILLS
+semantic/alert-success-border,color,light,{primitive/lime/200},Success alert 1px edge (decorative).,ALL_FILLS
+semantic/alert-warning-bg,color,light,{primitive/amber/50},Warning alert fill. ADDED.,ALL_FILLS
+semantic/alert-warning-fg,color,light,{primitive/amber/800},"Warning alert title and icon: 6.8:1 light, 9.6:1 dark.",ALL_FILLS
+semantic/alert-warning-border,color,light,{primitive/amber/200},Warning alert 1px edge (decorative).,ALL_FILLS
+semantic/alert-danger-bg,color,light,{primitive/red/50},Danger alert fill. ADDED.,ALL_FILLS
+semantic/alert-danger-fg,color,light,{primitive/red/700},"Danger alert title and icon: 5.9:1 light, 8.1:1 dark.",ALL_FILLS
+semantic/alert-danger-border,color,light,{primitive/red/200},Danger alert 1px edge (decorative).,ALL_FILLS
+semantic/fg-positive,color,light,{primitive/lime/800},"Rising-and-good numbers (Stat change, positive deltas) on aura-bg-surface / -canvas. Never on lime fills. ADDED 4.3.",TEXT_FILL
+semantic/bg-surface,color,dark,{primitive/zinc/900},"Default surface: cards, tables, panels, page body. Grounds aura-fg-primary, -secondary and -accent.",FRAME_FILL
+semantic/bg-surface-hover,color,dark,{primitive/zinc/800},"Hover fill for rows, secondary buttons and list items. aura-fg-primary and -secondary still pass on it (≥5.8:1).",FRAME_FILL
+semantic/bg-surface-strong,color,dark,{primitive/zinc/0},"High-emphasis block (the wordmark tile, inverted callouts). Text on it: aura-fg-inverted.",FRAME_FILL
+semantic/bg-canvas,color,dark,{primitive/zinc/950},App background behind surfaces; the data-table header band.,FRAME_FILL
+semantic/bg-inverted,color,dark,{primitive/zinc/0},Inverted ground: tooltips. Text on it: aura-fg-inverted (17.7:1).,FRAME_FILL
+semantic/fg-primary,color,dark,{primitive/zinc/0},Body and heading text on aura-bg-surface and aura-bg-canvas (≥16.9:1 both themes).,TEXT_FILL
+semantic/fg-secondary,color,dark,{primitive/zinc/400},"Supporting text, labels, captions on aura-bg-surface / -canvas / -surface-hover (≥5.8:1 both themes).",TEXT_FILL
+semantic/fg-tertiary,color,dark,{primitive/zinc/450},"Placeholders, hints, timestamps, breadcrumb separators. Fixed in 4.1 to pass AA: 4.8:1 light / 5.5:1 dark on aura-bg-surface, ≥4.6:1 on -canvas and -surface-hover. Not for text on aura-bg-selected (4.4:1).",TEXT_FILL
+semantic/fg-inverted,color,dark,{primitive/zinc/900},Text on aura-bg-surface-strong and aura-bg-inverted (17.7:1).,TEXT_FILL
+semantic/fg-accent,color,dark,{primitive/violet/300},"Links and accent text on aura-bg-surface / -canvas (≥6.8:1 light, ≥9.6:1 dark).",TEXT_FILL
+semantic/border-default,color,dark,"rgba(255,255,255,0.1)","Hairline dividers and card/table outlines. Decorative only: ~1.3:1, below the 3:1 a control boundary needs.",STROKE_COLOR
+semantic/border-strong,color,dark,{primitive/zinc/0},Creative 2px borders and any boundary that must be seen (17.7:1).,STROKE_COLOR
+semantic/border-subtle,color,dark,"rgba(255,255,255,0.06)",Faintest separators inside a surface (e.g. between grouped list items).,STROKE_COLOR
+semantic/accent-dot,color,dark,{primitive/lime/200},The lime signal dot beside the AURA wordmark and live/status dots. Visible on dark and strong grounds; invisible on white (1.17:1).,ALL_FILLS
+semantic/accent-violet,color,dark,{primitive/violet/400},"Violet accent fills and marks (selection, focus-adjacent emphasis, charts' first series).",ALL_FILLS
+semantic/accent-lime,color,dark,{primitive/lime/200},"Lime accent fill (highlights, the Ready status). Label on it in aura-ink.",ALL_FILLS
+semantic/focus-ring,color,dark,{primitive/violet/400},"Keyboard focus ring on every interactive element: 2px solid, 2px offset. Lands on aura-bg-surface / -canvas / -surface-hover at ≥6.8:1 light and ≥5.4:1 dark. On mesh and grain surfaces the ring switches to aura-on-texture (violet-700 on the violet-400 pool is only 2.6:1). ADDED — the source defines no focus style.",ALL_FILLS
+semantic/mesh-from,color,dark,{primitive/violet/400},Creative mesh: the violet pool (top-left). Same in both themes — mesh is a light-surface treatment. ADDED from the source's 'violet → lime gradient'.,ALL_FILLS
+semantic/mesh-to,color,dark,{primitive/lime/200},Creative mesh: the lime pool (bottom-right).,ALL_FILLS
+semantic/mesh-ground,color,dark,{primitive/white},Creative mesh: the ground between the pools.,ALL_FILLS
+semantic/on-texture,color,dark,{primitive/ink},"Text and icons on a mesh or grain surface in every theme: ≥7.3:1 on the darkest mesh point (violet-400), 15:1 on lime, 20:1 on white.",ALL_FILLS
+semantic/grain,color,dark,{primitive/ink},"Grain speckle colour, drawn at aura-grain-opacity. Visible only on light grounds.",ALL_FILLS
+semantic/status-neutral-bg,color,dark,{primitive/zinc/100},"Status pill fill for not-started / unknown states (To Do, Draft). Same in both themes. ADDED.",ALL_FILLS
+semantic/status-neutral-fg,color,dark,{primitive/zinc/700},Label and icon on aura-status-neutral-bg (9.5:1).,ALL_FILLS
+semantic/status-progress-bg,color,dark,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). ADDED.",ALL_FILLS
+semantic/status-progress-fg,color,dark,{primitive/violet/800},Label and icon on aura-status-progress-bg (7.6:1).,ALL_FILLS
+semantic/status-ready-bg,color,dark,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. ADDED as a named token.",ALL_FILLS
+semantic/status-ready-fg,color,dark,{primitive/ink},Label and icon on aura-status-ready-bg (15.2:1).,ALL_FILLS
+semantic/status-blocked-bg,color,dark,{primitive/red/700},"Status pill fill for stopped / failed states (Blocked, Failed). Dark on purpose: 5.5:1 lighter-to-darker against the lime Ready fill, so Ready and Blocked differ by lightness, not only red vs green. ADDED.",ALL_FILLS
+semantic/status-blocked-fg,color,dark,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
+semantic/bg-selected,color,dark,#2c283a,"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
+semantic/border-control,color,dark,{primitive/zinc/400},"Outline of unchecked checkboxes and other small controls that must be seen: ≥4.4:1 on aura-bg-surface, -canvas and aura-bg-selected (the 3:1 a control boundary needs). ADDED.",STROKE_COLOR
+semantic/bg-skeleton,color,dark,{primitive/zinc/800},Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
+semantic/fg-danger,color,dark,{primitive/red/400},"Error messages, destructive labels and invalid-field text on aura-bg-surface / -canvas: ≥6.2:1 light, ≥5.4:1 dark. ADDED.",TEXT_FILL
+semantic/border-danger,color,dark,{primitive/red/400},Outline of an invalid input (≥5.4:1 on its ground). ADDED.,STROKE_COLOR
+semantic/bg-input,color,dark,{primitive/zinc/900},"Text fields, selects, textareas. Always paired with a 1px aura-border-control outline. ADDED.",FRAME_FILL
+semantic/bg-input-disabled,color,dark,{primitive/zinc/950},Disabled and read-only inputs; text on it stays aura-fg-secondary. ADDED.,FRAME_FILL
+semantic/bg-scrim,color,dark,"rgba(0,0,0,0.64)",The dimmed layer behind a Dialog. ADDED.,FRAME_FILL
+semantic/alert-info-bg,color,dark,#2c283a,Info alert fill. ADDED.,ALL_FILLS
+semantic/alert-info-fg,color,dark,{primitive/violet/300},"Info alert title and icon: 8.2:1 light, 7.7:1 dark. Body text on the fill stays aura-fg-primary.",ALL_FILLS
+semantic/alert-info-border,color,dark,#514674,Info alert 1px edge (decorative).,ALL_FILLS
+semantic/alert-success-bg,color,dark,#27311a,Success alert fill. ADDED.,ALL_FILLS
+semantic/alert-success-fg,color,dark,{primitive/lime/300},"Success alert title and icon: 6.8:1 light, 10.4:1 dark.",ALL_FILLS
+semantic/alert-success-border,color,dark,#436019,Success alert 1px edge (decorative).,ALL_FILLS
+semantic/alert-warning-bg,color,dark,#372b19,Warning alert fill. ADDED.,ALL_FILLS
+semantic/alert-warning-fg,color,dark,{primitive/amber/300},"Warning alert title and icon: 6.8:1 light, 9.6:1 dark.",ALL_FILLS
+semantic/alert-warning-border,color,dark,#704e15,Warning alert 1px edge (decorative).,ALL_FILLS
+semantic/alert-danger-bg,color,dark,#361e21,Danger alert fill. ADDED.,ALL_FILLS
+semantic/alert-danger-fg,color,dark,{primitive/red/300},"Danger alert title and icon: 5.9:1 light, 8.1:1 dark.",ALL_FILLS
+semantic/alert-danger-border,color,dark,#6e2a2b,Danger alert 1px edge (decorative).,ALL_FILLS
+semantic/fg-positive,color,dark,{primitive/lime/300},"Rising-and-good numbers (Stat change, positive deltas) on aura-bg-surface / -canvas. Never on lime fills. ADDED 4.3.",TEXT_FILL
+component/button-primary-bg,color,light,{primitive/zinc/900},"Component: Enterprise (primary) button fill — ink in light, white in dark, as the Storybook story renders it (tokens.json pins it to the light value, which disappears on the dark surface).",ALL_FILLS
+component/button-primary-fg,color,light,{primitive/zinc/0},Component: primary button label on aura-button-primary-bg (17.7:1 both themes).,ALL_FILLS
+component/button-primary-bg-hover,color,light,{primitive/zinc/800},"Component: primary button hover. Light zinc-800 is the source value; dark zinc-200 is an ADDED value (the source has none — its zinc-800 hover hides the dark label at 1.19:1). Label 14.9:1 light, 14.0:1 dark.",ALL_FILLS
+component/button-creative-bg,color,light,{primitive/white},Component: Creative button fill (white in every theme). Label in aura-ink.,ALL_FILLS
+component/button-creative-border,color,light,{primitive/zinc/900},Component: Creative button 2px border.,ALL_FILLS
+component/card-border,color,light,{primitive/zinc/200},Component: card outline (light value; use aura-border-default where the card must follow theme).,ALL_FILLS
+component/button-primary-bg,color,dark,{primitive/zinc/0},"Component: Enterprise (primary) button fill — ink in light, white in dark, as the Storybook story renders it (tokens.json pins it to the light value, which disappears on the dark surface).",ALL_FILLS
+component/button-primary-fg,color,dark,{primitive/zinc/900},Component: primary button label on aura-button-primary-bg (17.7:1 both themes).,ALL_FILLS
+component/button-primary-bg-hover,color,dark,{primitive/zinc/200},"Component: primary button hover. Light zinc-800 is the source value; dark zinc-200 is an ADDED value (the source has none — its zinc-800 hover hides the dark label at 1.19:1). Label 14.9:1 light, 14.0:1 dark.",ALL_FILLS
+component/button-creative-bg,color,dark,{primitive/white},Component: Creative button fill (white in every theme). Label in aura-ink.,ALL_FILLS
+component/button-creative-border,color,dark,{primitive/zinc/900},Component: Creative button 2px border.,ALL_FILLS
+component/card-border,color,dark,{primitive/zinc/200},Component: card outline (light value; use aura-border-default where the card must follow theme).,ALL_FILLS
+spacing/space-0,number,light,0,,GAP
+spacing/space-1,number,light,4,,GAP
+spacing/space-2,number,light,8,,GAP
+spacing/space-3,number,light,12,,GAP
+spacing/space-4,number,light,16,,GAP
+spacing/space-5,number,light,20,,GAP
+spacing/space-6,number,light,24,,GAP
+spacing/space-8,number,light,32,,GAP
+spacing/space-10,number,light,40,,GAP
+spacing/space-12,number,light,48,,GAP
+spacing/space-16,number,light,64,,GAP
+spacing/card-padding,number,light,24,,GAP
+radius/radius-xs,number,light,4,,CORNER_RADIUS
+radius/radius-sm,number,light,8,,CORNER_RADIUS
+radius/radius-md,number,light,12,,CORNER_RADIUS
+radius/radius-lg,number,light,16,,CORNER_RADIUS
+radius/radius-xl,number,light,20,,CORNER_RADIUS
+radius/radius-2xl,number,light,24,,CORNER_RADIUS
+radius/radius-full,number,light,9999,,CORNER_RADIUS
+radius/radius-squircle,number,light,20,,CORNER_RADIUS
+radius/card-radius,number,light,20,,CORNER_RADIUS
+radius/button-radius,number,light,9999,,CORNER_RADIUS
+size/button-height,number,light,44,,GAP
+size/icon-sm,number,light,16,,GAP
+size/icon-md,number,light,20,,GAP
+size/icon-lg,number,light,24,,GAP
+size/focus-ring-width,number,light,2,,GAP
+size/focus-ring-offset,number,light,2,,GAP
+size/table-select-width,number,light,40,,GAP
+size/control-sm,number,light,32,,GAP
+size/input-height,number,light,44,,GAP
+size/switch-width,number,light,36,,GAP
+size/switch-height,number,light,20,,GAP
+size/avatar-sm,number,light,24,,GAP
+size/avatar-md,number,light,32,,GAP
+size/avatar-lg,number,light,40,,GAP
+size/dialog-sm,number,light,400,,GAP
+size/dialog-md,number,light,560,,GAP
+size/dialog-lg,number,light,720,,GAP
+size/sidenav-width,number,light,240,,GAP
+size/tooltip-max,number,light,240,,GAP
+size/drawer-sm,number,light,360,"Drawer width, small (filters, quick detail). ADDED 4.2.",GAP
+size/drawer-md,number,light,480,"Drawer width, default (record detail). ADDED 4.2.",GAP
+size/drawer-lg,number,light,640,"Drawer width, large (edit forms). ADDED 4.2.",GAP
+size/container-max,number,light,1280,Container max width — matches aura-bp-xl. ADDED 4.2.,GAP
+size/container-narrow,number,light,720,Narrow container for forms and reading. ADDED 4.2.,GAP
+size/cal-cell,number,light,36,Calendar day cell (DatePicker). 40px on touch screens via media query. ADDED 4.2.,GAP
+size/popover-max-height,number,light,320,Max height of Combobox listbox and DatePicker popover lists. ADDED 4.2.,GAP
