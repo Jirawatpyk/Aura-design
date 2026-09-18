@@ -3,6 +3,12 @@ on:
   push: { branches: [main] }
   pull_request:
 
+# Every test step tees its output; on failure the tail goes into the job summary,
+# so the reason is readable on the run page without downloading logs.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   checks:
     name: Tokens, lint, SSR, types, build
@@ -10,14 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
+        with: { node-version: 22, cache: npm }
       - run: npm ci
       - name: Generated token files are committed
-        run: npm run check:generated -w packages/tokens
-      - run: npm test            # contrast (94 pairs), token lint, server rendering, tsc --strict
-      - run: npm run build
+        run: |
+          set -o pipefail; npm run check:generated -w packages/tokens 2>&1 | tee -a ci.log
+      - name: Contrast, token lint, SSR, types
+        run: |
+          set -o pipefail; npm test 2>&1 | tee -a ci.log
+      - name: Build
+        run: |
+          set -o pipefail; npm run build 2>&1 | tee -a ci.log
       - name: Bundle in packages/tokens matches the React source
-        run: git diff --exit-code -- packages/tokens/components
+        run: |
+          set -o pipefail; git diff --stat --exit-code -- packages/tokens/components 2>&1 | tee -a ci.log
+      - name: Failure summary
+        if: failure()
+        run: |
+          { echo '### Last 80 lines'; echo '```'; tail -80 ci.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   pilots:
     name: Pilot pages (axe + behaviour, 390/820/1440px, 4 brand themes)
@@ -25,12 +41,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
+        with: { node-version: 22, cache: npm }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: npm ci
-      - run: pip install playwright==1.56.* && python -m playwright install --with-deps chromium
-      - run: npm run test:pilots
+      - run: pip install 'playwright==1.56.*' && python -m playwright install --with-deps chromium
+      - name: Pilot tests
+        run: |
+          set -o pipefail; npm run test:pilots 2>&1 | tee ci.log
+      - name: Failure summary
+        if: failure()
+        run: |
+          { echo '### Failing checks'; echo '```'; grep -E 'FAIL|passed|Error|Traceback' ci.log | head -60; echo '```'; echo '### Last 60 lines'; echo '```'; tail -60 ci.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   storybook:
     name: Storybook (axe on every story × 2 themes, behaviour tests)
@@ -38,8 +60,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
+        with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npx playwright install --with-deps chromium
         working-directory: apps/storybook
-      - run: npm run test:storybook
+      - name: Storybook build and tests
+        run: |
+          set -o pipefail; npm run test:storybook 2>&1 | tee ci.log
+      - name: Failure summary
+        if: failure()
+        run: |
+          { echo '### Failing tests'; echo '```'; grep -E '^\s+[0-9]+\) |Error:|Expected|Received|violations|passed|failed' ci.log | head -80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

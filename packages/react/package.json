@@ -34,7 +34,8 @@
     "themes": "node scripts/test-themes.mjs",
     "test:pilots": "npm run examples && npm run themes && python3 tests/pilot_test.py && python3 tests/pilots_test.py",
     "theme": "node scripts/aura-theme.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "pretest:ssr": "node scripts/build.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
