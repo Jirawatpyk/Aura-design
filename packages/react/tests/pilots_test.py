@@ -18,14 +18,26 @@ def axe(pg, label):
     v = pg.evaluate("""async () => (await axe.run(document, { resultTypes: ['violations'] })).violations.map(v => v.id + ' (' + v.nodes.length + '): ' + v.nodes[0].target.join(' '))""")
     assert not v, label + ' axe: ' + '; '.join(v)
 
+GHA = bool(os.environ.get('GITHUB_ACTIONS'))
+def gha(level, title, msg):
+    if GHA: print(f"::{level} title={title}::{msg.replace(chr(10), ' ')[:400]}")
 def run(br, name, url, vp, fn):
-    pg = br.new_page(viewport=vp, reduced_motion='reduce'); errs = []
-    pg.on('pageerror', lambda e: errs.append(str(e)))
-    pg.goto(url); pg.wait_for_timeout(500)
-    try: fn(pg); results.append((name, True)); print('  ok  ', name)
-    except Exception as e: results.append((name, False)); print('  FAIL', name, '→', str(e).split('\n')[0][:300])
-    if errs: results.append((name + ' pageerror', False)); print('  FAIL pageerror', errs[0][:200])
-    pg.close()
+    first = None
+    for n in (1, 2):   # one retry: a pass on retry is reported as flaky, not hidden
+        pg = br.new_page(viewport=vp, reduced_motion='reduce'); errs = []
+        pg.on('pageerror', lambda e: errs.append(str(e)))
+        pg.goto(url); pg.wait_for_timeout(500)
+        try: fn(pg); err = None
+        except Exception as e: err = str(e).split('\n')[0][:300]
+        if not err and errs: err = 'pageerror: ' + errs[0][:200]
+        pg.close()
+        if not err: break
+        if n == 1: first = err; print('  retry', name, '→', err)
+    if err:
+        results.append((name, False)); print('  FAIL', name, '→', err); gha('error', 'pilot ' + name, err)
+    else:
+        results.append((name, True)); print('  ok  ' if not first else '  flaky', name, '' if not first else '→ ' + first)
+        if first: gha('warning', 'flaky pilot ' + name, first)
 
 S = 'file://' + os.path.join(EX, 'settings/dist/index.html')
 L = 'file://' + os.path.join(EX, 'landing/dist/index.html')

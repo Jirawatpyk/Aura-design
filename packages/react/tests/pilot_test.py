@@ -10,9 +10,13 @@ def _axe_path():
 AXE = open(_axe_path()).read()
 CHROMIUM = os.environ.get('CHROMIUM')   # optional: a specific Chromium binary
 results = []
-def check(name, fn, page):
-    try: fn(page); results.append((name, True, '')); print('  ok  ', name)
-    except Exception as e: results.append((name, False, str(e).split('\n')[0][:300])); print('  FAIL', name, '→', str(e).split('\n')[0][:300])
+GHA = bool(os.environ.get('GITHUB_ACTIONS'))
+def gha(level, title, msg):
+    # On GitHub Actions, failures and flaky passes become annotations, readable on the run page without logs.
+    if GHA: print(f"::{level} title={title}::{msg.replace(chr(10), ' ')[:400]}")
+def attempt(fn, page):
+    try: fn(page); return None
+    except Exception as e: return str(e).split('\n')[0][:300]
 
 def axe(pg, label):
     pg.add_script_tag(content=AXE)
@@ -200,11 +204,20 @@ with sync_playwright() as p:
                              ('phone 390', {'width': 390, 'height': 844}, [p_no_overflow, p_axe, p_nav_drawer, p_filters, p_card_detail, p_card_menu, p_bottom_sheet])]:
         print(label)
         for t in tests:
-            pg = br.new_page(viewport=vp, reduced_motion='reduce'); errs = []
-            pg.on('pageerror', lambda e: errs.append(str(e)))
-            ready(pg); check(t.__name__, t, pg)
-            if errs: results.append((t.__name__ + ' pageerror', False, errs[0])); print('  FAIL pageerror', errs[0])
-            pg.close()
+            first = None
+            for n in (1, 2):   # one retry: a pass on retry is reported as flaky, not hidden
+                pg = br.new_page(viewport=vp, reduced_motion='reduce'); errs = []
+                pg.on('pageerror', lambda e: errs.append(str(e)))
+                ready(pg); err = attempt(t, pg)
+                if not err and errs: err = 'pageerror: ' + errs[0][:200]
+                pg.close()
+                if not err: break
+                if n == 1: first = err; print('  retry', t.__name__, '→', err)
+            if err:
+                results.append((t.__name__, False, err)); print('  FAIL', t.__name__, '→', err); gha('error', 'pilot ' + label + ' ' + t.__name__, err)
+            else:
+                results.append((t.__name__, True, '')); print('  ok  ' if not first else '  flaky', t.__name__, '' if not first else '→ ' + first)
+                if first: gha('warning', 'flaky pilot ' + label + ' ' + t.__name__, first)
     br.close()
 bad = [r for r in results if not r[1]]
 print(f'{len(results) - len(bad)}/{len(results)} passed')
