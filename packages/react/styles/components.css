@@ -6,6 +6,7 @@
 .aura-btn {
   box-sizing: border-box;
   height: var(--aura-button-height);
+  white-space: nowrap; flex-shrink: 0;   /* a pill never wraps its label */
   padding: 0 var(--aura-space-6);
   border-radius: var(--aura-button-radius);
   border: 0;
