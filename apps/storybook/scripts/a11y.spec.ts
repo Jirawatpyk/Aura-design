@@ -12,6 +12,10 @@ test('AURA stories have no WCAG AA violations', async ({ page, request }) => {
     for (const s of stories) {
       await page.goto(`/iframe.html?id=${s.id}&viewMode=story&globals=theme:${theme}`);
       await page.waitForSelector('#storybook-root > *');
+      /* The theme is applied after mount, which starts colour transitions; measure only once they've finished. */
+      await page.waitForFunction(() =>
+        document.getAnimations().every((a) => !(a instanceof CSSTransition) || a.playState === 'finished'),
+      );
       const { violations } = await new AxeBuilder({ page }).include('#storybook-root').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       for (const v of violations) failures.push(`${theme} ${s.id}: ${v.id} — ${v.help} (${v.nodes.length})`);
     }

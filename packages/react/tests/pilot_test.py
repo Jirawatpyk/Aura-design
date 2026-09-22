@@ -18,7 +18,12 @@ def attempt(fn, page):
     try: fn(page); return None
     except Exception as e: return str(e).split('\n')[0][:300]
 
+# A theme switch starts ~90 CSS colour transitions (150–250ms). Text colours flip at once while backgrounds
+# fade, so axe run mid-fade can measure a half-changed pair (seen in CI: .aura-nav__count on the active item).
+# Wait until every CSS transition has finished — deterministic, unlike a fixed sleep.
+SETTLED = "() => document.getAnimations().every(a => !(a instanceof CSSTransition) || a.playState === 'finished')"
 def axe(pg, label):
+    pg.wait_for_function(SETTLED, timeout=5000)
     pg.add_script_tag(content=AXE)
     v = pg.evaluate("""async () => (await axe.run(document, { resultTypes: ['violations'] })).violations.map(v => v.id + ' (' + v.nodes.length + '): ' + v.nodes[0].target.join(' '))""")
     assert not v, label + ' axe: ' + '; '.join(v)
@@ -31,7 +36,6 @@ def color_scheme(pg, name, dark, system, after_reload=lambda pg: None):
     pg.get_by_role('button', name=re.compile('^' + name)).click()
     pg.get_by_role('menuitemcheckbox', name=dark).click()
     assert root() == ['dark', True], root()
-    pg.wait_for_timeout(400)   # let the colour transitions finish, or axe reads a half-changed colour
     axe(pg, 'toggled dark')
     pg.reload(); after_reload(pg)
     assert root() == ['dark', True], ('after reload', root())
