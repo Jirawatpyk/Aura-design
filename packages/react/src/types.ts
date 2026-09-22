@@ -543,7 +543,7 @@ export interface AppShellProps {
   children?: React.ReactNode;
   navLabel?: string;
   menuLabel?: string;
-  /** id of <main>, for a skip link. Default `main`. */
+  /** id of `<main>`, for a skip link. Default `main`. */
   mainId?: string;
   className?: string;
 }
@@ -618,7 +618,7 @@ export interface FileUploadProps extends FieldProps {
   defaultValue?: UploadItem[];
   onChange?: (items: UploadItem[]) => void;
   onRemove?: (item: UploadItem) => void;
-  /** Same syntax as <input accept>: "image/*,.pdf". Checked on drop too. */
+  /** Same syntax as `<input accept>`: "image/*,.pdf". Checked on drop too. */
   accept?: string;
   multiple?: boolean;
   /** Bytes per file. */

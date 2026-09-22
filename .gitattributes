@@ -1,0 +1,17 @@
+# One line-ending style everywhere: LF in the repository and in every working tree, Windows included.
+# Without this, Git for Windows (core.autocrlf=true) checks files out as CRLF, and tools that write LF
+# (npm, the build, editors) make files look modified and block `git pull` / `git merge`.
+* text=auto eol=lf
+
+# Binaries are never touched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.zip binary
+*.pdf binary

@@ -1,0 +1,40 @@
+import { Meta, ArgTypes } from '@storybook/blocks';
+import * as Aura from '@aura/react';
+
+<Meta title="Props/Forms" />
+
+# Forms — props
+
+Every field has a visible label, a hint or error line and the 44px height. Fields forward `ref` to the real input (react-hook-form `register`). Tables are generated from the TypeScript sources of `@jirawatpyk/aura-react`, so they always match the published types. `*` = required.
+
+## TextField
+
+<ArgTypes of={Aura.TextField} />
+
+## Textarea
+
+<ArgTypes of={Aura.Textarea} />
+
+## Select
+
+<ArgTypes of={Aura.Select} />
+
+## RadioGroup
+
+<ArgTypes of={Aura.RadioGroup} />
+
+## Checkbox
+
+<ArgTypes of={Aura.Checkbox} />
+
+## Switch
+
+<ArgTypes of={Aura.Switch} />
+
+## FileUpload
+
+<ArgTypes of={Aura.FileUpload} />
+
+## Field
+
+<ArgTypes of={Aura.Field} />

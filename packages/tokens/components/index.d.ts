@@ -554,7 +554,7 @@ export interface AppShellProps {
 	children?: React$1.ReactNode;
 	navLabel?: string;
 	menuLabel?: string;
-	/** id of <main>, for a skip link. Default `main`. */
+	/** id of `<main>`, for a skip link. Default `main`. */
 	mainId?: string;
 	className?: string;
 }
@@ -624,7 +624,7 @@ export interface FileUploadProps extends FieldProps {
 	defaultValue?: UploadItem[];
 	onChange?: (items: UploadItem[]) => void;
 	onRemove?: (item: UploadItem) => void;
-	/** Same syntax as <input accept>: "image/*,.pdf". Checked on drop too. */
+	/** Same syntax as `<input accept>`: "image/*,.pdf". Checked on drop too. */
 	accept?: string;
 	multiple?: boolean;
 	/** Bytes per file. */
@@ -826,7 +826,7 @@ export declare const Calendar: React$1.ForwardRefExoticComponent<CalendarProps &
 export declare const DatePicker: React$1.ForwardRefExoticComponent<DatePickerProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const DateRangePicker: React$1.ForwardRefExoticComponent<DateRangePickerProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const Alert: React$1.ForwardRefExoticComponent<AlertProps & React$1.RefAttributes<HTMLDivElement>>;
-/** Show a toast; returns its id. Needs <Toaster /> mounted once. */
+/** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
 export declare function toast(opts: ToastOptions | string): string;
 export declare namespace toast {
 	var dismiss: (id: string) => void;

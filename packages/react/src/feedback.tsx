@@ -28,7 +28,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert
 type ToastEntry = ToastOptions & { id: string; tone: FeedbackTone };
 var toastState: { list: ToastEntry[]; subs: Array<(list: ToastEntry[]) => void>; n: number } = { list: [], subs: [], n: 0 };
 function emitToasts() { toastState.subs.forEach(function (f) { f(toastState.list.slice()); }); }
-/** Show a toast; returns its id. Needs <Toaster /> mounted once. */
+/** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
 export function toast(opts: ToastOptions | string): string {
   if (typeof opts === 'string') opts = { title: opts };
   var id = opts.id || 't' + (++toastState.n);

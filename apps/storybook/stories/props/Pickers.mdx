@@ -1,0 +1,28 @@
+import { Meta, ArgTypes } from '@storybook/blocks';
+import * as Aura from '@aura/react';
+
+<Meta title="Props/Pickers" />
+
+# Pickers — props
+
+Values are ISO strings (`2026-09-18`, `09:30`); display is Thai with Buddhist-era years by default. Use react-hook-form `Controller` for these. Tables are generated from the TypeScript sources of `@jirawatpyk/aura-react`, so they always match the published types. `*` = required.
+
+## Combobox
+
+<ArgTypes of={Aura.Combobox} />
+
+## DatePicker
+
+<ArgTypes of={Aura.DatePicker} />
+
+## DateRangePicker
+
+<ArgTypes of={Aura.DateRangePicker} />
+
+## Calendar
+
+<ArgTypes of={Aura.Calendar} />
+
+## TimePicker
+
+<ArgTypes of={Aura.TimePicker} />

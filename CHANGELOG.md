@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **Props reference in Storybook** (Props → Actions, Forms, Pickers, Feedback, Overlays, Data, Layout, Theming and locale): a table per component (46) — generated with react-docgen-typescript from the TypeScript sources and their JSDoc, so it always matches the published types. Inherited DOM attributes are left out.
+- `.gitattributes`: LF everywhere (Windows checkouts included), so line endings no longer make files look modified or block `git pull`.
+
+### Fixed
+- Three prop descriptions wrote HTML tags as plain text (`<main>`, `<input accept>`, `<Toaster />`), which disappeared in rendered docs; they are code now.
+
 ## 4.5.0 — 2026-09-22
 
 ### Changed

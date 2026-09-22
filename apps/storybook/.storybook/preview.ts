@@ -34,7 +34,7 @@ const preview: Preview = {
     a11y: { config: { rules: [{ id: 'color-contrast', enabled: true }] } },
     chromatic: { modes: { light: { theme: 'light' }, dark: { theme: 'dark' } } },
     layout: 'fullscreen',
-    options: { storySort: { order: ['Welcome', 'AURA', ['Actions', 'Forms', 'Feedback', 'Pickers', 'Overlays', 'Data', 'Layout', 'Responsive']] } },
+    options: { storySort: { order: ['Welcome', 'AURA', ['Actions', 'Forms', 'Feedback', 'Pickers', 'Overlays', 'Data', 'Layout', 'Responsive'], 'Props', ['Actions', 'Forms', 'Pickers', 'Feedback', 'Overlays', 'Data', 'Layout', 'Theming and locale']] } },
   },
 };
 export default preview;
