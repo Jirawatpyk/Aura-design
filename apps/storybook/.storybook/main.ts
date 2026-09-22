@@ -10,7 +10,7 @@ const config: StorybookConfig = {
   viteFinal: async (cfg) => {
     cfg.resolve = cfg.resolve || {};
     cfg.resolve.dedupe = ['react', 'react-dom', 'react-hook-form'];
-    cfg.resolve.alias = { ...(cfg.resolve.alias || {}), '@aura/react': path.resolve(__dirname, '../../../packages/react/src/index.js') };
+    cfg.resolve.alias = { ...(cfg.resolve.alias || {}), '@aura/react': path.resolve(__dirname, '../../../packages/react/src/index.ts') };
     return cfg;
   },
 };

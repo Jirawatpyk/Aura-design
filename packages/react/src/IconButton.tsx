@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { cx, omit } from './internal.js';
 import { Icon } from './Icon.js';
+import type { IconButtonProps } from './types.js';
 const h = React.createElement;
 
-export const IconButton = React.forwardRef(function IconButton(props, ref) {
+export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(props, ref) {
   var rest = omit(props, ['icon', 'label', 'className', 'size']);
   return h('button', Object.assign({}, rest, {
     ref: ref,

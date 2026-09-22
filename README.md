@@ -28,8 +28,8 @@ npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-t
 ```jsonc
 // package.json — install under the short names so imports stay `@aura/...`
 "dependencies": {
-  "@aura/tokens": "npm:@jirawatpyk/aura-tokens@^4.4.2",
-  "@aura/react": "npm:@jirawatpyk/aura-react@^4.4.2"
+  "@aura/tokens": "npm:@jirawatpyk/aura-tokens@^4.5.0",
+  "@aura/react": "npm:@jirawatpyk/aura-react@^4.5.0"
 }
 ```
 
@@ -69,7 +69,7 @@ Every component forwards `ref` to its real element, so react-hook-form works as 
 
 ```bash
 npm ci
-npm test                 # contrast (94 pairs), token lint, server rendering, tsc --strict
+npm test                 # contrast (94 pairs), token lint, server rendering, tsc --strict over the TypeScript sources
 npm run build            # tokens + React (ESM, CJS, window.Aura bundle, types)
 npm run storybook        # http://localhost:6006
 npm run test:storybook   # axe on every story in both themes + behaviour tests
@@ -81,7 +81,7 @@ Change tokens only in `packages/tokens/tokens.json`, then `npm run build -w pack
 ## Release
 
 1. Bump `version` in `packages/tokens/package.json` and `packages/react/package.json` (same number), update `CHANGELOG.md`.
-2. `git tag v4.4.3 && git push --tags` — the Release workflow tests and publishes both packages to GitHub Packages **and** npmjs. A version a registry already has is skipped, so a failed run can be re-run.
+2. `git tag v4.5.1 && git push --tags` — the Release workflow tests and publishes both packages to GitHub Packages **and** npmjs. A version a registry already has is skipped, so a failed run can be re-run.
 
 npmjs uses trusted publishing: each package's Settings on npmjs.com trusts `Jirawatpyk/Aura-design` → `release.yml`, so no token is stored anywhere. A version with a hyphen (`4.5.0-rc.1`) is published under the `next` dist-tag.
 

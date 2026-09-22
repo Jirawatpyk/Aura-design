@@ -12,7 +12,7 @@ const tokens = process.env.AURA_CSS || path.resolve(pkg, '../tokens/aura.css');
 const fonts = '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap">';
 const only = process.argv[2];
 const names = fs.readdirSync(here).filter((n) => fs.existsSync(path.join(here, n, 'main.jsx')) && (!only || n === only));
-const alias = { name: 'alias', setup(b) { b.onResolve({ filter: /^@aura\/react$/ }, () => ({ path: path.join(pkg, 'src/index.js') })); } };
+const alias = { name: 'alias', setup(b) { b.onResolve({ filter: /^@aura\/react$/ }, () => ({ path: path.join(pkg, 'src/index.ts') })); } };
 const globals = { name: 'globals', setup(b) {
   b.onResolve({ filter: /^(react|react-dom|react-dom\/client|@aura\/react)$/ }, (a) => ({ path: a.path, namespace: 'g' }));
   b.onLoad({ filter: /.*/, namespace: 'g' }, (a) => ({ loader: 'js', contents: 'module.exports = window.' + ({ react: 'React', 'react-dom': 'ReactDOM', 'react-dom/client': 'ReactDOM', '@aura/react': 'Aura' })[a.path] + ';' }));

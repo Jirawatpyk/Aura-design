@@ -61,7 +61,7 @@ export default function Root() {
 | `dist/cjs/index.cjs` | `require()` / Jest. |
 | `dist/aura.bundle.js` | A classic `<script>` that sets `window.Aura` (needs `window.React` / `window.ReactDOM`). The design-system artifact uses this file. |
 | `dist/styles.css` | Component CSS (no font import). |
-| `dist/index.d.ts` | Types for every component and helper. |
+| `dist/index.d.ts` | Types for every component and helper, generated from the TypeScript sources (one file). |
 
 ## Components (43)
 
@@ -88,9 +88,13 @@ Portals (Dialog, Drawer, menus, pickers, toasts) wait until after hydration; `us
 ```bash
 npm run build        # dist/ (ESM, CJS, IIFE, CSS, types)
 npm run test:ssr     # server-render every component
-npm run typecheck    # compile types-test/usage.tsx against index.d.ts
+npm run typecheck    # tsc --strict over src/, then types-test/usage.tsx against the public API
 npm run test:pilots   # builds the pilots + 4 brand themes, then 37 behaviour/axe checks at 1440/820/390px (Playwright for Python, axe-core)
 ```
+
+## Source
+
+`src/` is TypeScript (strict). Public prop types live in `src/types.ts` with their docs; each component imports its props from there and `forwardRef`s with them, so the published `dist/index.d.ts` is generated from the code and can't drift from it. Components still use `React.createElement` (`h`) — moving them to JSX is the next step.
 
 ## Pilots
 

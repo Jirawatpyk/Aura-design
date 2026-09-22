@@ -22,3 +22,13 @@ export { FileUpload, formatBytes } from './FileUpload.js';
 export { createTheme, contrast, scale as brandScale } from './theme.js';
 export { ThemeStyle } from './ThemeStyle.js';
 export { Badge, Tag, Progress, Skeleton, EmptyState, Pagination, Accordion, Popover } from './extra.js';
+
+/* Types: every public prop and value type. */
+export type * from './types.js';
+export type { FieldComponentProps } from './forms.js';
+export type { ContainerProps } from './layout2.js';
+export type { ToasterProps } from './feedback.js';
+export type { ThemeStyleProps } from './ThemeStyle.js';
+export type { AuraStrings, AuraLocaleValue } from './locale.js';
+export type { FormatDateOptions } from './DatePicker.js';
+export type { IconShape } from './Icon.js';

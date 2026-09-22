@@ -2,9 +2,24 @@ import * as React from 'react';
 import { useStrings } from './locale.js';
 import { cx, omit, useMaybeControlled, uid } from './internal.js';
 import { Icon } from './Icon.js';
+import type { ChoiceOption, FieldPropsPublic, RadioGroupProps, SelectOption, SelectProps, SwitchProps, TextareaProps, TextFieldProps } from './types.js';
+
+/** Field: label, required/optional marks, the control, then the hint or error line. Wrap a custom control in it. */
+export interface FieldComponentProps extends Omit<FieldPropsPublic, 'label'> {
+  /** Visible label. Omit only when the control is labelled another way. */
+  label?: React.ReactNode;
+  /** The control's id: the label points at it, and the hint/error ids derive from it. */
+  id?: string;
+  children?: React.ReactNode;
+  /** Render the label as another element (e.g. `span` for a group of controls) with this id. */
+  labelAs?: string;
+  labelId?: string;
+  disabled?: boolean;
+  className?: string;
+}
 const h = React.createElement;
 
-export const Field = React.forwardRef(function Field(props, ref) {
+export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(function Field(props, ref) {
   var t = useStrings();
   return h('div', { ref: ref, className: cx('aura-field', props.error && 'is-invalid', props.disabled && 'is-disabled', props.className) },
     props.label ? h(props.labelAs || 'label', { className: 'aura-field__label', htmlFor: props.labelAs ? undefined : props.id, id: props.labelId },
@@ -14,10 +29,10 @@ export const Field = React.forwardRef(function Field(props, ref) {
     props.error ? h('p', { className: 'aura-field__error', id: props.id + '-error' }, h(Icon, { name: 'circle-alert', size: 14 }), props.error)
       : props.hint ? h('p', { className: 'aura-field__hint', id: props.id + '-hint' }, props.hint) : null);
 });
-function describedBy(id, p) { return p.error ? id + '-error' : p.hint ? id + '-hint' : undefined; }
-var FIELD_KEYS = ['label', 'hint', 'error', 'required', 'optional', 'icon', 'className', 'id', 'suffix', 'options', 'placeholder'];
+function describedBy(id: string, p: { error?: React.ReactNode; hint?: React.ReactNode }): string | undefined { return p.error ? id + '-error' : p.hint ? id + '-hint' : undefined; }
+var FIELD_KEYS: string[] = ['label', 'hint', 'error', 'required', 'optional', 'icon', 'className', 'id', 'suffix', 'options', 'placeholder'];
 
-export const TextField = React.forwardRef(function TextField(props, ref) {
+export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(props, ref) {
   var auto = uid(), id = props.id || auto;
   var rest = omit(props, FIELD_KEYS);
   return h(Field, { id: id, label: props.label, hint: props.hint, error: props.error, required: props.required, optional: props.optional, disabled: props.disabled, className: props.className },
@@ -30,7 +45,7 @@ export const TextField = React.forwardRef(function TextField(props, ref) {
       props.suffix ? h('span', { className: 'aura-input__suffix' }, props.suffix) : null));
 });
 
-export const Textarea = React.forwardRef(function Textarea(props, ref) {
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(props, ref) {
   var auto = uid(), id = props.id || auto;
   var rest = omit(props, FIELD_KEYS);
   return h(Field, { id: id, label: props.label, hint: props.hint, error: props.error, required: props.required, optional: props.optional, disabled: props.disabled, className: props.className },
@@ -40,11 +55,11 @@ export const Textarea = React.forwardRef(function Textarea(props, ref) {
     })));
 });
 
-export const Select = React.forwardRef(function Select(props, ref) {
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(props, ref) {
   var auto = uid(), id = props.id || auto;
   var rest = omit(props, FIELD_KEYS.concat(['children']));
-  var opts = (props.options || []).map(function (o) {
-    var v = typeof o === 'object' ? o : { value: o, label: o };
+  var opts = (props.options || []).map(function (o: SelectOption) {
+    var v: Exclude<SelectOption, string> = typeof o === 'object' ? o : { value: o, label: o };
     return h('option', { key: v.value, value: v.value, disabled: v.disabled }, v.label);
   });
   if (props.placeholder) opts.unshift(h('option', { key: '__ph', value: '', disabled: true }, props.placeholder));
@@ -59,16 +74,16 @@ export const Select = React.forwardRef(function Select(props, ref) {
       h(Icon, { name: 'chevron-down', className: 'aura-select__chevron' })));
 });
 
-export const RadioGroup = React.forwardRef(function RadioGroup(props, ref) {
+export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>(function RadioGroup(props, ref) {
   var auto = uid(), id = props.id || auto;
-  var st = useMaybeControlled(props.value, props.defaultValue, props.onChange);
+  var st = useMaybeControlled<string | undefined>(props.value, props.defaultValue, props.onChange as ((value: string | undefined) => void) | undefined);
   var name = props.name || id;
   return h('fieldset', { ref: ref, className: cx('aura-field aura-radio-group', props.error && 'is-invalid', props.className),
       'aria-describedby': describedBy(id, props), 'aria-invalid': props.error ? true : undefined, disabled: props.disabled },
     props.label ? h('legend', { className: 'aura-field__label' }, props.label, props.required ? h('span', { className: 'aura-field__req', 'aria-hidden': true }, ' *') : null) : null,
     h('div', { className: cx('aura-radio-group__list', props.orientation === 'horizontal' && 'is-horizontal') },
-      (props.options || []).map(function (o) {
-        var v = typeof o === 'object' ? o : { value: o, label: o };
+      (props.options || []).map(function (o: ChoiceOption) {
+        var v: Exclude<ChoiceOption, string> = typeof o === 'object' ? o : { value: o, label: o };
         return h('label', { key: v.value, className: cx('aura-choice', v.disabled && 'is-disabled') },
           h('input', { type: 'radio', className: 'aura-radio', name: name, value: v.value, disabled: v.disabled,
             checked: st[0] === v.value, onChange: function () { st[1](v.value); } }),
@@ -80,7 +95,7 @@ export const RadioGroup = React.forwardRef(function RadioGroup(props, ref) {
       : props.hint ? h('p', { className: 'aura-field__hint', id: id + '-hint' }, props.hint) : null);
 });
 
-export const Switch = React.forwardRef(function Switch(props, ref) {
+export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function Switch(props, ref) {
   var auto = uid(), id = props.id || auto;
   var st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
   var on = !!st[0];

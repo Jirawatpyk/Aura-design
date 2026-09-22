@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { cx, omit } from './internal.js';
+import type { SurfaceProps } from './types.js';
 const h = React.createElement;
 
-export const Surface = React.forwardRef(function Surface(props, ref) {
+export const Surface = React.forwardRef<HTMLElement, SurfaceProps>(function Surface(props, ref) {
   var t = props.texture || 'mesh';
   var rest = omit(props, ['texture', 'className', 'children', 'as']);
   return h(props.as || 'div', Object.assign({}, rest, {

@@ -4,14 +4,17 @@ import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedR
 import { useStrings } from './locale.js';
 import { Icon } from './Icon.js';
 import { Field } from './forms.js';
+import type { TimePickerProps } from './types.js';
+
+type PopoverPos = { left: number; width: number; top?: number; bottom?: number; maxHeight: number };
 const h = React.createElement;
 
-function pad(n) { return (n < 10 ? '0' : '') + n; }
-function toMin(t) { var m = /^(\d{2}):(\d{2})$/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; }
-function fromMin(n) { return pad(Math.floor(n / 60)) + ':' + pad(n % 60); }
+function pad(n: number): string { return (n < 10 ? '0' : '') + n; }
+function toMin(t: string | null | undefined): number | null { var m = /^(\d{2}):(\d{2})$/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; }
+function fromMin(n: number): string { return pad(Math.floor(n / 60)) + ':' + pad(n % 60); }
 
 /** Parse typed time: 9 · 09 · 930 · 0930 · 9:30 · 9.30 · 09.30 น. · 9:30 pm → "HH:mm" (24-hour) or null. */
-export function parseTime(text) {
+export function parseTime(text: string | null | undefined): string | null {
   var s = String(text || '').trim().toLowerCase().replace(/\s*(น\.?|นาฬิกา)$/, '').trim();
   var pm = /\s*(pm|p\.m\.)$/.test(s), am = /\s*(am|a\.m\.)$/.test(s);
   s = s.replace(/\s*(am|pm|a\.m\.|p\.m\.)$/, '');
@@ -26,29 +29,29 @@ export function parseTime(text) {
 
 /* TimePicker — a time field with a list of slots (step minutes between min and max). Value "HH:mm", 24-hour.
  * People can type any time (9, 930, 9.30); the list is a shortcut, not a limit — except min/max and isTimeDisabled. */
-export const TimePicker = React.forwardRef(function TimePicker(props, ref) {
+export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(function TimePicker(props, ref) {
   var t = useStrings();
   var auto = uid(), id = props.id || auto, listId = id + '-list';
-  var st = useMaybeControlled(props.value, props.defaultValue == null ? null : props.defaultValue, props.onChange);
+  var st = useMaybeControlled<string | null>(props.value, props.defaultValue == null ? null : props.defaultValue, props.onChange);
   var value = st[0];
-  var step = props.step || 30, lo = toMin(props.min) != null ? toMin(props.min) : 0, hi = toMin(props.max) != null ? toMin(props.max) : 24 * 60 - 1;
+  var step = props.step || 30, lo = toMin(props.min) != null ? toMin(props.min) as number : 0, hi = toMin(props.max) != null ? toMin(props.max) as number : 24 * 60 - 1;
   var slots = React.useMemo(function () {
-    var out = [];
+    var out: string[] = [];
     for (var m = lo; m <= hi; m += step) out.push(fromMin(m));
     return out;
   }, [lo, hi, step]);
-  function blocked(v) { var n = toMin(v); return n == null || n < lo || n > hi || (props.isTimeDisabled && props.isTimeDisabled(v)); }
+  function blocked(v: string): boolean | undefined { var n = toMin(v); return n == null || n < lo || n > hi || (props.isTimeDisabled && props.isTimeDisabled(v)); }
   var openState = React.useState(false), open = openState[0], setOpen = openState[1];
-  var editState = React.useState(null), editing = editState[0], setEditing = editState[1];
+  var editState = React.useState<string | null>(null), editing = editState[0], setEditing = editState[1];
   var aState = React.useState(0), active = aState[0], setActive = aState[1];
-  var errState = React.useState(null);
-  var pos = React.useState(null);
-  var boxRef = React.useRef(null), inputRef = React.useRef(null), listRef = React.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+  var errState = React.useState<React.ReactNode>(null);
+  var pos = React.useState<PopoverPos | null>(null);
+  var boxRef = React.useRef<HTMLDivElement | null>(null), inputRef = React.useRef<HTMLInputElement | null>(null), listRef = React.useRef<HTMLDivElement | null>(null), inputMerged = useMergedRef(ref, inputRef);
   var mounted = useMounted();
 
-  function nearest(v) {
+  function nearest(v: string): number {
     var n = toMin(v); if (n == null) return 0;
-    var best = 0; slots.forEach(function (s, i) { if (Math.abs(toMin(s) - n) < Math.abs(toMin(slots[best]) - n)) best = i; });
+    var best = 0; slots.forEach(function (s: string, i: number) { if (Math.abs(toMin(s)! - n!) < Math.abs(toMin(slots[best])! - n!)) best = i; });
     return best;
   }
   function place() {
@@ -59,24 +62,24 @@ export const TimePicker = React.forwardRef(function TimePicker(props, ref) {
   useIsoLayoutEffect(function () { if (open) place(); }, [open]);
   React.useEffect(function () {
     if (!open) return;
-    function outside(e) { if ((boxRef.current && boxRef.current.contains(e.target)) || (listRef.current && listRef.current.contains(e.target))) return; setOpen(false); }
-    function onScroll(e) { if (!listRef.current || !listRef.current.contains(e.target)) place(); }
+    function outside(e: Event) { if ((boxRef.current && boxRef.current.contains(e.target as Node)) || (listRef.current && listRef.current.contains(e.target as Node))) return; setOpen(false); }
+    function onScroll(e: Event) { if (!listRef.current || !listRef.current.contains(e.target as Node)) place(); }
     document.addEventListener('pointerdown', outside, true); window.addEventListener('scroll', onScroll, true); window.addEventListener('resize', place);
     return function () { document.removeEventListener('pointerdown', outside, true); window.removeEventListener('scroll', onScroll, true); window.removeEventListener('resize', place); };
   }, [open]);
   React.useEffect(function () {
     if (!open || !listRef.current) return;
-    var el = listRef.current.querySelector('[data-idx="' + active + '"]');
+    var el = listRef.current.querySelector<HTMLElement>('[data-idx="' + active + '"]');
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
   }, [active, open]);
 
   function show() { if (open || props.disabled || props.readOnly) return; setActive(nearest(value || props.suggest || fromMin(lo))); setOpen(true); }
-  function commit(v) {
+  function commit(v: string | null): boolean {
     if (v == null) { errState[1](null); st[1](null); return true; }
     if (blocked(v)) { errState[1](t.timeOutOfRange(fromMin(lo), fromMin(hi))); return false; }
     errState[1](null); st[1](v); return true;
   }
-  function choose(i) { var v = slots[i]; if (!v || blocked(v)) return; commit(v); setEditing(null); setOpen(false); if (inputRef.current) inputRef.current.focus(); }
+  function choose(i: number) { var v = slots[i]; if (!v || blocked(v)) return; commit(v); setEditing(null); setOpen(false); if (inputRef.current) inputRef.current.focus(); }
   function commitTyped() {
     if (editing == null) return;
     var txt = editing.trim();
@@ -84,12 +87,12 @@ export const TimePicker = React.forwardRef(function TimePicker(props, ref) {
     else { var v = parseTime(txt); if (v) commit(v); else errState[1](t.timeInvalid); }
     setEditing(null);
   }
-  function move(d) {
+  function move(d: number) {
     var i = active;
     for (var k = 0; k < slots.length; k++) { i = Math.min(slots.length - 1, Math.max(0, i + d)); if (!blocked(slots[i])) break; }
     setActive(i);
   }
-  function onKeyDown(e) {
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     var k = e.key;
     if (k === 'ArrowDown') { e.preventDefault(); if (!open) show(); else move(1); }
     else if (k === 'ArrowUp') { e.preventDefault(); if (!open) show(); else move(-1); }
@@ -108,11 +111,11 @@ export const TimePicker = React.forwardRef(function TimePicker(props, ref) {
   var list = open && mounted && pos[0] ? createPortal(
     h('div', { ref: listRef, className: 'aura-combo__popover aura-time__popover', style: pos[0] },
       h('ul', { id: listId, role: 'listbox', 'aria-label': props.label, className: 'aura-combo__list' },
-        slots.map(function (s, i) {
+        slots.map(function (s: string, i: number) {
           var dis = blocked(s), sel = s === value;
           return h('li', { key: s, id: id + '-opt-' + i, role: 'option', 'data-idx': i, 'aria-selected': sel, 'aria-disabled': dis || undefined,
             className: cx('aura-combo__option aura-time__option', i === active && 'is-active', sel && 'is-selected', dis && 'is-disabled'),
-            onPointerDown: function (e) { e.preventDefault(); }, onClick: function () { choose(i); },
+            onPointerDown: function (e: React.PointerEvent) { e.preventDefault(); }, onClick: function () { choose(i); },
             onPointerMove: function () { if (active !== i) setActive(i); } },
             h('span', { className: 'aura-combo__label' }, s),
             sel ? h(Icon, { name: 'check', className: 'aura-combo__check' }) : null);
@@ -129,7 +132,7 @@ export const TimePicker = React.forwardRef(function TimePicker(props, ref) {
         'aria-invalid': error ? true : undefined, 'aria-describedby': error ? id + '-error' : props.hint ? id + '-hint' : undefined,
         placeholder: props.placeholder || t.timePlaceholder, disabled: props.disabled, readOnly: props.readOnly, required: props.required, name: props.name,
         value: editing != null ? editing : value || '',
-        onChange: function (e) {
+        onChange: function (e: React.ChangeEvent<HTMLInputElement>) {
           setEditing(e.target.value);
           var v = parseTime(e.target.value);
           if (v) { if (!open) show(); setActive(nearest(v)); }
@@ -142,7 +145,7 @@ export const TimePicker = React.forwardRef(function TimePicker(props, ref) {
         onClick: function () { commit(null); setEditing(null); if (inputRef.current) inputRef.current.focus(); }
       }, h(Icon, { name: 'x' })) : null,
       h('button', { type: 'button', tabIndex: -1, 'aria-hidden': true, className: 'aura-combo__toggle',
-        onPointerDown: function (e) { e.preventDefault(); }, onClick: function () { if (open) setOpen(false); else { show(); inputRef.current && inputRef.current.focus(); } } },
+        onPointerDown: function (e: React.PointerEvent) { e.preventDefault(); }, onClick: function () { if (open) setOpen(false); else { show(); inputRef.current && inputRef.current.focus(); } } },
         h(Icon, { name: 'chevron-down' }))),
     list);
 });

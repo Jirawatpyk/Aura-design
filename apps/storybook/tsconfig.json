@@ -1,5 +1,5 @@
 {
   "compilerOptions": { "jsx": "react-jsx", "module": "esnext", "moduleResolution": "bundler", "target": "es2020", "strict": false, "skipLibCheck": true, "noEmit": true,
-    "paths": { "@aura/react": ["../../packages/react/index.d.ts"] } },
+    "paths": { "@aura/react": ["../../packages/react/src/index.ts"] } },
   "include": ["stories", ".storybook"]
 }

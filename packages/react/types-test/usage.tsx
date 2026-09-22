@@ -1,7 +1,7 @@
 /* Compile-only check that the public types describe real usage. `npm run typecheck`. */
 import * as React from 'react';
 import { AppShell, SideNav, Stack, Grid, Container, Combobox, DatePicker, DateRangePicker, Drawer, DropdownMenu, IconButton, Button,
-  DataTable, Stat, Badge, Tag, Progress, Skeleton, EmptyState, Pagination, Accordion, Popover, Checkbox, createTheme, ThemeStyle, TimePicker, FileUpload, formatBytes, parseTime, type UploadItem, formatDate, parseDate, useBreakpoint, useResponsive, breakpoints, toast, type DateRange } from '../index';
+  DataTable, Stat, Badge, Tag, Progress, Skeleton, EmptyState, Pagination, Accordion, Popover, Checkbox, createTheme, ThemeStyle, TimePicker, FileUpload, formatBytes, parseTime, type UploadItem, formatDate, parseDate, useBreakpoint, useResponsive, breakpoints, toast, type DateRange } from '../src/index';
 
 export function Page() {
   const [owner, setOwner] = React.useState<string | null>(null);

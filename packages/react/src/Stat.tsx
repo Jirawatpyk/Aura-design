@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { cx } from './internal.js';
 import { Icon } from './Icon.js';
+import type { StatProps } from './types.js';
 const h = React.createElement;
 
 /* Stat — one number on a card: label, value, optional change and caption. Dashboards and page summaries.
  * change: { value: '+12%', direction: 'up' | 'down' | 'flat', tone?: 'positive' | 'negative' | 'neutral', label?: 'vs last month' }
  * A rise is not always good (cancellations), so tone is separate from direction; it defaults to up = positive. */
-export const Stat = React.forwardRef(function Stat(props, ref) {
+export const Stat = React.forwardRef<HTMLElement, StatProps>(function Stat(props, ref) {
   var ch = props.change;
   var dir = ch && (ch.direction || 'flat');
   var tone = ch && (ch.tone || (dir === 'up' ? 'positive' : dir === 'down' ? 'negative' : 'neutral'));

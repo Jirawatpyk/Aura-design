@@ -4,36 +4,41 @@ import { createPortal } from 'react-dom';
 import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
 import { Field } from './forms.js';
+import type { ComboboxOption, ComboboxProps } from './types.js';
+
+type PopoverPos = { left: number; width: number; top?: number; bottom?: number; maxHeight: number };
 const h = React.createElement;
 
-function norm(s) { return String(s == null ? '' : s).normalize('NFC').toLocaleLowerCase('th'); }
-function toOpt(o) { return typeof o === 'object' ? o : { value: String(o), label: String(o) }; }
-export function defaultFilter(option, query) {
+function norm(s: unknown): string { return String(s == null ? '' : s).normalize('NFC').toLocaleLowerCase('th'); }
+function toOpt(o: ComboboxOption | string): ComboboxOption { return typeof o === 'object' ? o : { value: String(o), label: String(o) }; }
+/** The Thai-aware default filter: label, description and keywords contain the query. */
+export function defaultFilter(option: ComboboxOption, query: string): boolean {
   var q = norm(query).trim();
   if (!q) return true;
-  return norm(option.label).indexOf(q) >= 0 || (option.description && norm(option.description).indexOf(q) >= 0) ||
-    (option.keywords || []).some(function (k) { return norm(k).indexOf(q) >= 0; });
+  return norm(option.label).indexOf(q) >= 0 || (!!option.description && norm(option.description).indexOf(q) >= 0) ||
+    (option.keywords || []).some(function (k: string) { return norm(k).indexOf(q) >= 0; });
 }
 
 /* Combobox — a text field that filters a list as you type (ARIA 1.2 combobox + listbox).
  * Pick one value; `onSearch` + `loading` for server-side results. */
-export const Combobox = React.forwardRef(function Combobox(props, ref) {
+/** Text field that filters a list as you type (ARIA 1.2 combobox). One value. */
+export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(function Combobox(props, ref) {
   var t = useStrings();
   var auto = uid(), id = props.id || auto, listId = id + '-list';
   var options = (props.options || []).map(toOpt);
-  var st = useMaybeControlled(props.value, props.defaultValue == null ? null : props.defaultValue, props.onChange);
+  var st = useMaybeControlled<string | null>(props.value, props.defaultValue == null ? null : props.defaultValue, props.onChange);
   var value = st[0], setValue = st[1];
-  var selected = options.filter(function (o) { return o.value === value; })[0] || null;
+  var selected = options.filter(function (o: ComboboxOption) { return o.value === value; })[0] || null;
   var openState = React.useState(false), open = openState[0], setOpen = openState[1];
-  var qState = React.useState(null), query = qState[0], setQuery = qState[1]; /* null = show the selected label */
+  var qState = React.useState<string | null>(null), query = qState[0], setQuery = qState[1]; /* null = show the selected label */
   var aState = React.useState(0), active = aState[0], setActive = aState[1];
-  var posState = React.useState(null);
-  var inputRef = React.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React.useRef(null), listRef = React.useRef(null);
+  var posState = React.useState<PopoverPos | null>(null);
+  var inputRef = React.useRef<HTMLInputElement | null>(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React.useRef<HTMLDivElement | null>(null), listRef = React.useRef<HTMLDivElement | null>(null);
   var mounted = useMounted();
   var limit = props.limit || 200;
 
   var filter = props.filter || defaultFilter;
-  var shown = props.onSearch || query == null ? options : options.filter(function (o) { return filter(o, query); });
+  var shown = props.onSearch || query == null ? options : options.filter(function (o: ComboboxOption) { return filter(o, query as string); });
   var more = shown.length > limit;
   shown = shown.slice(0, limit);
   var activeIdx = Math.min(active, shown.length - 1);
@@ -47,12 +52,12 @@ export const Combobox = React.forwardRef(function Combobox(props, ref) {
   useIsoLayoutEffect(function () { if (open) place(); }, [open, shown.length]);
   React.useEffect(function () {
     if (!open) return;
-    function outside(e) {
-      if (boxRef.current && boxRef.current.contains(e.target)) return;
-      if (listRef.current && listRef.current.contains(e.target)) return;
+    function outside(e: Event) {
+      if (boxRef.current && boxRef.current.contains(e.target as Node)) return;
+      if (listRef.current && listRef.current.contains(e.target as Node)) return;
       close(false);
     }
-    function onScroll(e) { if (!listRef.current || !listRef.current.contains(e.target)) place(); }
+    function onScroll(e: Event) { if (!listRef.current || !listRef.current.contains(e.target as Node)) place(); }
     document.addEventListener('pointerdown', outside, true);
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', place);
@@ -64,18 +69,18 @@ export const Combobox = React.forwardRef(function Combobox(props, ref) {
   }, [open]);
   React.useEffect(function () {
     if (!open || !listRef.current) return;
-    var el = listRef.current.querySelector('[data-idx="' + activeIdx + '"]');
+    var el = listRef.current.querySelector<HTMLElement>('[data-idx="' + activeIdx + '"]');
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
   }, [activeIdx, open]);
 
   function openList() { if (!open && !props.disabled && !props.readOnly) { setOpen(true); var i = selected ? shown.indexOf(selected) : 0; setActive(i < 0 ? 0 : i); } }
-  function close(restoreLabel) { setOpen(false); setQuery(null); }
-  function choose(o) {
+  function close(restoreLabel?: boolean) { setOpen(false); setQuery(null); }
+  function choose(o: ComboboxOption | undefined) {
     if (!o || o.disabled) return;
     setValue(o.value); setQuery(null); setOpen(false);
     if (inputRef.current) inputRef.current.focus();
   }
-  function onKeyDown(e) {
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     var k = e.key;
     if (k === 'ArrowDown') { e.preventDefault(); if (!open) openList(); else setActive(Math.min(activeIdx + 1, shown.length - 1)); }
     else if (k === 'ArrowUp') { e.preventDefault(); if (!open) openList(); else setActive(Math.max(activeIdx - 1, 0)); }
@@ -86,18 +91,18 @@ export const Combobox = React.forwardRef(function Combobox(props, ref) {
     else if (k === 'Tab') { if (open) close(); }
   }
   var text = query != null ? query : selected ? selected.label : '';
-  var optId = function (i) { return id + '-opt-' + i; };
+  var optId = function (i: number) { return id + '-opt-' + i; };
   var list = open && mounted && posState[0] ? createPortal(
     h('div', { ref: listRef, className: 'aura-combo__popover', style: posState[0] },
       h('ul', { id: listId, role: 'listbox', 'aria-label': props.label, className: 'aura-combo__list' },
         props.loading ? h('li', { className: 'aura-combo__note', role: 'presentation' }, h(Icon, { name: 'loader-circle', className: 'aura-spin' }), props.loadingText || t.searching)
         : !shown.length ? h('li', { className: 'aura-combo__note', role: 'presentation' }, props.emptyText || t.noMatches)
-        : shown.map(function (o, i) {
+        : shown.map(function (o: ComboboxOption, i: number) {
             var isSel = selected && o.value === selected.value;
             return h('li', {
               key: o.value, id: optId(i), role: 'option', 'data-idx': i, 'aria-selected': isSel, 'aria-disabled': o.disabled || undefined,
               className: cx('aura-combo__option', i === activeIdx && 'is-active', isSel && 'is-selected', o.disabled && 'is-disabled'),
-              onPointerDown: function (e) { e.preventDefault(); }, onClick: function () { choose(o); },
+              onPointerDown: function (e: React.PointerEvent) { e.preventDefault(); }, onClick: function () { choose(o); },
               onPointerMove: function () { if (activeIdx !== i) setActive(i); }
             },
               o.icon ? h(Icon, { name: o.icon }) : null,
@@ -120,7 +125,7 @@ export const Combobox = React.forwardRef(function Combobox(props, ref) {
         'aria-describedby': props.error ? id + '-error' : props.hint ? id + '-hint' : undefined,
         placeholder: props.placeholder, disabled: props.disabled, readOnly: props.readOnly, required: props.required, name: props.name,
         value: text,
-        onChange: function (e) { setQuery(e.target.value); setActive(0); if (!open) setOpen(true); if (props.onSearch) props.onSearch(e.target.value); },
+        onChange: function (e: React.ChangeEvent<HTMLInputElement>) { setQuery(e.target.value); setActive(0); if (!open) setOpen(true); if (props.onSearch) props.onSearch(e.target.value); },
         onClick: openList, onKeyDown: onKeyDown,
         onBlur: function () { setTimeout(function () { if (listRef.current && listRef.current.contains(document.activeElement)) return; setOpen(false); setQuery(null); }, 0); }
       }),
@@ -129,7 +134,7 @@ export const Combobox = React.forwardRef(function Combobox(props, ref) {
         onClick: function () { setValue(null); setQuery(null); if (inputRef.current) inputRef.current.focus(); }
       }, h(Icon, { name: 'x' })) : null,
       h('button', { type: 'button', tabIndex: -1, 'aria-hidden': true, className: 'aura-combo__toggle',
-        onPointerDown: function (e) { e.preventDefault(); }, onClick: function () { if (open) close(); else { openList(); inputRef.current && inputRef.current.focus(); } } },
+        onPointerDown: function (e: React.PointerEvent) { e.preventDefault(); }, onClick: function () { if (open) close(); else { openList(); inputRef.current && inputRef.current.focus(); } } },
         h(Icon, { name: 'chevron-down' }))),
     list);
 });

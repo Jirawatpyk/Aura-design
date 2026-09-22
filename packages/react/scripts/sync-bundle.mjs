@@ -8,5 +8,5 @@ const out = path.resolve(root, '../tokens/components');
 if (!fs.existsSync(out)) process.exit(0);
 fs.copyFileSync(path.join(root, 'dist/aura.bundle.js'), path.join(out, 'aura.bundle.js'));
 fs.copyFileSync(path.join(root, 'styles/components.css'), path.join(out, 'aura.components.css'));
-fs.copyFileSync(path.join(root, 'index.d.ts'), path.join(out, 'index.d.ts'));
+fs.copyFileSync(path.join(root, 'dist/index.d.ts'), path.join(out, 'index.d.ts'));
 console.log('synced bundle, CSS and types into packages/tokens/components');

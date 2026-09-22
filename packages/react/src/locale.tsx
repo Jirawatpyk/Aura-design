@@ -1,10 +1,70 @@
 import * as React from 'react';
+import type { AuraProviderProps } from './types.js';
 const h = React.createElement;
 
 /* UI strings built into components. Thai first; English kept for mixed teams.
  * Wrap the app once: <AuraProvider locale="th">. Without a provider, strings are English and dates are Thai/พ.ศ. (4.1 behaviour). */
-var n = function (x) { return Number(x).toLocaleString('en'); };
-export var STRINGS = {
+var n = function (x: number | string) { return Number(x).toLocaleString('en'); };
+/** Every built-in label. Function entries build the text from their arguments. */
+export interface AuraStrings {
+  close: string;
+  dismiss: string;
+  dismissToast: string;
+  notifications: string;
+  mainNav: string;
+  breadcrumb: string;
+  navigation: string;
+  openNav: string;
+  searching: string;
+  noMatches: string;
+  clear: (what?: string) => string;
+  keepTyping: (total: number) => string;
+  sortAsc: string;
+  sortDesc: string;
+  pin: string;
+  unpin: string;
+  moveLeft: string;
+  moveRight: string;
+  hideColumn: string;
+  resetColumns: string;
+  selectRows: string;
+  selectAllRows: string;
+  deselectAllRows: string;
+  selectAll: string;
+  selectRow: (k: React.ReactNode) => string;
+  selectedCount: (c: number) => string;
+  pinned: string;
+  columnOptions: (label?: string) => string;
+  column: (label?: string) => string;
+  columns: string;
+  showHideColumns: string;
+  empty: string;
+  loading: string;
+  loadingRows: string;
+  range: (a: number | string, b: number | string, total: number) => string;
+  page: (p: number, total: number) => string;
+  prevPage: string;
+  nextPage: string;
+  rowCount: (c: number) => string;
+  actions: string;
+  optional: string;
+  timePlaceholder: string;
+  timeInvalid: string;
+  timeOutOfRange: (a: number | string, b: number | string) => string;
+  dropFiles: string;
+  browse: string;
+  browseOne: string;
+  remove: (n: number | string) => string;
+  fileTooBig: (max?: number | string) => string;
+  fileWrongType: string;
+  tooManyFiles: (n: number | string) => string;
+  uploading: string;
+  images: string;
+  pagination: string;
+  pageN: (p: number) => string;
+  accepts: (list?: string, max?: number | string) => string;
+}
+export var STRINGS: { en: AuraStrings; th: AuraStrings } = {
   en: {
     close: 'Close', dismiss: 'Dismiss', dismissToast: 'Dismiss notification', notifications: 'Notifications',
     mainNav: 'Main', breadcrumb: 'Breadcrumb', navigation: 'Navigation', openNav: 'Open navigation',
@@ -44,18 +104,24 @@ export var STRINGS = {
     uploading: 'กำลังอัปโหลด…', images: 'รูปภาพ', pagination: 'เลขหน้า', pageN: function (p) { return 'หน้า ' + p; }, accepts: function (list, max) { return [list, max && 'ไม่เกิน ' + max + ' ต่อไฟล์'].filter(Boolean).join(' · '); },
   },
 };
-var LocaleContext = React.createContext(null);
+/** What useAuraLocale returns. `locale` and `calendar` are null outside an AuraProvider. */
+export interface AuraLocaleValue {
+  locale: 'th' | 'en' | null;
+  calendar: 'buddhist' | 'gregory' | null;
+  strings: AuraStrings;
+}
+var LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 
 /** Sets the language of built-in labels (and the default date locale) for everything inside. */
-export function AuraProvider(props) {
-  var value = React.useMemo(function () {
-    var base = STRINGS[props.locale] || STRINGS.en;
-    return { locale: props.locale || 'en', calendar: props.calendar, strings: props.strings ? Object.assign({}, base, props.strings) : base };
+export function AuraProvider(props: AuraProviderProps): React.ReactElement {
+  var value = React.useMemo(function (): AuraLocaleValue {
+    var base = (props.locale && STRINGS[props.locale]) || STRINGS.en;
+    return { locale: props.locale || 'en', calendar: props.calendar || null, strings: props.strings ? Object.assign({}, base, props.strings) as AuraStrings : base };
   }, [props.locale, props.calendar, props.strings]);
   return h(LocaleContext.Provider, { value: value }, props.children);
 }
 /** { locale, calendar, strings } from the nearest AuraProvider (English strings when there is none). */
-export function useAuraLocale() {
+export function useAuraLocale(): AuraLocaleValue {
   return React.useContext(LocaleContext) || { locale: null, calendar: null, strings: STRINGS.en };
 }
-export function useStrings() { return useAuraLocale().strings; }
+export function useStrings(): AuraStrings { return useAuraLocale().strings; }

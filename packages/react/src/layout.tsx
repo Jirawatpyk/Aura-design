@@ -2,9 +2,10 @@ import * as React from 'react';
 import { useStrings, useAuraLocale } from './locale.js';
 import { cx, useMaybeControlled, uid } from './internal.js';
 import { Icon } from './Icon.js';
+import type { AvatarProps, BreadcrumbProps, CardProps, NavItem, SideNavProps, TabItem, TabsProps } from './types.js';
 const h = React.createElement;
 
-export const Card = React.forwardRef(function Card(props, ref) {
+export const Card = React.forwardRef<HTMLElement, CardProps>(function Card(props, ref) {
   var creative = props.variant === 'creative';
   return h(props.as || 'section', { ref: ref, className: cx('aura-card', creative && 'aura-card--creative', props.interactive && 'is-interactive', props.className),
       'aria-labelledby': props.title && props.titleId ? props.titleId : undefined },
@@ -17,30 +18,30 @@ export const Card = React.forwardRef(function Card(props, ref) {
     props.footer ? h('div', { className: 'aura-card__foot' }, props.footer) : null);
 });
 
-export const Tabs = React.forwardRef(function Tabs(props, ref) {
+export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(props, ref) {
   var items = props.tabs || [], base = uid();
-  var st = useMaybeControlled(props.value, props.defaultValue || (items[0] && items[0].id), props.onChange);
-  var refs = React.useRef({});
-  var current = items.filter(function (t) { return t.id === st[0]; })[0] || items[0];
-  function go(i) {
-    var enabled = items.filter(function (t) { return !t.disabled; });
+  var st = useMaybeControlled<string | undefined>(props.value, props.defaultValue || (items[0] && items[0].id), props.onChange as ((id: string | undefined) => void) | undefined);
+  var refs = React.useRef<Record<string, HTMLButtonElement | null>>({});
+  var current = items.filter(function (t: TabItem) { return t.id === st[0]; })[0] || items[0];
+  function go(i: number) {
+    var enabled = items.filter(function (t: TabItem) { return !t.disabled; });
     var t = enabled[(i + enabled.length) % enabled.length];
-    st[1](t.id); if (refs.current[t.id]) refs.current[t.id].focus();
+    st[1](t.id); if (refs.current[t.id]) refs.current[t.id]!.focus();
   }
   return h('div', { ref: ref, className: cx('aura-tabs', props.className) },
     h('div', { role: 'tablist', 'aria-label': props.label, className: 'aura-tabs__list',
-      onKeyDown: function (e) {
-        var enabled = items.filter(function (t) { return !t.disabled; }), i = enabled.indexOf(current);
+      onKeyDown: function (e: React.KeyboardEvent) {
+        var enabled = items.filter(function (t: TabItem) { return !t.disabled; }), i = enabled.indexOf(current);
         if (e.key === 'ArrowRight') { e.preventDefault(); go(i + 1); }
         else if (e.key === 'ArrowLeft') { e.preventDefault(); go(i - 1); }
         else if (e.key === 'Home') { e.preventDefault(); go(0); }
         else if (e.key === 'End') { e.preventDefault(); go(enabled.length - 1); }
       } },
-      items.map(function (t) {
+      items.map(function (t: TabItem) {
         var on = current && t.id === current.id;
         return h('button', { key: t.id, type: 'button', role: 'tab', id: base + '-tab-' + t.id, 'aria-selected': on,
             'aria-controls': base + '-panel-' + t.id, tabIndex: on ? 0 : -1, disabled: t.disabled,
-            ref: function (el) { refs.current[t.id] = el; },
+            ref: function (el: HTMLButtonElement | null): void { refs.current[t.id] = el; },
             className: cx('aura-tab', on && 'is-active'), onClick: function () { st[1](t.id); } },
           t.icon ? h(Icon, { name: t.icon }) : null, t.label,
           t.count != null ? h('span', { className: 'aura-tab__count' }, t.count) : null);
@@ -49,21 +50,21 @@ export const Tabs = React.forwardRef(function Tabs(props, ref) {
       'aria-labelledby': base + '-tab-' + current.id, tabIndex: 0, className: 'aura-tabs__panel' }, current.content) : null);
 });
 
-export const SideNav = React.forwardRef(function SideNav(props, ref) {
+export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function SideNav(props, ref) {
   var t = useStrings();
-  var st = useMaybeControlled(props.value, props.defaultValue, props.onChange);
-  function item(it) {
+  var st = useMaybeControlled<string | undefined>(props.value, props.defaultValue, props.onChange as ((id: string | undefined) => void) | undefined);
+  function item(it: NavItem) {
     var on = st[0] === it.id;
     var inner = [it.icon ? h(Icon, { key: 'i', name: it.icon }) : null, h('span', { key: 'l', className: 'aura-nav__label' }, it.label),
       it.count != null ? h('span', { key: 'c', className: 'aura-nav__count' }, it.count) : null];
     var common = { className: cx('aura-nav__item', on && 'is-active'), 'aria-current': on ? 'page' : undefined,
-      onClick: function (e) { if (!it.href) e.preventDefault(); st[1](it.id); } };
+      onClick: function (e: React.MouseEvent) { if (!it.href) e.preventDefault(); st[1](it.id); } };
     return h('li', { key: it.id }, it.href ? h('a', Object.assign({ href: it.href }, common), inner) : h('button', Object.assign({ type: 'button' }, common), inner));
   }
   return h('nav', { ref: ref, className: cx('aura-nav', props.className), 'aria-label': props.label || t.mainNav },
     props.header ? h('div', { className: 'aura-nav__header' }, props.header) : null,
     h('div', { className: 'aura-nav__scroll' },
-      (props.sections || [{ items: props.items || [] }]).map(function (s, i) {
+      (props.sections || [{ items: props.items || [] }]).map(function (s: { title?: string; items: NavItem[] }, i: number) {
         return h('div', { key: i, className: 'aura-nav__section' },
           s.title ? h('p', { className: 'aura-nav__title' }, s.title) : null,
           h('ul', { className: 'aura-nav__list' }, s.items.map(item)));
@@ -71,11 +72,11 @@ export const SideNav = React.forwardRef(function SideNav(props, ref) {
     props.footer ? h('div', { className: 'aura-nav__footer' }, props.footer) : null);
 });
 
-export const Breadcrumb = React.forwardRef(function Breadcrumb(props, ref) {
+export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(function Breadcrumb(props, ref) {
   var t = useStrings();
   var items = props.items || [];
   return h('nav', { ref: ref, 'aria-label': props.label || t.breadcrumb, className: cx('aura-crumbs', props.className) },
-    h('ol', null, items.map(function (it, i) {
+    h('ol', null, items.map(function (it: BreadcrumbProps['items'][number], i: number) {
       var last = i === items.length - 1;
       return h('li', { key: i },
         last ? h('span', { 'aria-current': 'page', className: 'aura-crumbs__current' }, it.label)
@@ -86,11 +87,11 @@ export const Breadcrumb = React.forwardRef(function Breadcrumb(props, ref) {
 });
 
 var AVATAR_TONES = ['progress', 'ready', 'neutral', 'warning'];
-function initials(name) {
+function initials(name: string): string {
   var parts = String(name || '?').trim().split(/\s+/);
   return ((parts[0] || '?')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : (parts[0][1] || ''))).toUpperCase();
 }
-export const Avatar = React.forwardRef(function Avatar(props, ref) {
+export const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(function Avatar(props, ref) {
   var size = props.size || 'md', errState = React.useState(false);
   var hash = 0; String(props.name || '').split('').forEach(function (ch) { hash = (hash * 31 + ch.charCodeAt(0)) >>> 0; });
   var tone = AVATAR_TONES[hash % AVATAR_TONES.length];

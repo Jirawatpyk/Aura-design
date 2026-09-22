@@ -3,7 +3,7 @@
  *   npx aura-theme --brand "#0ea5e9" [--signal "#facc15"] [--primary brand] [--name acme] [--selector .tenant-acme] [--out src/aura-theme.css]
  * Prints every contrast check; exits 1 if any fails. */
 import fs from 'node:fs';
-import { createTheme } from '../src/theme.js';
+import { createTheme } from '../dist/esm/theme.js';
 
 const args = {};
 for (let i = 2; i < process.argv.length; i++) {

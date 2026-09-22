@@ -1,7 +1,7 @@
 {
   "name": "@jirawatpyk/aura-storybook",
   "private": true,
-  "version": "4.4.2",
+  "version": "4.5.0",
   "description": "AURA Design System \u2014 Storybook, visual regression (Chromatic) and accessibility checks",
   "scripts": {
     "storybook": "storybook dev -p 6006",

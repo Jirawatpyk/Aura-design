@@ -1,6 +1,6 @@
 {
   "name": "@jirawatpyk/aura-react",
-  "version": "4.4.2",
+  "version": "4.5.0",
   "description": "AURA Design System — React components (Enterprise Standard, Human Creative). Thai-first: Buddhist-era dates, Thai collation.",
   "license": "MIT",
   "type": "module",
@@ -20,7 +20,6 @@
   "files": [
     "dist",
     "scripts/aura-theme.mjs",
-    "src/theme.js",
     "README.md",
     "LICENSE"
   ],
@@ -30,27 +29,29 @@
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/sync-bundle.mjs",
     "test:ssr": "node scripts/ssr-test.mjs",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json",
     "examples": "node examples/build.mjs",
     "themes": "node scripts/test-themes.mjs",
     "test:pilots": "npm run examples && npm run themes && python3 tests/pilot_test.py && python3 tests/pilots_test.py",
     "theme": "node scripts/aura-theme.mjs",
     "prepack": "npm run build",
-    "pretest:ssr": "node scripts/build.mjs"
+    "pretest:ssr": "node scripts/build.mjs",
+    "prethemes": "node scripts/build.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
   },
   "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "axe-core": "^4.10.0",
+    "dts-bundle-generator": "^9.5.1",
     "esbuild": "^0.24.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.6.0",
     "react-hook-form": "^7.53.0",
-    "axe-core": "^4.10.0"
+    "typescript": "^5.6.0"
   },
   "bin": {
     "aura-theme": "scripts/aura-theme.mjs"

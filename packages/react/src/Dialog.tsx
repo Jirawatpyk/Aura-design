@@ -4,11 +4,12 @@ import { createPortal } from 'react-dom';
 import { cx, uid, useMergedRef } from './internal.js';
 import { IconButton } from './IconButton.js';
 import { useModal } from './overlay.js';
+import type { DialogProps, DrawerProps } from './types.js';
 const h = React.createElement;
 
-export const Dialog = React.forwardRef(function Dialog(props, ref) {
+export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dialog(props, ref) {
   var t = useStrings();
-  var own = React.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+  var own = React.useRef<HTMLDivElement | null>(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
   function close() { if (props.dismissible !== false && props.onClose) props.onClose(); }
   var modal = useModal(props.open, own, { autoFocus: props.autoFocus, onEscape: close, bodySelector: '.aura-dialog__body', footSelector: '.aura-dialog__foot' });
   if (!modal.ready) return null;
@@ -28,9 +29,10 @@ export const Dialog = React.forwardRef(function Dialog(props, ref) {
 });
 
 /* Drawer — a side sheet for detail views and filters. Full width below 640px. */
-export const Drawer = React.forwardRef(function Drawer(props, ref) {
+/** Side panel over the page: record detail, filters, mobile navigation. Modal (focus trap, scroll lock, focus restore). */
+export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Drawer(props, ref) {
   var t = useStrings();
-  var own = React.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+  var own = React.useRef<HTMLDivElement | null>(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
   function close() { if (props.dismissible !== false && props.onClose) props.onClose(); }
   var modal = useModal(props.open, own, { autoFocus: props.autoFocus, onEscape: close, bodySelector: '.aura-drawer__body', footSelector: '.aura-drawer__foot' });
   if (!modal.ready) return null;

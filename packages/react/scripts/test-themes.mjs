@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createTheme } from '../src/theme.js';
+import { createTheme } from '../dist/esm/theme.js';
 const dir = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), 'tests/themes');
 fs.mkdirSync(dir, { recursive: true });
 let bad = 0;

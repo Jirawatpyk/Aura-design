@@ -1,3 +1,5 @@
+/* Public prop and value types of @aura/react. Components import their props from here; the published
+ * declarations are generated from the sources by tsc. */
 import type * as React from 'react';
 
 /** AURA pill button. Enterprise (`primary`, `secondary`) for product UI; `creative` for marketing moments only. */
@@ -13,7 +15,6 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Shows a spinner in place of the leading icon, sets aria-busy and swallows clicks. Keeps the label and width. */
   loading?: boolean;
 }
-export declare const Button: React.ForwardRefExoticComponent<ButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
 export interface DataTableColumn {
   /** Key into each row object. */
@@ -116,7 +117,6 @@ export interface DataTableProps {
   stackBelow?: number;
   className?: string;
 }
-export declare const DataTable: React.ForwardRefExoticComponent<DataTableProps & React.RefAttributes<HTMLDivElement>>;
 
 export type IconName =
   | 'check' | 'x' | 'plus' | 'minus' | 'search'
@@ -142,16 +142,13 @@ export interface IconProps {
   strokeWidth?: number;
   className?: string;
 }
-export declare const Icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
-/** Every icon name the bundle carries. */
-export declare const iconNames: IconName[];
 
 /** Creative surface with the AURA mesh and/or grain texture. Light in every theme; content in aura-on-texture. */
 export interface SurfaceProps extends React.HTMLAttributes<HTMLElement> {
   /** Default `mesh`. */
   texture?: 'mesh' | 'grain' | 'mesh-grain';
   /** Element to render. Default `div`. */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 /** Sets the language of built-in labels (pagination, close buttons, empty states…) and the default date display for everything inside. */
@@ -164,10 +161,6 @@ export interface AuraProviderProps {
   strings?: Partial<Record<string, string | ((...args: any[]) => string)>>;
   children?: React.ReactNode;
 }
-export declare function AuraProvider(props: AuraProviderProps): React.ReactElement;
-export declare function useAuraLocale(): { locale: 'th' | 'en' | null; calendar: 'buddhist' | 'gregory' | null; strings: Record<string, any> };
-export declare const STRINGS: { en: Record<string, any>; th: Record<string, any> };
-export declare const Surface: React.ForwardRefExoticComponent<SurfaceProps & React.RefAttributes<HTMLElement>>;
 
 export type StatusTone = 'neutral' | 'progress' | 'ready' | 'blocked';
 /** Status pill: tone fill + icon + the status word. Tone comes from the word unless given. */
@@ -178,9 +171,6 @@ export interface StatusPillProps {
   tone?: StatusTone;
   className?: string;
 }
-export declare const StatusPill: React.ForwardRefExoticComponent<StatusPillProps & React.RefAttributes<HTMLSpanElement>>;
-/** The tone the pill would pick for a status word. */
-export declare function statusTone(status: string): StatusTone;
 
 /** 16px checkbox with 4px corners; ink when checked, a dash when indeterminate. */
 export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'type' | 'checked' | 'defaultChecked'> {
@@ -199,7 +189,6 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   tabIndex?: number;
   className?: string;
 }
-export declare const Checkbox: React.ForwardRefExoticComponent<CheckboxProps & React.RefAttributes<HTMLInputElement>>;
 
 /** 32px round button holding one icon. */
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -209,7 +198,6 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   /** Icon size. Default `sm` (16). */
   size?: 'sm' | 'md';
 }
-export declare const IconButton: React.ForwardRefExoticComponent<IconButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
 export interface MenuItem {
   label?: string;
@@ -237,7 +225,6 @@ export interface MenuProps {
   /** Focus the first item on open. Default true; turn off only for static demos. */
   autoFocus?: boolean;
 }
-export declare const Menu: React.ForwardRefExoticComponent<MenuProps & React.RefAttributes<HTMLDivElement>>;
 
 /* ---------- Forms ---------- */
 interface FieldProps {
@@ -258,9 +245,7 @@ export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttribut
   /** Trailing unit, e.g. "THB". */
   suffix?: React.ReactNode;
 }
-export declare const TextField: React.ForwardRefExoticComponent<TextFieldProps & React.RefAttributes<HTMLInputElement>>;
 export interface TextareaProps extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {}
-export declare const Textarea: React.ForwardRefExoticComponent<TextareaProps & React.RefAttributes<HTMLTextAreaElement>>;
 export type SelectOption = string | { value: string; label: string; disabled?: boolean };
 export interface SelectProps extends FieldProps, Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'required'> {
   options: SelectOption[];
@@ -268,7 +253,6 @@ export interface SelectProps extends FieldProps, Omit<React.SelectHTMLAttributes
   placeholder?: string;
   icon?: IconName;
 }
-export declare const Select: React.ForwardRefExoticComponent<SelectProps & React.RefAttributes<HTMLSelectElement>>;
 export type ChoiceOption = string | { value: string; label: string; description?: string; disabled?: boolean };
 export interface RadioGroupProps extends FieldProps {
   options: ChoiceOption[];
@@ -279,8 +263,9 @@ export interface RadioGroupProps extends FieldProps {
   /** Default `vertical`. */
   orientation?: 'vertical' | 'horizontal';
   disabled?: boolean;
+  id?: string;
+  className?: string;
 }
-export declare const RadioGroup: React.ForwardRefExoticComponent<RadioGroupProps & React.RefAttributes<HTMLFieldSetElement>>;
 export interface SwitchProps {
   label?: string;
   description?: string;
@@ -290,8 +275,9 @@ export interface SwitchProps {
   disabled?: boolean;
   /** Required when there is no visible label. */
   'aria-label'?: string;
+  id?: string;
+  className?: string;
 }
-export declare const Switch: React.ForwardRefExoticComponent<SwitchProps & React.RefAttributes<HTMLButtonElement>>;
 
 /* ---------- Feedback & overlays ---------- */
 export type FeedbackTone = 'info' | 'success' | 'warning' | 'danger';
@@ -303,8 +289,8 @@ export interface AlertProps {
   action?: React.ReactNode;
   /** Adds a close button. */
   onDismiss?: () => void;
+  className?: string;
 }
-export declare const Alert: React.ForwardRefExoticComponent<AlertProps & React.RefAttributes<HTMLDivElement>>;
 export interface ToastOptions {
   title: string;
   description?: string;
@@ -315,9 +301,6 @@ export interface ToastOptions {
   /** Reuse an id to replace a toast in place. */
   id?: string;
 }
-/** Show a toast; returns its id. Needs <Toaster /> mounted once. */
-export declare const toast: ((opts: ToastOptions | string) => string) & { dismiss(id: string): void };
-export declare function Toaster(props: { position?: 'bottom' | 'top' }): React.ReactElement;
 export interface TooltipProps {
   content: React.ReactNode;
   /** One focusable element. */
@@ -328,9 +311,7 @@ export interface TooltipProps {
   /** Force open (demos, tests). */
   open?: boolean;
 }
-export declare const Tooltip: React.ForwardRefExoticComponent<TooltipProps & React.RefAttributes<HTMLSpanElement>>;
 export interface FieldPropsPublic { label: string; hint?: React.ReactNode; error?: React.ReactNode; required?: boolean; optional?: boolean; }
-export declare const Field: React.ForwardRefExoticComponent<FieldPropsPublic & { id?: string; children: React.ReactNode } & React.RefAttributes<HTMLDivElement>>;
 export interface DialogProps {
   open: boolean;
   onClose: () => void;
@@ -349,7 +330,6 @@ export interface DialogProps {
   autoFocus?: boolean;
   className?: string;
 }
-export declare const Dialog: React.ForwardRefExoticComponent<DialogProps & React.RefAttributes<HTMLDivElement>>;
 
 /* ---------- Layout & navigation ---------- */
 export interface CardProps {
@@ -365,10 +345,11 @@ export interface CardProps {
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   /** Hover edge for clickable cards. */
   interactive?: boolean;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   className?: string;
+  /** id for the title element; the card is then labelled by it (aria-labelledby). */
+  titleId?: string;
 }
-export declare const Card: React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLElement>>;
 export interface TabItem { id: string; label: string; icon?: IconName; count?: number; disabled?: boolean; content?: React.ReactNode; }
 export interface TabsProps {
   tabs: TabItem[];
@@ -379,7 +360,6 @@ export interface TabsProps {
   onChange?: (id: string) => void;
   className?: string;
 }
-export declare const Tabs: React.ForwardRefExoticComponent<TabsProps & React.RefAttributes<HTMLDivElement>>;
 export interface NavItem { id: string; label: string; icon?: IconName; count?: number; href?: string; }
 export interface SideNavProps {
   sections?: Array<{ title?: string; items: NavItem[] }>;
@@ -393,14 +373,12 @@ export interface SideNavProps {
   label?: string;
   className?: string;
 }
-export declare const SideNav: React.ForwardRefExoticComponent<SideNavProps & React.RefAttributes<HTMLElement>>;
 export interface BreadcrumbProps {
   /** Root first; the last item is the current page. */
   items: Array<{ label: string; href?: string; onClick?: () => void }>;
   label?: string;
   className?: string;
 }
-export declare const Breadcrumb: React.ForwardRefExoticComponent<BreadcrumbProps & React.RefAttributes<HTMLElement>>;
 export interface AvatarProps {
   /** Accessible name; also gives the initials and a stable colour. */
   name: string;
@@ -410,7 +388,6 @@ export interface AvatarProps {
   status?: 'online';
   className?: string;
 }
-export declare const Avatar: React.ForwardRefExoticComponent<AvatarProps & React.RefAttributes<HTMLSpanElement>>;
 
 /* ---------- 4.2: menus, pickers, drawers, layout ---------- */
 
@@ -421,8 +398,6 @@ export interface DropdownMenuProps {
   /** Accessible name for the menu. */
   label?: string;
 }
-/** A trigger that opens a Menu. ArrowDown / ArrowUp on the trigger also opens it. */
-export declare const DropdownMenu: React.ForwardRefExoticComponent<DropdownMenuProps & React.RefAttributes<HTMLSpanElement>>;
 
 export interface ComboboxOption {
   value: string;
@@ -432,6 +407,8 @@ export interface ComboboxOption {
   /** Extra search terms (English name, phone, code…). */
   keywords?: string[];
   disabled?: boolean;
+  /** Leading icon in the list. */
+  icon?: IconName;
 }
 export interface ComboboxProps extends FieldProps {
   options: Array<ComboboxOption | string>;
@@ -459,9 +436,6 @@ export interface ComboboxProps extends FieldProps {
   filter?: (option: ComboboxOption, query: string) => boolean;
   className?: string;
 }
-/** Text field that filters a list as you type (ARIA 1.2 combobox). One value. */
-export declare const Combobox: React.ForwardRefExoticComponent<ComboboxProps & React.RefAttributes<HTMLInputElement>>;
-export declare function comboboxFilter(option: ComboboxOption, query: string): boolean;
 
 /** ISO date string, `YYYY-MM-DD` (Gregorian — the era is display only). */
 export type ISODate = string;
@@ -489,7 +463,6 @@ export interface CalendarProps extends DateDisplayOptions {
   /** Default true: focuses the selected (or today's) day on mount. */
   autoFocus?: boolean;
 }
-export declare const Calendar: React.ForwardRefExoticComponent<CalendarProps & React.RefAttributes<HTMLDivElement>>;
 interface DateFieldProps extends FieldProps, DateDisplayOptions {
   id?: string;
   name?: string;
@@ -508,19 +481,12 @@ export interface DatePickerProps extends DateFieldProps {
   defaultValue?: ISODate | null;
   onChange?: (value: ISODate | null) => void;
 }
-/** Typed date field + calendar popover. Shows Buddhist-era dates (18 ก.ย. 2569); accepts dd/mm/yyyy in พ.ศ. or ค.ศ. and yyyy-mm-dd. */
-export declare const DatePicker: React.ForwardRefExoticComponent<DatePickerProps & React.RefAttributes<HTMLInputElement>>;
 export interface DateRange { start: ISODate | null; end: ISODate | null; }
 export interface DateRangePickerProps extends DateFieldProps {
   value?: DateRange;
   defaultValue?: DateRange;
   onChange?: (value: DateRange) => void;
 }
-export declare const DateRangePicker: React.ForwardRefExoticComponent<DateRangePickerProps & React.RefAttributes<HTMLInputElement>>;
-/** `formatDate('2026-09-18')` → `18 ก.ย. 2569`. format `long` → `18 กันยายน 2569`, `numeric` → `18/09/2569`. */
-export declare function formatDate(iso: ISODate | null | undefined, opts?: DateDisplayOptions & { format?: 'short' | 'long' | 'numeric' | Intl.DateTimeFormatOptions }): string;
-/** Parses dd/mm/yyyy (years ≥ 2400 are read as พ.ศ.) or yyyy-mm-dd. Returns ISO or null. */
-export declare function parseDate(text: string): ISODate | null;
 
 export interface DrawerProps {
   open: boolean;
@@ -542,16 +508,9 @@ export interface DrawerProps {
   'aria-label'?: string;
   className?: string;
 }
-/** Side panel over the page: record detail, filters, mobile navigation. Modal (focus trap, scroll lock, focus restore). */
-export declare const Drawer: React.ForwardRefExoticComponent<DrawerProps & React.RefAttributes<HTMLDivElement>>;
 
 export type Breakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';
 export type Responsive<T> = T | Partial<Record<Breakpoint, T>>;
-/** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
-export declare const breakpoints: { sm: 640; md: 768; lg: 1024; xl: 1280 };
-/** The widest breakpoint the window meets. `lg` during server render and hydration. */
-export declare function useBreakpoint(): Breakpoint;
-export declare function useResponsive<T>(value: Responsive<T>): T | undefined;
 /** Spacing step (aura-space-N) or any CSS length. */
 export type Space = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | string;
 export interface StackProps {
@@ -561,24 +520,21 @@ export interface StackProps {
   align?: Responsive<React.CSSProperties['alignItems']>;
   justify?: React.CSSProperties['justifyContent'];
   wrap?: boolean;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
 }
-export declare const Stack: React.ForwardRefExoticComponent<StackProps & React.RefAttributes<HTMLElement>>;
 export interface GridProps {
   columns?: Responsive<number>;
   /** Fit as many columns as there is room for, each at least this wide (px). Overrides columns. */
   minItemWidth?: number;
   gap?: Responsive<Space>;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
 }
-export declare const Grid: React.ForwardRefExoticComponent<GridProps & React.RefAttributes<HTMLElement>>;
-export declare const Container: React.ForwardRefExoticComponent<{ size?: 'default' | 'narrow'; as?: keyof JSX.IntrinsicElements; className?: string; style?: React.CSSProperties; children?: React.ReactNode } & React.RefAttributes<HTMLElement>>;
 export interface AppShellProps {
   /** Usually a SideNav. Fixed from 1024px up; in a Drawer behind a menu button below. */
   nav?: React.ReactElement;
@@ -591,7 +547,6 @@ export interface AppShellProps {
   mainId?: string;
   className?: string;
 }
-export declare const AppShell: React.ForwardRefExoticComponent<AppShellProps & React.RefAttributes<HTMLDivElement>>;
 
 /* ---------- 4.3: Stat, TimePicker, FileUpload ---------- */
 
@@ -619,8 +574,6 @@ export interface StatProps {
   onClick?: () => void;
   className?: string;
 }
-/** One number on a card: label, value, change and caption. Put several in a Grid. */
-export declare const Stat: React.ForwardRefExoticComponent<StatProps & React.RefAttributes<HTMLElement>>;
 
 export interface TimePickerProps extends FieldProps {
   /** "HH:mm", 24-hour. */
@@ -644,9 +597,6 @@ export interface TimePickerProps extends FieldProps {
   readOnly?: boolean;
   className?: string;
 }
-/** Time field with a list of slots. Accepts typed 9 · 930 · 9:30 · 9.30 · 09.30 น. · 9:30 pm. */
-export declare const TimePicker: React.ForwardRefExoticComponent<TimePickerProps & React.RefAttributes<HTMLInputElement>>;
-export declare function parseTime(text: string): string | null;
 
 export interface UploadItem {
   id: string;
@@ -680,10 +630,6 @@ export interface FileUploadProps extends FieldProps {
   disabled?: boolean;
   className?: string;
 }
-/** Drop zone + real file input. Checks type, size and count; lists files with image thumbnails, progress and errors. Uploading is the app's job. */
-export declare const FileUpload: React.ForwardRefExoticComponent<FileUploadProps & React.RefAttributes<HTMLInputElement>>;
-/** 1536 → "1.5 KB". */
-export declare function formatBytes(bytes: number): string;
 
 /* ---------- 4.4: general-purpose components, theming ---------- */
 export type Tone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
@@ -693,8 +639,6 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'soft' | 'solid' | 'outline';
   icon?: IconName;
 }
-/** A static label or count ("Paid", "3", "Beta"). Not interactive — use Tag for chips people click. */
-export declare const Badge: React.ForwardRefExoticComponent<BadgeProps & React.RefAttributes<HTMLSpanElement>>;
 export interface TagProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onClick'> {
   children: React.ReactNode;
   icon?: IconName;
@@ -706,7 +650,6 @@ export interface TagProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onCli
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
 }
-export declare const Tag: React.ForwardRefExoticComponent<TagProps & React.RefAttributes<HTMLElement>>;
 export interface ProgressProps {
   /** Omit for indeterminate. */
   value?: number;
@@ -722,7 +665,6 @@ export interface ProgressProps {
   id?: string;
   className?: string;
 }
-export declare const Progress: React.ForwardRefExoticComponent<ProgressProps & React.RefAttributes<HTMLDivElement>>;
 export interface SkeletonProps {
   variant?: 'text' | 'rect' | 'circle';
   /** text only: number of lines (the last is shorter). */
@@ -733,7 +675,6 @@ export interface SkeletonProps {
   size?: number;
   className?: string;
 }
-export declare const Skeleton: React.ForwardRefExoticComponent<SkeletonProps & React.RefAttributes<HTMLSpanElement>>;
 export interface EmptyStateProps {
   title: React.ReactNode;
   description?: React.ReactNode;
@@ -745,7 +686,6 @@ export interface EmptyStateProps {
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   className?: string;
 }
-export declare const EmptyState: React.ForwardRefExoticComponent<EmptyStateProps & React.RefAttributes<HTMLDivElement>>;
 export interface PaginationProps {
   pageCount: number;
   /** 1-based, controlled; pair with onChange. Or defaultPage. */
@@ -759,8 +699,6 @@ export interface PaginationProps {
   label?: string;
   className?: string;
 }
-/** Page links for lists and search results. Below 640px it collapses to "Page 3 of 10" with prev/next. */
-export declare const Pagination: React.ForwardRefExoticComponent<PaginationProps & React.RefAttributes<HTMLElement>>;
 export interface AccordionItem { id: string; title: React.ReactNode; description?: React.ReactNode; content: React.ReactNode; icon?: IconName; disabled?: boolean; }
 export interface AccordionProps {
   items: AccordionItem[];
@@ -775,7 +713,6 @@ export interface AccordionProps {
   id?: string;
   className?: string;
 }
-export declare const Accordion: React.ForwardRefExoticComponent<AccordionProps & React.RefAttributes<HTMLDivElement>>;
 export interface PopoverProps {
   /** One element; it gets aria-haspopup, aria-expanded and the click toggle. */
   trigger: React.ReactElement;
@@ -793,8 +730,6 @@ export interface PopoverProps {
   id?: string;
   className?: string;
 }
-/** A small non-modal panel anchored to a trigger (filters, quick settings, help). Escape and outside click close it; focus returns to the trigger. */
-export declare const Popover: React.ForwardRefExoticComponent<PopoverProps & React.RefAttributes<HTMLDivElement>>;
 
 export interface ThemeOptions {
   /** The project's brand colour, #rgb or #rrggbb. Replaces AURA violet (links, focus ring, selection, info, progress, creative shadow in dark, mesh). */
@@ -817,9 +752,3 @@ export interface Theme {
   /** CSS overriding the tokens. No selector: the whole page. A selector (".tenant-acme") scopes it. Load after aura.css. */
   css(selector?: string): string;
 }
-/** Builds a brand layer over AURA tokens and adjusts any colour that misses WCAG AA. Also: `npx aura-theme --brand "#0ea5e9"`. */
-export declare function createTheme(options: ThemeOptions): Theme;
-export declare function contrast(a: string, b: string): number;
-export declare function brandScale(hex: string): Theme['brand'];
-/** Renders a theme as a <style> element (server-safe). */
-export declare function ThemeStyle(props: ThemeOptions & { selector?: string }): React.ReactElement;
