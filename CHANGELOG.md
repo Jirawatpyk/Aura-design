@@ -7,6 +7,9 @@
 - Compatibility: a type test checks that every prop and argument the 4.4 declarations accepted is still accepted, and the compiled JavaScript was diffed against 4.4 — the only differences are equivalent rewrites (e.g. `!!x` where a boolean was implied). All suites unchanged: SSR/hydration 46×2, pilots 23 + 14, Storybook axe × 2 themes + 37 behaviour tests.
 - The `aura-theme` CLI runs from `dist/esm/theme.js` (no TypeScript at runtime).
 
+### Fixed
+- DataTable: **F2** now moves into a control inside the focused cell (row-action button, link), like Enter; the check was unreachable before. Behaviour test added.
+
 ### Added (types that were accepted by the code but missing from the declarations)
 - `AlertProps.className`, `RadioGroupProps.id/className`, `SwitchProps.id/className`, `CardProps.titleId`, `ComboboxOption.icon`.
 - `Field` props now describe what it takes (`label` optional, `labelAs`, `labelId`, `disabled`, `className`), exported as `FieldComponentProps`; new named types `ContainerProps`, `ToasterProps`, `ThemeStyleProps`, `AuraStrings`, `AuraLocaleValue`, `FormatDateOptions`.

@@ -2371,13 +2371,17 @@ window.Aura = (() => {
         if (pageSize) {
           if (goPage(page - 1, { r: 1, c })) activeState[1]({ r: 1, c });
         } else focusCell(Math.max(1, r - visibleRows), c);
+      } else if (k === "F2" && r > 0) {
+        var inner = target.querySelector("button, a[href], input, select, textarea");
+        if (inner) inner.focus();
+        else handled = false;
       } else if (k === " " || k === "Enter") {
         if (r === 0 && !col && selectable && nRows) toggleAll();
         else if (r === 0 && col && col.sortable && nRows > 1) {
           setSort(nextSort(col.key));
           goPage(1);
         } else if (r > 0 && k === " " && selectable) toggle(row[rowKey], !selSet[row[rowKey]]);
-        else if (r > 0 && (k === "Enter" || k === "F2") && target.querySelector("button, a[href], input, select, textarea")) target.querySelector("button, a[href], input, select, textarea").focus();
+        else if (r > 0 && k === "Enter" && target.querySelector("button, a[href], input, select, textarea")) target.querySelector("button, a[href], input, select, textarea").focus();
         else if (r > 0 && k === "Enter" && props.onRowActivate) props.onRowActivate(row);
         else handled = false;
       } else handled = false;

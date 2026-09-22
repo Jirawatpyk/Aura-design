@@ -336,6 +336,18 @@ test.describe('4.3', () => {
     await page.keyboard.press('Tab');
     expect(await page.evaluate(() => !!document.activeElement?.closest('[role=grid]'))).toBe(false);
   });
+  test('DataTable: Enter and F2 move into a cell control, Escape returns to the cell', async ({ page }) => {
+    await story(page, 'aura-new-in-4-3--tablet-table');
+    const cell = page.locator('.aura-table__td:has(.aura-dropdown)').first();
+    const rc = await cell.getAttribute('data-rc');
+    for (const key of ['Enter', 'F2']) {
+      await cell.focus();
+      await page.keyboard.press(key);
+      await expect(page.locator(':focus')).toHaveAttribute('aria-label', /^Actions for /);
+      await page.keyboard.press('Escape');
+      await expect(page.locator(':focus')).toHaveAttribute('data-rc', rc!);
+    }
+  });
 });
 
 /* ---------- 4.4: general components, refs, theming ---------- */
