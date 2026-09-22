@@ -3,7 +3,7 @@ import { useStrings, useAuraLocale } from './locale.js';
 import { createPortal } from 'react-dom';
 import { cx, uid, useMergedRef } from './internal.js';
 import { IconButton } from './IconButton.js';
-import { useModal } from './overlay.js';
+import { useModal } from './useModal.js';
 import type { DialogProps, DrawerProps } from './types.js';
 
 export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dialog(props, ref) {

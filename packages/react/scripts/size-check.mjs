@@ -24,6 +24,9 @@ const entries = {
   'DataTable only': () => js(`export { DataTable } from ${JSON.stringify(esm)};`),
   'DatePicker only': () => js(`export { DatePicker } from ${JSON.stringify(esm)};`),
   'createTheme only': () => js(`export { createTheme } from ${JSON.stringify(esm)};`),
+  /* Small components: these stay tiny only while each lives in its own file (one file per component). */
+  'Card only': () => js(`export { Card } from ${JSON.stringify(esm)};`),
+  'Skeleton only': () => js(`export { Skeleton } from ${JSON.stringify(esm)};`),
   'styles.css': async () => gz(fs.readFileSync(path.join(root, 'dist/styles.css'))),
   'aura.css (tokens)': async () => gz(fs.readFileSync(path.join(root, '../tokens/aura.css'))),
   'aura.bundle.js (window.Aura, minified)': async () => {

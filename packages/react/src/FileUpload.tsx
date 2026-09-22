@@ -5,7 +5,7 @@ import type { AuraStrings } from './locale.js';
 import type { FileUploadProps, UploadItem } from './types.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
-import { Field } from './forms.js';
+import { Field } from './Field.js';
 
 /** 1536 → "1.5 KB". */
 export function formatBytes(n: number | null | undefined): string {

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { Tone } from './types.js';
 
 export function cx(...parts: Array<string | number | bigint | boolean | null | undefined>): string;
 export function cx(): string {
@@ -101,4 +102,11 @@ export function useMergedRef<T>(a: React.Ref<T> | undefined, b: React.Ref<T> | u
     },
     [a, b],
   );
+}
+
+/* Badge / Progress tone → class suffix. */
+const TONES: string[] = ['neutral', 'accent', 'success', 'warning', 'danger'];
+
+export function tone(t: Tone | undefined): string {
+  return TONES.indexOf(t as string) >= 0 ? (t as string) : 'neutral';
 }

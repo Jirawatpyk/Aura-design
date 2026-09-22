@@ -870,6 +870,10 @@ export declare const Tabs: React$1.ForwardRefExoticComponent<TabsProps & React$1
 export declare const SideNav: React$1.ForwardRefExoticComponent<SideNavProps & React$1.RefAttributes<HTMLElement>>;
 export declare const Breadcrumb: React$1.ForwardRefExoticComponent<BreadcrumbProps & React$1.RefAttributes<HTMLElement>>;
 export declare const Avatar: React$1.ForwardRefExoticComponent<AvatarProps & React$1.RefAttributes<HTMLSpanElement>>;
+/** Stack — one direction, even gaps. direction and gap may be responsive: { base: 'column', md: 'row' }. */
+export declare const Stack: React$1.ForwardRefExoticComponent<StackProps & React$1.RefAttributes<HTMLElement>>;
+/** Grid — equal columns. columns may be responsive ({ base: 1, md: 2, lg: 3 }), or use minItemWidth to fit as many as fit. */
+export declare const Grid: React$1.ForwardRefExoticComponent<GridProps & React$1.RefAttributes<HTMLElement>>;
 /** Centred page column. */
 export interface ContainerProps {
 	/** `narrow` caps it at aura-container-narrow (720px). Default `default` (1280px). */
@@ -879,6 +883,10 @@ export interface ContainerProps {
 	style?: React$1.CSSProperties;
 	children?: React$1.ReactNode;
 }
+/** Container — centres content up to aura-container-max (1280px) with responsive side padding. */
+export declare const Container: React$1.ForwardRefExoticComponent<ContainerProps & React$1.RefAttributes<HTMLElement>>;
+/** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it. */
+export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
 export declare const breakpoints: {
 	sm: 640;
@@ -890,14 +898,6 @@ export declare const breakpoints: {
 export declare function useBreakpoint(): Breakpoint;
 /** Pick a value for the current breakpoint from { base, sm, md, lg, xl } (falls back to the next smaller one). */
 export declare function useResponsive<T>(value: Responsive<T>): T | undefined;
-/** Stack — one direction, even gaps. direction and gap may be responsive: { base: 'column', md: 'row' }. */
-export declare const Stack: React$1.ForwardRefExoticComponent<StackProps & React$1.RefAttributes<HTMLElement>>;
-/** Grid — equal columns. columns may be responsive ({ base: 1, md: 2, lg: 3 }), or use minItemWidth to fit as many as fit. */
-export declare const Grid: React$1.ForwardRefExoticComponent<GridProps & React$1.RefAttributes<HTMLElement>>;
-/** Container — centres content up to aura-container-max (1280px) with responsive side padding. */
-export declare const Container: React$1.ForwardRefExoticComponent<ContainerProps & React$1.RefAttributes<HTMLElement>>;
-/** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it. */
-export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps & React$1.RefAttributes<HTMLDivElement>>;
 export declare const Surface: React$1.ForwardRefExoticComponent<SurfaceProps & React$1.RefAttributes<HTMLElement>>;
 /** Every built-in label. Function entries build the text from their arguments. */
 export interface AuraStrings {

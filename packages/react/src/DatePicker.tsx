@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, trapTab, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
-import { Field } from './forms.js';
+import { Field } from './Field.js';
 import type {
   CalendarProps,
   DateDisplayOptions,

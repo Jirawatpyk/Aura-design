@@ -113,7 +113,7 @@ npm run test:pilots  # builds the pilots + 4 brand themes, then 37 behaviour/axe
 
 ## Source
 
-`src/` is TypeScript (strict) and JSX, formatted with Prettier (`npm run format`). Public prop types live in `src/types.ts` with their docs; each component imports its props from there and `forwardRef`s with them, so the published `dist/index.d.ts` is generated from the code and can't drift from it. The build compiles JSX to `React.createElement` (classic runtime), so the `window.Aura` script needs only `window.React`.
+`src/` is TypeScript (strict) and JSX, formatted with Prettier (`npm run format`), **one file per component** (`Badge.tsx`, `Tooltip.tsx`, …) so a project that imports one component gets only that component's code. Public prop types live in `src/types.ts` with their docs; each component imports its props from there and `forwardRef`s with them, so the published `dist/index.d.ts` is generated from the code and can't drift from it. The build compiles JSX to `React.createElement` (classic runtime), so the `window.Aura` script needs only `window.React`.
 
 ## Pilots
 

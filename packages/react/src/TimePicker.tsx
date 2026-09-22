@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { useStrings } from './locale.js';
 import { Icon } from './Icon.js';
-import { Field } from './forms.js';
+import { Field } from './Field.js';
 import type { TimePickerProps } from './types.js';
 
 type PopoverPos = { left: number; width: number; top?: number; bottom?: number; maxHeight: number };
