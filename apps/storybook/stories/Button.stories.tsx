@@ -37,3 +37,16 @@ export const AllStates: S = {
     </div>
   ),
 };
+/** `href` turns the Button into a link that looks the same — for navigation. Actions stay buttons. */
+export const AsLink: S = {
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <Aura.Button href="#orders" iconRight="arrow-right">View Orders</Aura.Button>
+      <Aura.Button href="https://github.com/Jirawatpyk/Aura-design" target="_blank" rel="noreferrer" variant="secondary" iconRight="external-link">
+        Source on GitHub
+      </Aura.Button>
+      <Aura.Button href="#launch" variant="creative">Start a Project</Aura.Button>
+      <Aura.Button href="#billing" disabled variant="secondary">Billing (admins only)</Aura.Button>
+    </div>
+  ),
+};

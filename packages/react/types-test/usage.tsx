@@ -47,6 +47,28 @@ export function Refs() {
   </>);
 }
 
+/* Button with href is a link: anchor props and an <a> ref; without href, button props and a <button> ref. */
+function FakeRouterLink(p: { href: string; className?: string; children?: React.ReactNode }) { return <a {...p} />; }
+export function ButtonLinks() {
+  const a = React.useRef<HTMLAnchorElement>(null);
+  const b = React.useRef<HTMLButtonElement>(null);
+  type P = React.ComponentProps<typeof Button>;
+  const p: P = { children: 'x', type: 'submit', loading: true };   // ComponentProps still gives the button props
+  return (<>
+    <Button href="/orders" ref={a} target="_blank" rel="noreferrer" iconRight="external-link">Docs</Button>
+    <Button href="/orders" linkComponent={FakeRouterLink} variant="secondary">Orders</Button>
+    <Button href="/x" disabled>Unavailable</Button>
+    <Button ref={b} type="submit" loading>Save</Button>
+    <Button {...p} />
+    {/* @ts-expect-error a button has no href target */}
+    <Button target="_blank">Nope</Button>
+    {/* @ts-expect-error links don't take loading */}
+    <Button href="/x" loading>Nope</Button>
+    {/* @ts-expect-error an anchor ref on a button */}
+    <Button ref={a}>Nope</Button>
+  </>);
+}
+
 export function General() {
   const [page, setPage] = React.useState(1);
   const theme = createTheme({ brand: '#0ea5e9', primary: 'brand' });

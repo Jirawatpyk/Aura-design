@@ -26,7 +26,8 @@
   transition-timing-function: var(--aura-ease);
 }
 .aura-btn:active { transform: scale(0.98); }
-.aura-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
+.aura-btn:disabled, a.aura-btn[aria-disabled='true'] { opacity: var(--aura-disabled-opacity); pointer-events: none; }
+a.aura-btn { text-decoration: none; }
 .aura-btn.is-loading { cursor: progress; }
 .aura-btn.is-loading:active { transform: none; }
 

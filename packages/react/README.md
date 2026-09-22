@@ -81,6 +81,10 @@ const { scheme, resolved, setScheme } = useColorScheme();
 
 Tailwind's `dark:` variant keeps working: the `.dark` class on `<html>` is kept in step.
 
+## Links that look like buttons
+
+`<Button href="/orders">View Orders</Button>` renders an `<a>` with the button's look — use it for navigation, keep actions as buttons. With Next.js: `<Button href="/orders" linkComponent={Link}>` (client-side navigation). `disabled` works on links too.
+
 ## Refs and forms
 
 Every component forwards `ref` to its real element — fields to the `<input>`/`<select>`/`<textarea>`, buttons to the `<button>`, layouts to their root. react-hook-form: `register` for TextField/Textarea/Select, `Controller` (pass `field.ref`) for Combobox, DatePicker, TimePicker, FileUpload, Checkbox. See `examples/settings`.

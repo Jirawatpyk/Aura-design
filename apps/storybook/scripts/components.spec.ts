@@ -20,6 +20,26 @@ test.describe('Button', () => {
     const sh = await page.getByRole('button', { name: 'Creative' }).evaluate((e) => getComputedStyle(e).boxShadow);
     expect(sh).toContain('167, 139, 250');
   });
+  test('href makes a link that looks like the button; disabled links leave the Tab order', async ({ page }) => {
+    await story(page, 'aura-actions-button--as-link');
+    const link = page.getByRole('link', { name: 'View Orders' });
+    await expect(link).toHaveAttribute('href', '#orders');
+    const look = (el: Element) => { const s = getComputedStyle(el); return [s.height, s.borderRadius, s.textDecorationLine, s.display]; };
+    const [h, r, deco, display] = await link.evaluate(look);
+    expect(deco).toBe('none');
+    expect(display).toMatch(/flex$/); // inline-flex, blockified to flex inside the story's flex row
+    expect(parseFloat(h)).toBeGreaterThanOrEqual(44);
+    expect(parseFloat(r)).toBeGreaterThan(20);
+    await expect(page.getByRole('link', { name: 'Source on GitHub' })).toHaveAttribute('target', '_blank');
+    const off = page.getByRole('link', { name: 'Billing (admins only)' });
+    await expect(off).toHaveAttribute('aria-disabled', 'true');
+    await expect(off).not.toHaveAttribute('href', /.*/);
+    await link.focus();
+    await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+    await expect(off).not.toBeFocused();
+    await link.focus(); await page.keyboard.press('Enter');
+    await expect.poll(() => page.evaluate(() => location.hash)).toBe('#orders');
+  });
 });
 
 test.describe('Forms', () => {

@@ -8,6 +8,7 @@ export function fixtures(A, React) {
     ColorSchemeScript: h(A.ColorSchemeScript, null),
     ColorSchemeToggle: h(A.ColorSchemeToggle, null),
     Button: h(A.Button, { icon: 'plus' }, 'New order'),
+    ButtonLink: h(A.Button, { href: '/orders', variant: 'secondary', iconRight: 'arrow-right' }, 'View orders'),
     IconButton: h(A.IconButton, { icon: 'ellipsis', label: 'More' }),
     Menu: h(A.Menu, { anchor: null, label: 'Actions', items: [{ label: 'Edit' }], onClose: noop }),
     DropdownMenu: h(A.DropdownMenu, { label: 'Row actions', trigger: h(A.IconButton, { icon: 'ellipsis', label: 'Actions' }), items: [{ label: 'Edit', icon: 'pencil' }] }),

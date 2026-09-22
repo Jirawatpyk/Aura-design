@@ -240,28 +240,65 @@ window.Aura = (() => {
 
   // src/Button.tsx
   var React3 = __toESM(require_react(), 1);
-  var Button = React3.forwardRef(function Button2(props, ref) {
+  function ButtonLink(props, ref) {
     const variant = props.variant || "primary";
-    const loading = !!props.loading;
-    const rest = omit(props, ["variant", "className", "children", "type", "icon", "iconRight", "loading", "onClick"]);
+    const disabled = !!props.disabled;
+    const rest = omit(props, [
+      "variant",
+      "className",
+      "children",
+      "icon",
+      "iconRight",
+      "disabled",
+      "linkComponent",
+      "href"
+    ]);
+    const Tag3 = !disabled && props.linkComponent ? props.linkComponent : "a";
     return /* @__PURE__ */ React3.createElement(
-      "button",
+      Tag3,
       {
         ...rest,
         ref,
-        type: props.type || "button",
-        className: cx("aura-btn", "aura-btn--" + variant, loading && "is-loading", props.className),
-        "aria-busy": loading || void 0,
-        "aria-disabled": loading || void 0,
-        onClick: loading ? function(e) {
-          e.preventDefault();
-        } : props.onClick
+        href: disabled ? void 0 : props.href,
+        role: disabled ? "link" : void 0,
+        "aria-disabled": disabled || void 0,
+        tabIndex: disabled ? -1 : props.tabIndex,
+        className: cx("aura-btn", "aura-btn--" + variant, props.className),
+        onClick: disabled ? void 0 : props.onClick
       },
-      loading ? /* @__PURE__ */ React3.createElement(Icon, { name: "loader-circle", className: "aura-spin" }) : props.icon ? /* @__PURE__ */ React3.createElement(Icon, { name: props.icon }) : null,
+      props.icon ? /* @__PURE__ */ React3.createElement(Icon, { name: props.icon }) : null,
       props.children,
-      props.iconRight && !loading ? /* @__PURE__ */ React3.createElement(Icon, { name: props.iconRight }) : null
+      props.iconRight ? /* @__PURE__ */ React3.createElement(Icon, { name: props.iconRight }) : null
     );
-  });
+  }
+  var Button = React3.forwardRef(
+    function Button2(all, ref) {
+      if (typeof all.href === "string") {
+        return ButtonLink(all, ref);
+      }
+      const props = all;
+      const variant = props.variant || "primary";
+      const loading = !!props.loading;
+      const rest = omit(props, ["variant", "className", "children", "type", "icon", "iconRight", "loading", "onClick"]);
+      return /* @__PURE__ */ React3.createElement(
+        "button",
+        {
+          ...rest,
+          ref,
+          type: props.type || "button",
+          className: cx("aura-btn", "aura-btn--" + variant, loading && "is-loading", props.className),
+          "aria-busy": loading || void 0,
+          "aria-disabled": loading || void 0,
+          onClick: loading ? function(e) {
+            e.preventDefault();
+          } : props.onClick
+        },
+        loading ? /* @__PURE__ */ React3.createElement(Icon, { name: "loader-circle", className: "aura-spin" }) : props.icon ? /* @__PURE__ */ React3.createElement(Icon, { name: props.icon }) : null,
+        props.children,
+        props.iconRight && !loading ? /* @__PURE__ */ React3.createElement(Icon, { name: props.iconRight }) : null
+      );
+    }
+  );
 
   // src/IconButton.tsx
   var React4 = __toESM(require_react(), 1);

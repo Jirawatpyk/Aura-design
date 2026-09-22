@@ -11,6 +11,18 @@ Buttons and menus. Tables are generated from the TypeScript sources of `@jirawat
 
 <ArgTypes of={Aura.Button} />
 
+### Button as a link
+
+Give Button an `href` and it renders an `<a>` that looks the same — use it for navigation, keep actions as buttons. Its props are the anchor's (`target`, `rel`, `download`…) plus these; the ref is the `<a>`. For client-side navigation pass your router's link: `<Button href="/orders" linkComponent={Link}>` (`next/link`).
+
+| Prop | Type | Description |
+|---|---|---|
+| `href` * | `string` | Where it goes. |
+| `variant` | `'primary' \| 'secondary' \| 'creative'` | Default `primary`. |
+| `icon`, `iconRight` | `IconName` | `external-link` with `target="_blank"`. |
+| `disabled` | `boolean` | No href, `aria-disabled`, out of the Tab order. |
+| `linkComponent` | `React.ElementType` | Router link rendered instead of `<a>`; gets `href`, `className`, children and the ref. |
+
 ## IconButton
 
 <ArgTypes of={Aura.IconButton} />

@@ -16,6 +16,23 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   loading?: boolean;
 }
 
+/** A link that looks like a Button: give `Button` an `href` and it renders an `<a>` (navigation, not actions). */
+export interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'children'> {
+  /** Where the link goes. With `href`, Button renders an `<a>` and its ref is the `<a>`. */
+  href: string;
+  /** Visual variant. Default `primary`. */
+  variant?: 'primary' | 'secondary' | 'creative';
+  /** Label text — say where it goes ("View Orders"), not "Click here". */
+  children: React.ReactNode;
+  icon?: IconName;
+  /** Trailing icon, e.g. `arrow-right`, or `external-link` with `target="_blank"`. */
+  iconRight?: IconName;
+  /** Looks unavailable and can't be followed: no href, `aria-disabled`, out of the Tab order. */
+  disabled?: boolean;
+  /** A router's link to render instead of `<a>`, e.g. `Link` from `next/link` (client-side navigation). It gets `href`, `className`, the children and the ref. */
+  linkComponent?: React.ElementType;
+}
+
 export interface DataTableColumn {
   /** Key into each row object. */
   key: string;

@@ -13,6 +13,22 @@ export interface ButtonProps extends React$1.ButtonHTMLAttributes<HTMLButtonElem
 	/** Shows a spinner in place of the leading icon, sets aria-busy and swallows clicks. Keeps the label and width. */
 	loading?: boolean;
 }
+/** A link that looks like a Button: give `Button` an `href` and it renders an `<a>` (navigation, not actions). */
+export interface ButtonLinkProps extends Omit<React$1.AnchorHTMLAttributes<HTMLAnchorElement>, "children"> {
+	/** Where the link goes. With `href`, Button renders an `<a>` and its ref is the `<a>`. */
+	href: string;
+	/** Visual variant. Default `primary`. */
+	variant?: "primary" | "secondary" | "creative";
+	/** Label text — say where it goes ("View Orders"), not "Click here". */
+	children: React$1.ReactNode;
+	icon?: IconName;
+	/** Trailing icon, e.g. `arrow-right`, or `external-link` with `target="_blank"`. */
+	iconRight?: IconName;
+	/** Looks unavailable and can't be followed: no href, `aria-disabled`, out of the Tab order. */
+	disabled?: boolean;
+	/** A router's link to render instead of `<a>`, e.g. `Link` from `next/link` (client-side navigation). It gets `href`, `className`, the children and the ref. */
+	linkComponent?: React$1.ElementType;
+}
 export interface DataTableColumn {
 	/** Key into each row object. */
 	key: string;
@@ -779,8 +795,15 @@ export declare const ICONS: Record<IconName, IconShape[]>;
 export declare const Icon: React$1.ForwardRefExoticComponent<IconProps & React$1.RefAttributes<SVGSVGElement>>;
 /** Every icon name the bundle carries. */
 export declare const iconNames: IconName[];
-/** AURA pill button. Enterprise (`primary`, `secondary`) for product UI; `creative` for marketing moments only. */
-export declare const Button: React$1.ForwardRefExoticComponent<ButtonProps & React$1.RefAttributes<HTMLButtonElement>>;
+/** Button with an `href` is a link; without, a button. Two call signatures so each gets the right props and ref. */
+export interface ButtonComponent {
+	(props: ButtonLinkProps & React$1.RefAttributes<HTMLAnchorElement>): React$1.ReactElement | null;
+	(props: ButtonProps & React$1.RefAttributes<HTMLButtonElement>): React$1.ReactElement | null;
+	displayName?: string;
+}
+/** AURA pill button. Enterprise (`primary`, `secondary`) for product UI; `creative` for marketing moments only.
+ * With `href` it renders a link that looks the same (`<a>`, or your router's link via `linkComponent`). */
+export declare const Button: ButtonComponent;
 export declare const IconButton: React$1.ForwardRefExoticComponent<IconButtonProps & React$1.RefAttributes<HTMLButtonElement>>;
 /** Popover list anchored to an element, rendered in a portal. */
 export declare const Menu: React$1.ForwardRefExoticComponent<MenuProps & React$1.RefAttributes<HTMLDivElement>>;
