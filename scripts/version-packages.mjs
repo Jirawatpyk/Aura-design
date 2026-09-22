@@ -11,7 +11,9 @@ const V = read('packages/react/package.json').version;
 const tokensV = read('packages/tokens/package.json').version;
 if (V !== tokensV) throw new Error(`aura-react is ${V} but aura-tokens is ${tokensV}; they are released together`);
 
-for (const f of ['package.json', 'apps/storybook/package.json']) {
+/* Root only: apps/storybook is a workspace package, and the Changesets action reads a CHANGELOG.md for every
+ * workspace package whose version changed — the private Storybook has none, so its version stays put. */
+for (const f of ['package.json']) {
   const o = read(f);
   o.version = V;
   write(f, o);
