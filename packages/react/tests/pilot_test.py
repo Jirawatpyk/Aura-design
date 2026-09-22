@@ -31,6 +31,7 @@ def color_scheme(pg, name, dark, system, after_reload=lambda pg: None):
     pg.get_by_role('button', name=re.compile('^' + name)).click()
     pg.get_by_role('menuitemcheckbox', name=dark).click()
     assert root() == ['dark', True], root()
+    pg.wait_for_timeout(400)   # let the colour transitions finish, or axe reads a half-changed colour
     axe(pg, 'toggled dark')
     pg.reload(); after_reload(pg)
     assert root() == ['dark', True], ('after reload', root())
