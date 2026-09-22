@@ -2,6 +2,10 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 4.7.2
+
+No changes in this release.
+
 ## 4.7.1
 
 ### Patch Changes
