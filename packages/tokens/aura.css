@@ -98,6 +98,7 @@
   --aura-button-primary-bg: var(--aura-zinc-900);
   --aura-button-primary-fg: var(--aura-zinc-0);
   --aura-button-primary-bg-hover: var(--aura-zinc-800);
+  --aura-button-secondary-border: var(--aura-zinc-450);
   --aura-button-creative-bg: var(--aura-white);
   --aura-button-creative-border: var(--aura-zinc-900);
   --aura-card-border: var(--aura-zinc-200);
@@ -149,6 +150,7 @@
   --aura-button-primary-bg: var(--aura-zinc-0);
   --aura-button-primary-fg: var(--aura-zinc-900);
   --aura-button-primary-bg-hover: var(--aura-zinc-200);
+  --aura-button-secondary-border: var(--aura-zinc-500);
   --aura-shadow-overlay: 0 16px 48px rgba(0,0,0,0.56), 0 2px 8px rgba(0,0,0,0.32);
   --aura-shadow-creative: 4px 4px 0px #a78bfa;
   --aura-shadow-creative-hover: 6px 6px 0px #a78bfa;
@@ -198,6 +200,7 @@
     --aura-button-primary-bg: var(--aura-zinc-0);
     --aura-button-primary-fg: var(--aura-zinc-900);
     --aura-button-primary-bg-hover: var(--aura-zinc-200);
+    --aura-button-secondary-border: var(--aura-zinc-500);
     --aura-shadow-overlay: 0 16px 48px rgba(0,0,0,0.56), 0 2px 8px rgba(0,0,0,0.32);
     --aura-shadow-creative: 4px 4px 0px #a78bfa;
     --aura-shadow-creative-hover: 6px 6px 0px #a78bfa;

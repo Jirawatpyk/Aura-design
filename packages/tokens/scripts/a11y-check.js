@@ -54,6 +54,7 @@ pairs.push(['on-texture', 'mesh-from', TEXT], ['on-texture', 'mesh-to', TEXT]);
 for (const bg of ['bg-surface', 'bg-canvas', 'bg-input', 'bg-selected']) pairs.push(['border-control', bg, UI]);
 for (const bg of ['bg-surface', 'bg-canvas', 'bg-surface-hover', 'bg-selected']) pairs.push(['focus-ring', bg, UI]);
 pairs.push(['border-danger', 'bg-input', UI]);
+for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['button-secondary-border', bg, UI]);
 
 const results = [], fails = [];
 for (const theme of ['light', 'dark']) for (const [fg, bg, min] of pairs) {

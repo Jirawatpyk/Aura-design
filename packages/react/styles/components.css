@@ -41,7 +41,7 @@ a.aura-btn { text-decoration: none; }
 .aura-btn--primary { background: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); }
 .aura-btn--primary:hover { background: var(--aura-button-primary-bg-hover); }
 
-.aura-btn--secondary { border: 1px solid var(--aura-border-default); color: var(--aura-fg-primary); }
+.aura-btn--secondary { border: 1px solid var(--aura-button-secondary-border); color: var(--aura-fg-primary); }
 .aura-btn--secondary:hover { background: var(--aura-bg-surface-hover); }
 
 .aura-btn--creative {
