@@ -1,15 +1,45 @@
 name: Chromatic
-# Visual regression on pull requests. Needs the CHROMATIC_PROJECT_TOKEN secret; skipped without it.
-on: [pull_request]
+# Visual regression: every story is snapshotted in light and dark (parameters.chromatic.modes in preview.ts)
+# and compared with the accepted baseline. Changes show up as a "UI Tests" check on the pull request, to be
+# accepted or denied at chromatic.com; the check stays red until someone decides.
+#
+# One-time setup: chromatic.com → sign in with GitHub → add project Jirawatpyk/Aura-design → copy the token →
+#   repo Settings → Secrets and variables → Actions → Secrets:   CHROMATIC_PROJECT_TOKEN = <token>
+#                                                   → Variables: CHROMATIC_ENABLED = true
+# Until the variable is set this workflow is skipped (no failed runs).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: chromatic-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   visual:
     if: ${{ vars.CHROMATIC_ENABLED == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0 # Chromatic needs history to find the baseline and what changed
       - uses: actions/setup-node@v5
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN }} --exit-zero-on-changes
+      - name: Build Storybook (with module stats for TurboSnap)
         working-directory: apps/storybook
+        run: npx storybook build --disable-telemetry --stats-json -o storybook-static
+      - uses: chromaui/action@v18
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/storybook
+          storybookBuildDir: storybook-static
+          # TurboSnap: only stories whose files (or anything they import) changed are snapshotted again.
+          onlyChanged: true
+          # Merged to main = approved: those snapshots become the new baseline.
+          autoAcceptChanges: main
+          # Visual changes are for review, not a failed build; the UI Tests check shows them.
+          exitZeroOnChanges: true

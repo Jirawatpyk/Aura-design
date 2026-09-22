@@ -65,7 +65,21 @@ export default function Root() {
 
 ## Components (43)
 
-Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, Textarea, Select, RadioGroup, Checkbox, Switch, Combobox, FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, Toaster/`toast()`, Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Stat · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, SideNav, Breadcrumb, Avatar, Surface, Icon · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
+Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, Textarea, Select, RadioGroup, Checkbox, Switch, Combobox, FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, Toaster/`toast()`, Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Stat · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
+
+## Light and dark
+
+The tokens carry both schemes; `<html data-theme="light|dark|system">` picks one (`system` follows the OS in pure CSS).
+
+```tsx
+<html lang="th" data-theme="system" suppressHydrationWarning>
+  <head><ColorSchemeScript /></head>   {/* applies the saved choice before first paint — no flash */}
+  ...
+<ColorSchemeToggle />                   {/* Light / Dark / System menu; saved in localStorage */}
+const { scheme, resolved, setScheme } = useColorScheme();
+```
+
+Tailwind's `dark:` variant keeps working: the `.dark` class on `<html>` is kept in step.
 
 ## Refs and forms
 
@@ -89,7 +103,8 @@ Portals (Dialog, Drawer, menus, pickers, toasts) wait until after hydration; `us
 npm run build        # dist/ (ESM, CJS, IIFE, CSS, types)
 npm run test:ssr     # server-render every component
 npm run typecheck    # tsc --strict over src/, then types-test/usage.tsx against the public API
-npm run test:pilots   # builds the pilots + 4 brand themes, then 37 behaviour/axe checks at 1440/820/390px (Playwright for Python, axe-core)
+npm run size         # gzip size of what projects import, against size-budgets.json
+npm run test:pilots  # builds the pilots + 4 brand themes, then 37 behaviour/axe checks at 1440/820/390px (Playwright for Python, axe-core)
 ```
 
 ## Source

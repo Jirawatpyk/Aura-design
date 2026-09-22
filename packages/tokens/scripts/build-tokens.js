@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Build every token output from tokens.json (the single source of truth).
  *   aura-fonts.css       the Google Fonts @import (kept apart so a blocked font host can't break aura.css)
- *   aura.css             CSS variables: light on :root / [data-theme="light"], dark on .dark / [data-theme="dark"]
+ *   aura.css             CSS variables: light on :root / [data-theme="light"], dark on .dark / [data-theme="dark"],
+ *                        and data-theme="system" follows prefers-color-scheme
  *   tailwind.tokens.cjs  the maps tailwind.config.ts spreads into theme.extend
  *   figma-variables.csv  every colour for both modes + numbers, for a Variables Import plugin
  * Usage: node scripts/build-tokens.js   (npm run build:tokens) */
@@ -28,11 +29,19 @@ for (const [fam, scale] of Object.entries(T.primitive)) {
 }
 for (const tier of ['semantic', 'component']) for (const [k, v] of Object.entries(T[tier].light)) L.push(`  --aura-${k}: ${cssRef(v)};`);
 for (const [k, v] of Object.entries(T.shadow.light)) L.push(`  --aura-${k}: ${v};`);
-L.push('}', '');
-L.push('.dark, [data-theme="dark"] {');
-for (const tier of ['semantic', 'component']) for (const [k, v] of Object.entries(T[tier].dark)) if (v !== T[tier].light[k]) L.push(`  --aura-${k}: ${cssRef(v)};`);
-for (const [k, v] of Object.entries(T.shadow.dark)) if (v !== T.shadow.light[k]) L.push(`  --aura-${k}: ${v};`);
-L.push('  color-scheme: dark;', '}', '');
+L.push('  color-scheme: light;', '}', '');
+/* Dark overrides: only what differs from light. Written twice — for an explicit choice (.dark / data-theme="dark")
+ * and for data-theme="system", which follows the operating system with no script (no flash on first paint). */
+const darkLines = (pad) => {
+  const out = [];
+  for (const tier of ['semantic', 'component']) for (const [k, v] of Object.entries(T[tier].dark)) if (v !== T[tier].light[k]) out.push(`${pad}--aura-${k}: ${cssRef(v)};`);
+  for (const [k, v] of Object.entries(T.shadow.dark)) if (v !== T.shadow.light[k]) out.push(`${pad}--aura-${k}: ${v};`);
+  out.push(`${pad}color-scheme: dark;`);
+  return out;
+};
+L.push('.dark, [data-theme="dark"] {', ...darkLines('  '), '}', '');
+L.push('/* data-theme="system": light or dark from prefers-color-scheme. */');
+L.push('@media (prefers-color-scheme: dark) {', '  [data-theme="system"] {', ...darkLines('    '), '  }', '}', '');
 L.push(':root {');
 for (const fam of ['spacing', 'radius', 'size', 'breakpoint', 'opacity', 'zIndex']) for (const [k, v] of Object.entries(T[fam])) L.push(`  --aura-${k}: ${v};`);
 for (const [k, v] of Object.entries(T.motion.easing)) L.push(`  --aura-${k}: ${v};`);

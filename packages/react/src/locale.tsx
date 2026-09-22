@@ -59,6 +59,10 @@ export interface AuraStrings {
   fileTooBig: (max?: number | string) => string;
   fileWrongType: string;
   tooManyFiles: (n: number | string) => string;
+  colorScheme: string;
+  schemeLight: string;
+  schemeDark: string;
+  schemeSystem: string;
   uploading: string;
   images: string;
   pagination: string;
@@ -144,6 +148,10 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings } = {
     tooManyFiles: function (n) {
       return 'Up to ' + n + ' files';
     },
+    colorScheme: 'Colour scheme',
+    schemeLight: 'Light',
+    schemeDark: 'Dark',
+    schemeSystem: 'System',
     uploading: 'Uploading…',
     images: 'Images',
     pagination: 'Pagination',
@@ -232,6 +240,10 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings } = {
     tooManyFiles: function (n) {
       return 'แนบได้ไม่เกิน ' + n + ' ไฟล์';
     },
+    colorScheme: 'โหมดสี',
+    schemeLight: 'สว่าง',
+    schemeDark: 'มืด',
+    schemeSystem: 'ตามระบบ',
     uploading: 'กำลังอัปโหลด…',
     images: 'รูปภาพ',
     pagination: 'เลขหน้า',

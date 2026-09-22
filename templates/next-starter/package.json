@@ -11,8 +11,8 @@
     "theme": "aura-theme --brand \"#0ea5e9\" --out app/aura-theme.css"
   },
   "dependencies": {
-    "@jirawatpyk/aura-react": "^4.5.0",
-    "@jirawatpyk/aura-tokens": "^4.5.0",
+    "@jirawatpyk/aura-react": "^4.6.0",
+    "@jirawatpyk/aura-tokens": "^4.6.0",
     "next": "^16.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

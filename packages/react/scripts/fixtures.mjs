@@ -5,6 +5,8 @@ export function fixtures(A, React) {
   const noop = () => {};
   return {
     Icon: h(A.Icon, { name: 'calendar' }),
+    ColorSchemeScript: h(A.ColorSchemeScript, null),
+    ColorSchemeToggle: h(A.ColorSchemeToggle, null),
     Button: h(A.Button, { icon: 'plus' }, 'New order'),
     IconButton: h(A.IconButton, { icon: 'ellipsis', label: 'More' }),
     Menu: h(A.Menu, { anchor: null, label: 'Actions', items: [{ label: 'Edit' }], onClose: noop }),

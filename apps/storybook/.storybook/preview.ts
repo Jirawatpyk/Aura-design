@@ -14,13 +14,16 @@ const preview: Preview = {
     theme: {
       description: 'AURA theme',
       defaultValue: 'light',
-      toolbar: { title: 'Theme', icon: 'mirror', items: ['light', 'dark'], dynamicTitle: true },
+      toolbar: { title: 'Theme', icon: 'mirror', items: ['light', 'dark', 'system'], dynamicTitle: true },
     },
   },
   decorators: [
     (Story, ctx) => {
       const theme = ctx.globals.theme || 'light';
-      document.documentElement.classList.toggle('dark', theme === 'dark');
+      document.documentElement.classList.toggle(
+        'dark',
+        theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+      );
       document.documentElement.setAttribute('data-theme', theme);
       document.body.style.background = 'var(--aura-bg-canvas)';
       document.body.style.color = 'var(--aura-fg-primary)';

@@ -14,3 +14,12 @@ A brand colour per project, and Thai or English built-in labels. Tables are gene
 ## AuraProvider
 
 <ArgTypes of={Aura.AuraProvider} />
+## ColorSchemeToggle
+
+<ArgTypes of={Aura.ColorSchemeToggle} />
+
+## ColorSchemeScript
+
+Put it in `<head>`: it applies the saved choice (or `system`) before the page paints, so there is no flash of the wrong scheme. `useColorScheme()` returns `{ scheme, resolved, setScheme }` for your own controls.
+
+<ArgTypes of={Aura.ColorSchemeScript} />

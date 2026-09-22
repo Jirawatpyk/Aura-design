@@ -397,6 +397,31 @@ test.describe('4.4', () => {
     const bg = await page.getByRole('button', { name: 'New Project' }).evaluate((e) => getComputedStyle(e).backgroundColor);
     expect(bg).not.toBe('rgb(24, 24, 27)');
   });
+  test('ColorSchemeToggle sets data-theme and the .dark class, saves the choice; the head script restores it', async ({ page }) => {
+    await story(page, 'aura-theming-color-scheme--toggle');
+    await page.evaluate(() => localStorage.removeItem('aura-color-scheme'));
+    const html = page.locator('html');
+    await page.getByRole('button', { name: /^Colour scheme:/ }).click();
+    await page.getByRole('menuitemcheckbox', { name: 'Dark' }).click();
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(html).toHaveClass(/\bdark\b/);
+    await expect(page.getByTestId('scheme-status')).toContainText('on screen: dark');
+    expect(await page.evaluate(() => localStorage.getItem('aura-color-scheme'))).toBe('dark');
+    await page.getByRole('button', { name: /^Colour scheme: Dark/ }).click();
+    await page.getByRole('menuitemcheckbox', { name: 'Light' }).click();
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    /* The <head> script: with "dark" saved, it sets the attribute and class before React runs. */
+    await page.evaluate(() => {
+      localStorage.setItem('aura-color-scheme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.classList.remove('dark');
+      new Function(document.querySelector('script[data-aura-color-scheme]')!.textContent || '')();
+    });
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(html).toHaveClass(/\bdark\b/);
+    await page.evaluate(() => localStorage.removeItem('aura-color-scheme'));
+  });
   test('Settings pilot: react-hook-form errors land on the input via refs', async ({ page }) => {
     await story(page, 'aura-new-in-4-4--settings');
     const name = page.getByRole('textbox', { name: /^Full name/ });

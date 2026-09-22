@@ -273,6 +273,10 @@ export function createTheme(opts: ThemeOptions): Theme {
     const dark = selector
       ? selector + '.dark, .dark ' + selector + ', ' + selector + '[data-theme="dark"], [data-theme="dark"] ' + selector
       : '.dark, [data-theme="dark"]';
+    /* data-theme="system" follows the OS: the same dark values inside prefers-color-scheme. */
+    const system = selector
+      ? '[data-theme="system"] ' + selector + ', ' + selector + '[data-theme="system"]'
+      : '[data-theme="system"]';
     function block(sel: string, m: Record<string, string>): string {
       return (
         sel +
@@ -296,7 +300,9 @@ export function createTheme(opts: ThemeOptions): Theme {
       block(light, L) +
       '\n' +
       block(dark, D) +
-      '\n'
+      '\n@media (prefers-color-scheme: dark) {\n' +
+      block(system, D) +
+      '\n}\n'
     );
   }
   return {

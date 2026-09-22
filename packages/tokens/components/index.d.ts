@@ -117,7 +117,7 @@ export interface DataTableProps {
 	stackBelow?: number;
 	className?: string;
 }
-export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file";
+export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor";
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
 	name: IconName;
@@ -929,6 +929,10 @@ export interface AuraStrings {
 	fileTooBig: (max?: number | string) => string;
 	fileWrongType: string;
 	tooManyFiles: (n: number | string) => string;
+	colorScheme: string;
+	schemeLight: string;
+	schemeDark: string;
+	schemeSystem: string;
 	uploading: string;
 	images: string;
 	pagination: string;
@@ -970,6 +974,32 @@ export interface ThemeStyleProps extends ThemeOptions {
 	selector?: string;
 }
 export declare function ThemeStyle(props: ThemeStyleProps): React$1.ReactElement;
+/** `system` follows the operating system and changes with it. */
+export type ColorScheme = "light" | "dark" | "system";
+export interface ColorSchemeOptions {
+	/** localStorage key for the choice. Default `aura-color-scheme`. */
+	storageKey?: string;
+	/** Used when nothing is saved. Default `system`. */
+	defaultScheme?: ColorScheme;
+}
+/** The script ColorSchemeScript renders, as a string — for frameworks that want it in a raw <head> template. */
+export declare function colorSchemeScript(options?: ColorSchemeOptions): string;
+/** Put in <head>: applies the saved colour scheme before the page paints. Server-rendering safe. */
+export declare function ColorSchemeScript(props: ColorSchemeOptions): React$1.ReactElement;
+/** Current colour scheme and a setter. `resolved` is what is on screen (system resolved to light or dark). */
+export interface ColorSchemeState {
+	scheme: ColorScheme;
+	resolved: "light" | "dark";
+	setScheme: (scheme: ColorScheme) => void;
+}
+/** Read and change the colour scheme. Every component using it stays in sync, and `system` follows OS changes. */
+export declare function useColorScheme(options?: ColorSchemeOptions): ColorSchemeState;
+export interface ColorSchemeToggleProps extends ColorSchemeOptions {
+	/** Accessible name of the button. Default: the built-in "Colour scheme" label. */
+	label?: string;
+}
+/** Icon button with a menu: Light, Dark, System. Shows a sun or a moon for what is on screen. */
+export declare function ColorSchemeToggle(props: ColorSchemeToggleProps): React$1.ReactElement;
 export declare const Badge: React$1.ForwardRefExoticComponent<BadgeProps & React$1.RefAttributes<HTMLSpanElement>>;
 export declare const Tag: React$1.ForwardRefExoticComponent<TagProps & React$1.RefAttributes<HTMLElement>>;
 export declare const Progress: React$1.ForwardRefExoticComponent<ProgressProps & React$1.RefAttributes<HTMLDivElement>>;

@@ -1,6 +1,6 @@
 /* A Server Component: it can load data on the server and hand it to AURA components.
  * AURA's components are client components ('use client' is in the package), so they work here directly. */
-import { Container, Stack, Grid, Card, Stat, Alert } from '@jirawatpyk/aura-react';
+import { Container, Stack, Grid, Card, Stat, Alert, ColorSchemeToggle } from '@jirawatpyk/aura-react';
 import { OrdersTable, type Order } from './orders-table';
 
 async function getOrders(): Promise<Order[]> {
@@ -18,7 +18,10 @@ export default async function Page() {
   return (
     <Container>
       <Stack gap={6} style={{ paddingBlock: 32 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', margin: 0 }}>คำสั่งซื้อ</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', margin: 0 }}>คำสั่งซื้อ</h1>
+          <ColorSchemeToggle />
+        </div>
         <Alert tone="info" title="AURA starter">
           แก้ไฟล์ <code>app/page.tsx</code> ได้เลย — ดูคอมโพเนนต์ทั้งหมดที่ Storybook ของ AURA
         </Alert>

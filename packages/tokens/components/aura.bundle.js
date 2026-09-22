@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Aura","components":[{"name":"Icon"},{"name":"Button"},{"name":"IconButton"},{"name":"Menu"},{"name":"DropdownMenu"},{"name":"Checkbox"},{"name":"StatusPill"},{"name":"TextField"},{"name":"Textarea"},{"name":"Select"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Combobox"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"Calendar"},{"name":"Alert"},{"name":"Toaster"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Drawer"},{"name":"DataTable"},{"name":"Card"},{"name":"Tabs"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"Stack"},{"name":"Grid"},{"name":"Container"},{"name":"AppShell"},{"name":"Surface"},{"name":"Stat"},{"name":"TimePicker"},{"name":"FileUpload"},{"name":"Badge"},{"name":"Tag"},{"name":"Progress"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Pagination"},{"name":"Accordion"},{"name":"Popover"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Aura","components":[{"name":"Icon"},{"name":"Button"},{"name":"IconButton"},{"name":"Menu"},{"name":"DropdownMenu"},{"name":"Checkbox"},{"name":"StatusPill"},{"name":"TextField"},{"name":"Textarea"},{"name":"Select"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Combobox"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"Calendar"},{"name":"Alert"},{"name":"Toaster"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Drawer"},{"name":"DataTable"},{"name":"Card"},{"name":"Tabs"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"Stack"},{"name":"Grid"},{"name":"Container"},{"name":"AppShell"},{"name":"Surface"},{"name":"Stat"},{"name":"TimePicker"},{"name":"FileUpload"},{"name":"ColorSchemeScript"},{"name":"ColorSchemeToggle"},{"name":"Badge"},{"name":"Tag"},{"name":"Progress"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Pagination"},{"name":"Accordion"},{"name":"Popover"}]} */
 window.Aura = (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
@@ -61,6 +61,8 @@ window.Aura = (() => {
     Calendar: () => Calendar,
     Card: () => Card,
     Checkbox: () => Checkbox,
+    ColorSchemeScript: () => ColorSchemeScript,
+    ColorSchemeToggle: () => ColorSchemeToggle,
     Combobox: () => Combobox,
     Container: () => Container,
     DataTable: () => DataTable,
@@ -100,6 +102,7 @@ window.Aura = (() => {
     Tooltip: () => Tooltip,
     brandScale: () => scale,
     breakpoints: () => breakpoints,
+    colorSchemeScript: () => colorSchemeScript,
     comboboxFilter: () => defaultFilter,
     contrast: () => contrast,
     createTheme: () => createTheme,
@@ -112,6 +115,7 @@ window.Aura = (() => {
     toast: () => toast,
     useAuraLocale: () => useAuraLocale,
     useBreakpoint: () => useBreakpoint,
+    useColorScheme: () => useColorScheme,
     useResponsive: () => useResponsive
   });
 
@@ -202,7 +206,7 @@ window.Aura = (() => {
 
   // src/Icon.tsx
   var h = React2.createElement;
-  var ICONS = { "check": [["path", { "d": "M20 6 9 17l-5-5" }]], "x": [["path", { "d": "M18 6 6 18" }], ["path", { "d": "m6 6 12 12" }]], "plus": [["path", { "d": "M5 12h14" }], ["path", { "d": "M12 5v14" }]], "minus": [["path", { "d": "M5 12h14" }]], "search": [["path", { "d": "m21 21-4.34-4.34" }], ["circle", { "cx": "11", "cy": "11", "r": "8" }]], "chevron-down": [["path", { "d": "m6 9 6 6 6-6" }]], "chevron-up": [["path", { "d": "m18 15-6-6-6 6" }]], "chevron-left": [["path", { "d": "m15 18-6-6 6-6" }]], "chevron-right": [["path", { "d": "m9 18 6-6-6-6" }]], "arrow-right": [["path", { "d": "M5 12h14" }], ["path", { "d": "m12 5 7 7-7 7" }]], "arrow-up-right": [["path", { "d": "M7 7h10v10" }], ["path", { "d": "M7 17 17 7" }]], "arrow-up-down": [["path", { "d": "m21 16-4 4-4-4" }], ["path", { "d": "M17 20V4" }], ["path", { "d": "m3 8 4-4 4 4" }], ["path", { "d": "M7 4v16" }]], "loader-circle": [["path", { "d": "M21 12a9 9 0 1 1-6.219-8.56" }]], "circle-alert": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["line", { "x1": "12", "x2": "12", "y1": "8", "y2": "12" }], ["line", { "x1": "12", "x2": "12.01", "y1": "16", "y2": "16" }]], "circle-check": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "m16 9-5.5 5.5L8 12" }]], "info": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 16v-4" }], ["path", { "d": "M12 8h.01" }]], "triangle-alert": [["path", { "d": "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" }], ["path", { "d": "M12 9v4" }], ["path", { "d": "M12 17h.01" }]], "settings": [["path", { "d": "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "user": [["path", { "d": "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" }], ["circle", { "cx": "12", "cy": "7", "r": "4" }]], "users": [["path", { "d": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }], ["path", { "d": "M16 3.128a4 4 0 0 1 0 7.744" }], ["path", { "d": "M22 21v-2a4 4 0 0 0-3-3.87" }], ["circle", { "cx": "9", "cy": "7", "r": "4" }]], "filter": [["path", { "d": "M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" }]], "ellipsis": [["circle", { "cx": "12", "cy": "12", "r": "1" }], ["circle", { "cx": "19", "cy": "12", "r": "1" }], ["circle", { "cx": "5", "cy": "12", "r": "1" }]], "external-link": [["path", { "d": "M15 3h6v6" }], ["path", { "d": "M10 14 21 3" }], ["path", { "d": "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" }]], "copy": [["rect", { "width": "14", "height": "14", "x": "8", "y": "8", "rx": "2", "ry": "2" }], ["path", { "d": "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" }]], "trash-2": [["path", { "d": "M10 11v6" }], ["path", { "d": "M14 11v6" }], ["path", { "d": "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" }], ["path", { "d": "M3 6h18" }], ["path", { "d": "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }]], "pencil": [["path", { "d": "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" }], ["path", { "d": "m15 5 4 4" }]], "download": [["path", { "d": "M12 15V3" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }], ["path", { "d": "m7 10 5 5 5-5" }]], "upload": [["path", { "d": "M12 3v12" }], ["path", { "d": "m17 8-5-5-5 5" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }]], "calendar": [["path", { "d": "M8 2v3" }], ["path", { "d": "M16 2v3" }], ["rect", { "x": "3", "y": "3", "width": "18", "height": "18", "rx": "2" }], ["path", { "d": "M3 9h18" }]], "bell": [["path", { "d": "M10.268 21a2 2 0 0 0 3.464 0" }], ["path", { "d": "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" }]], "menu": [["path", { "d": "M4 5h16" }], ["path", { "d": "M4 12h16" }], ["path", { "d": "M4 19h16" }]], "eye": [["path", { "d": "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "log-out": [["path", { "d": "m16 17 5-5-5-5" }], ["path", { "d": "M21 12H9" }], ["path", { "d": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }]], "circle": [["circle", { "cx": "12", "cy": "12", "r": "10" }]], "circle-dot-dashed": [["path", { "d": "M10.1 2.18a9.93 9.93 0 0 1 3.8 0" }], ["path", { "d": "M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7" }], ["path", { "d": "M21.82 10.1a9.93 9.93 0 0 1 0 3.8" }], ["path", { "d": "M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69" }], ["path", { "d": "M13.9 21.82a9.94 9.94 0 0 1-3.8 0" }], ["path", { "d": "M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7" }], ["path", { "d": "M2.18 13.9a9.93 9.93 0 0 1 0-3.8" }], ["path", { "d": "M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69" }], ["circle", { "cx": "12", "cy": "12", "r": "1" }]], "ban": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M4.929 4.929 19.07 19.071" }]], "arrow-up": [["path", { "d": "m5 12 7-7 7 7" }], ["path", { "d": "M12 19V5" }]], "arrow-down": [["path", { "d": "M12 5v14" }], ["path", { "d": "m19 12-7 7-7-7" }]], "inbox": [["polyline", { "points": "22 12 16 12 14 15 10 15 8 12 2 12" }], ["path", { "d": "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" }]], "pin": [["path", { "d": "M12 17v5" }], ["path", { "d": "M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" }]], "pin-off": [["path", { "d": "M12 17v5" }], ["path", { "d": "M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" }], ["path", { "d": "m2 2 20 20" }], ["path", { "d": "M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11" }]], "eye-off": [["path", { "d": "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" }], ["path", { "d": "M14.084 14.158a3 3 0 0 1-4.242-4.242" }], ["path", { "d": "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" }], ["path", { "d": "m2 2 20 20" }]], "columns-3": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "M15 3v18" }]], "arrow-left": [["path", { "d": "m12 19-7-7 7-7" }], ["path", { "d": "M19 12H5" }]], "rotate-ccw": [["path", { "d": "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }], ["path", { "d": "M3 3v5h5" }]], "house": [["path", { "d": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" }], ["path", { "d": "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }]], "layout-dashboard": [["rect", { "width": "7", "height": "9", "x": "3", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "14", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "9", "x": "14", "y": "12", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "3", "y": "16", "rx": "1" }]], "folder": [["path", { "d": "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" }]], "chart-column": [["path", { "d": "M3 3v16a2 2 0 0 0 2 2h16" }], ["path", { "d": "M18 17V9" }], ["path", { "d": "M13 17V5" }], ["path", { "d": "M8 17v-3" }]], "file-text": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }], ["path", { "d": "M10 9H8" }], ["path", { "d": "M16 13H8" }], ["path", { "d": "M16 17H8" }]], "mail": [["path", { "d": "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" }], ["rect", { "x": "2", "y": "4", "width": "20", "height": "16", "rx": "2" }]], "lock": [["rect", { "width": "18", "height": "11", "x": "3", "y": "11", "rx": "2", "ry": "2" }], ["path", { "d": "M7 11V7a5 5 0 0 1 10 0v4" }]], "clock": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 6v6l4 2" }]], "trending-up": [["path", { "d": "M16 7h6v6" }], ["path", { "d": "m22 7-8.5 8.5-5-5L2 17" }]], "trending-down": [["path", { "d": "M16 17h6v-6" }], ["path", { "d": "m22 17-8.5-8.5-5 5L2 7" }]], "image": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2", "ry": "2" }], ["circle", { "cx": "9", "cy": "9", "r": "2" }], ["path", { "d": "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" }]], "paperclip": [["path", { "d": "m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551" }]], "cloud-upload": [["path", { "d": "M12 13v8" }], ["path", { "d": "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }], ["path", { "d": "m8 17 4-4 4 4" }]], "file": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }]] };
+  var ICONS = { "check": [["path", { "d": "M20 6 9 17l-5-5" }]], "x": [["path", { "d": "M18 6 6 18" }], ["path", { "d": "m6 6 12 12" }]], "plus": [["path", { "d": "M5 12h14" }], ["path", { "d": "M12 5v14" }]], "minus": [["path", { "d": "M5 12h14" }]], "search": [["path", { "d": "m21 21-4.34-4.34" }], ["circle", { "cx": "11", "cy": "11", "r": "8" }]], "chevron-down": [["path", { "d": "m6 9 6 6 6-6" }]], "chevron-up": [["path", { "d": "m18 15-6-6-6 6" }]], "chevron-left": [["path", { "d": "m15 18-6-6 6-6" }]], "chevron-right": [["path", { "d": "m9 18 6-6-6-6" }]], "arrow-right": [["path", { "d": "M5 12h14" }], ["path", { "d": "m12 5 7 7-7 7" }]], "arrow-up-right": [["path", { "d": "M7 7h10v10" }], ["path", { "d": "M7 17 17 7" }]], "arrow-up-down": [["path", { "d": "m21 16-4 4-4-4" }], ["path", { "d": "M17 20V4" }], ["path", { "d": "m3 8 4-4 4 4" }], ["path", { "d": "M7 4v16" }]], "loader-circle": [["path", { "d": "M21 12a9 9 0 1 1-6.219-8.56" }]], "circle-alert": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["line", { "x1": "12", "x2": "12", "y1": "8", "y2": "12" }], ["line", { "x1": "12", "x2": "12.01", "y1": "16", "y2": "16" }]], "circle-check": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "m16 9-5.5 5.5L8 12" }]], "info": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 16v-4" }], ["path", { "d": "M12 8h.01" }]], "triangle-alert": [["path", { "d": "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" }], ["path", { "d": "M12 9v4" }], ["path", { "d": "M12 17h.01" }]], "settings": [["path", { "d": "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "user": [["path", { "d": "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" }], ["circle", { "cx": "12", "cy": "7", "r": "4" }]], "users": [["path", { "d": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }], ["path", { "d": "M16 3.128a4 4 0 0 1 0 7.744" }], ["path", { "d": "M22 21v-2a4 4 0 0 0-3-3.87" }], ["circle", { "cx": "9", "cy": "7", "r": "4" }]], "filter": [["path", { "d": "M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" }]], "ellipsis": [["circle", { "cx": "12", "cy": "12", "r": "1" }], ["circle", { "cx": "19", "cy": "12", "r": "1" }], ["circle", { "cx": "5", "cy": "12", "r": "1" }]], "external-link": [["path", { "d": "M15 3h6v6" }], ["path", { "d": "M10 14 21 3" }], ["path", { "d": "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" }]], "copy": [["rect", { "width": "14", "height": "14", "x": "8", "y": "8", "rx": "2", "ry": "2" }], ["path", { "d": "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" }]], "trash-2": [["path", { "d": "M10 11v6" }], ["path", { "d": "M14 11v6" }], ["path", { "d": "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" }], ["path", { "d": "M3 6h18" }], ["path", { "d": "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }]], "pencil": [["path", { "d": "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" }], ["path", { "d": "m15 5 4 4" }]], "download": [["path", { "d": "M12 15V3" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }], ["path", { "d": "m7 10 5 5 5-5" }]], "upload": [["path", { "d": "M12 3v12" }], ["path", { "d": "m17 8-5-5-5 5" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }]], "calendar": [["path", { "d": "M8 2v3" }], ["path", { "d": "M16 2v3" }], ["rect", { "x": "3", "y": "3", "width": "18", "height": "18", "rx": "2" }], ["path", { "d": "M3 9h18" }]], "bell": [["path", { "d": "M10.268 21a2 2 0 0 0 3.464 0" }], ["path", { "d": "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" }]], "menu": [["path", { "d": "M4 5h16" }], ["path", { "d": "M4 12h16" }], ["path", { "d": "M4 19h16" }]], "eye": [["path", { "d": "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "log-out": [["path", { "d": "m16 17 5-5-5-5" }], ["path", { "d": "M21 12H9" }], ["path", { "d": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }]], "circle": [["circle", { "cx": "12", "cy": "12", "r": "10" }]], "circle-dot-dashed": [["path", { "d": "M10.1 2.18a9.93 9.93 0 0 1 3.8 0" }], ["path", { "d": "M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7" }], ["path", { "d": "M21.82 10.1a9.93 9.93 0 0 1 0 3.8" }], ["path", { "d": "M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69" }], ["path", { "d": "M13.9 21.82a9.94 9.94 0 0 1-3.8 0" }], ["path", { "d": "M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7" }], ["path", { "d": "M2.18 13.9a9.93 9.93 0 0 1 0-3.8" }], ["path", { "d": "M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69" }], ["circle", { "cx": "12", "cy": "12", "r": "1" }]], "ban": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M4.929 4.929 19.07 19.071" }]], "arrow-up": [["path", { "d": "m5 12 7-7 7 7" }], ["path", { "d": "M12 19V5" }]], "arrow-down": [["path", { "d": "M12 5v14" }], ["path", { "d": "m19 12-7 7-7-7" }]], "inbox": [["polyline", { "points": "22 12 16 12 14 15 10 15 8 12 2 12" }], ["path", { "d": "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" }]], "pin": [["path", { "d": "M12 17v5" }], ["path", { "d": "M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" }]], "pin-off": [["path", { "d": "M12 17v5" }], ["path", { "d": "M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" }], ["path", { "d": "m2 2 20 20" }], ["path", { "d": "M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11" }]], "eye-off": [["path", { "d": "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" }], ["path", { "d": "M14.084 14.158a3 3 0 0 1-4.242-4.242" }], ["path", { "d": "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" }], ["path", { "d": "m2 2 20 20" }]], "columns-3": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "M15 3v18" }]], "arrow-left": [["path", { "d": "m12 19-7-7 7-7" }], ["path", { "d": "M19 12H5" }]], "rotate-ccw": [["path", { "d": "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }], ["path", { "d": "M3 3v5h5" }]], "house": [["path", { "d": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" }], ["path", { "d": "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }]], "layout-dashboard": [["rect", { "width": "7", "height": "9", "x": "3", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "14", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "9", "x": "14", "y": "12", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "3", "y": "16", "rx": "1" }]], "folder": [["path", { "d": "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" }]], "chart-column": [["path", { "d": "M3 3v16a2 2 0 0 0 2 2h16" }], ["path", { "d": "M18 17V9" }], ["path", { "d": "M13 17V5" }], ["path", { "d": "M8 17v-3" }]], "file-text": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }], ["path", { "d": "M10 9H8" }], ["path", { "d": "M16 13H8" }], ["path", { "d": "M16 17H8" }]], "mail": [["path", { "d": "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" }], ["rect", { "x": "2", "y": "4", "width": "20", "height": "16", "rx": "2" }]], "lock": [["rect", { "width": "18", "height": "11", "x": "3", "y": "11", "rx": "2", "ry": "2" }], ["path", { "d": "M7 11V7a5 5 0 0 1 10 0v4" }]], "clock": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 6v6l4 2" }]], "trending-up": [["path", { "d": "M16 7h6v6" }], ["path", { "d": "m22 7-8.5 8.5-5-5L2 17" }]], "trending-down": [["path", { "d": "M16 17h6v-6" }], ["path", { "d": "m22 17-8.5-8.5-5 5L2 7" }]], "image": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2", "ry": "2" }], ["circle", { "cx": "9", "cy": "9", "r": "2" }], ["path", { "d": "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" }]], "paperclip": [["path", { "d": "m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551" }]], "cloud-upload": [["path", { "d": "M12 13v8" }], ["path", { "d": "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }], ["path", { "d": "m8 17 4-4 4 4" }]], "file": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }]], "sun": [["circle", { "cx": "12", "cy": "12", "r": "4" }], ["path", { "d": "M12 2v2" }], ["path", { "d": "M12 20v2" }], ["path", { "d": "m4.93 4.93 1.41 1.41" }], ["path", { "d": "m17.66 17.66 1.41 1.41" }], ["path", { "d": "M2 12h2" }], ["path", { "d": "M20 12h2" }], ["path", { "d": "m6.34 17.66-1.41 1.41" }], ["path", { "d": "m19.07 4.93-1.41 1.41" }]], "moon": [["path", { "d": "M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" }]], "monitor": [["rect", { "width": "20", "height": "14", "x": "2", "y": "3", "rx": "2" }], ["line", { "x1": "8", "x2": "16", "y1": "21", "y2": "21" }], ["line", { "x1": "12", "x2": "12", "y1": "17", "y2": "21" }]] };
   var SIZES = { sm: 16, md: 20, lg: 24 };
   var Icon = React2.forwardRef(function Icon2(props, ref) {
     const shapes = ICONS[props.name];
@@ -578,6 +582,10 @@ window.Aura = (() => {
       tooManyFiles: function(n2) {
         return "Up to " + n2 + " files";
       },
+      colorScheme: "Colour scheme",
+      schemeLight: "Light",
+      schemeDark: "Dark",
+      schemeSystem: "System",
       uploading: "Uploading\u2026",
       images: "Images",
       pagination: "Pagination",
@@ -666,6 +674,10 @@ window.Aura = (() => {
       tooManyFiles: function(n2) {
         return "\u0E41\u0E19\u0E1A\u0E44\u0E14\u0E49\u0E44\u0E21\u0E48\u0E40\u0E01\u0E34\u0E19 " + n2 + " \u0E44\u0E1F\u0E25\u0E4C";
       },
+      colorScheme: "\u0E42\u0E2B\u0E21\u0E14\u0E2A\u0E35",
+      schemeLight: "\u0E2A\u0E27\u0E48\u0E32\u0E07",
+      schemeDark: "\u0E21\u0E37\u0E14",
+      schemeSystem: "\u0E15\u0E32\u0E21\u0E23\u0E30\u0E1A\u0E1A",
       uploading: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E31\u0E1B\u0E42\u0E2B\u0E25\u0E14\u2026",
       images: "\u0E23\u0E39\u0E1B\u0E20\u0E32\u0E1E",
       pagination: "\u0E40\u0E25\u0E02\u0E2B\u0E19\u0E49\u0E32",
@@ -4159,12 +4171,13 @@ window.Aura = (() => {
     function css(selector) {
       const light = selector ? selector : ':root, [data-theme="light"]';
       const dark = selector ? selector + ".dark, .dark " + selector + ", " + selector + '[data-theme="dark"], [data-theme="dark"] ' + selector : '.dark, [data-theme="dark"]';
+      const system = selector ? '[data-theme="system"] ' + selector + ", " + selector + '[data-theme="system"]' : '[data-theme="system"]';
       function block(sel, m) {
         return sel + " {\n" + Object.keys(m).map(function(k) {
           return "  --aura-" + k + ": " + m[k] + ";";
         }).join("\n") + "\n}";
       }
-      return "/* AURA theme" + (o.name ? ' "' + o.name + '"' : "") + ": brand " + o.brand + (o.signal ? ", signal " + o.signal : "") + (o.primary === "brand" ? ", brand primary buttons" : "") + ". Load after aura.css. Generated by createTheme. */\n" + block(light, L) + "\n" + block(dark, D) + "\n";
+      return "/* AURA theme" + (o.name ? ' "' + o.name + '"' : "") + ": brand " + o.brand + (o.signal ? ", signal " + o.signal : "") + (o.primary === "brand" ? ", brand primary buttons" : "") + ". Load after aura.css. Generated by createTheme. */\n" + block(light, L) + "\n" + block(dark, D) + "\n@media (prefers-color-scheme: dark) {\n" + block(system, D) + "\n}\n";
     }
     return {
       name: o.name || null,
@@ -4194,16 +4207,114 @@ window.Aura = (() => {
     return /* @__PURE__ */ React23.createElement("style", { "data-aura-theme": props.name || props.brand, dangerouslySetInnerHTML: { __html: css } });
   }
 
-  // src/extra.tsx
+  // src/colorScheme.tsx
   var React24 = __toESM(require_react(), 1);
+  var DEFAULT_KEY = "aura-color-scheme";
+  var SCHEMES = ["light", "dark", "system"];
+  var EVENT = "aura-color-scheme";
+  function valid(v) {
+    return typeof v === "string" && SCHEMES.indexOf(v) >= 0;
+  }
+  function colorSchemeScript(options) {
+    const key = JSON.stringify(options && options.storageKey || DEFAULT_KEY);
+    const fallback = JSON.stringify(options && options.defaultScheme || "system");
+    return "(function(){try{var s=localStorage.getItem(" + key + ");if(s!=='light'&&s!=='dark'&&s!=='system')s=" + fallback + `;var d=document.documentElement;d.setAttribute("data-theme",s);var dark=s==='dark'||(s==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);d.classList.toggle("dark",dark);}catch(e){}})();`;
+  }
+  function ColorSchemeScript(props) {
+    return /* @__PURE__ */ React24.createElement("script", { "data-aura-color-scheme": "", dangerouslySetInnerHTML: { __html: colorSchemeScript(props) } });
+  }
+  function systemDark() {
+    return typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function readScheme(fallback) {
+    if (typeof document === "undefined") return fallback;
+    const attr = document.documentElement.getAttribute("data-theme");
+    return valid(attr) ? attr : fallback;
+  }
+  function apply(scheme) {
+    const d = document.documentElement;
+    d.setAttribute("data-theme", scheme);
+    d.classList.toggle("dark", scheme === "dark" || scheme === "system" && systemDark());
+  }
+  function useColorScheme(options) {
+    const key = options && options.storageKey || DEFAULT_KEY;
+    const fallback = options && options.defaultScheme || "system";
+    const subscribe2 = React24.useCallback(
+      function(cb) {
+        const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+        function onSystem() {
+          if (readScheme(fallback) === "system") apply("system");
+          cb();
+        }
+        if (mq) mq.addEventListener("change", onSystem);
+        window.addEventListener(EVENT, cb);
+        window.addEventListener("storage", cb);
+        return function() {
+          if (mq) mq.removeEventListener("change", onSystem);
+          window.removeEventListener(EVENT, cb);
+          window.removeEventListener("storage", cb);
+        };
+      },
+      [fallback]
+    );
+    const snapshot = React24.useSyncExternalStore(
+      subscribe2,
+      function() {
+        const s = readScheme(fallback);
+        return s + "|" + (s === "dark" || s === "system" && systemDark() ? "dark" : "light");
+      },
+      function() {
+        return fallback + "|light";
+      }
+    );
+    const parts = snapshot.split("|");
+    const setScheme = React24.useCallback(
+      function(next) {
+        if (!valid(next)) return;
+        try {
+          localStorage.setItem(key, next);
+        } catch (e) {
+        }
+        apply(next);
+        window.dispatchEvent(new Event(EVENT));
+      },
+      [key]
+    );
+    return { scheme: parts[0], resolved: parts[1], setScheme };
+  }
+  function ColorSchemeToggle(props) {
+    const t = useStrings();
+    const cs = useColorScheme(props);
+    const names = { light: t.schemeLight, dark: t.schemeDark, system: t.schemeSystem };
+    const label = props.label || t.colorScheme;
+    return /* @__PURE__ */ React24.createElement(
+      DropdownMenu,
+      {
+        label,
+        trigger: /* @__PURE__ */ React24.createElement(IconButton, { icon: cs.resolved === "dark" ? "moon" : "sun", label: label + ": " + names[cs.scheme] }),
+        items: SCHEMES.map(function(s) {
+          return {
+            label: names[s],
+            checked: cs.scheme === s,
+            onSelect: function() {
+              cs.setScheme(s);
+            }
+          };
+        })
+      }
+    );
+  }
+
+  // src/extra.tsx
+  var React25 = __toESM(require_react(), 1);
   var import_react_dom7 = __toESM(require_react_dom(), 1);
   var TONES = ["neutral", "accent", "success", "warning", "danger"];
   function tone(t) {
     return TONES.indexOf(t) >= 0 ? t : "neutral";
   }
-  var Badge = React24.forwardRef(function Badge2(props, ref) {
+  var Badge = React25.forwardRef(function Badge2(props, ref) {
     const rest = omit(props, ["tone", "variant", "icon", "className", "children"]);
-    return /* @__PURE__ */ React24.createElement(
+    return /* @__PURE__ */ React25.createElement(
       "span",
       {
         ...rest,
@@ -4216,20 +4327,20 @@ window.Aura = (() => {
           props.className
         )
       },
-      props.icon ? /* @__PURE__ */ React24.createElement(Icon, { name: props.icon, size: 12 }) : null,
+      props.icon ? /* @__PURE__ */ React25.createElement(Icon, { name: props.icon, size: 12 }) : null,
       props.children
     );
   });
-  var Tag = React24.forwardRef(function Tag2(props, ref) {
+  var Tag = React25.forwardRef(function Tag2(props, ref) {
     const t = useStrings();
     const selectable = props.onClick != null || props.selected != null;
     const rest = omit(props, ["onRemove", "selected", "icon", "className", "children", "disabled", "removeLabel"]);
     const inner = [
-      props.icon ? /* @__PURE__ */ React24.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
-      /* @__PURE__ */ React24.createElement("span", { key: "t", className: "aura-tag__text" }, props.children)
+      props.icon ? /* @__PURE__ */ React25.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
+      /* @__PURE__ */ React25.createElement("span", { key: "t", className: "aura-tag__text" }, props.children)
     ];
     if (selectable) {
-      return /* @__PURE__ */ React24.createElement(
+      return /* @__PURE__ */ React25.createElement(
         "button",
         {
           ...rest,
@@ -4239,11 +4350,11 @@ window.Aura = (() => {
           disabled: props.disabled,
           className: cx("aura-tag is-selectable", props.selected && "is-selected", props.className)
         },
-        props.selected ? /* @__PURE__ */ React24.createElement(Icon, { name: "check", size: 14 }) : inner[0],
+        props.selected ? /* @__PURE__ */ React25.createElement(Icon, { name: "check", size: 14 }) : inner[0],
         inner[1]
       );
     }
-    return /* @__PURE__ */ React24.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? /* @__PURE__ */ React24.createElement(
+    return /* @__PURE__ */ React25.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? /* @__PURE__ */ React25.createElement(
       "button",
       {
         type: "button",
@@ -4251,15 +4362,15 @@ window.Aura = (() => {
         "aria-label": props.removeLabel || t.remove(typeof props.children === "string" ? props.children : ""),
         onClick: props.onRemove
       },
-      /* @__PURE__ */ React24.createElement(Icon, { name: "x", size: 12 })
+      /* @__PURE__ */ React25.createElement(Icon, { name: "x", size: 12 })
     ) : null);
   });
-  var Progress = React24.forwardRef(function Progress2(props, ref) {
+  var Progress = React25.forwardRef(function Progress2(props, ref) {
     const auto = uid(), id = props.id || auto;
     const max = props.max || 100, det = props.value != null;
     const pct = det ? Math.max(0, Math.min(100, props.value / max * 100)) : 0;
     const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + "%" : null;
-    return /* @__PURE__ */ React24.createElement(
+    return /* @__PURE__ */ React25.createElement(
       "div",
       {
         ref,
@@ -4270,8 +4381,8 @@ window.Aura = (() => {
           props.className
         )
       },
-      props.label || props.showValue && shown ? /* @__PURE__ */ React24.createElement("div", { className: "aura-progress__head" }, props.label ? /* @__PURE__ */ React24.createElement("span", { className: "aura-progress__label", id: id + "-label" }, props.label) : /* @__PURE__ */ React24.createElement("span", null), props.showValue && shown ? /* @__PURE__ */ React24.createElement("span", { className: "aura-progress__value" }, shown) : null) : null,
-      /* @__PURE__ */ React24.createElement(
+      props.label || props.showValue && shown ? /* @__PURE__ */ React25.createElement("div", { className: "aura-progress__head" }, props.label ? /* @__PURE__ */ React25.createElement("span", { className: "aura-progress__label", id: id + "-label" }, props.label) : /* @__PURE__ */ React25.createElement("span", null), props.showValue && shown ? /* @__PURE__ */ React25.createElement("span", { className: "aura-progress__value" }, shown) : null) : null,
+      /* @__PURE__ */ React25.createElement(
         "div",
         {
           className: cx("aura-progress__track", !det && "is-indeterminate"),
@@ -4283,18 +4394,18 @@ window.Aura = (() => {
           "aria-valuenow": det ? props.value : void 0,
           "aria-valuetext": det && props.valueLabel != null ? String(props.valueLabel) : void 0
         },
-        /* @__PURE__ */ React24.createElement("span", { className: "aura-progress__bar", style: det ? { width: pct + "%" } : void 0 })
+        /* @__PURE__ */ React25.createElement("span", { className: "aura-progress__bar", style: det ? { width: pct + "%" } : void 0 })
       ),
-      props.hint ? /* @__PURE__ */ React24.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
+      props.hint ? /* @__PURE__ */ React25.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
     );
   });
-  var Skeleton = React24.forwardRef(function Skeleton2(props, ref) {
+  var Skeleton = React25.forwardRef(function Skeleton2(props, ref) {
     const v = props.variant || "text";
     if (v === "text" && (props.lines || 1) > 1) {
       const n2 = props.lines, rows = [];
       for (let i = 0; i < n2; i++)
-        rows.push(/* @__PURE__ */ React24.createElement("span", { key: i, className: "aura-skel aura-skel--text", style: { width: i === n2 - 1 ? "60%" : "100%" } }));
-      return /* @__PURE__ */ React24.createElement(
+        rows.push(/* @__PURE__ */ React25.createElement("span", { key: i, className: "aura-skel aura-skel--text", style: { width: i === n2 - 1 ? "60%" : "100%" } }));
+      return /* @__PURE__ */ React25.createElement(
         "span",
         {
           ref,
@@ -4309,20 +4420,20 @@ window.Aura = (() => {
     if (v === "circle") {
       style.width = style.height = props.size || props.width || 40;
     }
-    return /* @__PURE__ */ React24.createElement("span", { ref, "aria-hidden": true, className: cx("aura-skel", "aura-skel--" + v, props.className), style });
+    return /* @__PURE__ */ React25.createElement("span", { ref, "aria-hidden": true, className: cx("aura-skel", "aura-skel--" + v, props.className), style });
   });
-  var EmptyState = React24.forwardRef(function EmptyState2(props, ref) {
+  var EmptyState = React25.forwardRef(function EmptyState2(props, ref) {
     const HT = "h" + (props.headingLevel || 3);
-    return /* @__PURE__ */ React24.createElement(
+    return /* @__PURE__ */ React25.createElement(
       "div",
       {
         ref,
         className: cx("aura-empty", props.size === "sm" && "is-sm", props.bordered && "is-bordered", props.className)
       },
-      /* @__PURE__ */ React24.createElement("span", { className: "aura-empty__icon", "aria-hidden": true }, /* @__PURE__ */ React24.createElement(Icon, { name: props.icon || "inbox", size: props.size === "sm" ? "md" : "lg" })),
-      /* @__PURE__ */ React24.createElement(HT, { className: "aura-empty__title" }, props.title),
-      props.description ? /* @__PURE__ */ React24.createElement("p", { className: "aura-empty__text" }, props.description) : null,
-      props.action ? /* @__PURE__ */ React24.createElement("div", { className: "aura-empty__action" }, props.action) : null
+      /* @__PURE__ */ React25.createElement("span", { className: "aura-empty__icon", "aria-hidden": true }, /* @__PURE__ */ React25.createElement(Icon, { name: props.icon || "inbox", size: props.size === "sm" ? "md" : "lg" })),
+      /* @__PURE__ */ React25.createElement(HT, { className: "aura-empty__title" }, props.title),
+      props.description ? /* @__PURE__ */ React25.createElement("p", { className: "aura-empty__text" }, props.description) : null,
+      props.action ? /* @__PURE__ */ React25.createElement("div", { className: "aura-empty__action" }, props.action) : null
     );
   });
   function pageList(page, count, sib) {
@@ -4344,7 +4455,7 @@ window.Aura = (() => {
     if (count > 1) out.push(count);
     return out;
   }
-  var Pagination = React24.forwardRef(function Pagination2(props, ref) {
+  var Pagination = React25.forwardRef(function Pagination2(props, ref) {
     const t = useStrings();
     const count = Math.max(1, props.pageCount || 1);
     const st = useMaybeControlled(props.page, props.defaultPage || 1, props.onChange);
@@ -4362,7 +4473,7 @@ window.Aura = (() => {
         },
         extra
       );
-      return link ? /* @__PURE__ */ React24.createElement(
+      return link ? /* @__PURE__ */ React25.createElement(
         "a",
         {
           href: link(p),
@@ -4375,7 +4486,7 @@ window.Aura = (() => {
           ...common
         },
         label
-      ) : /* @__PURE__ */ React24.createElement(
+      ) : /* @__PURE__ */ React25.createElement(
         "button",
         {
           type: "button",
@@ -4387,7 +4498,7 @@ window.Aura = (() => {
         label
       );
     }
-    return /* @__PURE__ */ React24.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, /* @__PURE__ */ React24.createElement(
+    return /* @__PURE__ */ React25.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, /* @__PURE__ */ React25.createElement(
       IconButton,
       {
         icon: "chevron-left",
@@ -4397,9 +4508,9 @@ window.Aura = (() => {
           go(page - 1);
         }
       }
-    ), /* @__PURE__ */ React24.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
-      return typeof p === "number" ? /* @__PURE__ */ React24.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React24.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
-    })), /* @__PURE__ */ React24.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), /* @__PURE__ */ React24.createElement(
+    ), /* @__PURE__ */ React25.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
+      return typeof p === "number" ? /* @__PURE__ */ React25.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React25.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
+    })), /* @__PURE__ */ React25.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), /* @__PURE__ */ React25.createElement(
       IconButton,
       {
         icon: "chevron-right",
@@ -4411,7 +4522,7 @@ window.Aura = (() => {
       }
     ));
   });
-  var Accordion = React24.forwardRef(function Accordion2(props, ref) {
+  var Accordion = React25.forwardRef(function Accordion2(props, ref) {
     const auto = uid(), base = props.id || auto;
     const multiple = props.type === "multiple";
     const st = useMaybeControlled(
@@ -4449,9 +4560,9 @@ window.Aura = (() => {
         n2.focus();
       }
     }
-    return /* @__PURE__ */ React24.createElement("div", { ref, className: cx("aura-accordion", props.className), onKeyDown: onKey }, items.map(function(it) {
+    return /* @__PURE__ */ React25.createElement("div", { ref, className: cx("aura-accordion", props.className), onKeyDown: onKey }, items.map(function(it) {
       const on = open.indexOf(it.id) >= 0, bid = base + "-btn-" + it.id, pid = base + "-panel-" + it.id;
-      return /* @__PURE__ */ React24.createElement("div", { key: it.id, className: cx("aura-accordion__item", on && "is-open") }, /* @__PURE__ */ React24.createElement(HT, { className: "aura-accordion__heading" }, /* @__PURE__ */ React24.createElement(
+      return /* @__PURE__ */ React25.createElement("div", { key: it.id, className: cx("aura-accordion__item", on && "is-open") }, /* @__PURE__ */ React25.createElement(HT, { className: "aura-accordion__heading" }, /* @__PURE__ */ React25.createElement(
         "button",
         {
           type: "button",
@@ -4463,10 +4574,10 @@ window.Aura = (() => {
             toggle(it.id);
           }
         },
-        it.icon ? /* @__PURE__ */ React24.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
-        /* @__PURE__ */ React24.createElement("span", { className: "aura-accordion__title" }, it.title, it.description ? /* @__PURE__ */ React24.createElement("span", { className: "aura-accordion__desc" }, it.description) : null),
-        /* @__PURE__ */ React24.createElement(Icon, { name: "chevron-down", className: "aura-accordion__chevron" })
-      )), /* @__PURE__ */ React24.createElement("div", { id: pid, role: "region", "aria-labelledby": bid, className: "aura-accordion__panel", hidden: !on }, it.content));
+        it.icon ? /* @__PURE__ */ React25.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
+        /* @__PURE__ */ React25.createElement("span", { className: "aura-accordion__title" }, it.title, it.description ? /* @__PURE__ */ React25.createElement("span", { className: "aura-accordion__desc" }, it.description) : null),
+        /* @__PURE__ */ React25.createElement(Icon, { name: "chevron-down", className: "aura-accordion__chevron" })
+      )), /* @__PURE__ */ React25.createElement("div", { id: pid, role: "region", "aria-labelledby": bid, className: "aura-accordion__panel", hidden: !on }, it.content));
     }));
   });
   function position(anchor, pop, placement) {
@@ -4478,13 +4589,13 @@ window.Aura = (() => {
     const left = align === "end" ? r.right - pw : align === "center" ? r.left + r.width / 2 - pw / 2 : r.left;
     return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side };
   }
-  var Popover = React24.forwardRef(function Popover2(props, ref) {
+  var Popover = React25.forwardRef(function Popover2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.open, !!props.defaultOpen, props.onOpenChange);
     const open = !!st[0];
-    const wrap = React24.useRef(null), pop = React24.useRef(null), popMerged = useMergedRef(ref, pop);
-    const pos = React24.useState(null), mounted = useMounted();
+    const wrap = React25.useRef(null), pop = React25.useRef(null), popMerged = useMergedRef(ref, pop);
+    const pos = React25.useState(null), mounted = useMounted();
     function trigger() {
       return wrap.current && (wrap.current.querySelector('button, [role="button"], a, input') || wrap.current.firstElementChild);
     }
@@ -4511,7 +4622,7 @@ window.Aura = (() => {
       },
       [open, mounted, props.placement]
     );
-    React24.useEffect(
+    React25.useEffect(
       function() {
         if (!open || !mounted) return;
         if (props.autoFocus !== false && pop.current) {
@@ -4530,9 +4641,9 @@ window.Aura = (() => {
       },
       [open, mounted]
     );
-    const child = React24.Children.only(props.trigger);
+    const child = React25.Children.only(props.trigger);
     const panel = open && mounted ? (0, import_react_dom7.createPortal)(
-      /* @__PURE__ */ React24.createElement(
+      /* @__PURE__ */ React25.createElement(
         "div",
         {
           ref: popMerged,
@@ -4554,7 +4665,7 @@ window.Aura = (() => {
             } else trapTab(e, pop.current);
           }
         },
-        props.title ? /* @__PURE__ */ React24.createElement("div", { className: "aura-popover__head" }, /* @__PURE__ */ React24.createElement("p", { className: "aura-popover__title", id: id + "-title" }, props.title), /* @__PURE__ */ React24.createElement(
+        props.title ? /* @__PURE__ */ React25.createElement("div", { className: "aura-popover__head" }, /* @__PURE__ */ React25.createElement("p", { className: "aura-popover__title", id: id + "-title" }, props.title), /* @__PURE__ */ React25.createElement(
           IconButton,
           {
             icon: "x",
@@ -4564,7 +4675,7 @@ window.Aura = (() => {
             }
           }
         )) : null,
-        /* @__PURE__ */ React24.createElement("div", { className: "aura-popover__body" }, typeof props.children === "function" ? props.children({
+        /* @__PURE__ */ React25.createElement("div", { className: "aura-popover__body" }, typeof props.children === "function" ? props.children({
           close: function() {
             close(true);
           }
@@ -4572,7 +4683,7 @@ window.Aura = (() => {
       ),
       document.body
     ) : null;
-    return /* @__PURE__ */ React24.createElement("span", { ref: wrap, className: "aura-popover-anchor" }, React24.cloneElement(child, {
+    return /* @__PURE__ */ React25.createElement("span", { ref: wrap, className: "aura-popover-anchor" }, React25.cloneElement(child, {
       onClick: function(e) {
         if (child.props.onClick) child.props.onClick(e);
         st[1](!open);

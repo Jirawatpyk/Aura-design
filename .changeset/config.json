@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3/schema.json",
+  "baseBranch": "main",
+  "access": "public",
+  "fixed": [["@jirawatpyk/aura-tokens", "@jirawatpyk/aura-react"]],
+  "ignore": [],
+  "privatePackages": { "version": false, "tag": false },
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "format": false
+}

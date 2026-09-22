@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.6.0 — 2026-09-22
+
+### Added
+- **Light / dark / system colour scheme.** `<ColorSchemeToggle />` (icon button + menu: Light, Dark, System — sun or moon for what is on screen), `<ColorSchemeScript />` for `<head>` (applies the saved choice before first paint, so no flash of the wrong scheme; also `colorSchemeScript()` as a string) and `useColorScheme()` → `{ scheme, resolved, setScheme }`. The choice is saved in `localStorage` (`aura-color-scheme`), every toggle on the page stays in sync, and System follows the operating system live.
+- Tokens: `data-theme="system"` follows `prefers-color-scheme` in pure CSS (works without JavaScript); `color-scheme: light | dark` is set too, so scrollbars and native form controls match. `createTheme()` CSS covers `system` as well, so brand themes switch with it.
+- Icons `sun`, `moon`, `monitor`; labels `colorScheme`, `schemeLight`, `schemeDark`, `schemeSystem` in English and Thai (โหมดสี, สว่าง, มืด, ตามระบบ).
+- Next.js starter: colour scheme script in `<head>`, `suppressHydrationWarning` on `<html>`, toggle next to the page title.
+- **Bundle size gate** in CI: `npm run size -w packages/react` bundles what a project imports (all, `Button` only, `DataTable` only, `DatePicker` only, `createTheme` only, the CSS, the `window.Aura` script), gzips it and fails over budget (`packages/react/size-budgets.json`, today + 10%). The table is in each CI run's summary. `--update` resets the budgets on purpose. Tree shaking works: `Button` alone is 3.3 kB of the 33 kB.
+- **Changesets**: each change adds `npx changeset`; the Release workflow turns them into a *Version Packages* pull request, and merging it publishes to npmjs and GitHub Packages, tags the version and creates the GitHub release. Both packages keep one version. Hand-pushed `v*` tags still work.
+- **Chromatic visual regression** (`.github/workflows/chromatic.yml`): every story in light and dark, TurboSnap (only changed stories), baselines accepted automatically on `main`. Off until the `CHROMATIC_ENABLED` variable and `CHROMATIC_PROJECT_TOKEN` secret are set.
+
 ## 4.5.1 — 2026-09-22
 
 ### Changed

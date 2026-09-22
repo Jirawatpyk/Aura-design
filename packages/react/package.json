@@ -1,6 +1,6 @@
 {
   "name": "@jirawatpyk/aura-react",
-  "version": "4.5.1",
+  "version": "4.6.0",
   "description": "AURA Design System — React components (Enterprise Standard, Human Creative). Thai-first: Buddhist-era dates, Thai collation.",
   "license": "MIT",
   "type": "module",
@@ -37,7 +37,8 @@
     "prepack": "npm run build",
     "pretest:ssr": "node scripts/build.mjs",
     "prethemes": "node scripts/build.mjs",
-    "test:hydrate": "node scripts/hydrate-test.mjs"
+    "test:hydrate": "node scripts/hydrate-test.mjs",
+    "size": "node scripts/size-check.mjs"
   },
   "peerDependencies": {
     "react": ">=18",

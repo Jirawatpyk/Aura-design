@@ -1,22 +1,86 @@
 name: Release
-# Push a tag like v4.4.1 → tests run → @jirawatpyk/aura-tokens and @jirawatpyk/aura-react are published twice:
+# Versioning with Changesets, publishing to two registries:
 #   GitHub Packages (npm.pkg.github.com) — internal projects, uses GITHUB_TOKEN;
-#   npmjs (registry.npmjs.org, public)   — anyone, no token needed to install.
-# npmjs auth: trusted publishing (OIDC) — no secret stored anywhere.
-# A prerelease version (4.5.0-rc.1) is published under the `next` dist-tag on both registries.
-# A version already on a registry is skipped, so a failed run can simply be re-run.
+#   npmjs (registry.npmjs.org, public)   — anyone; trusted publishing (OIDC), no secret stored anywhere.
+#
+# On every push to main:
+#   .changeset/*.md present  → open or update the "Version Packages" pull request
+#                              (versions bumped, CHANGELOG written — npm run version-packages);
+#   none, and this version isn't on npmjs yet (= that PR was just merged)
+#                            → test, build, publish both packages, tag vX.Y.Z, GitHub release;
+#   otherwise                → nothing.
+# Pushing a tag vX.Y.Z by hand still publishes that version (the tag must match package.json).
+# A prerelease version (4.7.0-rc.1) goes to the `next` dist-tag. A version a registry already has is skipped,
+# so a failed run can simply be re-run.
+#
+# Keep this file's name: npmjs trusts "release.yml" in Jirawatpyk/Aura-design for publishing.
 on:
   push:
+    branches: [main]
     tags: ['v*']
 
-permissions:
-  contents: read
-  packages: write
-  id-token: write   # npm trusted publishing + provenance
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
 
 jobs:
-  publish:
+  plan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      version: ${{ steps.plan.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: plan
+        run: |
+          V=$(node -p "require('./packages/react/package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            [ "${GITHUB_REF_NAME#v}" = "$V" ] || { echo "::error::tag $GITHUB_REF_NAME but package.json is $V"; exit 1; }
+            MODE=publish
+          elif ls .changeset/*.md 2>/dev/null | grep -qv '/README.md$'; then
+            MODE=version
+          elif npm view "@jirawatpyk/aura-react@$V" version --registry https://registry.npmjs.org >/dev/null 2>&1 \
+            && npm view "@jirawatpyk/aura-tokens@$V" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            MODE=none
+          else
+            MODE=publish
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "### Release plan: **$MODE** ($V)" >> "$GITHUB_STEP_SUMMARY"
+
+  version:
+    needs: plan
+    if: needs.plan.outputs.mode == 'version'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # push the changeset-release/main branch
+      pull-requests: write   # open the Version Packages PR (repo setting "Allow GitHub Actions to create and approve pull requests")
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - uses: changesets/action/version@v2
+        with:
+          script: npm run version-packages
+          commit-message: 'Version Packages'
+          pr-title: 'Version Packages'
+
+  publish:
+    needs: plan
+    if: needs.plan.outputs.mode == 'publish'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # tag + GitHub release
+      packages: write   # GitHub Packages
+      id-token: write   # npm trusted publishing + provenance
+    env:
+      V: ${{ needs.plan.outputs.version }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -26,12 +90,11 @@ jobs:
       - name: npm with trusted publishing (>= 11.5.1)
         run: npm install -g npm@^11.5.1 && npm --version
       - run: npm ci
-      - name: Tag matches package versions
+      - name: Both packages are at the same version
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
           for p in packages/tokens packages/react; do
-            V=$(node -p "require('./$p/package.json').version")
-            [ "$V" = "$TAG" ] || { echo "$p is $V but the tag is $TAG"; exit 1; }
+            PV=$(node -p "require('./$p/package.json').version")
+            [ "$PV" = "$V" ] || { echo "::error::$p is $PV, expected $V"; exit 1; }
           done
       - run: npm test
       - run: npm run build
@@ -45,7 +108,7 @@ jobs:
           RC="$RUNNER_TEMP/github.npmrc"
           printf '@jirawatpyk:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > "$RC"
           for p in packages/tokens packages/react; do
-            N=$(node -p "require('./$p/package.json').name"); V=$(node -p "require('./$p/package.json').version")
+            N=$(node -p "require('./$p/package.json').name")
             if npm view "$N@$V" version --userconfig "$RC" --registry https://npm.pkg.github.com >/dev/null 2>&1; then
               echo "::notice::$N@$V is already on GitHub Packages — skipped"; continue
             fi
@@ -58,10 +121,24 @@ jobs:
         # npmjs.com → each package → Settings → Trusted Publisher: Jirawatpyk/Aura-design, release.yml.
         run: |
           for p in packages/tokens packages/react; do
-            N=$(node -p "require('./$p/package.json').name"); V=$(node -p "require('./$p/package.json').version")
+            N=$(node -p "require('./$p/package.json').name")
             if npm view "$N@$V" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
               echo "::notice::$N@$V is already on npmjs — skipped"; continue
             fi
             case "$V" in *-*) TAG=next ;; *) TAG=latest ;; esac
             npm publish -w "$p" --registry https://registry.npmjs.org --access public --provenance --tag "$TAG"
           done
+
+      - name: Tag and GitHub release
+        # A tag pushed with GITHUB_TOKEN doesn't start another workflow run, so this can't publish twice.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! git ls-remote --exit-code --tags origin "refs/tags/v$V" >/dev/null; then
+            git tag "v$V" && git push origin "v$V"
+          fi
+          if ! gh release view "v$V" >/dev/null 2>&1; then
+            awk -v v="$V" '$0 ~ "^## "v" " {on=1; next} on && /^## / {exit} on {print}' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+            PRE=""; case "$V" in *-*) PRE="--prerelease" ;; esac
+            gh release create "v$V" --title "v$V" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag $PRE
+          fi

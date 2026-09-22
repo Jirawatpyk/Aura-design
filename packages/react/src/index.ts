@@ -21,6 +21,7 @@ export { TimePicker, parseTime } from './TimePicker.js';
 export { FileUpload, formatBytes } from './FileUpload.js';
 export { createTheme, contrast, scale as brandScale } from './theme.js';
 export { ThemeStyle } from './ThemeStyle.js';
+export { ColorSchemeScript, ColorSchemeToggle, colorSchemeScript, useColorScheme } from './colorScheme.js';
 export { Badge, Tag, Progress, Skeleton, EmptyState, Pagination, Accordion, Popover } from './extra.js';
 
 /* Types: every public prop and value type. */
@@ -32,3 +33,4 @@ export type { ThemeStyleProps } from './ThemeStyle.js';
 export type { AuraStrings, AuraLocaleValue } from './locale.js';
 export type { FormatDateOptions } from './DatePicker.js';
 export type { IconShape } from './Icon.js';
+export type { ColorScheme, ColorSchemeOptions, ColorSchemeState, ColorSchemeToggleProps } from './colorScheme.js';

@@ -1,0 +1,10 @@
+{
+  "everything (import *)": 37888,
+  "Button only": 4096,
+  "DataTable only": 14336,
+  "DatePicker only": 12288,
+  "createTheme only": 3072,
+  "styles.css": 12288,
+  "aura.css (tokens)": 3072,
+  "aura.bundle.js (window.Aura, minified)": 37888
+}

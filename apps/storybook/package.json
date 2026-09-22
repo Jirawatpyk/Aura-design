@@ -1,12 +1,12 @@
 {
   "name": "@jirawatpyk/aura-storybook",
   "private": true,
-  "version": "4.5.1",
+  "version": "4.6.0",
   "description": "AURA Design System — Storybook, visual regression (Chromatic) and accessibility checks",
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build --disable-telemetry",
-    "chromatic": "npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN",
+    "chromatic": "storybook build --disable-telemetry --stats-json -o storybook-static && npx chromatic@18 --storybook-build-dir storybook-static --only-changed --exit-zero-on-changes",
     "lint:tokens": "node ../../packages/tokens/scripts/lint-tokens.js stories",
     "a11y": "node ../../packages/tokens/scripts/a11y-check.js",
     "a11y:ci": "playwright test --config=playwright.a11y.config.ts",

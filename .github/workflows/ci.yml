@@ -42,6 +42,10 @@ jobs:
         if: matrix.react == '18'
         run: |
           set -o pipefail; git diff --stat --exit-code -- packages/tokens/components 2>&1 | tee -a ci.log
+      - name: Bundle size within budget (gzip; table in the job summary)
+        if: matrix.react == '18'
+        run: |
+          set -o pipefail; npm run size -w packages/react 2>&1 | tee -a ci.log
       - name: Failure summary
         if: failure()
         run: |
@@ -132,7 +136,7 @@ jobs:
         run: |
           npx next start -p 3100 & sleep 8
           html=$(curl -fsS http://localhost:3100)
-          for want in 'ORD-1042' 'aura-table' 'aura-stat'; do echo "$html" | grep -q "$want" || { echo "missing $want"; exit 1; }; done
+          for want in 'ORD-1042' 'aura-table' 'aura-stat' 'data-aura-color-scheme'; do echo "$html" | grep -q "$want" || { echo "missing $want"; exit 1; }; done
           echo "starter renders AURA on the server"
 
   # Public Storybook on GitHub Pages — only from main, only after every Storybook test passed.

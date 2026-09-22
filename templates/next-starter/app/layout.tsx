@@ -3,15 +3,18 @@ import type { ReactNode } from 'react';
 /* AURA: tokens (light + dark), then component styles. Your brand theme (optional) goes after them. */
 import '@jirawatpyk/aura-tokens/aura.css';
 import '@jirawatpyk/aura-react/styles.css';
-import { AuraProvider, Toaster } from '@jirawatpyk/aura-react';
+import { AuraProvider, ColorSchemeScript, Toaster } from '@jirawatpyk/aura-react';
 import './globals.css';
 
 export const metadata: Metadata = { title: 'AURA starter', description: 'Next.js + AURA Design System' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="th">
+    /* ColorSchemeScript sets data-theme before paint, so React sees a changed <html>: that is expected. */
+    <html lang="th" data-theme="system" suppressHydrationWarning>
       <head>
+        {/* Light / dark / system: applies the saved choice before first paint (no flash). */}
+        <ColorSchemeScript />
         {/* AURA fonts. <link> tags fail quietly if Google Fonts is blocked; an @import in CSS would not. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

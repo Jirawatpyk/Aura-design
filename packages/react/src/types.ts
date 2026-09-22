@@ -180,7 +180,10 @@ export type IconName =
   | 'image'
   | 'paperclip'
   | 'cloud-upload'
-  | 'file';
+  | 'file'
+  | 'sun'
+  | 'moon'
+  | 'monitor';
 
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
