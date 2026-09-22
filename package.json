@@ -1,7 +1,7 @@
 {
   "name": "aura-design",
   "private": true,
-  "version": "4.5.0",
+  "version": "4.5.1",
   "description": "AURA Design System — tokens, React components, Storybook. Enterprise Standard, Human Creative.",
   "workspaces": [
     "packages/tokens",
@@ -14,10 +14,15 @@
     "test:pilots": "npm run test:pilots -w packages/react",
     "storybook": "npm run storybook -w apps/storybook",
     "test:storybook": "npm test -w apps/storybook",
-    "theme": "npm run theme -w packages/react --"
+    "theme": "npm run theme -w packages/react --",
+    "format": "prettier --write \"packages/react/src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"packages/react/src/**/*.{ts,tsx}\""
   },
   "engines": {
     "node": ">=20"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.9.8"
+  }
 }

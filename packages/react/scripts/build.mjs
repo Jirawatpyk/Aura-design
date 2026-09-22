@@ -15,9 +15,11 @@ fs.rmSync(dist, { recursive: true, force: true });
 const entries = fs.readdirSync(src).filter((f) => /\.tsx?$/.test(f) && f !== 'types.ts').map((f) => path.join(src, f));
 const banner = { js: "'use client';" };
 const external = ['react', 'react-dom', 'react/jsx-runtime'];
+/* Classic JSX (React.createElement): every module already imports React, and the window.Aura bundle needs no jsx-runtime global. */
+const jsx = { tsconfig: path.join(root, 'tsconfig.src.json'), jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment' };
 
-await build({ entryPoints: entries, outdir: path.join(dist, 'esm'), format: 'esm', target: 'es2019', banner, logLevel: 'error' });
-await build({ entryPoints: [path.join(src, 'index.ts')], outfile: path.join(dist, 'cjs/index.cjs'), bundle: true, format: 'cjs', platform: 'neutral', target: 'es2019', external, banner, logLevel: 'error' });
+await build({ entryPoints: entries, outdir: path.join(dist, 'esm'), format: 'esm', target: 'es2019', banner, logLevel: 'error', ...jsx });
+await build({ entryPoints: [path.join(src, 'index.ts')], outfile: path.join(dist, 'cjs/index.cjs'), bundle: true, format: 'cjs', platform: 'neutral', target: 'es2019', external, banner, logLevel: 'error', ...jsx });
 
 /* IIFE: react / react-dom come from window globals. */
 const globals = {
@@ -27,7 +29,7 @@ const globals = {
     b.onLoad({ filter: /.*/, namespace: 'g' }, (a) => ({ contents: `module.exports = window.${a.path === 'react' ? 'React' : 'ReactDOM'};`, loader: 'js' }));
   },
 };
-const iife = await build({ entryPoints: [path.join(src, 'index.ts')], bundle: true, format: 'iife', globalName: 'Aura', target: 'es2019', plugins: [globals], write: false, logLevel: 'error' });
+const iife = await build({ entryPoints: [path.join(src, 'index.ts')], bundle: true, format: 'iife', globalName: 'Aura', target: 'es2019', plugins: [globals], write: false, logLevel: 'error', ...jsx });
 let code = iife.outputFiles[0].text;
 if (/<\/script/i.test(code)) throw new Error('bundle contains </script');
 /* Components listed in the design-system header: every PascalCase export except internals. */

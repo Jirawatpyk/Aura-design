@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 4.5.1 — 2026-09-22
+
+### Changed
+- **Components are written in JSX** (was `React.createElement` calls) with `const`/`let` instead of `var`, formatted with Prettier (checked in CI). Converted by a codemod; checked by rendering all 46 fixtures on the server with 4.5.0 and 4.5.1 — the HTML is identical — and by the public types, which are unchanged both ways. Output is still classic `React.createElement`, so nothing changes for projects or for the `window.Aura` script.
+- JSX made the compiler check DOM props too; four places now say what they meant (`aria-current` literal types, SVG `focusable`, dynamic heading/element tags).
 
 ### Added
 - **React 19 in CI**: checks, pilots and Storybook run on React 18 and 19 (`scripts/use-react.mjs` switches the workspace). All pass on 19.3 with no code change beyond one type (`cx` accepts the wider React 19 `ReactNode`).

@@ -775,7 +775,7 @@ export type IconShape = [
 	string,
 	Record<string, string>
 ];
-export declare var ICONS: Record<IconName, IconShape[]>;
+export declare const ICONS: Record<IconName, IconShape[]>;
 export declare const Icon: React$1.ForwardRefExoticComponent<IconProps & React$1.RefAttributes<SVGSVGElement>>;
 /** Every icon name the bundle carries. */
 export declare const iconNames: IconName[];
@@ -857,7 +857,7 @@ export interface ContainerProps {
 	children?: React$1.ReactNode;
 }
 /** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
-export declare var breakpoints: {
+export declare const breakpoints: {
 	sm: 640;
 	md: 768;
 	lg: 1024;
@@ -935,7 +935,7 @@ export interface AuraStrings {
 	pageN: (p: number) => string;
 	accepts: (list?: string, max?: number | string) => string;
 }
-export declare var STRINGS: {
+export declare const STRINGS: {
 	en: AuraStrings;
 	th: AuraStrings;
 };

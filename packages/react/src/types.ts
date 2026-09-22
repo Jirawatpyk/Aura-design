@@ -49,7 +49,10 @@ export interface DataTableColumn {
   /** Row actions (a DropdownMenu or IconButton). In stacked cards it sits top-right instead of in the field list. Give it an empty label. */
   actions?: boolean;
 }
-export interface DataTableSort { key: string; dir: 'asc' | 'desc'; }
+export interface DataTableSort {
+  key: string;
+  dir: 'asc' | 'desc';
+}
 export interface DataTableEmpty {
   /** Default `inbox`; use `search` for "no matches". */
   icon?: IconName;
@@ -119,17 +122,65 @@ export interface DataTableProps {
 }
 
 export type IconName =
-  | 'check' | 'x' | 'plus' | 'minus' | 'search'
-  | 'chevron-down' | 'chevron-up' | 'chevron-left' | 'chevron-right'
-  | 'arrow-right' | 'arrow-up-right' | 'arrow-up-down' | 'loader-circle'
-  | 'circle-alert' | 'circle-check' | 'info' | 'triangle-alert'
-  | 'settings' | 'user' | 'users' | 'filter' | 'ellipsis' | 'external-link'
-  | 'copy' | 'trash-2' | 'pencil' | 'download' | 'upload' | 'calendar'
-  | 'bell' | 'menu' | 'eye' | 'log-out'
-  | 'circle' | 'circle-dot-dashed' | 'ban' | 'arrow-up' | 'arrow-down' | 'inbox'
-  | 'pin' | 'pin-off' | 'eye-off' | 'columns-3' | 'arrow-left' | 'rotate-ccw'
-  | 'house' | 'layout-dashboard' | 'folder' | 'chart-column' | 'file-text' | 'mail' | 'lock'
-  | 'clock' | 'trending-up' | 'trending-down' | 'image' | 'paperclip' | 'cloud-upload' | 'file';
+  | 'check'
+  | 'x'
+  | 'plus'
+  | 'minus'
+  | 'search'
+  | 'chevron-down'
+  | 'chevron-up'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'arrow-right'
+  | 'arrow-up-right'
+  | 'arrow-up-down'
+  | 'loader-circle'
+  | 'circle-alert'
+  | 'circle-check'
+  | 'info'
+  | 'triangle-alert'
+  | 'settings'
+  | 'user'
+  | 'users'
+  | 'filter'
+  | 'ellipsis'
+  | 'external-link'
+  | 'copy'
+  | 'trash-2'
+  | 'pencil'
+  | 'download'
+  | 'upload'
+  | 'calendar'
+  | 'bell'
+  | 'menu'
+  | 'eye'
+  | 'log-out'
+  | 'circle'
+  | 'circle-dot-dashed'
+  | 'ban'
+  | 'arrow-up'
+  | 'arrow-down'
+  | 'inbox'
+  | 'pin'
+  | 'pin-off'
+  | 'eye-off'
+  | 'columns-3'
+  | 'arrow-left'
+  | 'rotate-ccw'
+  | 'house'
+  | 'layout-dashboard'
+  | 'folder'
+  | 'chart-column'
+  | 'file-text'
+  | 'mail'
+  | 'lock'
+  | 'clock'
+  | 'trending-up'
+  | 'trending-down'
+  | 'image'
+  | 'paperclip'
+  | 'cloud-upload'
+  | 'file';
 
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
@@ -173,7 +224,10 @@ export interface StatusPillProps {
 }
 
 /** 16px checkbox with 4px corners; ink when checked, a dash when indeterminate. */
-export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'type' | 'checked' | 'defaultChecked'> {
+export interface CheckboxProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'onChange' | 'type' | 'checked' | 'defaultChecked'
+> {
   /** Controlled state; pair with onChange. Or use defaultChecked. */
   checked?: boolean;
   defaultChecked?: boolean;
@@ -245,7 +299,8 @@ export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttribut
   /** Trailing unit, e.g. "THB". */
   suffix?: React.ReactNode;
 }
-export interface TextareaProps extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {}
+export interface TextareaProps
+  extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {}
 export type SelectOption = string | { value: string; label: string; disabled?: boolean };
 export interface SelectProps extends FieldProps, Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'required'> {
   options: SelectOption[];
@@ -311,7 +366,13 @@ export interface TooltipProps {
   /** Force open (demos, tests). */
   open?: boolean;
 }
-export interface FieldPropsPublic { label: string; hint?: React.ReactNode; error?: React.ReactNode; required?: boolean; optional?: boolean; }
+export interface FieldPropsPublic {
+  label: string;
+  hint?: React.ReactNode;
+  error?: React.ReactNode;
+  required?: boolean;
+  optional?: boolean;
+}
 export interface DialogProps {
   open: boolean;
   onClose: () => void;
@@ -350,7 +411,14 @@ export interface CardProps {
   /** id for the title element; the card is then labelled by it (aria-labelledby). */
   titleId?: string;
 }
-export interface TabItem { id: string; label: string; icon?: IconName; count?: number; disabled?: boolean; content?: React.ReactNode; }
+export interface TabItem {
+  id: string;
+  label: string;
+  icon?: IconName;
+  count?: number;
+  disabled?: boolean;
+  content?: React.ReactNode;
+}
 export interface TabsProps {
   tabs: TabItem[];
   /** Accessible name for the tab list. */
@@ -360,7 +428,13 @@ export interface TabsProps {
   onChange?: (id: string) => void;
   className?: string;
 }
-export interface NavItem { id: string; label: string; icon?: IconName; count?: number; href?: string; }
+export interface NavItem {
+  id: string;
+  label: string;
+  icon?: IconName;
+  count?: number;
+  href?: string;
+}
 export interface SideNavProps {
   sections?: Array<{ title?: string; items: NavItem[] }>;
   items?: NavItem[];
@@ -481,7 +555,10 @@ export interface DatePickerProps extends DateFieldProps {
   defaultValue?: ISODate | null;
   onChange?: (value: ISODate | null) => void;
 }
-export interface DateRange { start: ISODate | null; end: ISODate | null; }
+export interface DateRange {
+  start: ISODate | null;
+  end: ISODate | null;
+}
 export interface DateRangePickerProps extends DateFieldProps {
   value?: DateRange;
   defaultValue?: DateRange;
@@ -699,7 +776,14 @@ export interface PaginationProps {
   label?: string;
   className?: string;
 }
-export interface AccordionItem { id: string; title: React.ReactNode; description?: React.ReactNode; content: React.ReactNode; icon?: IconName; disabled?: boolean; }
+export interface AccordionItem {
+  id: string;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  content: React.ReactNode;
+  icon?: IconName;
+  disabled?: boolean;
+}
 export interface AccordionProps {
   items: AccordionItem[];
   /** single (default): one open at a time. multiple: any number. */
@@ -740,7 +824,13 @@ export interface ThemeOptions {
   primary?: 'ink' | 'brand';
   name?: string;
 }
-export interface ThemeCheck { theme: 'light' | 'dark'; pair: string; ratio: number; target: number; pass: boolean; }
+export interface ThemeCheck {
+  theme: 'light' | 'dark';
+  pair: string;
+  ratio: number;
+  target: number;
+  pass: boolean;
+}
 export interface Theme {
   name: string | null;
   brand: Record<50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900, string>;

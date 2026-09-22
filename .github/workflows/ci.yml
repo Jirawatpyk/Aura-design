@@ -31,6 +31,10 @@ jobs:
       - name: Contrast, token lint, SSR, types
         run: |
           set -o pipefail; npm test 2>&1 | tee -a ci.log
+      - name: Source is formatted (Prettier)
+        if: matrix.react == '18'
+        run: |
+          set -o pipefail; npm run format:check 2>&1 | tee -a ci.log
       - name: Build
         run: |
           set -o pipefail; npm run build 2>&1 | tee -a ci.log
