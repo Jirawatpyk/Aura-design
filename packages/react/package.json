@@ -38,7 +38,8 @@
     "pretest:ssr": "node scripts/build.mjs",
     "prethemes": "node scripts/build.mjs",
     "test:hydrate": "node scripts/hydrate-test.mjs",
-    "size": "node scripts/size-check.mjs"
+    "size": "node scripts/size-check.mjs",
+    "preexamples": "node scripts/build.mjs"
   },
   "peerDependencies": {
     "react": ">=18",

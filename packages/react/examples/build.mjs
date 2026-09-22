@@ -11,6 +11,9 @@ const pkg = path.resolve(here, '..');
 const tokens = process.env.AURA_CSS || path.resolve(pkg, '../tokens/aura.css');
 const fonts = '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap">';
 const only = process.argv[2];
+/* The colour-scheme head script, as projects get it (dist is built by `preexamples`). */
+const { colorSchemeScript } = await import(new URL('../dist/esm/colorScheme.js', import.meta.url).href);
+const schemeScript = '<script>' + colorSchemeScript() + '</script>';
 const names = fs.readdirSync(here).filter((n) => fs.existsSync(path.join(here, n, 'main.jsx')) && (!only || n === only));
 const alias = { name: 'alias', setup(b) { b.onResolve({ filter: /^@aura\/react$/ }, () => ({ path: path.join(pkg, 'src/index.ts') })); } };
 const globals = { name: 'globals', setup(b) {
@@ -26,7 +29,7 @@ for (const name of names) {
   const css = fs.readFileSync(tokens, 'utf8') + fs.readFileSync(path.join(pkg, 'styles/components.css'), 'utf8') + pageCss;
   const js = page.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
   fs.mkdirSync(path.join(dir, 'dist'), { recursive: true });
-  fs.writeFileSync(path.join(dir, 'dist/index.html'), `<!doctype html><html lang="${meta.lang || 'th'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${meta.title}</title>${fonts}<style>${css}</style></head><body><div id="root"></div><script>${js}</script></body></html>`);
+  fs.writeFileSync(path.join(dir, 'dist/index.html'), `<!doctype html><html lang="${meta.lang || 'th'}" data-theme="system"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${meta.title}</title>${schemeScript}${fonts}<style>${css}</style></head><body><div id="root"></div><script>${js}</script></body></html>`);
   const card = await build({ ...common, format: 'iife', plugins: [globals], define: { 'process.env.NODE_ENV': '"production"' } });
   const cardJs = card.outputFiles[0].text;
   if (/<\/script/i.test(cardJs)) throw new Error(name + ': card.js contains </script');

@@ -23,6 +23,25 @@ def axe(pg, label):
     v = pg.evaluate("""async () => (await axe.run(document, { resultTypes: ['violations'] })).violations.map(v => v.id + ' (' + v.nodes.length + '): ' + v.nodes[0].target.join(' '))""")
     assert not v, label + ' axe: ' + '; '.join(v)
 
+def color_scheme(pg, name, dark, system, after_reload=lambda pg: None):
+    """The toggle switches the page, the choice survives a reload (head script, before paint), System follows the OS."""
+    root = lambda: pg.evaluate("[document.documentElement.dataset.theme, document.documentElement.classList.contains('dark')]")
+    canvas = lambda: pg.evaluate("getComputedStyle(document.body).backgroundColor")
+    light_bg = canvas()
+    pg.get_by_role('button', name=re.compile('^' + name)).click()
+    pg.get_by_role('menuitemcheckbox', name=dark).click()
+    assert root() == ['dark', True], root()
+    axe(pg, 'toggled dark')
+    pg.reload(); after_reload(pg)
+    assert root() == ['dark', True], ('after reload', root())
+    expect(pg.get_by_role('button', name=re.compile('^' + name + '.*' + dark))).to_be_visible()
+    pg.get_by_role('button', name=re.compile('^' + name)).click()
+    pg.get_by_role('menuitemcheckbox', name=system).click()
+    assert root() == ['system', False], root()
+    pg.emulate_media(color_scheme='dark'); pg.wait_for_timeout(400)
+    assert root() == ['system', True] and canvas() != light_bg, ('system should follow the OS', root(), canvas())
+    axe(pg, 'system dark')
+
 def ready(pg):
     pg.goto(URL); pg.wait_for_selector('.aura-table:not([aria-busy]) .aura-table__row:not(.aura-table__row--skeleton), .aura-table--stacked:not([aria-busy]) .aura-table__card', timeout=5000)
 
@@ -157,6 +176,7 @@ def d_themes(pg):
             pg.wait_for_timeout(350)   # let colour transitions finish before measuring
             axe(pg, os.path.basename(f) + ' ' + th)
     pg.evaluate("document.documentElement.removeAttribute('data-theme')")
+def d_color_scheme(pg): color_scheme(pg, 'โหมดสี', 'มืด', 'ตามระบบ', ready)
 
 # ---------- tablet ----------
 def t_table_fits(pg):
@@ -203,7 +223,7 @@ def p_bottom_sheet(pg):
 
 with sync_playwright() as p:
     br = p.chromium.launch(**({'executable_path': CHROMIUM} if CHROMIUM else {}))
-    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes]),
+    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes, d_color_scheme]),
                              ('tablet 820', {'width': 820, 'height': 1100}, [t_table_fits, t_axe]),
                              ('phone 390', {'width': 390, 'height': 844}, [p_no_overflow, p_axe, p_nav_drawer, p_filters, p_card_detail, p_card_menu, p_bottom_sheet])]:
         print(label)

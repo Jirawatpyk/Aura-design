@@ -18,6 +18,25 @@ def axe(pg, label):
     v = pg.evaluate("""async () => (await axe.run(document, { resultTypes: ['violations'] })).violations.map(v => v.id + ' (' + v.nodes.length + '): ' + v.nodes[0].target.join(' '))""")
     assert not v, label + ' axe: ' + '; '.join(v)
 
+def color_scheme(pg, name, dark, system, after_reload=lambda pg: None):
+    """The toggle switches the page, the choice survives a reload (head script, before paint), System follows the OS."""
+    root = lambda: pg.evaluate("[document.documentElement.dataset.theme, document.documentElement.classList.contains('dark')]")
+    canvas = lambda: pg.evaluate("getComputedStyle(document.body).backgroundColor")
+    light_bg = canvas()
+    pg.get_by_role('button', name=re.compile('^' + name)).click()
+    pg.get_by_role('menuitemcheckbox', name=dark).click()
+    assert root() == ['dark', True], root()
+    axe(pg, 'toggled dark')
+    pg.reload(); after_reload(pg)
+    assert root() == ['dark', True], ('after reload', root())
+    expect(pg.get_by_role('button', name=re.compile('^' + name + '.*' + dark))).to_be_visible()
+    pg.get_by_role('button', name=re.compile('^' + name)).click()
+    pg.get_by_role('menuitemcheckbox', name=system).click()
+    assert root() == ['system', False], root()
+    pg.emulate_media(color_scheme='dark'); pg.wait_for_timeout(400)
+    assert root() == ['system', True] and canvas() != light_bg, ('system should follow the OS', root(), canvas())
+    axe(pg, 'system dark')
+
 GHA = bool(os.environ.get('GITHUB_ACTIONS'))
 def gha(level, title, msg):
     if GHA: print(f"::{level} title={title}::{msg.replace(chr(10), ' ')[:400]}")
@@ -108,6 +127,7 @@ def s_phone(pg):
     pg.get_by_role('tab', name=re.compile('^Team')).click(); pg.wait_for_timeout(300)
     f = pg.get_by_role('textbox', name='Add a domain'); b = pg.get_by_role('button', name='Add', exact=True)
     assert abs(f.bounding_box()['width'] - b.bounding_box()['width']) <= 3, 'stacked field and button should be full width on phones'
+def s_color_scheme(pg): color_scheme(pg, 'Colour scheme', 'Dark', 'System', lambda pg: pg.wait_for_timeout(500))
 
 def l_axe_brands(pg):
     for brand in ['AURA', 'Sky', 'Rose', 'Emerald']:
@@ -142,14 +162,15 @@ def l_phone(pg):
         pg.evaluate(f"document.documentElement.setAttribute('data-theme','{th}')"); axe(pg, 'phone ' + th)
     f = pg.get_by_role('textbox', name='อีเมลที่ทำงาน'); b = pg.get_by_role('button', name='รับลิงก์ทดลองใช้')
     assert abs(f.bounding_box()['width'] - b.bounding_box()['width']) <= 3
+def l_color_scheme(pg): color_scheme(pg, 'โหมดสี', 'มืด', 'ตามระบบ', lambda pg: pg.wait_for_timeout(500))
 
 with sync_playwright() as p:
     br = p.chromium.launch(**({'executable_path': CHROMIUM} if CHROMIUM else {}))
     print('settings')
-    for fn in [s_axe_all_tabs, s_rhf_validation, s_time_and_zone, s_checkbox_labels, s_team, s_billing, s_audit]: run(br, fn.__name__, S, {'width': 1440, 'height': 1000}, fn)
+    for fn in [s_axe_all_tabs, s_rhf_validation, s_time_and_zone, s_checkbox_labels, s_team, s_billing, s_audit, s_color_scheme]: run(br, fn.__name__, S, {'width': 1440, 'height': 1000}, fn)
     run(br, 's_phone', S, {'width': 390, 'height': 844}, s_phone)
     print('landing')
-    for fn in [l_axe_brands, l_theme_switch, l_surface_light_in_dark, l_signup, l_hero_cta_focus]: run(br, fn.__name__, L, {'width': 1440, 'height': 900}, fn)
+    for fn in [l_axe_brands, l_theme_switch, l_surface_light_in_dark, l_signup, l_hero_cta_focus, l_color_scheme]: run(br, fn.__name__, L, {'width': 1440, 'height': 900}, fn)
     run(br, 'l_phone', L, {'width': 390, 'height': 844}, l_phone)
     br.close()
 bad = [r for r in results if not r[1]]

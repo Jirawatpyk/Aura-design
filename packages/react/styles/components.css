@@ -21,7 +21,9 @@
   justify-content: center;
   gap: var(--aura-space-2);
   cursor: pointer;
-  transition: all var(--aura-duration-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: background-color, color, border-color, box-shadow, transform, opacity;
+  transition-duration: var(--aura-duration-fast);
+  transition-timing-function: var(--aura-ease);
 }
 .aura-btn:active { transform: scale(0.98); }
 .aura-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
@@ -871,9 +873,9 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-progress--warning .aura-progress__bar { background: var(--aura-alert-warning-fg); }
 .aura-progress--danger .aura-progress__bar { background: var(--aura-fg-danger); }
 .aura-progress--neutral .aura-progress__bar { background: var(--aura-fg-secondary); }
-.aura-progress__track.is-indeterminate .aura-progress__bar { width: 35%; animation: aura-progress-slide 1.4s var(--aura-ease) infinite; }
+.aura-progress__track.is-indeterminate .aura-progress__bar { width: 35%; animation: aura-progress-slide var(--aura-duration-pulse) var(--aura-ease) infinite; }
 @keyframes aura-progress-slide { from { left: -35%; } to { left: 100%; } }
-@media (prefers-reduced-motion: reduce) { .aura-progress__track.is-indeterminate .aura-progress__bar { animation-duration: 4.2s; } }
+@media (prefers-reduced-motion: reduce) { .aura-progress__track.is-indeterminate .aura-progress__bar { animation-duration: calc(var(--aura-duration-pulse) * 3); } }
 .aura-progress__hint { margin: 0; font-size: 12px; color: var(--aura-fg-secondary); }
 
 /* ---------- Skeleton ---------- */

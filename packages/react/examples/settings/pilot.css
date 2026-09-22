@@ -1,4 +1,5 @@
 body { margin: 0; background: var(--aura-bg-canvas); color: var(--aura-fg-primary); font-family: var(--font-sans); font-size: 14px; }
+.pilot-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-3); width: 100%; }
 .pilot-brand { font-family: var(--font-display); font-size: 20px; }
 .pilot-h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.2; margin: 0; }
 .pilot-sub, .pilot-muted { margin: var(--aura-space-1) 0 0; color: var(--aura-fg-secondary); }

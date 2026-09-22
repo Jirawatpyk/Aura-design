@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   AppShell, SideNav, Container, Stack, Grid, Tabs, Card, Button, IconButton, Badge, Tag, Progress, Accordion, Popover,
   EmptyState, Pagination, TextField, Textarea, Select, RadioGroup, Checkbox, Switch, Combobox, TimePicker, FileUpload,
-  Dialog, Alert, Toaster, toast, Skeleton, AuraProvider,
+  Dialog, Alert, Toaster, toast, Skeleton, AuraProvider, ColorSchemeToggle,
 } from '@aura/react';
 
 const TIMEZONES = ['Asia/Bangkok', 'Asia/Singapore', 'Asia/Tokyo', 'Europe/London', 'America/New_York'].map((z) => ({ value: z, label: z.replace('_', ' ') }));
@@ -151,7 +151,7 @@ export function App() {
   const [tab, setTab] = React.useState('profile');
   return (
     <AuraProvider locale="en">
-      <AppShell navLabel="Main" header={<strong>Settings</strong>}
+      <AppShell navLabel="Main" header={<div className="pilot-bar"><strong>Settings</strong><ColorSchemeToggle /></div>}
         nav={<SideNav value="settings" header={<strong className="pilot-brand">AURA</strong>} items={[
           { id: 'home', label: 'Home', icon: 'house' }, { id: 'projects', label: 'Projects', icon: 'folder' }, { id: 'settings', label: 'Settings', icon: 'settings' }]} />}>
         <Container size="narrow">

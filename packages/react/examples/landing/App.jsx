@@ -3,7 +3,7 @@
 import * as React from 'react';
 import {
   Surface, Container, Stack, Grid, Card, Button, Badge, Tag, Stat, Accordion, TextField, Checkbox, Alert,
-  Icon, AuraProvider, ThemeStyle, Toaster, toast,
+  Icon, AuraProvider, ThemeStyle, Toaster, toast, ColorSchemeToggle,
 } from '@aura/react';
 
 const BRANDS = [{ id: 'aura', label: 'AURA', brand: null }, { id: 'sky', label: 'Sky', brand: '#0ea5e9' }, { id: 'rose', label: 'Rose', brand: '#e11d48' }, { id: 'emerald', label: 'Emerald', brand: '#059669' }];
@@ -32,6 +32,7 @@ export function App() {
               <div role="group" aria-labelledby="brand-label" className="lp-brands">
                 {BRANDS.map((x) => <Tag key={x.id} selected={brand === x.id} onClick={() => setBrand(x.id)}>{x.label}</Tag>)}
               </div>
+              <ColorSchemeToggle />
             </Stack>
           </div>
         </Container>

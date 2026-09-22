@@ -4,7 +4,7 @@ import * as React from 'react';
 import {
   AppShell, SideNav, Container, Stack, Grid, Stat, Button, IconButton, DropdownMenu, Avatar, Breadcrumb,
   Combobox, DateRangePicker, DatePicker, TimePicker, FileUpload, Select, TextField, Textarea, RadioGroup, Switch,
-  DataTable, StatusPill, Drawer, Dialog, Alert, Toaster, toast, formatDate, useBreakpoint,
+  DataTable, StatusPill, Drawer, Dialog, Alert, Toaster, toast, formatDate, useBreakpoint, ColorSchemeToggle,
 } from '@aura/react';
 import { STAFF, CATEGORIES, PRIORITIES, STATUSES, TONE, statusLabel, priorityLabel, makeOrders } from './data.js';
 
@@ -164,8 +164,11 @@ export function App() {
           { id: 'settings', label: 'ตั้งค่า', icon: 'settings' }]} />}
       header={<div className="pilot-bar">
         {phone ? <strong>คำสั่งซื้อ</strong> : <Breadcrumb items={[{ label: 'ภาพรวม', href: '#' }, { label: 'คำสั่งซื้อ' }]} />}
+        <Stack direction="row" gap={2} align="center">
+        <ColorSchemeToggle />
         <DropdownMenu label="บัญชี" items={[{ label: 'โปรไฟล์', icon: 'user', onSelect: () => {} }, { label: 'ออกจากระบบ', icon: 'log-out', onSelect: () => {} }]}
           trigger={<button type="button" className="pilot-account" aria-label="บัญชี Tao"><Avatar name="Tao P" size="sm" /></button>} />
+        </Stack>
       </div>}>
       <Container>
         <Stack gap={6}>
