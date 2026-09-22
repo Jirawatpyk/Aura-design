@@ -29,7 +29,7 @@ One HTML file, no install — the packages are on npmjs, so jsDelivr serves them
 ## Install
 
 ```bash
-npm i @jirawatpyk/aura-react @jirawatpyk/aura-tokens   # react >= 18 is a peer; import from "@jirawatpyk/aura-react"
+npm i @jirawatpyk/aura-react @jirawatpyk/aura-tokens   # React 18 or 19; import from "@jirawatpyk/aura-react"
 # or under the short names the docs use (imports stay `@aura/...`):
 npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens
 ```

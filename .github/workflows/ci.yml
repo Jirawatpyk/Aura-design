@@ -11,14 +11,21 @@ defaults:
 
 jobs:
   checks:
-    name: Tokens, lint, SSR, types, build
+    name: React ${{ matrix.react }} · Tokens, lint, SSR, types, build
+    strategy:
+      fail-fast: false
+      matrix: { react: ['18', '19'] }
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with: { node-version: 22, cache: npm }
-      - run: npm ci
+      - name: Install (React ${{ matrix.react }})
+        run: |
+          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mjs ${{ matrix.react }} && npm install --no-audit --no-fund; fi
+          node -p "'react ' + require('react/package.json').version"
       - name: Generated token files are committed
+        if: matrix.react == '18'
         run: |
           set -o pipefail; npm run check:generated -w packages/tokens 2>&1 | tee -a ci.log
       - name: Contrast, token lint, SSR, types
@@ -28,6 +35,7 @@ jobs:
         run: |
           set -o pipefail; npm run build 2>&1 | tee -a ci.log
       - name: Bundle in packages/tokens matches the React source
+        if: matrix.react == '18'
         run: |
           set -o pipefail; git diff --stat --exit-code -- packages/tokens/components 2>&1 | tee -a ci.log
       - name: Failure summary
@@ -36,7 +44,10 @@ jobs:
           { echo '### Last 80 lines'; echo '```'; tail -80 ci.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   pilots:
-    name: Pilot pages (axe + behaviour, 390/820/1440px, 4 brand themes)
+    name: React ${{ matrix.react }} · Pilot pages (axe + behaviour, 390/820/1440px, 4 brand themes)
+    strategy:
+      fail-fast: false
+      matrix: { react: ['18', '19'] }
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -44,7 +55,10 @@ jobs:
         with: { node-version: 22, cache: npm }
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
-      - run: npm ci
+      - name: Install (React ${{ matrix.react }})
+        run: |
+          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mjs ${{ matrix.react }} && npm install --no-audit --no-fund; fi
+          node -p "'react ' + require('react/package.json').version"
       - run: pip install 'playwright==1.56.*' && python -m playwright install --with-deps chromium
       - name: Pilot tests
         run: |
@@ -55,34 +69,74 @@ jobs:
           { echo '### Failing checks'; echo '```'; grep -E 'FAIL|passed|Error|Traceback' ci.log | head -60; echo '```'; echo '### Last 60 lines'; echo '```'; tail -60 ci.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   storybook:
-    name: Storybook (axe on every story × 2 themes, behaviour tests)
+    name: React ${{ matrix.react }} · Storybook (axe on every story × 2 themes, behaviour tests)
+    strategy:
+      fail-fast: false
+      matrix: { react: ['18', '19'] }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - name: Install (React ${{ matrix.react }})
+        run: |
+          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mjs ${{ matrix.react }} && npm install --no-audit --no-fund; fi
+          node -p "'react ' + require('react/package.json').version"
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/storybook
+      - name: Hydration in a real browser (React development build, no console errors)
+        run: |
+          set -o pipefail; npm run build -w packages/react 2>&1 | tee ci.log; npm run test:hydrate -w packages/react 2>&1 | tee -a ci.log
+      - name: Storybook build and tests
+        run: |
+          set -o pipefail; npm run test:storybook 2>&1 | tee -a ci.log
+      - name: Failure summary
+        if: failure()
+        run: |
+          { echo '### Failing tests'; echo '```'; grep -E '^\s+[0-9]+\) |Error:|Expected|Received|violations|passed|failed' ci.log | head -80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Package the Storybook site
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.react == '18'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/storybook/storybook-static
+
+  # The Next.js starter, built against the packed packages exactly as a project would install them.
+  starter:
+    name: Next.js starter (next build + server render against the packed packages)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-        working-directory: apps/storybook
-      - name: Storybook build and tests
+      - name: Build and pack AURA
         run: |
-          set -o pipefail; npm run test:storybook 2>&1 | tee ci.log
-      - name: Failure summary
-        if: failure()
+          npm run build
+          mkdir -p "$RUNNER_TEMP/packs" && npm pack -w packages/tokens -w packages/react --pack-destination "$RUNNER_TEMP/packs"
+      - name: Install the starter with the packed AURA
+        working-directory: templates/next-starter
         run: |
-          { echo '### Failing tests'; echo '```'; grep -E '^\s+[0-9]+\) |Error:|Expected|Received|violations|passed|failed' ci.log | head -80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - name: Package the Storybook site
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: apps/storybook/storybook-static
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/packs/*.tgz
+          npm install --no-audit --no-fund
+      - name: next build
+        working-directory: templates/next-starter
+        env: { NEXT_TELEMETRY_DISABLED: '1' }
+        run: npx next build
+      - name: The page renders on the server
+        working-directory: templates/next-starter
+        env: { NEXT_TELEMETRY_DISABLED: '1' }
+        run: |
+          npx next start -p 3100 & sleep 8
+          html=$(curl -fsS http://localhost:3100)
+          for want in 'ORD-1042' 'aura-table' 'aura-stat'; do echo "$html" | grep -q "$want" || { echo "missing $want"; exit 1; }; done
+          echo "starter renders AURA on the server"
 
   # Public Storybook on GitHub Pages — only from main, only after every Storybook test passed.
   # One-time setup: repository Settings → Pages → Source: GitHub Actions.
   pages:
     name: Deploy Storybook to GitHub Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [checks, pilots, storybook]
+    needs: [checks, pilots, storybook, starter]
     runs-on: ubuntu-latest
     permissions:
       pages: write

@@ -14,6 +14,14 @@ Living documentation: the AURA design-system artifact on claude.ai (tokens, comp
 
 ## Use it in a project
 
+**New Next.js app?** Start from the template — App Router, TypeScript, AURA wired in:
+
+```bash
+npx degit Jirawatpyk/Aura-design/templates/next-starter my-app
+```
+
+Works with **React 18 and 19**: CI runs every suite (SSR, hydration, pilots, Storybook) on both.
+
 Published to two registries with the same names and versions:
 
 | Registry | For | Setup |

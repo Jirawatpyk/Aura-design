@@ -1,0 +1,27 @@
+{
+  "name": "aura-next-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Next.js (App Router) + AURA Design System starter.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "theme": "aura-theme --brand \"#0ea5e9\" --out app/aura-theme.css"
+  },
+  "dependencies": {
+    "@jirawatpyk/aura-react": "^4.5.0",
+    "@jirawatpyk/aura-tokens": "^4.5.0",
+    "next": "^16.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": { "node": ">=20.9" }
+}

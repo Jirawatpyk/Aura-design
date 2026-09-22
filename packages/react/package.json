@@ -36,7 +36,8 @@
     "theme": "node scripts/aura-theme.mjs",
     "prepack": "npm run build",
     "pretest:ssr": "node scripts/build.mjs",
-    "prethemes": "node scripts/build.mjs"
+    "prethemes": "node scripts/build.mjs",
+    "test:hydrate": "node scripts/hydrate-test.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -51,7 +52,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "@playwright/test": "^1.45.0"
   },
   "bin": {
     "aura-theme": "scripts/aura-theme.mjs"

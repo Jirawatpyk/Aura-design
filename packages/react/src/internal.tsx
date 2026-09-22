@@ -1,7 +1,7 @@
 import * as React from 'react';
 const h = React.createElement;
 
-export function cx(...parts: Array<string | false | null | undefined | 0>): string;
+export function cx(...parts: Array<string | number | bigint | boolean | null | undefined>): string;
 export function cx(): string { return Array.prototype.filter.call(arguments, Boolean).join(' '); }
 export function omit<T extends object, K extends string>(src: T, keys: readonly K[]): Omit<T, K> {
   var out: Record<string, unknown> = {};

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **React 19 in CI**: checks, pilots and Storybook run on React 18 and 19 (`scripts/use-react.mjs` switches the workspace). All pass on 19.3 with no code change beyond one type (`cx` accepts the wider React 19 `ReactNode`).
+- **Hydration test** (`npm run test:hydrate -w packages/react`): server-renders every fixture, hydrates it in Chromium with React's development build and fails on any console error or warning. 46/46 on React 18 and 19.
+- **Next.js starter** (`templates/next-starter`, `npx degit Jirawatpyk/Aura-design/templates/next-starter my-app`): App Router + TypeScript, AURA styles and fonts, `AuraProvider`, `Toaster`, a Server Component page with stats and a table that turns into cards on phones. CI builds it with `next build` against the packed packages and checks the server-rendered HTML.
 - **Props reference in Storybook** (Props → Actions, Forms, Pickers, Feedback, Overlays, Data, Layout, Theming and locale): a table per component (46) — generated with react-docgen-typescript from the TypeScript sources and their JSDoc, so it always matches the published types. Inherited DOM attributes are left out.
 - `.gitattributes`: LF everywhere (Windows checkouts included), so line endings no longer make files look modified or block `git pull`.
 
