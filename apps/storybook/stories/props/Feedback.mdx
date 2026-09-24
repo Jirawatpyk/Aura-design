@@ -15,6 +15,14 @@ Alert stays on the page, a toast goes away, a Tooltip names a control. `toast()`
 
 <ArgTypes of={Aura.Toaster} />
 
+`toast(options)` or the shorthands `toast.success | error | warning | info(title, options?)`. `toast.loading(title, { id })` shows a spinner and stays until the same `id` is shown again with a result — the toast is replaced in place, never stacked. Danger toasts are `role="alert"`, the rest `role="status"`. At most three at once.
+
+## FormErrorSummary
+
+After a failed submit, list every problem at the top of the form as links to the fields. Pass react-hook-form's `formState.errors` as is, `focusKey={formState.submitCount}` so it takes focus on each submit, and `onSelect={setFocus}`.
+
+<ArgTypes of={Aura.FormErrorSummary} />
+
 ## Tooltip
 
 <ArgTypes of={Aura.Tooltip} />

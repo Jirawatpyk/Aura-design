@@ -14,6 +14,15 @@ export interface AuraStrings {
   close: string;
   dismiss: string;
   dismissToast: string;
+  showPassword: string;
+  filters: string;
+  search: string;
+  clearFilters: string;
+  results: (n: number) => string;
+  commandMenu: string;
+  commandPlaceholder: string;
+  commandHint: string;
+  errorSummary: (n: number) => string;
   notifications: string;
   mainNav: string;
   breadcrumb: string;
@@ -81,6 +90,19 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     close: 'Close',
     dismiss: 'Dismiss',
     dismissToast: 'Dismiss notification',
+    showPassword: 'Show password',
+    filters: 'Filters',
+    search: 'Search',
+    clearFilters: 'Clear all',
+    results: function (n) {
+      return n === 1 ? '1 result' : n.toLocaleString('en') + ' results';
+    },
+    commandMenu: 'Command menu',
+    commandPlaceholder: 'Type a command or search…',
+    commandHint: '↑↓ to move · Enter to open · Esc to close',
+    errorSummary: function (n) {
+      return n === 1 ? 'Fix 1 field to continue' : 'Fix ' + n + ' fields to continue';
+    },
     notifications: 'Notifications',
     mainNav: 'Main',
     breadcrumb: 'Breadcrumb',
@@ -179,6 +201,19 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     close: 'ปิด',
     dismiss: 'ปิด',
     dismissToast: 'ปิดการแจ้งเตือน',
+    showPassword: 'แสดงรหัสผ่าน',
+    filters: 'ตัวกรอง',
+    search: 'ค้นหา',
+    clearFilters: 'ล้างทั้งหมด',
+    results: function (n) {
+      return n.toLocaleString('en') + ' รายการ';
+    },
+    commandMenu: 'เมนูคำสั่ง',
+    commandPlaceholder: 'พิมพ์คำสั่งหรือค้นหา…',
+    commandHint: '↑↓ เลื่อน · Enter เปิด · Esc ปิด',
+    errorSummary: function (n) {
+      return 'แก้ไข ' + n + ' ช่องก่อนไปต่อ';
+    },
     notifications: 'การแจ้งเตือน',
     mainNav: 'เมนูหลัก',
     breadcrumb: 'เส้นทาง',
@@ -277,6 +312,19 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     close: 'Stäng',
     dismiss: 'Stäng',
     dismissToast: 'Stäng aviseringen',
+    showPassword: 'Visa lösenord',
+    filters: 'Filter',
+    search: 'Sök',
+    clearFilters: 'Rensa alla',
+    results: function (n) {
+      return n === 1 ? '1 träff' : n.toLocaleString('sv-SE') + ' träffar';
+    },
+    commandMenu: 'Kommandomeny',
+    commandPlaceholder: 'Skriv ett kommando eller sök…',
+    commandHint: '↑↓ flytta · Enter öppna · Esc stäng',
+    errorSummary: function (n) {
+      return n === 1 ? 'Rätta 1 fält för att fortsätta' : 'Rätta ' + n + ' fält för att fortsätta';
+    },
     notifications: 'Aviseringar',
     mainNav: 'Huvudmeny',
     breadcrumb: 'Brödsmulor',

@@ -141,3 +141,24 @@ export function V410() {
     </AuraProvider>
   );
 }
+
+/* 4.13 */
+import { PasswordField, FormErrorSummary, FilterBar, Command, toast as t413, type CommandItem } from '../src/index';
+export function V413() {
+  const ref = React.useRef<HTMLInputElement>(null);
+  const items: CommandItem[] = [{ id: 'a', label: 'Invoices', group: 'Pages', onSelect: () => {} }];
+  const id: string = t413.loading('Saving', { id: 'x' });
+  t413.success('Saved', { id, description: 'ok' });
+  t413.error('Nope'); t413.warning('Hm'); t413.info('Fyi');
+  // @ts-expect-error shorthands take a title string, not options
+  t413.success({ title: 'x' });
+  return (<>
+    <PasswordField ref={ref} label="Password" autoComplete="new-password" />
+    {/* @ts-expect-error type is fixed */}
+    <PasswordField label="x" type="text" />
+    <FormErrorSummary errors={{ email: { message: 'Enter email' }, name: undefined }} focusKey={1} onSelect={(f) => void f} />
+    <FormErrorSummary errors={[{ field: 'email', message: 'Enter email' }]} />
+    <FilterBar search="" onSearchChange={() => {}} filters={[{ id: 'a', label: 'A', onRemove: () => {} }]} onClearAll={() => {}} resultCount={3} />
+    <Command open onOpenChange={() => {}} items={items} onSelect={(it) => void it.id} hotkey={false} />
+  </>);
+}

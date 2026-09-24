@@ -5,12 +5,12 @@ import { IconButton } from './IconButton.js';
 import { cx, useMounted } from './internal.js';
 import { useStrings } from './locale.js';
 import { createPortal } from 'react-dom';
-import type { FeedbackTone, ToastOptions } from './types.js';
+import type { FeedbackTone, ToastOptions, ToastShorthandOptions } from './types.js';
 
 /* Toasts: Aura.toast({...}) from anywhere; render <Aura.Toaster /> once near the app root. */
 
-/** A toast on screen: its options with the id and tone filled in. */
-type ToastEntry = ToastOptions & { id: string; tone: FeedbackTone };
+/** A toast on screen: its options with the id and tone filled in; `rev` changes when the same id is shown again. */
+type ToastEntry = ToastOptions & { id: string; tone: FeedbackTone; rev: number; loading?: boolean };
 
 const toastState: { list: ToastEntry[]; subs: Array<(list: ToastEntry[]) => void>; n: number } = {
   list: [],
@@ -24,19 +24,45 @@ function emitToasts() {
   });
 }
 
-/** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
-export function toast(opts: ToastOptions | string): string {
-  if (typeof opts === 'string') opts = { title: opts };
+function show(opts: ToastOptions & { loading?: boolean }): string {
   const id = opts.id || 't' + ++toastState.n;
-  toastState.list = toastState.list
-    .filter(function (t) {
-      return t.id !== id;
-    })
-    .concat([Object.assign({ tone: 'info' }, opts, { id: id })])
-    .slice(-3);
+  const at = toastState.list.findIndex(function (t) {
+    return t.id === id;
+  });
+  const entry = Object.assign({ tone: 'info' as FeedbackTone }, opts, {
+    id: id,
+    loading: !!opts.loading,
+    rev: at >= 0 ? toastState.list[at].rev + 1 : 0,
+  }) as ToastEntry;
+  if (at >= 0) {
+    /* Same id: replace in place, so a loading toast turns into its result without moving or stacking. */
+    toastState.list = toastState.list.slice();
+    toastState.list[at] = entry;
+  } else toastState.list = toastState.list.concat([entry]).slice(-3);
   emitToasts();
   return id;
 }
+/** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
+export function toast(opts: ToastOptions | string): string {
+  return show(typeof opts === 'string' ? { title: opts } : opts);
+}
+function shorthand(tone: FeedbackTone) {
+  return function (title: string, opts?: ToastShorthandOptions): string {
+    return show(Object.assign({}, opts, { title: title, tone: tone }));
+  };
+}
+/** Tone shorthands: `toast.success('Saved')`, `toast.error('Could not save', { description })`. */
+toast.success = shorthand('success');
+toast.error = shorthand('danger');
+toast.warning = shorthand('warning');
+toast.info = shorthand('info');
+/** A spinner toast that stays until the same `id` is shown again with a result:
+ * `const id = toast.loading('Saving'); … toast.success('Saved', { id })`. Returns the id. */
+toast.loading = function (title: string, opts?: ToastShorthandOptions): string {
+  return show(
+    Object.assign({}, opts, { title: title, tone: 'info' as FeedbackTone, loading: true, duration: Infinity }),
+  );
+};
 toast.dismiss = function (id: string) {
   toastState.list = toastState.list.filter(function (t) {
     return t.id !== id;
@@ -50,34 +76,53 @@ function ToastItem(props: { toast: ToastEntry }) {
     timer = React.useRef<ReturnType<typeof setTimeout> | null>(null),
     left = React.useRef(t.duration || 5000),
     since = React.useRef(0);
+  const hover = React.useRef(false);
   function start() {
-    if (left.current === Infinity) return;
+    if (left.current === Infinity || timer.current) return;
     since.current = Date.now();
     timer.current = setTimeout(function () {
       toast.dismiss(t.id);
     }, left.current);
   }
+  function resume() {
+    hover.current = false;
+    start();
+  }
   function pause() {
+    hover.current = true;
     if (timer.current) {
       clearTimeout(timer.current);
       timer.current = null;
       left.current -= Date.now() - since.current;
     }
   }
-  React.useEffect(function () {
-    start();
-    return pause;
-  }, []);
+  /* A new rev (the same id shown again) restarts the clock with the new duration. */
+  React.useEffect(
+    function () {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      left.current = t.duration || 5000;
+      if (!hover.current) start();
+      return function () {
+        if (timer.current) clearTimeout(timer.current);
+      };
+    },
+    [t.rev],
+  );
   return (
     <div
-      className={cx('aura-toast', 'aura-toast--' + t.tone)}
+      className={cx('aura-toast', 'aura-toast--' + t.tone, t.loading && 'is-loading')}
       role={t.tone === 'danger' ? 'alert' : 'status'}
+      aria-busy={t.loading || undefined}
       onMouseEnter={pause}
-      onMouseLeave={start}
+      onMouseLeave={resume}
       onFocus={pause}
-      onBlur={start}
+      onBlur={resume}
     >
-      <Icon name={ALERT_ICON[t.tone] || 'info'} className="aura-toast__icon" />
+      <Icon
+        name={t.loading ? 'loader-circle' : ALERT_ICON[t.tone] || 'info'}
+        className={cx('aura-toast__icon', t.loading && 'aura-spin')}
+      />
       <div className="aura-toast__body">
         <p className="aura-toast__title">{t.title}</p>
         {t.description ? <p className="aura-toast__text">{t.description}</p> : null}

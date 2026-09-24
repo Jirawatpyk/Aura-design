@@ -1141,3 +1141,103 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-radio-group__list { gap: 0; }
   .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); }
 }
+
+/* PasswordField: the show/hide IconButton sits in the suffix slot, 6px from the edge */
+.aura-password .aura-input__suffix { padding-right: 6px; display: flex; align-items: center; }
+
+/* FormErrorSummary: a danger alert whose items link to their fields */
+.aura-error-summary:focus-visible, .aura-error-summary:focus { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+.aura-error-summary h2.aura-alert__title { font-family: inherit; }
+.aura-error-summary__list { margin: var(--aura-space-2) 0 0; padding-left: var(--aura-space-5); display: grid; gap: var(--aura-space-1); font-size: 14px; line-height: 20px; }
+.aura-error-summary__list a { color: var(--aura-alert-danger-fg); text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
+.aura-error-summary__list a:hover { text-decoration-thickness: 2px; }
+.aura-error-summary__list a:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
+
+/* aura-prose: sanitised rich text (editor output, e-mail previews). Styles exactly p, h1–h4, ul/ol/li, blockquote,
+ * hr, a, strong, em, u with AURA type and spacing, in both themes. */
+.aura-prose { font-family: var(--font-sans); font-size: 14px; line-height: 1.7; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
+.aura-prose > :first-child { margin-top: 0; }
+.aura-prose > :last-child { margin-bottom: 0; }
+.aura-prose p { margin: 0 0 var(--aura-space-4); }
+.aura-prose h1, .aura-prose h2, .aura-prose h3, .aura-prose h4 { color: var(--aura-fg-primary); margin: var(--aura-space-8) 0 var(--aura-space-3); }
+.aura-prose h1 { font-family: var(--font-display); font-weight: 600; font-size: 30px; line-height: 1.2; letter-spacing: -0.01em; }
+.aura-prose h2 { font-weight: 600; font-size: 22px; line-height: 1.3; }
+.aura-prose h3 { font-weight: 600; font-size: 17px; line-height: 1.45; }
+.aura-prose h4 { font-weight: 600; font-size: 15px; line-height: 1.5; }
+.aura-prose ul, .aura-prose ol { margin: 0 0 var(--aura-space-4); padding-left: var(--aura-space-6); }
+.aura-prose li { margin: var(--aura-space-1) 0; }
+.aura-prose li > ul, .aura-prose li > ol { margin: var(--aura-space-1) 0 0; }
+.aura-prose ul { list-style: disc; }
+.aura-prose ol { list-style: decimal; }
+.aura-prose li::marker { color: var(--aura-fg-secondary); }
+.aura-prose blockquote { margin: 0 0 var(--aura-space-4); padding: var(--aura-space-1) 0 var(--aura-space-1) var(--aura-space-4); border-left: 3px solid var(--aura-border-control); color: var(--aura-fg-secondary); }
+.aura-prose hr { margin: var(--aura-space-8) 0; border: 0; border-top: 1px solid var(--aura-border-default); }
+.aura-prose a { color: var(--aura-fg-accent); text-decoration: underline; text-underline-offset: 2px; }
+.aura-prose a:hover { text-decoration-thickness: 2px; }
+.aura-prose a:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
+.aura-prose strong { font-weight: 600; }
+.aura-prose em { font-style: italic; }
+.aura-prose u { text-decoration: underline; text-underline-offset: 2px; }
+
+/* FilterBar: search + controls + count + actions on one row, applied-filter chips below; wraps on small screens */
+.aura-filterbar { display: flex; flex-direction: column; gap: var(--aura-space-3); font-family: var(--font-sans); }
+.aura-filterbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-3); }
+.aura-filterbar__search { flex: 1 1 240px; max-width: 360px; width: auto; }
+.aura-filterbar__search .aura-input__control::-webkit-search-cancel-button { display: none; }
+.aura-filterbar__clear-search { margin-right: 6px; }
+.aura-filterbar__controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-3); }
+.aura-filterbar__spacer { flex: 1 1 0; }
+.aura-filterbar__count { font-size: 13px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aura-filterbar__actions { display: flex; align-items: center; gap: var(--aura-space-2); }
+.aura-filterbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
+.aura-filterbar__clear {
+  border: 0; background: transparent; padding: 4px var(--aura-space-2); border-radius: var(--aura-radius-sm);
+  font: inherit; font-size: 13px; font-weight: 500; color: var(--aura-fg-accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+}
+.aura-filterbar__clear:hover { background: var(--aura-bg-surface-hover); }
+.aura-filterbar__clear:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+@media (max-width: 767.98px) {
+  .aura-filterbar__search { flex-basis: 100%; max-width: none; }
+  .aura-filterbar__spacer { display: none; }
+}
+
+/* Command palette: a search field over a grouped list, above everything else (it can open from a Dialog) */
+.aura-dialog-layer.aura-command-layer { z-index: var(--aura-z-menu); align-items: flex-start; padding: 12vh var(--aura-space-4) var(--aura-space-4); }
+.aura-command {
+  position: relative; box-sizing: border-box; width: 100%; max-width: 640px; max-height: 70vh; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--aura-bg-surface); color: var(--aura-fg-primary); font-family: var(--font-sans);
+  border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-xl); box-shadow: var(--aura-shadow-overlay);
+  animation: aura-dialog-in var(--aura-duration-base) var(--aura-ease);
+}
+.aura-command:focus { outline: none; }
+.aura-command__search { display: flex; align-items: center; gap: var(--aura-space-3); padding: 0 var(--aura-space-4); border-bottom: 1px solid var(--aura-border-default); }
+.aura-command__search-icon { color: var(--aura-fg-secondary); }
+.aura-command__input {
+  flex: 1; min-width: 0; height: 52px; border: 0; background: transparent; color: inherit; outline: none;
+  font: inherit; font-size: max(16px, var(--aura-input-font-size));
+}
+.aura-command__input::placeholder { color: var(--aura-fg-tertiary); opacity: 1; }
+.aura-command__list { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: var(--aura-space-2); }
+.aura-command__group + .aura-command__group { margin-top: var(--aura-space-2); }
+.aura-command__heading { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-secondary); }
+.aura-command__item { display: flex; align-items: center; gap: var(--aura-space-3); min-height: 40px; padding: 6px var(--aura-space-2); border-radius: var(--aura-radius-sm); cursor: pointer; font-size: 14px; }
+.aura-command__item > .aura-icon { color: var(--aura-fg-secondary); }
+.aura-command__item.is-active { background: var(--aura-bg-surface-hover); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+.aura-command__item.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
+.aura-command__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.aura-command__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aura-command__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-command__kbd {
+  flex: none; padding: 2px 6px; border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-xs);
+  font-family: var(--font-mono); font-size: 11px; line-height: 16px; color: var(--aura-fg-secondary); background: var(--aura-bg-canvas);
+}
+.aura-command__empty { margin: 0; padding: var(--aura-space-6) var(--aura-space-2); text-align: center; font-size: 14px; color: var(--aura-fg-secondary); }
+.aura-command__foot { display: flex; justify-content: space-between; gap: var(--aura-space-3); padding: var(--aura-space-2) var(--aura-space-4); border-top: 1px solid var(--aura-border-default); font-size: 12px; color: var(--aura-fg-secondary); }
+@media (max-width: 639.98px) {
+  .aura-dialog-layer.aura-command-layer { align-items: flex-start; padding: var(--aura-space-4); }
+  .aura-command { max-height: 80vh; }
+  .aura-command__foot { display: none; }
+  .aura-command__item { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .aura-command { animation: none; } }
+

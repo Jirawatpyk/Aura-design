@@ -722,3 +722,93 @@ test('4.12: useFormatDate follows the provider (th พ.ศ., en and sv Gregorian
   expect(t[2]).toMatch(/september 2026/);
   expect(t[3]).toMatch(/September 2026/);
 });
+
+test.describe('4.13: Chamber-OS group B', () => {
+  const s413 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-13--' + id, theme);
+  test('toast: loading turns into success in place, one toast per id; error is an alert', async ({ page }) => {
+    await s413(page, 'toasts');
+    await page.getByRole('button', { name: /Save \(loading/ }).click();
+    const toasts = page.locator('.aura-toast');
+    await expect(toasts).toHaveCount(1);
+    await expect(toasts.first()).toContainText('Saving invoice');
+    await expect(toasts.first()).toHaveAttribute('aria-busy', 'true');
+    await expect(toasts.first()).toContainText('Invoice saved');
+    await expect(toasts).toHaveCount(1);
+    await expect(toasts.first()).not.toHaveAttribute('aria-busy', /.*/);
+    await page.getByRole('button', { name: 'Error' }).click();
+    await page.getByRole('button', { name: 'Error' }).click();
+    await expect(page.locator('.aura-toast--danger')).toHaveCount(1);
+    await expect(page.locator('.aura-toast--danger')).toHaveAttribute('role', 'alert');
+    await expect(page.locator('.aura-toast--success')).toHaveAttribute('role', 'status');
+  });
+  test('PasswordField + FormErrorSummary with react-hook-form: summary takes focus, links use setFocus', async ({ page }) => {
+    await s413(page, 'sign-in-form');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    const summary = page.getByRole('alert').filter({ hasText: 'Fix 2 fields to continue' });
+    await expect(summary).toBeFocused();
+    await summary.getByRole('link', { name: 'Enter your password' }).click();
+    const pw = page.getByLabel('Password', { exact: true });
+    await expect(pw).toBeFocused();
+    await expect(pw).toHaveAttribute('type', 'password');
+    const toggle = page.getByRole('button', { name: 'Show password' });
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await pw.fill('longenough');
+    await toggle.click();
+    await expect(pw).toHaveAttribute('type', 'text');
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await page.getByLabel('Email address').fill('a@b.se');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await expect(page.getByTestId('done')).toBeVisible();
+    await expect(page.locator('.aura-error-summary')).toHaveCount(0);
+  });
+  test('FilterBar drives a server-mode table through the URL', async ({ page }) => {
+    await s413(page, 'filter-bar-server');
+    await expect(page.getByText('64 results')).toBeVisible();
+    await page.getByLabel('Search members').fill('acme');
+    await expect(page.getByText('8 results')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => location.search)).toContain('q=acme');
+    await page.getByRole('radio', { name: 'Corporate' }).click();
+    await expect(page.getByRole('button', { name: /Remove Tier: Corporate|Tier: Corporate/ }).first()).toBeVisible();
+    await expect.poll(() => page.evaluate(() => location.search)).toContain('tier=Corporate');
+    await page.getByRole('button', { name: 'Clear all' }).click();
+    await expect(page.getByLabel('Search members')).toHaveValue('');
+    await expect(page.getByText('64 results')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => location.search)).not.toContain('q=');
+    // typing then picking a filter before the search debounce fires keeps both
+    await page.getByLabel('Search members').fill('a');
+    await page.getByRole('radio', { name: 'SME' }).click();
+    await expect.poll(() => page.evaluate(() => location.search)).toMatch(/q=a.*tier=SME|tier=SME.*q=a/);
+  });
+  test('aura-prose: links use fg-accent in both themes', async ({ page }) => {
+    for (const [theme, rgb] of [['light', 'rgb(109, 40, 217)'], ['dark', 'rgb(196, 181, 253)']]) {
+      await s413(page, 'prose', theme);
+      expect(await page.locator('.aura-prose a').evaluate((e) => getComputedStyle(e).color), theme).toBe(rgb);
+    }
+  });
+  test('Command: ⌘K opens, arrows skip disabled items, Enter runs, Escape returns focus; opens above a Dialog', async ({ page }) => {
+    await s413(page, 'command-palette');
+    const opener = page.getByRole('button', { name: 'Open command menu' }).first();
+    await opener.focus();
+    await page.keyboard.press('ControlOrMeta+k');
+    const input = page.getByRole('combobox', { name: 'Command menu' });
+    await expect(input).toBeFocused();
+    await input.fill('bill');
+    await expect(page.getByRole('option')).toHaveCount(1);
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toHaveText('Last command: Invoices');
+    await expect(input).toHaveCount(0);
+    await opener.click();
+    await expect(input).toBeFocused();
+    await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown');
+    const activeId = await input.getAttribute('aria-activedescendant');
+    await expect(page.locator(`[id="${activeId}"]`)).toContainText('New invoice'); // Settings (disabled) skipped
+    await page.keyboard.press('Escape');
+    await expect(input).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    await page.getByRole('button', { name: 'Open a dialog' }).click();
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(input).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Edit member' })).toBeVisible();
+  });
+});

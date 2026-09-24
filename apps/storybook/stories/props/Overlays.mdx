@@ -18,3 +18,13 @@ Modal (focus trap, scroll lock, focus restore) for Dialog and Drawer; Popover is
 ## Popover
 
 <ArgTypes of={Aura.Popover} />
+
+## Command
+
+A command palette: ⌘K / Ctrl+K toggles it (`hotkey={false}` to turn that off). Type to filter (Thai-aware, `keywords` too), arrows move, Enter runs the item's `onSelect`, Escape closes and returns focus. It opens above a Dialog. Group items with `group`.
+
+<ArgTypes of={Aura.Command} />
+
+## aura-prose
+
+Not a component: put `className="aura-prose"` on the element that holds sanitised rich text (editor output, e-mail previews). It styles exactly `p`, `h1`–`h4`, `ul` / `ol` / `li`, `blockquote`, `hr`, `a`, `strong`, `em` and `u`, in both themes. Sanitise first — AURA doesn't.

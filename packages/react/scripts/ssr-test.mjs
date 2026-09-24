@@ -13,7 +13,7 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
   const missing = comps.filter((c) => !fx[c]);
   if (missing.length) { console.log(label, 'no fixture:', missing.join(', ')); fail++; }
   for (const [name, el] of Object.entries(fx)) {
-    try { const html = renderToString(el); if (!html && !['Toaster', 'Dialog', 'Drawer', 'Menu'].includes(name)) throw new Error('empty output'); }
+    try { const html = renderToString(el); if (!html && !['Toaster', 'Dialog', 'Drawer', 'Menu', 'Command'].includes(name)) throw new Error('empty output'); }
     catch (e) { console.log(label, name, 'FAILED:', e.message); fail++; }
   }
   console.log(`${label}: ${Object.keys(fx).length} components server-rendered`);

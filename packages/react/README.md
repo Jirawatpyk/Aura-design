@@ -65,7 +65,7 @@ export default function Root() {
 
 ## Components (49)
 
-Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, Toaster/`toast()`, Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Stat · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
+Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette) · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
 
 ## Router links, Swedish, motion
 
@@ -77,6 +77,20 @@ import Link from 'next/link';
 `linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row/pager links. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` has no provider to read and stays Thai unless you pass `locale`. Values are always Gregorian ISO dates.
 
 Motion: skeleton pulses and indeterminate bars honour `prefers-reduced-motion: reduce` — skeletons stop (a static bar), spinners and progress bars slow to a third.
+
+## Toasts, forms, filters, rich text, ⌘K
+
+```tsx
+const id = toast.loading('Saving');          // spinner, stays
+toast.success('Saved', { id });              // same id: replaced in place, never stacked
+toast.error('Could not save');               // danger = role="alert"; the rest role="status"
+
+<FormErrorSummary errors={formState.errors} focusKey={formState.submitCount} onSelect={setFocus} />
+<PasswordField label="Password" {...register('password')} />
+<FilterBar search={q} onSearchChange={setQ} filters={chips} onClearAll={clear} resultCount={total}>…</FilterBar>
+<div className="aura-prose" dangerouslySetInnerHTML={{ __html: sanitised }} />   {/* p, h1–h4, lists, blockquote, hr, a, strong, em, u */}
+<Command open={open} onOpenChange={setOpen} items={commands} />                    {/* ⌘K / Ctrl+K toggles it */}
+```
 
 ## Phones and touch
 

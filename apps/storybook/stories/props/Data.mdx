@@ -26,6 +26,12 @@ For lists paged and sorted by the server (search params, API), pass `manual`: `r
 
 Links render with AuraProvider's `linkComponent` (or the table's own). `align: 'end'` right-aligns a column and uses tabular figures.
 
+## FilterBar
+
+The row above a table: search (sent after a 300 ms pause, at once on Enter), your filter controls as children, applied filters as removable chips, Clear all, a result count and actions. It only reports changes, so the state can live in the URL.
+
+<ArgTypes of={Aura.FilterBar} />
+
 ## Stat
 
 <ArgTypes of={Aura.Stat} />

@@ -11,6 +11,12 @@ Every field has a visible label, a hint or error line and the 44px height. Field
 
 <ArgTypes of={Aura.TextField} />
 
+## PasswordField
+
+A TextField with a show/hide button (one name, "Show password", with `aria-pressed`). All TextField props; the ref is the input, so `register` works. `autoComplete` defaults to `current-password` — use `new-password` on sign-up and change-password forms.
+
+<ArgTypes of={Aura.PasswordField} />
+
 ## Textarea
 
 <ArgTypes of={Aura.Textarea} />

@@ -268,6 +268,96 @@ export interface TextFieldProps extends FieldProps, Omit<React$1.InputHTMLAttrib
 	/** Trailing unit, e.g. "THB". */
 	suffix?: React$1.ReactNode;
 }
+/** A password input with a show/hide button. All TextField props; `ref` reaches the input (react-hook-form `register`). */
+export interface PasswordFieldProps extends Omit<TextFieldProps, "type" | "suffix"> {
+	/** Set false to hide the show/hide button. Default true. */
+	toggle?: boolean;
+}
+/** One entry of a FormErrorSummary: the field's `id` (or `name`) and what to fix. */
+export interface FormErrorItem {
+	field: string;
+	message: React$1.ReactNode;
+}
+/** The list of problems at the top of a form after a failed submit; each links to its field (GOV.UK pattern). */
+export interface FormErrorSummaryProps {
+	/** A list, or react-hook-form's `formState.errors` as is (`{ name: { message } }`). Empty → renders nothing. */
+	errors: FormErrorItem[] | Record<string, {
+		message?: React$1.ReactNode;
+	} | undefined>;
+	/** Default "Fix N fields to continue" in the provider's language. */
+	title?: React$1.ReactNode;
+	/** Called with the field when a link is followed, e.g. react-hook-form's `setFocus`. Default: focus the element whose id (or name) is the field. */
+	onSelect?: (field: string) => void;
+	/** Change it on every submit (e.g. `formState.submitCount`) to move focus to the summary again. It also takes focus when errors first appear. */
+	focusKey?: unknown;
+	className?: string;
+	id?: string;
+}
+/** An applied filter, shown as a removable chip. */
+export interface ActiveFilter {
+	id: string;
+	label: React$1.ReactNode;
+	onRemove: () => void;
+}
+/** The row above a table: search, filter controls, applied-filter chips, result count and actions. Wraps below md. */
+export interface FilterBarProps {
+	/** Search text (controlled). Omit `onSearchChange` to hide the search field. */
+	search?: string;
+	/** Called after typing pauses (`searchDelay`), and at once on Enter or clear — ready to write to the URL. */
+	onSearchChange?: (value: string) => void;
+	/** ms to wait after the last keystroke. Default 300. */
+	searchDelay?: number;
+	searchLabel?: string;
+	searchPlaceholder?: string;
+	/** Filter controls beside the search: Select, SegmentedControl, a Popover of options… */
+	children?: React$1.ReactNode;
+	/** Applied filters as chips, each with its own remove button. */
+	filters?: ActiveFilter[];
+	/** Adds "Clear all" while any filter or search is set. */
+	onClearAll?: () => void;
+	/** A number ("312 results", announced politely) or your own node. */
+	resultCount?: number | React$1.ReactNode;
+	/** Trailing slot: export, a New button… */
+	actions?: React$1.ReactNode;
+	/** Accessible name of the region. Default "Filters". */
+	label?: string;
+	className?: string;
+}
+/** One command in the palette. */
+export interface CommandItem {
+	id: string;
+	/** Text shown and searched. */
+	label: string;
+	/** Items with the same group are listed together under its heading, in first-seen order. */
+	group?: string;
+	icon?: IconInput;
+	description?: string;
+	/** Extra words that find it ("invoice" → Billing). */
+	keywords?: string[];
+	/** A shortcut shown at the right, e.g. "G I". Display only. */
+	shortcut?: string;
+	disabled?: boolean;
+	/** Runs when chosen (Enter or click); the palette then closes. */
+	onSelect?: () => void;
+}
+/** A command palette: a modal search over commands and pages, grouped, fully keyboard-driven. */
+export interface CommandProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	items: CommandItem[];
+	/** Also called with the chosen item (after its own onSelect). */
+	onSelect?: (item: CommandItem) => void;
+	/** Accessible name. Default "Command menu". */
+	label?: string;
+	placeholder?: string;
+	/** Default "No matches". */
+	emptyText?: string;
+	/** ⌘K / Ctrl+K toggles the palette from anywhere on the page. Default true. */
+	hotkey?: boolean;
+	/** Replace the Thai-aware default filter. */
+	filter?: (item: CommandItem, query: string) => boolean;
+	className?: string;
+}
 export interface TextareaProps extends FieldProps, Omit<React$1.TextareaHTMLAttributes<HTMLTextAreaElement>, "required"> {
 }
 export type SelectOption = string | {
@@ -332,9 +422,11 @@ export interface ToastOptions {
 	};
 	/** ms before it closes itself. Default 5000; Infinity keeps it until dismissed. */
 	duration?: number;
-	/** Reuse an id to replace a toast in place. */
+	/** Reuse an id to replace a toast in place (same position, timer restarts) — never a second toast. */
 	id?: string;
 }
+/** Options for the shorthands (`toast.success(title, opts)` …): everything but the title and tone. */
+export type ToastShorthandOptions = Omit<ToastOptions, "title" | "tone">;
 export interface TooltipProps {
 	content: React$1.ReactNode;
 	/** One focusable element. */
@@ -979,6 +1071,11 @@ export declare const Alert: React$1.ForwardRefExoticComponent<AlertProps & React
 /** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
 export declare function toast(opts: ToastOptions | string): string;
 export declare namespace toast {
+	var success: (title: string, opts?: ToastShorthandOptions) => string;
+	var error: (title: string, opts?: ToastShorthandOptions) => string;
+	var warning: (title: string, opts?: ToastShorthandOptions) => string;
+	var info: (title: string, opts?: ToastShorthandOptions) => string;
+	var loading: (title: string, opts?: ToastShorthandOptions) => string;
 	var dismiss: (id: string) => void;
 }
 export interface ToasterProps {
@@ -986,6 +1083,10 @@ export interface ToasterProps {
 	position?: "bottom" | "top";
 }
 export declare function Toaster(props: ToasterProps): React$1.ReactElement | null;
+export declare const PasswordField: React$1.ForwardRefExoticComponent<PasswordFieldProps & React$1.RefAttributes<HTMLInputElement>>;
+export declare const FormErrorSummary: React$1.ForwardRefExoticComponent<FormErrorSummaryProps & React$1.RefAttributes<HTMLDivElement>>;
+export declare const FilterBar: React$1.ForwardRefExoticComponent<FilterBarProps & React$1.RefAttributes<HTMLDivElement>>;
+export declare function Command(props: CommandProps): React$1.ReactElement | null;
 export declare const Tooltip: React$1.ForwardRefExoticComponent<TooltipProps & React$1.RefAttributes<HTMLSpanElement>>;
 export declare const Dialog: React$1.ForwardRefExoticComponent<DialogProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Side panel over the page: record detail, filters, mobile navigation. Modal (focus trap, scroll lock, focus restore). */
@@ -1032,6 +1133,15 @@ export interface AuraStrings {
 	close: string;
 	dismiss: string;
 	dismissToast: string;
+	showPassword: string;
+	filters: string;
+	search: string;
+	clearFilters: string;
+	results: (n: number) => string;
+	commandMenu: string;
+	commandPlaceholder: string;
+	commandHint: string;
+	errorSummary: (n: number) => string;
 	notifications: string;
 	mainNav: string;
 	breadcrumb: string;
