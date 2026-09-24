@@ -225,7 +225,9 @@ export type IconName =
   | 'file'
   | 'sun'
   | 'moon'
-  | 'monitor';
+  | 'monitor'
+  | 'panel-left-close'
+  | 'panel-left-open';
 
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
@@ -595,6 +597,15 @@ export interface SideNavProps {
   label?: string;
   /** Router link for items with `href`; defaults to the AuraProvider's `linkComponent`, then `<a>`. */
   linkComponent?: React.ElementType;
+  /** Icon-only rail (`aura-sidenav-rail-width`, 64px). Labels show as tooltips and stay the accessible names; a group
+   * expands the rail when clicked. Controlled; pair with `onCollapsedChange`. */
+  collapsed?: boolean;
+  /** Starting state when `collapsed` isn't controlled. Default false. */
+  defaultCollapsed?: boolean;
+  /** Called by the toggle button, and by a group clicked in the rail (with `false`). Save it to keep the choice. */
+  onCollapsedChange?: (collapsed: boolean) => void;
+  /** Adds a collapse / expand button at the bottom. AppShell hides it in its phone drawer. */
+  collapsible?: boolean;
   className?: string;
 }
 export interface BreadcrumbProps {

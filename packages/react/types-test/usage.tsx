@@ -378,3 +378,21 @@ export function V414() {
     </AuraProvider>
   );
 }
+
+/* 4.15 */
+export function V415() {
+  const [c, setC] = React.useState(false);
+  return (
+    <>
+      <SideNav
+        collapsible
+        collapsed={c}
+        onCollapsedChange={setC}
+        items={[{ id: 'a', label: 'A', icon: 'panel-left-open' }]}
+      />
+      <SideNav defaultCollapsed items={[]} />
+      {/* @ts-expect-error collapsed is a boolean */}
+      <SideNav collapsed="yes" items={[]} />
+    </>
+  );
+}

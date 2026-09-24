@@ -596,6 +596,30 @@ a.aura-btn { text-decoration: none; }
 .aura-nav__sub { margin-top: 2px; }
 .aura-nav__sub[hidden] { display: none; }
 .aura-nav__footer { padding: var(--aura-space-3); border-top: 1px solid var(--aura-border-default); }
+/* Collapse toggle and the icon-only rail (4.15). */
+.aura-nav { transition: width var(--aura-duration-base) var(--aura-ease); }
+.aura-nav__toggle { display: flex; padding: var(--aura-space-2) var(--aura-space-3); border-top: 1px solid var(--aura-border-default); }
+.aura-nav--collapsed { width: var(--aura-sidenav-rail-width); }
+.aura-nav--collapsed .aura-nav__toggle { justify-content: center; }
+.aura-nav--collapsed .aura-nav__header, .aura-nav--collapsed .aura-nav__footer { padding-left: var(--aura-space-2); padding-right: var(--aura-space-2); overflow: hidden; }
+.aura-nav--collapsed .aura-nav__item { position: relative; justify-content: center; gap: 0; padding: 0; }
+.aura-nav--collapsed .aura-nav__label, .aura-nav--collapsed .aura-nav__count, .aura-nav--collapsed .aura-nav__badge, .aura-nav--collapsed .aura-nav__title {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.aura-nav--collapsed .aura-nav__chevron { display: none; }
+.aura-nav--collapsed .aura-nav__section + .aura-nav__section { margin-top: var(--aura-space-3); padding-top: var(--aura-space-3); border-top: 1px solid var(--aura-border-default); }
+.aura-nav--collapsed .aura-nav__item--group.has-active { background: var(--aura-bg-selected); }
+.aura-nav--collapsed .aura-nav__item--group.has-active .aura-icon { color: var(--aura-fg-accent); }
+.aura-nav__initial {
+  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--aura-radius-sm);
+  background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg); font-size: 12px; font-weight: 600; text-transform: uppercase;
+}
+.aura-nav__dot {
+  position: absolute; top: 6px; left: calc(50% + 5px); width: 8px; height: 8px; border-radius: var(--aura-radius-full);
+  background: var(--aura-fg-accent); box-shadow: 0 0 0 2px var(--aura-bg-canvas);
+}
+.aura-tooltip--right { transform: translateY(-50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .aura-nav { transition: none; } }
 
 /* ---------- Breadcrumb ---------- */
 .aura-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); list-style: none; margin: 0; padding: 0; font-family: var(--font-sans); font-size: 13px; }

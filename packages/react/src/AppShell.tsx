@@ -20,7 +20,14 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
     },
     [compact],
   );
-  const navEl = props.nav as React.ReactElement<{ onChange?: (id: string) => void; className?: string }> | undefined;
+  const navEl = props.nav as
+    | React.ReactElement<{
+        onChange?: (id: string) => void;
+        className?: string;
+        collapsed?: boolean;
+        collapsible?: boolean;
+      }>
+    | undefined;
   const nav =
     props.nav && React.isValidElement(props.nav) && compact
       ? React.cloneElement(navEl!, {
@@ -29,6 +36,9 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
             setOpen(false);
           },
           className: cx(navEl!.props.className, 'is-in-drawer'),
+          /* The drawer is already full-size: never a rail, no collapse button. */
+          collapsed: false,
+          collapsible: false,
         })
       : props.nav;
   return (

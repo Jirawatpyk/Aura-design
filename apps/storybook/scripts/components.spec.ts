@@ -15,7 +15,9 @@ test.describe('Button', () => {
   });
   test('dark theme flips the primary fill and the creative shadow turns violet', async ({ page }) => {
     await story(page, 'aura-actions-button--all-states', 'dark');
-    const bg = await page.getByRole('button', { name: 'Enterprise' }).evaluate((e) => getComputedStyle(e).backgroundColor);
+    const bg = await page
+      .getByRole('button', { name: 'Enterprise' })
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
     expect(bg).toBe('rgb(255, 255, 255)');
     const sh = await page.getByRole('button', { name: 'Creative' }).evaluate((e) => getComputedStyle(e).boxShadow);
     expect(sh).toContain('167, 139, 250');
@@ -24,7 +26,10 @@ test.describe('Button', () => {
     await story(page, 'aura-actions-button--as-link');
     const link = page.getByRole('link', { name: 'View Orders' });
     await expect(link).toHaveAttribute('href', '#orders');
-    const look = (el: Element) => { const s = getComputedStyle(el); return [s.height, s.borderRadius, s.textDecorationLine, s.display]; };
+    const look = (el: Element) => {
+      const s = getComputedStyle(el);
+      return [s.height, s.borderRadius, s.textDecorationLine, s.display];
+    };
     const [h, r, deco, display] = await link.evaluate(look);
     expect(deco).toBe('none');
     expect(display).toMatch(/flex$/); // inline-flex, blockified to flex inside the story's flex row
@@ -35,9 +40,12 @@ test.describe('Button', () => {
     await expect(off).toHaveAttribute('aria-disabled', 'true');
     await expect(off).not.toHaveAttribute('href', /.*/);
     await link.focus();
-    await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
     await expect(off).not.toBeFocused();
-    await link.focus(); await page.keyboard.press('Enter');
+    await link.focus();
+    await page.keyboard.press('Enter');
     await expect.poll(() => page.evaluate(() => location.hash)).toBe('#orders');
   });
 });
@@ -59,7 +67,8 @@ test.describe('Forms', () => {
     await expect(page.getByRole('radio', { name: /Creative/ })).toBeChecked();
     const sw = page.getByRole('switch', { name: 'Email me when a token changes' });
     await expect(sw).toHaveAttribute('aria-checked', 'true');
-    await sw.focus(); await page.keyboard.press('Space');
+    await sw.focus();
+    await page.keyboard.press('Space');
     await expect(sw).toHaveAttribute('aria-checked', 'false');
   });
   test('select shows its placeholder until a choice is made', async ({ page }) => {
@@ -125,7 +134,9 @@ test.describe('Layout', () => {
     await story(page, 'aura-layout--app-shell');
     const nav = page.getByRole('navigation', { name: 'Main' });
     await expect(nav.locator('[aria-current="page"]')).toHaveText('Tokens');
-    await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).locator('[aria-current="page"]')).toHaveText('Tokens');
+    await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).locator('[aria-current="page"]')).toHaveText(
+      'Tokens',
+    );
     await page.getByRole('button', { name: 'Home' }).click();
     await expect(page.getByRole('button', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
   });
@@ -137,7 +148,9 @@ test.describe('DataTable', () => {
     await story(page, 'aura-data-datatable--virtual-grid');
     const rows = grid(page).locator('.aura-table__row');
     expect(await rows.count()).toBeLessThan(40);
-    await grid(page).evaluate((g) => { g.scrollTop = 48 * 1500; });
+    await grid(page).evaluate((g) => {
+      g.scrollTop = 48 * 1500;
+    });
     await expect(rows.first()).toContainText(/AURA-1[45]\d\d/);
     await expect(grid(page)).toHaveAttribute('aria-rowcount', '2001');
   });
@@ -199,7 +212,8 @@ test.describe('Combobox', () => {
     await expect(page.getByText('Value: m1')).toBeVisible();
     await cb.fill('ธน');
     await expect(page.getByRole('option', { name: /ธนพร/ })).toBeVisible();
-    await cb.press('Escape'); await cb.press('Escape');
+    await cb.press('Escape');
+    await cb.press('Escape');
     await expect(page.getByText('Value: null')).toBeVisible();
   });
 });
@@ -209,9 +223,11 @@ test.describe('DatePicker', () => {
     await story(page, 'aura-pickers--date-picker-story');
     const f = page.getByRole('textbox', { name: 'วันที่ส่ง' });
     await expect(f).toHaveValue('18 ก.ย. 2569');
-    await f.fill('05/12/2569'); await f.press('Enter');
+    await f.fill('05/12/2569');
+    await f.press('Enter');
     await expect(page.getByText('ISO: 2026-12-05')).toBeVisible();
-    await f.fill('2026-10-01'); await f.press('Tab');
+    await f.fill('2026-10-01');
+    await f.press('Tab');
     await expect(f).toHaveValue('1 ต.ค. 2569');
   });
   test('calendar: focus moves in, arrows move, Enter picks, Escape returns focus', async ({ page }) => {
@@ -219,7 +235,8 @@ test.describe('DatePicker', () => {
     await page.getByRole('button', { name: 'เปิดปฏิทิน' }).first().click();
     await expect(page.getByRole('dialog', { name: 'วันที่ส่ง' })).toBeVisible();
     await expect(page.locator(':focus')).toHaveAttribute('data-date', '2026-09-18');
-    await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
     await expect(page.getByText('ISO: 2026-09-25')).toBeVisible();
     await page.getByRole('button', { name: 'เปิดปฏิทิน' }).first().click();
     await page.keyboard.press('Escape');
@@ -251,7 +268,14 @@ test.describe('Drawer and DropdownMenu', () => {
     await opener.click();
     const dr = page.getByRole('dialog', { name: 'ORD-1042' });
     await expect(dr).toBeVisible();
-    for (let i = 0; i < 12; i++) { await page.keyboard.press('Tab'); expect(await page.evaluate(() => !!document.activeElement?.closest('.aura-drawer, .aura-cal__popover, .aura-combo__popover'))).toBe(true); }
+    for (let i = 0; i < 12; i++) {
+      await page.keyboard.press('Tab');
+      expect(
+        await page.evaluate(
+          () => !!document.activeElement?.closest('.aura-drawer, .aura-cal__popover, .aura-combo__popover'),
+        ),
+      ).toBe(true);
+    }
     await page.keyboard.press('Escape');
     await expect(dr).toHaveCount(0);
     await expect(opener).toBeFocused();
@@ -259,9 +283,11 @@ test.describe('Drawer and DropdownMenu', () => {
   test('dropdown opens with ArrowDown, runs the item, focus returns', async ({ page }) => {
     await story(page, 'aura-overlays--dropdown-menu-story');
     const trigger = page.getByRole('button', { name: 'Actions for ORD-1042' });
-    await trigger.focus(); await page.keyboard.press('ArrowDown');
+    await trigger.focus();
+    await page.keyboard.press('ArrowDown');
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
     await expect(page.getByTestId('last')).toHaveText('Last: Edit order');
     await expect(trigger).toBeFocused();
   });
@@ -276,19 +302,30 @@ test.describe('Responsive', () => {
     await page.setViewportSize({ width: 390, height: 800 });
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Open navigation' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: /Team/ }).or(page.getByRole('dialog').getByRole('link', { name: /Team/ })).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Team/ })
+      .or(page.getByRole('dialog').getByRole('link', { name: /Team/ }))
+      .click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
   test('Stack and Grid follow breakpoints', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await story(page, 'aura-responsive--stack-grid');
     await expect(page.getByTestId('bp')).toHaveText('Breakpoint: base');
-    const dir = () => page.locator('.aura-stack .aura-stack').first().evaluate((e) => getComputedStyle(e).flexDirection);
+    const dir = () =>
+      page
+        .locator('.aura-stack .aura-stack')
+        .first()
+        .evaluate((e) => getComputedStyle(e).flexDirection);
     expect(await dir()).toBe('column');
     await page.setViewportSize({ width: 1100, height: 800 });
     await expect(page.getByTestId('bp')).toHaveText('Breakpoint: lg');
     expect(await dir()).toBe('row');
-    const cols = await page.locator('.aura-grid-layout').first().evaluate((e) => getComputedStyle(e).gridTemplateColumns.split(' ').length);
+    const cols = await page
+      .locator('.aura-grid-layout')
+      .first()
+      .evaluate((e) => getComputedStyle(e).gridTemplateColumns.split(' ').length);
     expect(cols).toBe(4);
   });
   test('DataTable stacks into cards below stackBelow', async ({ page }) => {
@@ -312,16 +349,20 @@ test.describe('4.3', () => {
   test('TimePicker: typed shorthand, slots, blocked lunch, out-of-range message', async ({ page }) => {
     await story(page, 'aura-new-in-4-3--time-picker-story');
     const f = page.getByRole('combobox', { name: 'Start time' });
-    await f.fill('930'); await f.press('Enter');
+    await f.fill('930');
+    await f.press('Enter');
     await expect(page.getByText('Value: 09:30')).toBeVisible();
-    await f.fill('7'); await f.press('Enter');
+    await f.fill('7');
+    await f.press('Enter');
     await expect(page.getByText('Choose a time between 08:00 and 18:00')).toBeVisible();
-    await f.fill(''); await f.press('Escape');
+    await f.fill('');
+    await f.press('Escape');
     await f.press('ArrowDown');
     await expect(page.getByRole('option', { name: '12:00' })).toHaveAttribute('aria-disabled', 'true');
     await page.getByRole('option', { name: '11:30' }).click();
     await expect(page.getByText('Value: 11:30')).toBeVisible();
-    await f.press('ArrowDown'); await f.press('ArrowDown');       // skips 12:00 and 12:30
+    await f.press('ArrowDown');
+    await f.press('ArrowDown'); // skips 12:00 and 12:30
     await f.press('Enter');
     await expect(page.getByText('Value: 13:00')).toBeVisible();
   });
@@ -376,7 +417,8 @@ test.describe('4.4', () => {
     await story(page, 'aura-new-in-4-4--badges-and-tags');
     const chip = page.getByRole('button', { name: 'Weekend' });
     await expect(chip).toHaveAttribute('aria-pressed', 'false');
-    await chip.click(); await expect(chip).toHaveAttribute('aria-pressed', 'true');
+    await chip.click();
+    await expect(chip).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Remove example.com' }).click();
     await expect(page.getByTestId('domains')).toHaveText('wren.studio');
   });
@@ -397,10 +439,14 @@ test.describe('4.4', () => {
   });
   test('Accordion: multiple open, arrow keys between headers', async ({ page }) => {
     await story(page, 'aura-new-in-4-4--accordion-story');
-    const a = page.getByRole('button', { name: 'Do I need a card?' }), b = page.getByRole('button', { name: 'Where is my data?' });
+    const a = page.getByRole('button', { name: 'Do I need a card?' }),
+      b = page.getByRole('button', { name: 'Where is my data?' });
     await expect(a).toHaveAttribute('aria-expanded', 'true');
-    await b.click(); await expect(a).toHaveAttribute('aria-expanded', 'true'); await expect(b).toHaveAttribute('aria-expanded', 'true');
-    await b.focus(); await page.keyboard.press('ArrowDown');
+    await b.click();
+    await expect(a).toHaveAttribute('aria-expanded', 'true');
+    await expect(b).toHaveAttribute('aria-expanded', 'true');
+    await b.focus();
+    await page.keyboard.press('ArrowDown');
     await expect(page.getByRole('button', { name: 'Buddhist calendar?' })).toBeFocused();
   });
   test('Popover: focus in, Tab stays inside, Escape returns focus', async ({ page }) => {
@@ -408,16 +454,23 @@ test.describe('4.4', () => {
     const trigger = page.getByRole('button', { name: 'Filters' });
     await trigger.click();
     await expect(page.getByRole('dialog', { name: 'Filters' })).toBeVisible();
-    for (let i = 0; i < 6; i++) { await page.keyboard.press('Tab'); expect(await page.evaluate(() => !!document.activeElement?.closest('.aura-popover'))).toBe(true); }
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => !!document.activeElement?.closest('.aura-popover'))).toBe(true);
+    }
     await page.keyboard.press('Escape');
     await expect(trigger).toBeFocused();
   });
   test('Theme: scoped brand reaches buttons, links and focus ring', async ({ page }) => {
     await story(page, 'aura-new-in-4-4--themed-story');
-    const bg = await page.getByRole('button', { name: 'New Project' }).evaluate((e) => getComputedStyle(e).backgroundColor);
+    const bg = await page
+      .getByRole('button', { name: 'New Project' })
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
     expect(bg).not.toBe('rgb(24, 24, 27)');
   });
-  test('ColorSchemeToggle sets data-theme and the .dark class, saves the choice; the head script restores it', async ({ page }) => {
+  test('ColorSchemeToggle sets data-theme and the .dark class, saves the choice; the head script restores it', async ({
+    page,
+  }) => {
     await story(page, 'aura-theming-color-scheme--toggle');
     await page.evaluate(() => localStorage.removeItem('aura-color-scheme'));
     const html = page.locator('html');
@@ -453,7 +506,9 @@ test.describe('4.4', () => {
 });
 
 test.describe('4.9: multi-select, numbers, steps, segments', () => {
-  test('Combobox multiple: picks toggle as chips, the list stays open, Backspace removes the last, max disables the rest', async ({ page }) => {
+  test('Combobox multiple: picks toggle as chips, the list stays open, Backspace removes the last, max disables the rest', async ({
+    page,
+  }) => {
     await story(page, 'aura-pickers--combobox-multiple');
     const cb = page.getByRole('combobox', { name: 'ผู้รับผิดชอบ' });
     await cb.click();
@@ -475,7 +530,9 @@ test.describe('4.9: multi-select, numbers, steps, segments', () => {
     const tags = page.getByRole('combobox', { name: 'Tags' });
     await tags.click();
     await page.getByRole('listbox', { name: 'Tags' }).getByRole('option', { name: 'Urgent' }).click();
-    await expect(page.getByRole('listbox', { name: 'Tags' }).getByRole('option', { name: 'Corporate' })).toHaveAttribute('aria-disabled', 'true');
+    await expect(
+      page.getByRole('listbox', { name: 'Tags' }).getByRole('option', { name: 'Corporate' }),
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
   test('NumberField: spinbutton keys, clamps and formats on blur, buttons stop at the bounds', async ({ page }) => {
@@ -520,10 +577,14 @@ test.describe('4.9: multi-select, numbers, steps, segments', () => {
     await expect(page.getByTestId('view-status')).toHaveText('View: table');
     await page.keyboard.press('End');
     await expect(page.getByTestId('view-status')).toHaveText('View: cards');
-    await expect(page.getByRole('radiogroup', { name: 'Align' }).getByRole('radio', { name: 'Align right' })).toBeVisible();
+    await expect(
+      page.getByRole('radiogroup', { name: 'Align' }).getByRole('radio', { name: 'Align right' }),
+    ).toBeVisible();
   });
 
-  test('Stepper: current step is aria-current, completed steps go back, upcoming ones are not buttons; phones show "Step x of y"', async ({ page }) => {
+  test('Stepper: current step is aria-current, completed steps go back, upcoming ones are not buttons; phones show "Step x of y"', async ({
+    page,
+  }) => {
     await story(page, 'aura-layout--stepper-story');
     const nav = page.getByRole('navigation', { name: 'สร้างการจอง' });
     await expect(nav.locator('[aria-current="step"]')).toContainText('ข้อมูลติดต่อ');
@@ -542,13 +603,19 @@ test.describe('4.10: Chamber-OS group A', () => {
   const s410 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-10--' + id, theme);
   test('danger buttons: filled and outline pass contrast, IconButton tone="danger" is red', async ({ page }) => {
     await s410(page, 'danger-actions');
-    const fill = await page.getByRole('button', { name: 'Delete invoice' }).evaluate((e) => getComputedStyle(e).backgroundColor);
+    const fill = await page
+      .getByRole('button', { name: 'Delete invoice' })
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
     expect(fill).toBe('rgb(185, 28, 28)'); // red-700
     const out = page.getByRole('button', { name: 'Cancel membership' });
     expect(await out.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
-    expect(await page.getByRole('button', { name: 'Delete row' }).evaluate((e) => getComputedStyle(e).color)).toBe('rgb(185, 28, 28)');
+    expect(await page.getByRole('button', { name: 'Delete row' }).evaluate((e) => getComputedStyle(e).color)).toBe(
+      'rgb(185, 28, 28)',
+    );
     await s410(page, 'danger-actions', 'dark');
-    expect(await page.getByRole('button', { name: 'Delete invoice' }).evaluate((e) => getComputedStyle(e).backgroundColor)).toBe('rgb(220, 38, 38)');
+    expect(
+      await page.getByRole('button', { name: 'Delete invoice' }).evaluate((e) => getComputedStyle(e).backgroundColor),
+    ).toBe('rgb(220, 38, 38)');
   });
   test('icon props take an element: sized like AURA icons and hidden from screen readers', async ({ page }) => {
     await s410(page, 'custom-icons');
@@ -602,7 +669,9 @@ test.describe('4.10: Chamber-OS group A', () => {
     await expect(billing).toHaveAttribute('aria-expanded', 'false');
     await expect(page.locator('.aura-nav__item--group .aura-nav__badge')).toContainText('4');
   });
-  test('DataTable server mode: total from totalRows, controlled sort and page, rows stay while loading, row links', async ({ page }) => {
+  test('DataTable server mode: total from totalRows, controlled sort and page, rows stay while loading, row links', async ({
+    page,
+  }) => {
     await s410(page, 'server-table');
     const grid = page.getByRole('grid', { name: 'Invoices' });
     await expect(grid).toHaveAttribute('aria-rowcount', '58');
@@ -635,9 +704,14 @@ test.describe('4.10: Chamber-OS group A', () => {
   });
   test('dark neutral pill is the calmest; skeleton bars visible on both themes', async ({ page }) => {
     await s410(page, 'fixes', 'dark');
-    const bg = await page.getByText('Lapsed').evaluate((e) => getComputedStyle(e.closest('.aura-pill')!).backgroundColor);
+    const bg = await page
+      .getByText('Lapsed')
+      .evaluate((e) => getComputedStyle(e.closest('.aura-pill')!).backgroundColor);
     expect(bg).toBe('rgb(39, 39, 42)'); // zinc-800
-    const sk = await page.locator('.aura-skel').first().evaluate((e) => getComputedStyle(e).backgroundColor);
+    const sk = await page
+      .locator('.aura-skel')
+      .first()
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
     expect(sk).toBe('rgb(63, 63, 70)'); // zinc-700
   });
 });
@@ -655,7 +729,10 @@ test.describe('4.11: Chamber-OS addendum (phones and touch)', () => {
       await s411(page, 'touch-and-phones');
       const b = page.getByRole('button', { name: 'Copy' });
       expect(Math.round((await b.boundingBox())!.width)).toBe(32);
-      const hit = await b.evaluate((e) => { const s = getComputedStyle(e, '::after'); return [s.width, s.height]; });
+      const hit = await b.evaluate((e) => {
+        const s = getComputedStyle(e, '::after');
+        return [s.width, s.height];
+      });
       expect(hit).toEqual(['44px', '44px']);
     });
     test('20: Radio, Checkbox and Switch rows are 44px; tapping the row toggles', async ({ page }) => {
@@ -670,8 +747,11 @@ test.describe('4.11: Chamber-OS addendum (phones and touch)', () => {
       const box = (await row.boundingBox())!;
       await page.touchscreen.tap(box.x + box.width - 4, box.y + 4); // the row's far corner, outside switch and label
       await expect(sw).toHaveAttribute('aria-checked', 'true');
-      await page.locator('.aura-choice').filter({ hasText: 'Svenska' }).tap({ position: { x: 150, y: 4 } }).catch(() =>
-        page.locator('.aura-choice').filter({ hasText: 'Svenska' }).tap());
+      await page
+        .locator('.aura-choice')
+        .filter({ hasText: 'Svenska' })
+        .tap({ position: { x: 150, y: 4 } })
+        .catch(() => page.locator('.aura-choice').filter({ hasText: 'Svenska' }).tap());
       await expect(page.getByRole('radio', { name: 'Svenska' })).toBeChecked();
     });
   });
@@ -687,15 +767,22 @@ test.describe('4.11: Chamber-OS addendum (phones and touch)', () => {
   });
   test('22: dark pills are quiet fills that still pass 4.5:1', async ({ page }) => {
     await s411(page, 'pills-and-tracks', 'dark');
-    const bg = (t: string) => page.getByText(t, { exact: true }).evaluate((e) => getComputedStyle(e.closest('.aura-pill')!).backgroundColor);
+    const bg = (t: string) =>
+      page.getByText(t, { exact: true }).evaluate((e) => getComputedStyle(e.closest('.aura-pill')!).backgroundColor);
     expect(await bg('Awaiting review')).toBe('rgb(47, 38, 71)');
     expect(await bg('Sent')).toBe('rgb(43, 53, 31)');
     expect(await bg('Lapsed')).toBe('rgb(39, 39, 42)');
   });
   test('23: progress tracks have a 3:1 edge in both themes', async ({ page }) => {
-    for (const [theme, edge] of [['light', 'rgb(142, 142, 151)'], ['dark', 'rgb(113, 113, 122)']]) {
+    for (const [theme, edge] of [
+      ['light', 'rgb(142, 142, 151)'],
+      ['dark', 'rgb(113, 113, 122)'],
+    ]) {
       await s411(page, 'pills-and-tracks', theme);
-      const sh = await page.locator('.aura-progress__track').first().evaluate((e) => getComputedStyle(e).boxShadow);
+      const sh = await page
+        .locator('.aura-progress__track')
+        .first()
+        .evaluate((e) => getComputedStyle(e).boxShadow);
       expect(sh, theme).toContain(edge);
     }
   });
@@ -704,17 +791,21 @@ test.describe('4.11: Chamber-OS addendum (phones and touch)', () => {
     const en = page.getByLabel('Registration date');
     await expect(en).toHaveAttribute('placeholder', 'DD/MM/YYYY');
     await expect(page.getByRole('button', { name: 'Open calendar' })).toBeVisible();
-    await en.fill('18/09/2026'); await en.press('Enter');
+    await en.fill('18/09/2026');
+    await en.press('Enter');
     await expect(en).toHaveValue(/2026/);
     const th = page.getByLabel('วันที่สมัคร');
     await expect(th).toHaveValue(/2569/);
-    await th.fill('01/10/2569'); await th.press('Enter');
+    await th.fill('01/10/2569');
+    await th.press('Enter');
     await expect(page.getByText('value: 2026-10-01')).toBeVisible();
     await expect(page.getByLabel('Registreringsdatum')).toHaveAttribute('placeholder', 'åååå-mm-dd');
   });
 });
 
-test('4.12: useFormatDate follows the provider (th พ.ศ., en and sv Gregorian, English without one)', async ({ page }) => {
+test('4.12: useFormatDate follows the provider (th พ.ศ., en and sv Gregorian, English without one)', async ({
+  page,
+}) => {
   await story(page, 'aura-new-in-4-11--format-date-hook');
   const t = await page.getByTestId('due').allInnerTexts();
   expect(t[0]).toMatch(/กันยายน 2569/);
@@ -741,7 +832,9 @@ test.describe('4.13: Chamber-OS group B', () => {
     await expect(page.locator('.aura-toast--danger')).toHaveAttribute('role', 'alert');
     await expect(page.locator('.aura-toast--success')).toHaveAttribute('role', 'status');
   });
-  test('PasswordField + FormErrorSummary with react-hook-form: summary takes focus, links use setFocus', async ({ page }) => {
+  test('PasswordField + FormErrorSummary with react-hook-form: summary takes focus, links use setFocus', async ({
+    page,
+  }) => {
     await s413(page, 'sign-in-form');
     await page.getByRole('button', { name: 'Sign in' }).click();
     const summary = page.getByRole('alert').filter({ hasText: 'Fix 2 fields to continue' });
@@ -780,12 +873,17 @@ test.describe('4.13: Chamber-OS group B', () => {
     await expect.poll(() => page.evaluate(() => location.search)).toMatch(/q=a.*tier=SME|tier=SME.*q=a/);
   });
   test('aura-prose: links use fg-accent in both themes', async ({ page }) => {
-    for (const [theme, rgb] of [['light', 'rgb(109, 40, 217)'], ['dark', 'rgb(196, 181, 253)']]) {
+    for (const [theme, rgb] of [
+      ['light', 'rgb(109, 40, 217)'],
+      ['dark', 'rgb(196, 181, 253)'],
+    ]) {
       await s413(page, 'prose', theme);
       expect(await page.locator('.aura-prose a').evaluate((e) => getComputedStyle(e).color), theme).toBe(rgb);
     }
   });
-  test('Command: ⌘K opens, arrows skip disabled items, Enter runs, Escape returns focus; opens above a Dialog', async ({ page }) => {
+  test('Command: ⌘K opens, arrows skip disabled items, Enter runs, Escape returns focus; opens above a Dialog', async ({
+    page,
+  }) => {
     await s413(page, 'command-palette');
     const opener = page.getByRole('button', { name: 'Open command menu' }).first();
     await opener.focus();
@@ -799,7 +897,9 @@ test.describe('4.13: Chamber-OS group B', () => {
     await expect(input).toHaveCount(0);
     await opener.click();
     await expect(input).toBeFocused();
-    await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
     const activeId = await input.getAttribute('aria-activedescendant');
     await expect(page.locator(`[id="${activeId}"]`)).toContainText('New invoice'); // Settings (disabled) skipped
     await page.keyboard.press('Escape');
@@ -816,7 +916,9 @@ test.describe('4.13: Chamber-OS group B', () => {
 test.describe('4.14: compact density', () => {
   const s414 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-14--' + id, theme);
   const h = (l: import('@playwright/test').Locator) => l.evaluate((e) => Math.round(e.getBoundingClientRect().height));
-  test('provider compact: 36px fields and buttons, 40px rows, the Dialog too; the virtual table reaches its last row', async ({ page }) => {
+  test('provider compact: 36px fields and buttons, 40px rows, the Dialog too; the virtual table reaches its last row', async ({
+    page,
+  }) => {
     await s414(page, 'compact');
     expect(await h(page.getByRole('button', { name: 'Export' }))).toBe(36);
     expect(await h(page.locator('.aura-input').first())).toBe(36);
@@ -848,5 +950,67 @@ test.describe('4.14: compact density', () => {
       expect(await h(page.locator('.aura-input').first())).toBe(44);
       expect(await h(page.locator('.aura-table__row').first())).toBe(48);
     });
+  });
+});
+
+test.describe('4.15: SideNav rail', () => {
+  const s415 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-15--' + id, theme);
+  const w = (l: import('@playwright/test').Locator) => l.evaluate((e) => Math.round(e.getBoundingClientRect().width));
+  test('collapsed rail: 64px, labels stay the names, tooltip on hover and focus, dot for counts, arrows work', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await s415(page, 'collapsible-nav');
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    await expect(nav).toHaveAttribute('data-collapsed', '');
+    await expect.poll(() => w(nav)).toBe(64);
+    const orders = page.getByRole('button', { name: /^Orders/ });
+    await expect(orders).toBeVisible();
+    await expect(orders.locator('.aura-nav__dot')).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Reports' }).locator('.aura-nav__initial')).toHaveText('R');
+    // the active page sits in Billing: its icon carries the selected state
+    await expect(page.getByRole('button', { name: 'Billing' })).toHaveClass(/has-active/);
+    await orders.hover();
+    const tip = page.locator('.aura-tooltip--right');
+    await expect(tip).toHaveText('Orders');
+    await expect(tip).toHaveAttribute('aria-hidden', 'true');
+    const dash = page.getByRole('button', { name: 'Dashboard' });
+    await dash.focus();
+    await expect(tip).toHaveText('Dashboard');
+    await page.keyboard.press('ArrowDown');
+    await expect(orders).toBeFocused();
+    await expect(tip).toHaveText('Orders');
+    await page.keyboard.press('Escape');
+    await expect(tip).toHaveCount(0);
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('state')).toHaveText('Page: orders · collapsed: true');
+  });
+  test('toggle and group: the button expands and collapses; a group clicked in the rail expands and opens', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await s415(page, 'collapsible-nav');
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    await page.getByRole('button', { name: 'Expand sidebar' }).click();
+    await expect(page.getByTestId('state')).toContainText('collapsed: false');
+    await expect.poll(() => w(nav)).toBe(240);
+    await expect(nav.getByText('Chamber OS')).toBeVisible();
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    await expect.poll(() => w(nav)).toBe(64);
+    const billing = page.getByRole('button', { name: 'Billing' });
+    await expect(billing).toHaveAttribute('aria-expanded', 'false');
+    await billing.click();
+    await expect(page.getByTestId('state')).toContainText('collapsed: false');
+    await expect(billing).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('button', { name: 'Payments' })).toBeVisible();
+  });
+  test('phones: the AppShell drawer shows the full nav, never the rail or the toggle', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await s415(page, 'collapsible-nav');
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    const nav = page.getByRole('dialog').getByRole('navigation', { name: 'Main' });
+    await expect(nav).not.toHaveAttribute('data-collapsed', '');
+    await expect(nav.getByText('Orders', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: /sidebar/ })).toHaveCount(0);
   });
 });

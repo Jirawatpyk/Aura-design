@@ -239,6 +239,7 @@ size/dialog-sm,number,light,400,,GAP
 size/dialog-md,number,light,560,,GAP
 size/dialog-lg,number,light,720,,GAP
 size/sidenav-width,number,light,240,,GAP
+size/sidenav-rail-width,number,light,64,SideNav collapsed to an icon-only rail (`collapsed`). ADDED 4.15.,GAP
 size/tooltip-max,number,light,240,,GAP
 size/drawer-sm,number,light,360,"Drawer width, small (filters, quick detail). ADDED 4.2.",GAP
 size/drawer-md,number,light,480,"Drawer width, default (record detail). ADDED 4.2.",GAP

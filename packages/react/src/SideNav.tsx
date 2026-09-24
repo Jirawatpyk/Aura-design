@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './Icon.js';
+import { IconButton } from './IconButton.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { NavItem, SideNavProps } from './types.js';
@@ -25,6 +27,43 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
     props.onChange as ((id: string | undefined) => void) | undefined,
   );
   const active = st[0];
+  /* Rail: icon-only. Labels stay in the DOM (visually hidden) so they remain the accessible names. */
+  const col = useMaybeControlled<boolean>(props.collapsed, !!props.defaultCollapsed, props.onCollapsedChange);
+  const collapsed = col[0];
+  /* One tooltip for the whole rail: aria-hidden, because each item's label is already its name. */
+  const tipState = React.useState<{ text: string; top: number; left: number } | null>(null),
+    tip = tipState[0],
+    setTip = tipState[1];
+  React.useEffect(
+    function () {
+      if (!collapsed) setTip(null);
+    },
+    [collapsed],
+  );
+  React.useEffect(
+    function () {
+      if (!tip) return;
+      function esc(e: KeyboardEvent) {
+        if (e.key === 'Escape') setTip(null);
+      }
+      document.addEventListener('keydown', esc);
+      return function () {
+        document.removeEventListener('keydown', esc);
+      };
+    },
+    [tip],
+  );
+  function tipHandlers(label: string) {
+    if (!collapsed) return {};
+    function show(e: React.SyntheticEvent<HTMLElement>) {
+      const r = e.currentTarget.getBoundingClientRect();
+      setTip({ text: label, top: r.top + r.height / 2, left: r.right + 8 });
+    }
+    function hide() {
+      setTip(null);
+    }
+    return { onMouseEnter: show, onFocus: show, onMouseLeave: hide, onBlur: hide };
+  }
   const sections = props.sections || [{ items: props.items || [] }];
   /* Open groups: explicitly toggled ones remember their state; untouched ones follow defaultOpen / the active item. */
   const openState = React.useState<Record<string, boolean>>({}),
@@ -79,8 +118,16 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
     visible[j].focus();
   }
   function inner(it: NavItem, group: boolean, open: boolean) {
+    const marked = (it.count != null && it.count > 0) || it.badge != null;
     return [
-      it.icon ? <Icon key="i" name={it.icon} /> : null,
+      it.icon ? (
+        <Icon key="i" name={it.icon} />
+      ) : collapsed ? (
+        <span key="i" className="aura-nav__initial" aria-hidden="true">
+          {it.label.charAt(0)}
+        </span>
+      ) : null,
+      collapsed && marked ? <span key="d" className="aura-nav__dot" aria-hidden="true" /> : null,
       <span key="l" className="aura-nav__label">
         {it.label}
       </span>,
@@ -99,7 +146,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
   }
   function item(it: NavItem, depth: number) {
     if (it.children) {
-      const open = isOpen(it);
+      const open = !collapsed && isOpen(it);
       const listId = base + '-' + it.id;
       const holdsActive = contains(it, active);
       return (
@@ -110,10 +157,16 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
             aria-expanded={open}
             aria-controls={listId}
             style={depth ? ({ ['--aura-nav-depth' as string]: depth } as React.CSSProperties) : undefined}
+            {...tipHandlers(it.label)}
             onClick={function () {
               const next: Record<string, boolean> = Object.assign({}, toggled);
               next[it.id] = !open;
               setToggled(next);
+              /* In the rail a group can't show its items: widen the nav and open the group. */
+              if (collapsed) {
+                setTip(null);
+                col[1](false);
+              }
             }}
             onKeyDown={function (e: React.KeyboardEvent) {
               if (e.key === 'ArrowRight' && !open) {
@@ -137,6 +190,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
     }
     const on = active === it.id;
     const common = {
+      ...tipHandlers(it.label),
       className: cx('aura-nav__item', on && 'is-active'),
       'aria-current': on ? ('page' as const) : undefined,
       style: depth ? ({ ['--aura-nav-depth' as string]: depth } as React.CSSProperties) : undefined,
@@ -166,7 +220,8 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         if (typeof ref === 'function') ref(el);
         else if (ref) ref.current = el;
       }}
-      className={cx('aura-nav', props.className)}
+      className={cx('aura-nav', collapsed && 'aura-nav--collapsed', props.className)}
+      data-collapsed={collapsed ? '' : undefined}
       aria-label={props.label || t.mainNav}
       onKeyDown={onKeyDown}
     >
@@ -186,6 +241,31 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         })}
       </div>
       {props.footer ? <div className="aura-nav__footer">{props.footer}</div> : null}
+      {props.collapsible ? (
+        <div className="aura-nav__toggle">
+          <IconButton
+            icon={collapsed ? 'panel-left-open' : 'panel-left-close'}
+            label={collapsed ? t.expandNav : t.collapseNav}
+            size="md"
+            onClick={function () {
+              setTip(null);
+              col[1](!collapsed);
+            }}
+          />
+        </div>
+      ) : null}
+      {tip && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              className="aura-tooltip aura-tooltip--right"
+              aria-hidden="true"
+              style={{ top: tip.top, left: tip.left }}
+            >
+              {tip.text}
+            </div>,
+            document.body,
+          )
+        : null}
     </nav>
   );
 });

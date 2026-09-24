@@ -28,6 +28,8 @@ export interface AuraStrings {
   breadcrumb: string;
   navigation: string;
   openNav: string;
+  collapseNav: string;
+  expandNav: string;
   searching: string;
   noMatches: string;
   clear: (what?: string) => string;
@@ -108,6 +110,8 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     breadcrumb: 'Breadcrumb',
     navigation: 'Navigation',
     openNav: 'Open navigation',
+    collapseNav: 'Collapse sidebar',
+    expandNav: 'Expand sidebar',
     searching: 'Searching…',
     noMatches: 'No matches',
     clear: function (what) {
@@ -219,6 +223,8 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     breadcrumb: 'เส้นทาง',
     navigation: 'เมนู',
     openNav: 'เปิดเมนู',
+    collapseNav: 'ย่อแถบเมนู',
+    expandNav: 'ขยายแถบเมนู',
     searching: 'กำลังค้นหา…',
     noMatches: 'ไม่พบรายการที่ตรงกัน',
     clear: function (what) {
@@ -330,6 +336,8 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     breadcrumb: 'Brödsmulor',
     navigation: 'Navigering',
     openNav: 'Öppna menyn',
+    collapseNav: 'Fäll ihop sidofältet',
+    expandNav: 'Fäll ut sidofältet',
     searching: 'Söker…',
     noMatches: 'Inga träffar',
     clear: function (what) {

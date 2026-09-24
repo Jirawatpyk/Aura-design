@@ -157,7 +157,7 @@ export interface DataTableProps {
 }
 /** An AURA icon name, or any icon element (e.g. `<Building />` from lucide-react). AURA sizes it and hides it from screen readers. */
 export type IconInput = IconName | React$1.ReactElement;
-export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor";
+export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor" | "panel-left-close" | "panel-left-open";
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
 	/** A name from the set, or an icon element of your own (sized and styled the same way). */
@@ -529,6 +529,15 @@ export interface SideNavProps {
 	label?: string;
 	/** Router link for items with `href`; defaults to the AuraProvider's `linkComponent`, then `<a>`. */
 	linkComponent?: React$1.ElementType;
+	/** Icon-only rail (`aura-sidenav-rail-width`, 64px). Labels show as tooltips and stay the accessible names; a group
+	 * expands the rail when clicked. Controlled; pair with `onCollapsedChange`. */
+	collapsed?: boolean;
+	/** Starting state when `collapsed` isn't controlled. Default false. */
+	defaultCollapsed?: boolean;
+	/** Called by the toggle button, and by a group clicked in the rail (with `false`). Save it to keep the choice. */
+	onCollapsedChange?: (collapsed: boolean) => void;
+	/** Adds a collapse / expand button at the bottom. AppShell hides it in its phone drawer. */
+	collapsible?: boolean;
 	className?: string;
 }
 export interface BreadcrumbProps {
@@ -1151,6 +1160,8 @@ export interface AuraStrings {
 	breadcrumb: string;
 	navigation: string;
 	openNav: string;
+	collapseNav: string;
+	expandNav: string;
 	searching: string;
 	noMatches: string;
 	clear: (what?: string) => string;

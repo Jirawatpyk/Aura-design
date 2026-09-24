@@ -96,6 +96,17 @@ Compact makes fields and buttons 36px (from 44px), table rows 40px (from 48px) a
 
 Motion: skeleton pulses and indeterminate bars honour `prefers-reduced-motion: reduce` — skeletons stop (a static bar), spinners and progress bars slow to a third.
 
+## Collapsible sidebar
+
+```tsx
+const [collapsed, setCollapsed] = useState(initialFromCookie); // keep the choice across reloads
+<AppShell nav={<SideNav collapsible collapsed={collapsed} onCollapsedChange={setCollapsed} items={items} />}>
+  …
+</AppShell>;
+```
+
+`collapsed` turns SideNav into a 64px icon-only rail (`--aura-sidenav-rail-width`). Labels become tooltips and stay the accessible names; counts and badges show as a dot; items without an icon show their first letter; clicking a group widens the rail and opens it. `collapsible` adds the collapse / expand button at the bottom. Uncontrolled: `defaultCollapsed`. Pass a short header while collapsed (a logo mark instead of the name). In AppShell's phone drawer the nav is always full width with no toggle.
+
 ## Toasts, forms, filters, rich text, ⌘K
 
 ```tsx
