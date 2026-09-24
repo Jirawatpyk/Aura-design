@@ -2,16 +2,19 @@
  * declarations are generated from the sources by tsc. */
 import type * as React from 'react';
 
+/** Button look. */
+export type ButtonVariant = 'primary' | 'secondary' | 'creative' | 'danger' | 'danger-secondary';
+
 /** AURA pill button. Enterprise (`primary`, `secondary`) for product UI; `creative` for marketing moments only. */
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Visual variant. Default `primary`. */
-  variant?: 'primary' | 'secondary' | 'creative';
+  /** Visual variant. Default `primary`. `danger` (filled) and `danger-secondary` (outline) are for irreversible or destructive actions only — typically the confirm button of a `Dialog role="alertdialog"`. */
+  variant?: ButtonVariant;
   /** Label text — short, Title Case English or Thai. */
   children: React.ReactNode;
   /** Leading icon name (see `IconName`). Hidden while loading. */
-  icon?: IconName;
+  icon?: IconInput;
   /** Trailing icon name, e.g. `arrow-right` for forward actions. */
-  iconRight?: IconName;
+  iconRight?: IconInput;
   /** Shows a spinner in place of the leading icon, sets aria-busy and swallows clicks. Keeps the label and width. */
   loading?: boolean;
 }
@@ -20,13 +23,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'children'> {
   /** Where the link goes. With `href`, Button renders an `<a>` and its ref is the `<a>`. */
   href: string;
-  /** Visual variant. Default `primary`. */
-  variant?: 'primary' | 'secondary' | 'creative';
+  /** Visual variant. Default `primary`. `danger` (filled) and `danger-secondary` (outline) are for irreversible or destructive actions only — typically the confirm button of a `Dialog role="alertdialog"`. */
+  variant?: ButtonVariant;
   /** Label text — say where it goes ("View Orders"), not "Click here". */
   children: React.ReactNode;
-  icon?: IconName;
+  icon?: IconInput;
   /** Trailing icon, e.g. `arrow-right`, or `external-link` with `target="_blank"`. */
-  iconRight?: IconName;
+  iconRight?: IconInput;
   /** Looks unavailable and can't be followed: no href, `aria-disabled`, out of the Tab order. */
   disabled?: boolean;
   /** A router's link to render instead of `<a>`, e.g. `Link` from `next/link` (client-side navigation). It gets `href`, `className`, the children and the ref. */
@@ -65,6 +68,8 @@ export interface DataTableColumn {
   hideBelow?: number | 'sm' | 'md' | 'lg' | 'xl';
   /** Row actions (a DropdownMenu or IconButton). In stacked cards it sits top-right instead of in the field list. Give it an empty label. */
   actions?: boolean;
+  /** `end` right-aligns header and cells (amounts, counts) and uses tabular figures. Default `start`. */
+  align?: 'start' | 'end';
 }
 export interface DataTableSort {
   key: string;
@@ -72,7 +77,7 @@ export interface DataTableSort {
 }
 export interface DataTableEmpty {
   /** Default `inbox`; use `search` for "no matches". */
-  icon?: IconName;
+  icon?: IconInput;
   /** Default "Nothing here yet". */
   title?: string;
   description?: string;
@@ -112,8 +117,20 @@ export interface DataTableProps {
   /** Adds drag/keyboard resize handles to every column that has a width. */
   resizable?: boolean;
   onColumnResize?: (key: string, width: number) => void;
-  /** Shows skeleton rows and disables sorting, select-all and paging. */
+  /** Shows skeleton rows and disables sorting, select-all and paging. With `manual` and rows already shown, the rows stay (dimmed, with a progress bar) while the next page loads. */
   loading?: boolean;
+  /** Server mode: `rows` is already the current page, sorted by the server. The table doesn't sort or slice; it reports
+   * sort and page through onSortChange / onPageChange (or getPageHref links). Pair with `totalRows` and `pageSize`. */
+  manual?: boolean;
+  /** manual: rows across all pages (drives the page count, "1–25 of 312" and aria-rowcount). */
+  totalRows?: number;
+  /** Makes each row a link: the first column's content renders as the provider's linkComponent (or `<a>`), and a click
+   * or Enter anywhere on the row follows it. Ctrl/⌘-click opens a new tab as usual. */
+  getRowHref?: (row: Record<string, any>) => string;
+  /** Pager arrows become links to these URLs (search-param paging). Without onPageChange the link navigates. */
+  getPageHref?: (page: number) => string;
+  /** Router link for getRowHref / getPageHref. Default: AuraProvider's linkComponent, else `<a>`. */
+  linkComponent?: React.ElementType;
   /** Skeleton row count when there is no pageSize. Default 5. */
   skeletonRows?: number;
   /** Called on row click or Enter. */
@@ -138,6 +155,8 @@ export interface DataTableProps {
   className?: string;
 }
 
+/** An AURA icon name, or any icon element (e.g. `<Building />` from lucide-react). AURA sizes it and hides it from screen readers. */
+export type IconInput = IconName | React.ReactElement;
 export type IconName =
   | 'check'
   | 'x'
@@ -204,7 +223,8 @@ export type IconName =
 
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
-  name: IconName;
+  /** A name from the set, or an icon element of your own (sized and styled the same way). */
+  name: IconInput;
   /** `sm` 16 (default) · `md` 20 · `lg` 24, or a px number. */
   size?: 'sm' | 'md' | 'lg' | number;
   /** Accessible name. Omit for decorative icons next to a text label (then aria-hidden). */
@@ -224,12 +244,14 @@ export interface SurfaceProps extends React.HTMLAttributes<HTMLElement> {
 }
 /** Sets the language of built-in labels (pagination, close buttons, empty states…) and the default date display for everything inside. */
 export interface AuraProviderProps {
-  /** Default `en` strings when there is no provider (dates still default to Thai / พ.ศ.). */
-  locale?: 'th' | 'en';
-  /** Default calendar for DatePicker / DateRangePicker / Calendar / formatDate callers that read it. */
+  /** Built-in labels and date display. `sv` = Swedish labels, `sv-SE` dates, Monday weeks and the Gregorian calendar. Default `en` strings when there is no provider (dates still default to Thai / พ.ศ.). */
+  locale?: 'th' | 'en' | 'sv';
+  /** Default calendar for DatePicker / DateRangePicker / Calendar / formatDate callers that read it. Unset: `buddhist` for `th` and `en` (unchanged), `gregory` for `sv`. */
   calendar?: 'buddhist' | 'gregory';
   /** Override individual strings. */
   strings?: Partial<Record<string, string | ((...args: any[]) => string)>>;
+  /** Your router's link (e.g. `Link` from `next/link`), used by every AURA component that renders a link: Button with `href`, SideNav, Breadcrumb, Stat, Pagination, DataTable row links. It gets `href`, `className`, `aria-current`, the children and the ref. A component's own `linkComponent` wins. */
+  linkComponent?: React.ElementType;
   children?: React.ReactNode;
 }
 
@@ -266,7 +288,9 @@ export interface CheckboxProps extends Omit<
 
 /** 32px round button holding one icon. */
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  icon: IconName;
+  icon: IconInput;
+  /** `danger` colours the icon and hover for a destructive action (Delete, Revoke). */
+  tone?: 'neutral' | 'danger';
   /** Accessible name and tooltip (required). */
   label: string;
   /** Icon size. Default `sm` (16). */
@@ -275,7 +299,7 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 
 export interface MenuItem {
   label?: string;
-  icon?: IconName;
+  icon?: IconInput;
   /** Present = a checkable item (menuitemcheckbox). */
   checked?: boolean;
   disabled?: boolean;
@@ -315,7 +339,7 @@ interface FieldProps {
 }
 export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttributes<HTMLInputElement>, 'required'> {
   /** Leading icon inside the field. */
-  icon?: IconName;
+  icon?: IconInput;
   /** Trailing unit, e.g. "THB". */
   suffix?: React.ReactNode;
 }
@@ -326,7 +350,7 @@ export interface SelectProps extends FieldProps, Omit<React.SelectHTMLAttributes
   options: SelectOption[];
   /** A disabled first option shown in fg-tertiary until something is chosen. */
   placeholder?: string;
-  icon?: IconName;
+  icon?: IconInput;
 }
 export type ChoiceOption = string | { value: string; label: string; description?: string; disabled?: boolean };
 export interface RadioGroupProps extends FieldProps {
@@ -434,7 +458,7 @@ export interface CardProps {
 export interface TabItem {
   id: string;
   label: string;
-  icon?: IconName;
+  icon?: IconInput;
   count?: number;
   disabled?: boolean;
   content?: React.ReactNode;
@@ -451,9 +475,15 @@ export interface TabsProps {
 export interface NavItem {
   id: string;
   label: string;
-  icon?: IconName;
+  icon?: IconInput;
   count?: number;
+  /** Anything beside the label, e.g. a status dot or a `Badge`. */
+  badge?: React.ReactNode;
   href?: string;
+  /** Makes this item a collapsible group of links. The group header is a button, never a link. */
+  children?: NavItem[];
+  /** Start open. A group also opens by itself when one of its items is the current one. */
+  defaultOpen?: boolean;
 }
 export interface SideNavProps {
   sections?: Array<{ title?: string; items: NavItem[] }>;
@@ -465,6 +495,8 @@ export interface SideNavProps {
   footer?: React.ReactNode;
   /** Default "Main". */
   label?: string;
+  /** Router link for items with `href`; defaults to the AuraProvider's `linkComponent`, then `<a>`. */
+  linkComponent?: React.ElementType;
   className?: string;
 }
 export interface BreadcrumbProps {
@@ -502,7 +534,7 @@ export interface ComboboxOption {
   keywords?: string[];
   disabled?: boolean;
   /** Leading icon in the list. */
-  icon?: IconName;
+  icon?: IconInput;
 }
 /** Combobox with `multiple`: pick any number; the picks show as removable chips in the field. */
 export interface ComboboxMultipleProps extends Omit<
@@ -531,7 +563,7 @@ export interface ComboboxProps extends FieldProps {
   disabled?: boolean;
   readOnly?: boolean;
   /** Leading icon. Default `search`. */
-  icon?: IconName;
+  icon?: IconInput;
   /** Clear button while a value is selected (Escape clears too). Default true. */
   clearable?: boolean;
   /** Server-side search: called with the typed text; the component stops filtering and shows `options` as given. */
@@ -598,7 +630,7 @@ export interface StepperProps {
 export interface SegmentedOption {
   value: string;
   label: string;
-  icon?: IconName;
+  icon?: IconInput;
   /** Show only the icon; `label` becomes its accessible name and tooltip. */
   iconOnly?: boolean;
   disabled?: boolean;
@@ -623,9 +655,9 @@ export interface SegmentedControlProps {
 /** ISO date string, `YYYY-MM-DD` (Gregorian — the era is display only). */
 export type ISODate = string;
 export interface DateDisplayOptions {
-  /** `th` (default) or `en`. */
-  locale?: 'th' | 'en';
-  /** `buddhist` (default, พ.ศ.) or `gregory` (ค.ศ.). */
+  /** `th` (default), `en` or `sv`. */
+  locale?: 'th' | 'en' | 'sv';
+  /** `buddhist` (พ.ศ.; default for th and en) or `gregory` (ค.ศ.; default for sv). */
   calendar?: 'buddhist' | 'gregory';
 }
 export interface CalendarProps extends DateDisplayOptions {
@@ -752,7 +784,7 @@ export interface StatProps {
   unit?: React.ReactNode;
   change?: StatChange;
   caption?: React.ReactNode;
-  icon?: IconName;
+  icon?: IconInput;
   /** Skeleton in place of the value. */
   loading?: boolean;
   /** Makes the whole card a link or a button (drill-down). */
@@ -823,11 +855,11 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   tone?: Tone;
   /** soft (default) · solid · outline */
   variant?: 'soft' | 'solid' | 'outline';
-  icon?: IconName;
+  icon?: IconInput;
 }
 export interface TagProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onClick'> {
   children: React.ReactNode;
-  icon?: IconName;
+  icon?: IconInput;
   /** Adds a remove button (applied filters, chosen people). */
   onRemove?: () => void;
   removeLabel?: string;
@@ -864,7 +896,7 @@ export interface SkeletonProps {
 export interface EmptyStateProps {
   title: React.ReactNode;
   description?: React.ReactNode;
-  icon?: IconName;
+  icon?: IconInput;
   /** One or two buttons. */
   action?: React.ReactNode;
   size?: 'sm' | 'md';
@@ -890,7 +922,7 @@ export interface AccordionItem {
   title: React.ReactNode;
   description?: React.ReactNode;
   content: React.ReactNode;
-  icon?: IconName;
+  icon?: IconInput;
   disabled?: boolean;
 }
 export interface AccordionProps {

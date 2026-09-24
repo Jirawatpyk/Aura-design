@@ -46,8 +46,88 @@ function same(a: Date | null | undefined, b: Date | null | undefined): boolean {
     !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
   );
 }
+const TAGS: Record<string, string> = { th: 'th-TH', en: 'en-GB', sv: 'sv-SE' };
+/** The calendar when none is set: Gregorian for Swedish, Buddhist for Thai and English (as before 4.10). */
+function defaultCalendar(locale: string | null | undefined): 'buddhist' | 'gregory' {
+  return locale === 'sv' ? 'gregory' : 'buddhist';
+}
 function localeTag(locale: string | null | undefined, calendar: string | null | undefined): string {
-  return (locale === 'en' ? 'en-GB' : 'th-TH') + '-u-ca-' + (calendar === 'gregory' ? 'gregory' : 'buddhist');
+  const cal = calendar || defaultCalendar(locale);
+  return (TAGS[locale || 'th'] || 'th-TH') + '-u-ca-' + (cal === 'gregory' ? 'gregory' : 'buddhist');
+}
+/* Built-in text of the date components, by date locale (independent of AuraProvider strings, which default to English). */
+type DateText = {
+  prevYears: string;
+  nextYears: string;
+  prevMonth: string;
+  nextMonth: string;
+  today: string;
+  clear: string;
+  chooseDate: string;
+  datePlaceholder: string;
+  clearDate: string;
+  openCalendar: string;
+  chooseDates: string;
+  rangePlaceholder: string;
+  clearDates: string;
+  chooseStart: string;
+  chooseEnd: string;
+};
+const DATE_TEXT: Record<string, DateText> = {
+  th: {
+    prevYears: 'ช่วงปีก่อนหน้า',
+    nextYears: 'ช่วงปีถัดไป',
+    prevMonth: 'เดือนก่อนหน้า',
+    nextMonth: 'เดือนถัดไป',
+    today: 'วันนี้',
+    clear: 'ล้าง',
+    chooseDate: 'เลือกวันที่',
+    datePlaceholder: 'วว/ดด/ปปปป',
+    clearDate: 'ล้างวันที่',
+    openCalendar: 'เปิดปฏิทิน',
+    chooseDates: 'เลือกช่วงวันที่',
+    rangePlaceholder: 'วว/ดด/ปปปป – วว/ดด/ปปปป',
+    clearDates: 'ล้างช่วงวันที่',
+    chooseStart: 'เลือกวันเริ่มต้น',
+    chooseEnd: 'เลือกวันสิ้นสุด',
+  },
+  en: {
+    prevYears: 'Previous years',
+    nextYears: 'Next years',
+    prevMonth: 'Previous month',
+    nextMonth: 'Next month',
+    today: 'Today',
+    clear: 'Clear',
+    chooseDate: 'Choose date',
+    datePlaceholder: 'dd/mm/yyyy',
+    clearDate: 'Clear date',
+    openCalendar: 'Open calendar',
+    chooseDates: 'Choose dates',
+    rangePlaceholder: 'dd/mm/yyyy – dd/mm/yyyy',
+    clearDates: 'Clear dates',
+    chooseStart: 'Choose the start date',
+    chooseEnd: 'Choose the end date',
+  },
+  sv: {
+    prevYears: 'Tidigare år',
+    nextYears: 'Senare år',
+    prevMonth: 'Föregående månad',
+    nextMonth: 'Nästa månad',
+    today: 'Idag',
+    clear: 'Rensa',
+    chooseDate: 'Välj datum',
+    datePlaceholder: 'åååå-mm-dd',
+    clearDate: 'Rensa datum',
+    openCalendar: 'Öppna kalendern',
+    chooseDates: 'Välj datum',
+    rangePlaceholder: 'åååå-mm-dd – åååå-mm-dd',
+    clearDates: 'Rensa datumen',
+    chooseStart: 'Välj startdatum',
+    chooseEnd: 'Välj slutdatum',
+  },
+};
+function dateText(locale: string | null | undefined): DateText {
+  return DATE_TEXT[locale || 'th'] || DATE_TEXT.th;
 }
 const fmtCache: Record<string, Intl.DateTimeFormat> = {};
 const PRESETS: Record<string, Intl.DateTimeFormatOptions> = {
@@ -72,7 +152,7 @@ let MONTHS: Record<string, number> | null = null;
 function monthIndex(word: string): number {
   if (!MONTHS) {
     MONTHS = {};
-    ['th-TH', 'en-GB'].forEach(function (tag: string) {
+    ['th-TH', 'en-GB', 'sv-SE'].forEach(function (tag: string) {
       (['short', 'long'] as const).forEach(function (w: 'short' | 'long') {
         for (let i = 0; i < 12; i++) {
           const n = new Intl.DateTimeFormat(tag, { month: w })
@@ -80,7 +160,7 @@ function monthIndex(word: string): number {
             .toLowerCase()
             .replace(/\.$/, '');
           MONTHS![n] = i;
-          if (/^[a-z]/.test(n)) MONTHS![n.slice(0, 3)] = i;
+          if (/^[a-zåäö]/.test(n)) MONTHS![n.slice(0, 3)] = i;
         }
       });
     });
@@ -117,9 +197,9 @@ export function parseDate(text: string | null | undefined): ISODate | null {
 export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function Calendar(props, ref) {
   const ctx = useAuraLocale(),
     locale = props.locale || ctx.locale || 'th',
-    calendar = props.calendar || ctx.calendar || 'buddhist',
+    calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
     tag = localeTag(locale, calendar);
-  const weekStart = props.weekStartsOn == null ? 0 : props.weekStartsOn;
+  const weekStart = props.weekStartsOn == null ? (locale === 'sv' ? 1 : 0) : props.weekStartsOn;
   let today = new Date();
   today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const min = fromISO(props.min),
@@ -136,7 +216,8 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
   const gridRef = React.useRef<HTMLDivElement | null>(null),
     gridMerged = useMergedRef(ref, gridRef),
     moved = React.useRef(false);
-  const th = locale !== 'en';
+  const th = locale === 'th';
+  const dt = dateText(locale);
 
   function disabled(d: Date): boolean {
     return !!(
@@ -214,7 +295,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
         <div className="aura-cal__head">
           <IconButton
             icon="chevron-left"
-            label={th ? 'ช่วงปีก่อนหน้า' : 'Previous years'}
+            label={dt.prevYears}
             onClick={function () {
               setFocus(new Date(yr - 12, focusDate.getMonth(), 1));
             }}
@@ -232,7 +313,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
           </button>
           <IconButton
             icon="chevron-right"
-            label={th ? 'ช่วงปีถัดไป' : 'Next years'}
+            label={dt.nextYears}
             onClick={function () {
               setFocus(new Date(yr + 12, focusDate.getMonth(), 1));
             }}
@@ -267,7 +348,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
       <div className="aura-cal__head">
         <IconButton
           icon="chevron-left"
-          label={th ? 'เดือนก่อนหน้า' : 'Previous month'}
+          label={dt.prevMonth}
           onClick={function () {
             setFocus(addMonths(focusDate, -1));
           }}
@@ -285,7 +366,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
         </button>
         <IconButton
           icon="chevron-right"
-          label={th ? 'เดือนถัดไป' : 'Next month'}
+          label={dt.nextMonth}
           onClick={function () {
             setFocus(addMonths(focusDate, 1));
           }}
@@ -375,11 +456,11 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
               props.onSelect!(toISO(today));
             }}
           >
-            {th ? 'วันนี้' : 'Today'}
+            {dt.today}
           </button>
           {props.onClear ? (
             <button type="button" className="aura-cal__link" onClick={props.onClear}>
-              {th ? 'ล้าง' : 'Clear'}
+              {dt.clear}
             </button>
           ) : null}
         </div>
@@ -549,8 +630,8 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
     dialogId = id + '-cal';
   const ctx = useAuraLocale(),
     locale = props.locale || ctx.locale || 'th',
-    calendar = props.calendar || ctx.calendar || 'buddhist',
-    th = locale !== 'en';
+    calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
+    dt = dateText(locale);
   const st = useMaybeControlled<ISODate | null>(
     props.value,
     props.defaultValue == null ? null : props.defaultValue,
@@ -580,7 +661,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
             id={dialogId}
             role="dialog"
             aria-modal={false}
-            aria-label={props.label || (th ? 'เลือกวันที่' : 'Choose date')}
+            aria-label={props.label || dt.chooseDate}
             className="aura-cal__popover"
             style={pop.pos}
             onKeyDown={function (e: React.KeyboardEvent) {
@@ -625,15 +706,15 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
         inputRef={inputMerged}
         open={pop.open}
         display={formatDate(st[0], { locale: locale, calendar: calendar })}
-        placeholder={props.placeholder || (th ? 'วว/ดด/ปปปป' : 'dd/mm/yyyy')}
+        placeholder={props.placeholder || dt.datePlaceholder}
         hasValue={st[0] != null}
         clearable={props.clearable}
         onClear={function () {
           st[1](null);
           inputRef.current && inputRef.current.focus();
         }}
-        clearLabel={th ? 'ล้างวันที่' : 'Clear date'}
-        toggleLabel={th ? 'เปิดปฏิทิน' : 'Open calendar'}
+        clearLabel={dt.clearDate}
+        toggleLabel={dt.openCalendar}
         onCommit={commit}
         onToggle={function (o: boolean) {
           pop.setOpen(o);
@@ -653,8 +734,8 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
       dialogId = id + '-cal';
     const ctx = useAuraLocale(),
       locale = props.locale || ctx.locale || 'th',
-      calendar = props.calendar || ctx.calendar || 'buddhist',
-      th = locale !== 'en';
+      calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
+      dt = dateText(locale);
     const st = useMaybeControlled<DateRange>(
       props.value,
       props.defaultValue || { start: null, end: null },
@@ -705,7 +786,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
               id={dialogId}
               role="dialog"
               aria-modal={false}
-              aria-label={props.label || (th ? 'เลือกช่วงวันที่' : 'Choose dates')}
+              aria-label={props.label || dt.chooseDates}
               className="aura-cal__popover"
               style={pop.pos}
               onKeyDown={function (e: React.KeyboardEvent) {
@@ -716,13 +797,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
               }}
             >
               <p className="aura-cal__hint" aria-live="polite">
-                {draft[0]
-                  ? th
-                    ? 'เลือกวันสิ้นสุด'
-                    : 'Choose the end date'
-                  : th
-                    ? 'เลือกวันเริ่มต้น'
-                    : 'Choose the start date'}
+                {draft[0] ? dt.chooseEnd : dt.chooseStart}
               </p>
               <Calendar
                 range={true}
@@ -758,15 +833,15 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
           inputRef={inputMerged}
           open={pop.open}
           display={show(v)}
-          placeholder={props.placeholder || (th ? 'วว/ดด/ปปปป – วว/ดด/ปปปป' : 'dd/mm/yyyy – dd/mm/yyyy')}
+          placeholder={props.placeholder || dt.rangePlaceholder}
           hasValue={v.start != null}
           clearable={props.clearable}
           onClear={function () {
             st[1]({ start: null, end: null });
             inputRef.current && inputRef.current.focus();
           }}
-          clearLabel={th ? 'ล้างช่วงวันที่' : 'Clear dates'}
-          toggleLabel={th ? 'เปิดปฏิทิน' : 'Open calendar'}
+          clearLabel={dt.clearDates}
+          toggleLabel={dt.openCalendar}
           onCommit={commit}
           onToggle={function (op: boolean) {
             pop.setOpen(op);

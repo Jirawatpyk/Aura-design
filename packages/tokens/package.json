@@ -10,6 +10,7 @@
     "aura-fonts.css",
     "tailwind.config.ts",
     "tailwind.tokens.cjs",
+    "aura-tailwind.css",
     "figma-variables.csv",
     "eslint-plugin-aura.js",
     "components/aura.bundle.js",
@@ -26,6 +27,7 @@
     "./aura-fonts.css": "./aura-fonts.css",
     "./tokens.json": "./tokens.json",
     "./tailwind": "./tailwind.tokens.cjs",
+    "./tailwind.css": "./aura-tailwind.css",
     "./components.js": "./components/aura.bundle.js",
     "./components.css": "./components/aura.components.css",
     "./eslint-plugin": "./eslint-plugin-aura.js"
@@ -33,8 +35,9 @@
   "scripts": {
     "build": "node scripts/build-tokens.js",
     "a11y": "node scripts/a11y-check.js",
+    "check:tailwind4": "node scripts/tailwind4-check.mjs",
     "lint:tokens": "node scripts/lint-tokens.js ../react/src && node scripts/lint-tokens.js ../react/styles",
-    "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css tailwind.tokens.cjs figma-variables.csv",
+    "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css tailwind.tokens.cjs aura-tailwind.css figma-variables.csv",
     "prepack": "npm run build"
   },
   "keywords": [

@@ -537,3 +537,107 @@ test.describe('4.9: multi-select, numbers, steps, segments', () => {
     await expect(nav.locator('.aura-stepper__compact')).toContainText('Step 2 of 4');
   });
 });
+
+test.describe('4.10: Chamber-OS group A', () => {
+  const s410 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-10--' + id, theme);
+  test('danger buttons: filled and outline pass contrast, IconButton tone="danger" is red', async ({ page }) => {
+    await s410(page, 'danger-actions');
+    const fill = await page.getByRole('button', { name: 'Delete invoice' }).evaluate((e) => getComputedStyle(e).backgroundColor);
+    expect(fill).toBe('rgb(185, 28, 28)'); // red-700
+    const out = page.getByRole('button', { name: 'Cancel membership' });
+    expect(await out.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+    expect(await page.getByRole('button', { name: 'Delete row' }).evaluate((e) => getComputedStyle(e).color)).toBe('rgb(185, 28, 28)');
+    await s410(page, 'danger-actions', 'dark');
+    expect(await page.getByRole('button', { name: 'Delete invoice' }).evaluate((e) => getComputedStyle(e).backgroundColor)).toBe('rgb(220, 38, 38)');
+  });
+  test('icon props take an element: sized like AURA icons and hidden from screen readers', async ({ page }) => {
+    await s410(page, 'custom-icons');
+    const btn = page.getByRole('button', { name: 'Members' });
+    const box = await btn.locator('.aura-icon--custom').boundingBox();
+    expect(Math.round(box!.width)).toBe(16);
+    await expect(btn.locator('.aura-icon--custom')).toHaveAttribute('aria-hidden', 'true');
+    await expect(page.getByRole('img', { name: 'Company' })).toBeVisible();
+  });
+  test('sv: Swedish strings, Gregorian year, Monday first', async ({ page }) => {
+    await s410(page, 'swedish');
+    await expect(page.getByLabel('Förfallodatum')).toHaveValue(/2026/);
+    await expect(page.getByRole('button', { name: 'Idag' })).toBeVisible();
+    const first = await page.locator('th[scope="col"]').first().textContent();
+    expect(first!.toLowerCase()).toMatch(/^m/);
+    await expect(page.getByRole('navigation', { name: /sid/i })).toBeVisible();
+  });
+  test('linkComponent from AuraProvider renders Breadcrumb, Button, Pagination and Stat links', async ({ page }) => {
+    await s410(page, 'router-links');
+    for (const name of ['Members', 'New invoice', 'Open invoices']) {
+      await expect(page.getByRole('link', { name }).first()).toHaveAttribute('data-router-link', '');
+    }
+    await page.getByRole('link', { name: 'New invoice' }).click();
+    await expect(page.getByTestId('route')).toHaveText('Route: /invoices/new');
+    await page.getByRole('link', { name: /page 3/i }).click();
+    await expect(page.getByTestId('route')).toHaveText('Route: /members?page=3');
+  });
+  test('SideNav: nested group open around the active leaf, arrows and Enter, badges', async ({ page }) => {
+    await s410(page, 'nested-nav');
+    const billing = page.getByRole('button', { name: /Billing/ });
+    await expect(billing).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('link', { name: /Invoices/ })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('[aria-current="page"]')).toHaveCount(1);
+    const members = page.getByRole('button', { name: /Members/ });
+    await expect(members).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByRole('link', { name: 'Companies' })).toBeHidden();
+    await members.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(members).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('link', { name: 'Companies' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('route')).toHaveText('Route: /companies');
+    await expect(page.getByRole('link', { name: 'Companies' })).toHaveAttribute('aria-current', 'page');
+    await members.focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect(members).toHaveAttribute('aria-expanded', 'false'); // closes even around the active page
+    await page.keyboard.press('Enter');
+    await expect(members).toHaveAttribute('aria-expanded', 'true');
+    await billing.click();
+    await expect(billing).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('.aura-nav__item--group .aura-nav__badge')).toContainText('4');
+  });
+  test('DataTable server mode: total from totalRows, controlled sort and page, rows stay while loading, row links', async ({ page }) => {
+    await s410(page, 'server-table');
+    const grid = page.getByRole('grid', { name: 'Invoices' });
+    await expect(grid).toHaveAttribute('aria-rowcount', '58');
+    await expect(page.getByText('1–10 of 57')).toBeVisible();
+    await expect(page.getByText('Page 1 of 6')).toBeVisible();
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect(page.locator('.aura-table.is-refreshing')).toHaveCount(1);
+    await expect(grid).toHaveAttribute('aria-busy', 'true');
+    await expect(page.locator('.aura-table__row').first()).toContainText('INV-1001'); // previous page kept
+    await expect(page.locator('.aura-table__row').first()).toContainText('INV-1011');
+    await expect(page.getByText('11–20 of 57')).toBeVisible();
+    await expect(page.locator('.aura-table.is-refreshing')).toHaveCount(0);
+    await page.getByRole('button', { name: /AMOUNT/ }).click();
+    await expect(page.getByText('Page 1 of 6')).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /AMOUNT/ })).toHaveAttribute('aria-sort', 'ascending');
+    await expect(page.locator('.aura-table__row').first()).toContainText('1,200.00 THB');
+    const amount = page.locator('.aura-table__td.is-end').first();
+    expect(await amount.evaluate((e) => getComputedStyle(e).textAlign)).toBe('end');
+    await page.locator('.aura-table__row').nth(1).locator('.aura-table__td').nth(1).click();
+    await expect(page.getByTestId('route')).toHaveText(/Route: \/invoices\/INV-/);
+    await page.locator('.aura-table__row').first().locator('[role="gridcell"]').nth(1).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('route')).toHaveText('Route: /invoices/INV-1001');
+  });
+  test('Stat text values use proportional figures; numbers stay tabular', async ({ page }) => {
+    await s410(page, 'fixes');
+    const v = page.locator('.aura-stat__value');
+    expect(await v.nth(0).evaluate((e) => getComputedStyle(e).fontVariantNumeric)).toBe('normal');
+    expect(await v.nth(1).evaluate((e) => getComputedStyle(e).fontVariantNumeric)).toBe('tabular-nums');
+  });
+  test('dark neutral pill is the calmest; skeleton bars visible on both themes', async ({ page }) => {
+    await s410(page, 'fixes', 'dark');
+    const bg = await page.getByText('Lapsed').evaluate((e) => getComputedStyle(e.closest('.aura-pill')!).backgroundColor);
+    expect(bg).toBe('rgb(39, 39, 42)'); // zinc-800
+    const sk = await page.locator('.aura-skel').first().evaluate((e) => getComputedStyle(e).backgroundColor);
+    expect(sk).toBe('rgb(63, 63, 70)'); // zinc-700
+  });
+});

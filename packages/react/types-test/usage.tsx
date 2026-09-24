@@ -107,3 +107,32 @@ export function General() {
     <Checkbox defaultChecked id="c1" description="Weekly">Email me</Checkbox>
   </>);
 }
+
+/* 4.10 */
+import { AuraProvider, Breadcrumb, Icon, ColorSchemeScript, type DataTableSort } from '../src/index';
+const RouterLink = React.forwardRef<HTMLAnchorElement, { href: string; className?: string; children?: React.ReactNode }>(
+  function RouterLink(p, ref) { return <a ref={ref} {...p} />; });
+export function V410() {
+  const [sort, setSort] = React.useState<DataTableSort | null>(null);
+  const svg = <svg viewBox="0 0 24 24" />;
+  return (
+    <AuraProvider locale="sv" linkComponent={RouterLink}>
+      <ColorSchemeScript nonce="abc123" />
+      <Button variant="danger" icon={svg}>Delete</Button>
+      <Button variant="danger-secondary" href="/x" iconRight={svg}>Cancel</Button>
+      <IconButton icon={svg} tone="danger" label="Delete" />
+      <Icon name={svg} label="Company" />
+      <Breadcrumb items={[{ label: 'Hem', href: '/' }, { label: 'Order' }]} />
+      <SideNav linkComponent={RouterLink} value="inv" items={[{ id: 'b', label: 'Billing', icon: svg, badge: <Badge>4</Badge>, defaultOpen: true, children: [{ id: 'inv', label: 'Invoices', href: '/inv', badge: 12 }] }]} />
+      <DataTable manual rows={[]} totalRows={312} pageSize={25} page={2} onPageChange={() => {}} sort={sort} onSortChange={setSort}
+        loading getRowHref={(r) => '/m/' + r.id} getPageHref={(p) => '?page=' + p} linkComponent={RouterLink}
+        columns={[{ key: 'amount', label: 'AMOUNT', align: 'end' }]} />
+      {/* @ts-expect-error unknown locale */}
+      <AuraProvider locale="de" />
+      {/* @ts-expect-error unknown variant */}
+      <Button variant="warning">x</Button>
+      {/* @ts-expect-error align is start | end */}
+      <DataTable rows={[]} columns={[{ key: 'a', label: 'A', align: 'center' }]} />
+    </AuraProvider>
+  );
+}

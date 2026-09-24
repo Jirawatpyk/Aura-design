@@ -18,10 +18,18 @@ Give Button an `href` and it renders an `<a>` that looks the same — use it for
 | Prop | Type | Description |
 |---|---|---|
 | `href` * | `string` | Where it goes. |
-| `variant` | `'primary' \| 'secondary' \| 'creative'` | Default `primary`. |
-| `icon`, `iconRight` | `IconName` | `external-link` with `target="_blank"`. |
+| `variant` | `'primary' \| 'secondary' \| 'creative' \| 'danger' \| 'danger-secondary'` | Default `primary`. |
+| `icon`, `iconRight` | `IconName \| ReactElement` | `external-link` with `target="_blank"`, or your own icon element. |
 | `disabled` | `boolean` | No href, `aria-disabled`, out of the Tab order. |
-| `linkComponent` | `React.ElementType` | Router link rendered instead of `<a>`; gets `href`, `className`, children and the ref. |
+| `linkComponent` | `React.ElementType` | Router link rendered instead of `<a>`; gets `href`, `className`, children and the ref. Defaults to AuraProvider's `linkComponent`. |
+
+### Destructive actions
+
+`variant="danger"` (red fill) is for the one confirming action in a delete dialog; `variant="danger-secondary"` (red outline) for a destructive action that sits beside others on a page. `IconButton tone="danger"` for a row's delete. Keep the confirm dialog — colour alone doesn't make an action safe.
+
+### Your own icons
+
+Every `icon` prop (and `Icon name`) also takes an element, e.g. `<Button icon={<Building />}>` with lucide-react. AURA sizes it to the same box, strokes it at 2 in `currentColor` and hides it from screen readers.
 
 ## IconButton
 

@@ -9,7 +9,8 @@ Enterprise Standard, Human Creative. Tokens, Tailwind preset, Figma variables a 
 | `tokens.json` | **Source of truth.** 3-tier: primitive → semantic (light/dark) → component, plus spacing, radius, shadow (per theme), size, motion, opacity, z-index, typography. |
 | `aura.css` | Every token as a CSS variable. Light on `:root` / `[data-theme="light"]`, dark on `.dark` / `[data-theme="dark"]`. **Generated.** |
 | `aura-fonts.css` | The Google Fonts `@import` (Fraunces, Inter, JetBrains Mono, Noto Sans Thai). Kept separate so a network that blocks Google can't break `aura.css`. **Generated.** |
-| `tailwind.config.ts` + `tailwind.tokens.cjs` | Tailwind theme wired to the variables (`bg-bg-surface`, `text-fg-danger`, `rounded-aura-xl`, `shadow-aura-overlay` …). The `.cjs` is **generated**. |
+| `tailwind.config.ts` + `tailwind.tokens.cjs` | Tailwind v3 theme wired to the variables (`bg-bg-surface`, `text-fg-danger`, `rounded-aura-xl`, `shadow-aura-overlay` …). The `.cjs` is **generated**. |
+| `aura-tailwind.css` | The same class names for Tailwind v4 (`@theme inline`, CSS-first). **Generated**; exported as `@jirawatpyk/aura-tokens/tailwind.css`. |
 | `figma-variables.csv` | 204 variables: all colours in both modes (aliases kept), spacing, radius and sizes. **Generated.** |
 | `components/` | `aura.bundle.js` (sets `window.Aura`), `aura.components.css`, `index.d.ts`. |
 | `eslint-plugin-aura.js` | `aura/no-hardcoded-color`: hex, rgb()/hsl() and Tailwind `bg-[#…]` classes. |
@@ -41,10 +42,20 @@ import '@aura/react/styles.css'            // component styles (with @aura/react
 
 Dark theme: put `class="dark"` (or `data-theme="dark"`) on `<html>`.
 
-### Tailwind
+### Tailwind v4
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@import "@jirawatpyk/aura-tokens/tailwind.css";   /* imports aura.css too */
+```
+
+Classes: `bg-bg-surface`, `text-fg-primary`, `border-border-strong`, `text-fg-danger`, `bg-alert-warning-bg`, `fill-chart-1`, `p-aura-6`, `gap-aura-4`, `rounded-aura-xl`, `shadow-aura-overlay`, `ease-aura-ease`, `duration-aura-fast`, `z-aura-dialog`, `font-display` / `font-sans` / `font-mono`. They point at the `--aura-*` variables, so `.dark` or `data-theme="dark"` switches them with no `dark:` prefix; the file also makes `dark:` follow those two switches. `npm run check:tailwind4` compiles it with Tailwind v4 in CI.
+
+### Tailwind v3
 
 ```ts
-// tailwind.config.ts — copy this file, or spread the maps from '@aura/tokens/tailwind'
+// tailwind.config.ts — copy this file, or spread the maps from '@jirawatpyk/aura-tokens/tailwind'
 ```
 
 ```tsx
@@ -70,7 +81,7 @@ Types for every component are in `components/index.d.ts`.
 
 ## Changing a token
 
-1. Edit `tokens.json` (never `aura.css`, `tailwind.tokens.cjs` or the CSV).
+1. Edit `tokens.json` (never `aura.css`, `tailwind.tokens.cjs`, `aura-tailwind.css` or the CSV).
 2. `npm run build:tokens` (regenerates the generated files).
 3. `npm run a11y` (every text/ground pair in both themes must pass AA).
 4. Open a PR; see `GOVERNANCE.md`.

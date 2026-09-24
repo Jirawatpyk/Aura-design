@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cx, omit } from './internal.js';
 import { Icon } from './Icon.js';
+import { useLinkComponent } from './locale.js';
 import type { ButtonLinkProps, ButtonProps } from './types.js';
 
 /** Button with an `href` is a link; without, a button. Two call signatures so each gets the right props and ref. */
@@ -10,7 +11,7 @@ export interface ButtonComponent {
   displayName?: string;
 }
 
-function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorElement>) {
+function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorElement>, Link: React.ElementType) {
   const variant = props.variant || 'primary';
   const disabled = !!props.disabled;
   const rest = omit(props, [
@@ -23,7 +24,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
     'linkComponent',
     'href',
   ]);
-  const Tag: React.ElementType = !disabled && props.linkComponent ? props.linkComponent : 'a';
+  const Tag: React.ElementType = disabled ? 'a' : Link;
   return (
     <Tag
       {...rest}
@@ -46,8 +47,10 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
  * With `href` it renders a link that looks the same (`<a>`, or your router's link via `linkComponent`). */
 export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps | ButtonLinkProps>(
   function Button(all, ref) {
+    /* Always called (hooks order), used only when this Button is a link. */
+    const Link = useLinkComponent((all as ButtonLinkProps).linkComponent);
     if (typeof (all as ButtonLinkProps).href === 'string') {
-      return ButtonLink(all as ButtonLinkProps, ref as React.ForwardedRef<HTMLAnchorElement>);
+      return ButtonLink(all as ButtonLinkProps, ref as React.ForwardedRef<HTMLAnchorElement>, Link);
     }
     const props = all as ButtonProps;
     const variant = props.variant || 'primary';

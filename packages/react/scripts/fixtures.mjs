@@ -57,5 +57,11 @@ export function fixtures(A, React) {
     Popover: h(A.Popover, { trigger: h(A.Button, null, 'Filters'), title: 'Filters', defaultOpen: true }, 'content'),
     ThemeStyle: h(A.ThemeStyle, { brand: '#0ea5e9', selector: '.tenant' }),
     Field: h(A.Field, { label: 'Custom', id: 'f1' }, h('input', { id: 'f1' })),
+    /* 4.10 */
+    DangerButton: h(A.Button, { variant: 'danger', icon: 'trash-2' }, 'Delete'),
+    CustomIcon: h(A.IconButton, { tone: 'danger', label: 'Delete', icon: h('svg', { viewBox: '0 0 24 24' }, h('path', { d: 'M4 4h16' })) }),
+    SwedishProvider: h(A.AuraProvider, { locale: 'sv', linkComponent: 'a' }, h(A.DatePicker, { label: 'Datum', defaultValue: '2026-09-18' }), h(A.Breadcrumb, { items: [{ label: 'Hem', href: '/' }, { label: 'Order' }] })),
+    NestedSideNav: h(A.SideNav, { value: 'inv', items: [{ id: 'd', label: 'Dashboard', href: '/', badge: 3 }, { id: 'bill', label: 'Billing', icon: 'file-text', children: [{ id: 'inv', label: 'Invoices', href: '/invoices' }, { id: 'pay', label: 'Payments', href: '/payments' }] }] }),
+    ServerTable: h(A.DataTable, { manual: true, rows, totalRows: 312, pageSize: 2, page: 3, sort: { key: 'id', dir: 'desc' }, loading: true, getRowHref: (r) => '/orders/' + r.id, getPageHref: (p) => '?page=' + p, columns: [{ key: 'id', label: 'ID', width: 96, sortable: true }, { key: 'owner', label: 'AMOUNT', align: 'end' }] }),
   };
 }

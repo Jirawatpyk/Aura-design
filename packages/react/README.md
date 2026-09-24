@@ -67,13 +67,24 @@ export default function Root() {
 
 Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, Toaster/`toast()`, Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Stat · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
 
+## Router links, Swedish, motion
+
+```tsx
+import Link from 'next/link';
+<AuraProvider locale="sv" linkComponent={Link}>   {/* th | en | sv */}
+```
+
+`linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row/pager links. `sv` uses the Gregorian calendar and Monday first; `th` and `en` default to the Buddhist calendar.
+
+Motion: skeleton pulses and indeterminate bars honour `prefers-reduced-motion: reduce` — skeletons stop (a static bar), spinners and progress bars slow to a third.
+
 ## Light and dark
 
 The tokens carry both schemes; `<html data-theme="light|dark|system">` picks one (`system` follows the OS in pure CSS).
 
 ```tsx
 <html lang="th" data-theme="system" suppressHydrationWarning>
-  <head><ColorSchemeScript /></head>   {/* applies the saved choice before first paint — no flash */}
+  <head><ColorSchemeScript /></head>   {/* applies the saved choice before first paint — no flash; nonce={nonce} for a CSP */}
   ...
 <ColorSchemeToggle />                   {/* Light / Dark / System menu; saved in localStorage */}
 const { scheme, resolved, setScheme } = useColorScheme();

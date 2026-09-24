@@ -55,6 +55,18 @@ for (const bg of ['bg-surface', 'bg-canvas', 'bg-input', 'bg-selected']) pairs.p
 for (const bg of ['bg-surface', 'bg-canvas', 'bg-surface-hover', 'bg-selected']) pairs.push(['focus-ring', bg, UI]);
 pairs.push(['border-danger', 'bg-input', UI]);
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['button-secondary-border', bg, UI]);
+pairs.push(['button-danger-fg', 'button-danger-bg', TEXT], ['button-danger-fg', 'button-danger-bg-hover', TEXT]);
+for (const bg of ['bg-surface', 'bg-canvas', 'alert-danger-bg']) pairs.push(['fg-danger', bg, TEXT]);
+for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['border-danger', bg, UI], ['button-danger-bg', bg, UI]);
+/* Chart marks (WCAG 1.4.11) and axis labels. Neighbouring categorical colours must also differ in lightness
+ * (NEIGHBOUR:1) so a series next to another stays distinct without hue (deuteranopia, greyscale print). */
+const NEIGHBOUR = 1.8;
+for (const bg of ['bg-surface', 'bg-canvas']) {
+  for (let i = 1; i <= 8; i++) pairs.push([`chart-${i}`, bg, UI]);
+  for (let i = 1; i <= 5; i++) pairs.push([`chart-seq-${i}`, bg, UI]);
+  pairs.push(['chart-axis', bg, TEXT]);
+}
+for (let i = 1; i < 8; i++) pairs.push([`chart-${i}`, `chart-${i + 1}`, NEIGHBOUR]);
 
 const results = [], fails = [];
 for (const theme of ['light', 'dark']) for (const [fg, bg, min] of pairs) {

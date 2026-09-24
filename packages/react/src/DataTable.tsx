@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStrings, useAuraLocale } from './locale.js';
+import { useStrings, useAuraLocale, useLinkComponent } from './locale.js';
 import { cx, omit, useMaybeControlled, compare, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
@@ -46,7 +46,12 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   });
   const rows: Row[] = props.rows || [];
   const rowKey = props.rowKey || columns[0].key;
-  const loading = !!props.loading;
+  const manual = !!props.manual;
+  const Link = useLinkComponent(props.linkComponent);
+  /* busy: a load is under way. manual + rows already shown → keep them (refreshing); otherwise skeleton rows (loading). */
+  const busy = !!props.loading;
+  const refreshing = busy && manual && rows.length > 0;
+  const loading = busy && !refreshing;
   const selectable = !!props.selectable;
   const reorderable = props.reorderable !== false && !!props.columnControls;
   const controls = !!props.columnControls;
@@ -206,7 +211,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   /* sort (memoised: thousands of rows) */
   const view = React.useMemo(
     function () {
-      if (!sort || !sort.key || !byKey[sort.key]) return rows;
+      if (manual || !sort || !sort.key || !byKey[sort.key]) return rows;
       const col = byKey[sort.key];
       const val =
         col.sortValue ||
@@ -229,7 +234,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           return p[0];
         });
     },
-    [rows, sort && sort.key, sort && sort.dir],
+    [rows, manual, sort && sort.key, sort && sort.dir],
   );
   function nextSort(key: string): DataTableSort | null {
     if (!sort || sort.key !== key) return { key: key, dir: 'asc' };
@@ -239,17 +244,64 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
 
   /* page */
   const pageSize = props.pageSize || 0;
-  const pageCount = pageSize ? Math.max(1, Math.ceil(view.length / pageSize)) : 1;
+  /* manual: the server pages. Without totalRows, assume one more page while a page comes back full. */
+  const total = manual
+    ? props.totalRows != null
+      ? props.totalRows
+      : (Math.max(1, pageState[0] || 1) - 1) * pageSize + rows.length + (pageSize && rows.length >= pageSize ? 1 : 0)
+    : view.length;
+  const pageCount = pageSize ? Math.max(1, Math.ceil(total / pageSize)) : 1;
   const page = Math.min(Math.max(1, pageState[0] || 1), pageCount);
   const first = pageSize ? (page - 1) * pageSize : 0;
-  const pageRows = pageSize ? view.slice(first, first + pageSize) : view;
+  const pageRows = pageSize && !manual ? view.slice(first, first + pageSize) : view;
+  const canSortAny = !busy && (manual ? total > 1 : rows.length > 1);
+  const shownTotal = manual && props.totalRows == null ? first + rows.length : total;
+  /* Pager links (getPageHref) with no onPageChange: the URL is the page state, so keyboard paging follows the link. */
+  const linkPaging = !!props.getPageHref && !props.onPageChange;
+  const prevLink = React.useRef<HTMLElement | null>(null),
+    nextLink = React.useRef<HTMLElement | null>(null);
   function goPage(p: number, focus?: PendingFocus): boolean {
     const next = Math.min(Math.max(1, p), pageCount);
     if (next === page) return false;
+    if (linkPaging) {
+      const a = next === page - 1 ? prevLink.current : next === page + 1 ? nextLink.current : null;
+      if (a) a.click();
+      return false;
+    }
     if (focus) pending.current = focus;
     pageState[1](next);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
     return true;
+  }
+  function sortBy(key: string) {
+    setSort(nextSort(key));
+    if (!(manual && linkPaging)) goPage(1);
+  }
+  /* Row links: the first column's content is the link; a click or Enter elsewhere on the row follows it. */
+  const rowHref = props.getRowHref;
+  function followRow(el: HTMLElement | null, e?: React.MouseEvent | React.KeyboardEvent) {
+    const a = el && el.querySelector<HTMLElement>('.aura-table__row-link');
+    if (!a) return;
+    a.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        ctrlKey: !!(e && e.ctrlKey),
+        metaKey: !!(e && e.metaKey),
+        shiftKey: !!(e && e.shiftKey),
+        altKey: !!(e && e.altKey),
+      }),
+    );
+  }
+  function rowLinkWrap(r: Row, content: React.ReactNode): React.ReactNode {
+    return rowHref ? (
+      <Link href={rowHref(r)} className="aura-table__row-link">
+        {content}
+      </Link>
+    ) : (
+      content
+    );
   }
 
   /* virtual window */
@@ -620,10 +672,15 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       else handled = false;
     } else if (k === ' ' || k === 'Enter') {
       if (r === 0 && !col && selectable && nRows) toggleAll();
-      else if (r === 0 && col && col.sortable && nRows > 1) {
-        setSort(nextSort(col.key));
-        goPage(1);
-      } else if (r > 0 && k === ' ' && selectable) toggle(row![rowKey], !selSet[row![rowKey]]);
+      else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
+      else if (r > 0 && k === ' ' && selectable) toggle(row![rowKey], !selSet[row![rowKey]]);
+      else if (
+        r > 0 &&
+        k === 'Enter' &&
+        rowHref &&
+        !target.querySelector('button, a[href]:not(.aura-table__row-link), input, select, textarea')
+      )
+        followRow(target.closest<HTMLElement>('[role="row"]'), e);
       else if (r > 0 && k === 'Enter' && target.querySelector('button, a[href], input, select, textarea'))
         target.querySelector<HTMLElement>('button, a[href], input, select, textarea')!.focus();
       else if (r > 0 && k === 'Enter' && props.onRowActivate) props.onRowActivate(row!);
@@ -665,7 +722,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   vis.forEach(function (c: Col, i: number) {
     const ci = i + (selectable ? 1 : 0);
     const isSorted = sort && sort.key === c.key;
-    const canSort = c.sortable && rows.length > 1 && !loading;
+    const canSort = c.sortable && canSortAny;
     const ariaSort: React.AriaAttributes['aria-sort'] =
       isSorted && canSort ? (sort!.dir === 'desc' ? 'descending' : 'ascending') : canSort ? 'none' : undefined;
     const pin = isPinned(c),
@@ -681,12 +738,13 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         data-rc={'0:' + ci}
         className={cx(
           'aura-table__th',
+          c.align === 'end' && 'is-end',
           pin && 'is-pinned',
           edge && 'is-pin-edge',
           drag && drag.over === c.key && (drag.after ? 'is-drop-after' : 'is-drop-before'),
           drag && drag.key === c.key && 'is-dragging',
         )}
-        draggable={reorderable && !loading ? true : undefined}
+        draggable={reorderable && !busy ? true : undefined}
         onFocus={function (e: React.FocusEvent) {
           if (e.target === e.currentTarget) activeState[1]({ r: 0, c: ci });
         }}
@@ -724,8 +782,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
               tabIndex={-1}
               className={cx('aura-table__sort', isSorted && 'is-active')}
               onClick={function () {
-                setSort(nextSort(c.key));
-                goPage(1);
+                sortBy(c.key);
                 activeState[1]({ r: 0, c: ci });
               }}
             >
@@ -784,6 +841,16 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   );
 
   /* body */
+  function cellContent(c: Col, r: Row): React.ReactNode {
+    const v = r[c.key];
+    return c.render ? (
+      c.render(r)
+    ) : c.pill ? (
+      <StatusPill {...({ tone: c.tones && c.tones[v] } as StatusPillProps)}>{v}</StatusPill>
+    ) : (
+      v
+    );
+  }
   function rowCells(r: Row, i: number, k: RowKey, isSel: boolean): React.ReactElement[] {
     const ri = i + 1;
     const cells: React.ReactElement[] = [<span key="__gl" className="aura-table__gutter" aria-hidden={true} />];
@@ -825,6 +892,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           className={cx(
             'aura-table__td',
             c.mono && 'aura-table__mono',
+            c.align === 'end' && 'is-end',
             pin && 'is-pinned',
             pin && j === nPinned - 1 && 'is-pin-edge',
           )}
@@ -833,13 +901,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
             if (activeState[0].r !== ri || activeState[0].c !== ci) activeState[1]({ r: ri, c: ci });
           }}
         >
-          {c.render ? (
-            c.render(r)
-          ) : c.pill ? (
-            <StatusPill {...({ tone: c.tones && c.tones[v] } as StatusPillProps)}>{v}</StatusPill>
-          ) : (
-            v
-          )}
+          {j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)}
         </span>,
       );
     });
@@ -868,7 +930,11 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         );
       vis.forEach(function (c: Col, j: number) {
         sk.push(
-          <span key={c.key} className={cx('aura-table__td', isPinned(c) && 'is-pinned')} style={cellStyle(c, j)}>
+          <span
+            key={c.key}
+            className={cx('aura-table__td', c.align === 'end' && 'is-end', isPinned(c) && 'is-pinned')}
+            style={cellStyle(c, j)}
+          >
             <span
               className={cx('aura-skel', c.pill && 'aura-skel--pill')}
               style={c.pill ? undefined : { width: SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length] }}
@@ -913,12 +979,17 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
             role="row"
             aria-rowindex={first + i + 2}
             aria-selected={selectable ? isSel : undefined}
-            className={cx('aura-table__row', isSel && 'is-selected', props.onRowActivate && 'is-actionable')}
+            className={cx(
+              'aura-table__row',
+              isSel && 'is-selected',
+              (props.onRowActivate || rowHref) && 'is-actionable',
+            )}
             style={rowStyle}
-            onClick={function (e: React.MouseEvent) {
+            onClick={function (e: React.MouseEvent<HTMLElement>) {
               const el = e.target as HTMLElement;
               if (el.closest && el.closest('.aura-check, button, a, input')) return;
-              if (props.onRowActivate) props.onRowActivate(r);
+              if (rowHref) followRow(e.currentTarget, e);
+              else if (props.onRowActivate) props.onRowActivate(r);
             }}
           >
             {rowCells(r, i, k, isSel)}
@@ -932,37 +1003,56 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
 
   /* footer */
   let foot: React.ReactElement | null = null;
-  if (pageSize && (rows.length || loading)) {
+  function pagerButton(dir: -1 | 1): React.ReactElement {
+    const p = page + dir,
+      off = busy || (dir < 0 ? page <= 1 : page >= pageCount),
+      label = dir < 0 ? t.prevPage : t.nextPage,
+      icon = dir < 0 ? 'chevron-left' : 'chevron-right';
+    if (props.getPageHref && !off)
+      return (
+        <Link
+          ref={dir < 0 ? prevLink : nextLink}
+          href={props.getPageHref(p)}
+          className="aura-icon-btn"
+          aria-label={label}
+          onClick={function (e: React.MouseEvent) {
+            if (props.onPageChange) {
+              e.preventDefault();
+              pageState[1](p);
+            }
+          }}
+        >
+          <Icon name={icon} />
+        </Link>
+      );
+    return (
+      <IconButton
+        icon={icon}
+        label={label}
+        disabled={off}
+        onClick={function () {
+          goPage(p);
+        }}
+      />
+    );
+  }
+  if (pageSize && (rows.length || busy)) {
     const from = rows.length ? first + 1 : 0,
-      to = Math.min(first + pageSize, view.length);
+      to = manual ? first + rows.length : Math.min(first + pageSize, view.length);
     foot = (
       <div className="aura-table__foot">
-        <span aria-live="polite">{loading ? t.loading : t.range(from, to, view.length)}</span>
+        <span aria-live="polite">{busy ? t.loading : t.range(from, to, shownTotal)}</span>
         <span className="aura-table__pager">
           <span>{t.page(page, pageCount)}</span>
-          <IconButton
-            icon="chevron-left"
-            label={t.prevPage}
-            disabled={loading || page <= 1}
-            onClick={function () {
-              goPage(page - 1);
-            }}
-          />
-          <IconButton
-            icon="chevron-right"
-            label={t.nextPage}
-            disabled={loading || page >= pageCount}
-            onClick={function () {
-              goPage(page + 1);
-            }}
-          />
+          {pagerButton(-1)}
+          {pagerButton(1)}
         </span>
       </div>
     );
   } else if (height && rows.length && !loading) {
     foot = (
       <div className="aura-table__foot">
-        <span>{t.rowCount(view.length)}</span>
+        <span>{t.rowCount(shownTotal)}</span>
         {selectable && selected.length ? <span>{t.selectedCount(selected.length)}</span> : <span />}
       </div>
     );
@@ -1010,16 +1100,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         </div>
       );
     } else {
-      const cellVal = function (c: Col, r: Row) {
-        const v = r[c.key];
-        return c.render ? (
-          c.render(r)
-        ) : c.pill ? (
-          <StatusPill {...({ tone: c.tones && c.tones[v] } as StatusPillProps)}>{v}</StatusPill>
-        ) : (
-          v
-        );
-      };
+      const cellVal = cellContent;
       cardBody = (
         <ul className="aura-table__cards" aria-label={props.label}>
           {pageRows.map(function (r: Row) {
@@ -1028,15 +1109,21 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
             return (
               <li
                 key={k}
-                className={cx('aura-table__card', isSel && 'is-selected', props.onRowActivate && 'is-actionable')}
-                tabIndex={props.onRowActivate ? 0 : undefined}
-                onClick={function (e: React.MouseEvent) {
+                className={cx(
+                  'aura-table__card',
+                  isSel && 'is-selected',
+                  (props.onRowActivate || rowHref) && 'is-actionable',
+                )}
+                tabIndex={props.onRowActivate && !rowHref ? 0 : undefined}
+                onClick={function (e: React.MouseEvent<HTMLElement>) {
                   const el = e.target as HTMLElement;
                   if (el.closest && el.closest('.aura-check, button, a, input')) return;
-                  if (props.onRowActivate) props.onRowActivate(r);
+                  if (rowHref) followRow(e.currentTarget, e);
+                  else if (props.onRowActivate) props.onRowActivate(r);
                 }}
                 onKeyDown={function (e: React.KeyboardEvent) {
-                  if (e.target === e.currentTarget && e.key === 'Enter' && props.onRowActivate) props.onRowActivate(r);
+                  if (e.target === e.currentTarget && e.key === 'Enter' && props.onRowActivate && !rowHref)
+                    props.onRowActivate(r);
                 }}
               >
                 <div className="aura-table__card-head">
@@ -1050,7 +1137,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
                     />
                   ) : null}
                   <span className={cx('aura-table__card-title', titleCol.mono && 'aura-table__mono')}>
-                    {cellVal(titleCol, r)}
+                    {rowLinkWrap(r, cellVal(titleCol, r))}
                   </span>
                   {pillCol ? cellVal(pillCol, r) : null}
                   {actionCols.map(function (c: Col) {
@@ -1082,12 +1169,13 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     return (
       <div
         ref={wrapMerged}
-        className={cx('aura-table aura-table--stacked', props.className)}
+        className={cx('aura-table aura-table--stacked', refreshing && 'is-refreshing', props.className)}
         role="region"
         aria-label={props.label}
-        aria-busy={loading || undefined}
+        aria-busy={busy || undefined}
       >
-        {selectable && pageRows.length && !loading ? (
+        {refreshing ? <span className="aura-table__busy-bar" aria-hidden={true} /> : null}
+        {selectable && pageRows.length && !busy ? (
           <div className="aura-table__stack-bar">
             <Checkbox
               checked={all}
@@ -1111,7 +1199,11 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   if (height) scrollStyle.height = height + 'px';
 
   return (
-    <div ref={wrapMerged} className={cx('aura-table', scrolledX[0] && 'is-scrolled-x', props.className)}>
+    <div
+      ref={wrapMerged}
+      className={cx('aura-table', scrolledX[0] && 'is-scrolled-x', refreshing && 'is-refreshing', props.className)}
+    >
+      {refreshing ? <span className="aura-table__busy-bar" aria-hidden={true} /> : null}
       <div
         ref={function (el: HTMLDivElement | null): void {
           scrollRef.current = el;
@@ -1121,8 +1213,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         style={scrollStyle}
         role="grid"
         aria-label={props.label}
-        aria-busy={loading || undefined}
-        aria-rowcount={loading ? -1 : view.length + 1}
+        aria-busy={busy || undefined}
+        aria-rowcount={loading ? -1 : shownTotal + 1}
         aria-colcount={nCols}
         aria-multiselectable={selectable || undefined}
         onKeyDown={onGridKey}
@@ -1140,7 +1232,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         </div>
         {body}
       </div>
-      {loading ? (
+      {busy ? (
         <span className="aura-sr-only" role="status">
           {t.loadingRows}
         </span>

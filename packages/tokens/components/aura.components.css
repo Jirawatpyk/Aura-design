@@ -43,6 +43,11 @@ a.aura-btn { text-decoration: none; }
 
 .aura-btn--secondary { border: 1px solid var(--aura-button-secondary-border); color: var(--aura-fg-primary); }
 .aura-btn--secondary:hover { background: var(--aura-bg-surface-hover); }
+/* Destructive: filled for the confirm step, outline beside other actions. Loading keeps the colour (busy, not unavailable). */
+.aura-btn--danger { background: var(--aura-button-danger-bg); color: var(--aura-button-danger-fg); }
+.aura-btn--danger:hover { background: var(--aura-button-danger-bg-hover); }
+.aura-btn--danger-secondary { border: 1px solid var(--aura-border-danger); color: var(--aura-fg-danger); background: transparent; }
+.aura-btn--danger-secondary:hover { background: var(--aura-alert-danger-bg); }
 
 .aura-btn--creative {
   border: 2px solid var(--aura-button-creative-border);
@@ -82,6 +87,28 @@ a.aura-btn { text-decoration: none; }
 .aura-table__row--skeleton:hover { background: var(--aura-bg-surface); }
 .aura-table__row--skeleton .aura-table__td { display: flex; align-items: center; }
 .aura-table__row.is-selected { background: var(--aura-bg-selected); }
+/* Right-aligned (numeric) columns */
+.aura-table__th.is-end { padding-right: var(--aura-space-4); }
+.aura-table__th.is-end .aura-table__th-inner { justify-content: flex-end; }
+.aura-table__th.is-end .aura-table__sort { flex-direction: row-reverse; }
+.aura-table__td.is-end { text-align: end; font-variant-numeric: tabular-nums; }
+.aura-table__row--skeleton .aura-table__td.is-end { justify-content: flex-end; }
+/* Row links (getRowHref): the first cell's text is the link; the whole row is the click target */
+.aura-table__row-link { color: inherit; text-decoration: none; }
+.aura-table__row-link:hover, .aura-table__row:hover .aura-table__row-link, .aura-table__card:hover .aura-table__row-link { text-decoration: underline; text-underline-offset: 2px; }
+.aura-table__row-link:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
+/* Server mode refresh: the previous page stays, inactive, under a progress bar until the next one arrives */
+.aura-table.is-refreshing .aura-table__row, .aura-table.is-refreshing .aura-table__card { opacity: 0.6; pointer-events: none; }
+.aura-table__busy-bar {
+  position: absolute; z-index: 6; top: calc(var(--aura-space-12) - 2px); left: 0; right: 0; height: 2px; overflow: hidden;
+  border-radius: var(--aura-radius-full); pointer-events: none;
+}
+.aura-table--stacked .aura-table__busy-bar { top: 0; }
+.aura-table__busy-bar::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 35%; background: var(--aura-fg-accent);
+  animation: aura-progress-slide var(--aura-duration-pulse) var(--aura-ease) infinite;
+}
+@media (prefers-reduced-motion: reduce) { .aura-table__busy-bar::after { animation-duration: calc(var(--aura-duration-pulse) * 3); } }
 
 /* Cells: text cells stay block so long values end in an ellipsis */
 .aura-table__td {
@@ -212,11 +239,13 @@ a.aura-btn { text-decoration: none; }
   cursor: pointer; transition: background var(--aura-duration-fast) var(--aura-ease);
 }
 .aura-icon-btn:hover { background: var(--aura-bg-surface-hover); }
+.aura-icon-btn--danger { color: var(--aura-fg-danger); }
+.aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 .aura-icon-btn:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 
 /* Skeleton */
-@keyframes aura-pulse { 50% { opacity: 0.45; } }
+@keyframes aura-pulse { 50% { opacity: 0.6; } }
 .aura-skel {
   display: block; height: 10px; width: 60%; border-radius: var(--aura-radius-full);
   background: var(--aura-bg-skeleton); animation: aura-pulse var(--aura-duration-pulse) var(--aura-ease) infinite;
@@ -275,6 +304,9 @@ a.aura-btn { text-decoration: none; }
 
 /* Icon — Lucide, 24-grid, stroke in currentColor */
 .aura-icon { flex: none; display: inline-block; vertical-align: middle; }
+/* A consumer's own icon element (e.g. lucide-react) fills the same box, strokes in currentColor at width 2. */
+.aura-icon--custom { display: inline-flex; align-items: center; justify-content: center; color: inherit; line-height: 0; }
+.aura-icon--custom > svg { width: 100%; height: 100%; stroke-width: var(--aura-icon-stroke, 2); }
 
 /* Loading spinner */
 @keyframes aura-spin { to { transform: rotate(360deg); } }
@@ -543,6 +575,14 @@ a.aura-btn { text-decoration: none; }
 .aura-nav__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: -2px; }
 .aura-nav__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-nav__count { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--aura-fg-secondary); }
+.aura-nav__badge { display: inline-flex; align-items: center; flex: none; }
+/* Groups: a disclosure button, its items indented one step per level. */
+.aura-nav__item { padding-left: calc(var(--aura-space-3) + var(--aura-nav-depth, 0) * (var(--aura-icon-sm) + var(--aura-space-3))); }
+.aura-nav__item--group.has-active { color: var(--aura-fg-primary); }
+.aura-nav__chevron { color: var(--aura-fg-secondary); transition: transform var(--aura-duration-fast) var(--aura-ease); }
+.aura-nav__chevron.is-open { transform: rotate(180deg); }
+.aura-nav__sub { margin-top: 2px; }
+.aura-nav__sub[hidden] { display: none; }
 .aura-nav__footer { padding: var(--aura-space-3); border-top: 1px solid var(--aura-border-default); }
 
 /* ---------- Breadcrumb ---------- */
@@ -775,7 +815,8 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-stat__head { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-2); }
 .aura-stat__label { font-size: 13px; font-weight: 500; color: var(--aura-fg-secondary); }
 .aura-stat__icon { display: inline-flex; color: var(--aura-fg-secondary); }
-.aura-stat__value { display: flex; align-items: baseline; gap: var(--aura-space-1); font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; min-height: 34px; }
+.aura-stat__value { display: flex; align-items: baseline; gap: var(--aura-space-1); font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; min-height: 34px; }
+.aura-stat__value.is-numeric { font-variant-numeric: tabular-nums; }
 .aura-stat__unit { font-size: 14px; font-weight: 500; color: var(--aura-fg-secondary); letter-spacing: 0; }
 .aura-stat__skel { width: 55%; height: 24px; align-self: center; }
 .aura-stat__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); font-size: 12px; }

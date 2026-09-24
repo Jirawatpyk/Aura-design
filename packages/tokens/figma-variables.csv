@@ -34,7 +34,9 @@ primitive/red/50,color,light,#fef2f2,Primitive. Danger alert fill (light). ADDED
 primitive/red/200,color,light,#fecaca,Primitive. Danger alert edge (light). ADDED.,
 primitive/red/300,color,light,#fca5a5,"Primitive. Danger alert text (dark), 8.1:1. ADDED.",
 primitive/red/400,color,light,#f87171,Primitive. Dark-theme aura-fg-danger: 6.4:1 on dark surface. ADDED.,
+primitive/red/600,color,light,#dc2626,Primitive red 600. Dark-theme danger button fill only.,
 primitive/red/700,color,light,#b91c1c,"Primitive red 700 (Tailwind red, like the other scales). The Blocked status fill; white on it 6.5:1. ADDED — the source palette has no warm hue.",
+primitive/red/800,color,light,#991b1b,Primitive red 800. Danger button hover only.,
 primitive/amber/50,color,light,#fffbeb,Primitive. Warning alert fill (light). ADDED.,
 primitive/amber/200,color,light,#fde68a,Primitive. Warning alert edge (light). ADDED.,
 primitive/amber/300,color,light,#fcd34d,"Primitive. Warning alert text (dark), 9.6:1. ADDED.",
@@ -63,8 +65,8 @@ semantic/mesh-to,color,light,{primitive/lime/200},Creative mesh: the lime pool (
 semantic/mesh-ground,color,light,{primitive/white},Creative mesh: the ground between the pools.,ALL_FILLS
 semantic/on-texture,color,light,{primitive/ink},"Text and icons on a mesh or grain surface in every theme: ≥7.3:1 on the darkest mesh point (violet-400), 15:1 on lime, 20:1 on white.",ALL_FILLS
 semantic/grain,color,light,{primitive/ink},"Grain speckle colour, drawn at aura-grain-opacity. Visible only on light grounds.",ALL_FILLS
-semantic/status-neutral-bg,color,light,{primitive/zinc/100},"Status pill fill for not-started / unknown states (To Do, Draft). Same in both themes. ADDED.",ALL_FILLS
-semantic/status-neutral-fg,color,light,{primitive/zinc/700},Label and icon on aura-status-neutral-bg (9.5:1).,ALL_FILLS
+semantic/status-neutral-bg,color,light,{primitive/zinc/100},"Status pill fill for not-started / unknown states (To Do, Draft). Dark theme uses a quiet zinc-800 fill so it sits below the coloured states. ADDED.",ALL_FILLS
+semantic/status-neutral-fg,color,light,{primitive/zinc/700},"Label and icon on aura-status-neutral-bg (light 9.5:1, dark zinc-300 on zinc-800).",ALL_FILLS
 semantic/status-progress-bg,color,light,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). ADDED.",ALL_FILLS
 semantic/status-progress-fg,color,light,{primitive/violet/800},Label and icon on aura-status-progress-bg (7.6:1).,ALL_FILLS
 semantic/status-ready-bg,color,light,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. ADDED as a named token.",ALL_FILLS
@@ -73,7 +75,7 @@ semantic/status-blocked-bg,color,light,{primitive/red/700},"Status pill fill for
 semantic/status-blocked-fg,color,light,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
 semantic/bg-selected,color,light,{primitive/violet/50},"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
 semantic/border-control,color,light,{primitive/zinc/500},"Outline of unchecked checkboxes and other small controls that must be seen: ≥4.4:1 on aura-bg-surface, -canvas and aura-bg-selected (the 3:1 a control boundary needs). ADDED.",STROKE_COLOR
-semantic/bg-skeleton,color,light,{primitive/zinc/100},Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
+semantic/bg-skeleton,color,light,{primitive/zinc/200},zinc-200 light / zinc-700 dark so bars read on white and on zinc-900 surfaces. Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
 semantic/fg-danger,color,light,{primitive/red/700},"Error messages, destructive labels and invalid-field text on aura-bg-surface / -canvas: ≥6.2:1 light, ≥5.4:1 dark. ADDED.",TEXT_FILL
 semantic/border-danger,color,light,{primitive/red/700},Outline of an invalid input (≥5.4:1 on its ground). ADDED.,STROKE_COLOR
 semantic/bg-input,color,light,{primitive/zinc/0},"Text fields, selects, textareas. Always paired with a 1px aura-border-control outline. ADDED.",FRAME_FILL
@@ -92,6 +94,21 @@ semantic/alert-danger-bg,color,light,{primitive/red/50},Danger alert fill. ADDED
 semantic/alert-danger-fg,color,light,{primitive/red/700},"Danger alert title and icon: 5.9:1 light, 8.1:1 dark.",ALL_FILLS
 semantic/alert-danger-border,color,light,{primitive/red/200},Danger alert 1px edge (decorative).,ALL_FILLS
 semantic/fg-positive,color,light,{primitive/lime/800},"Rising-and-good numbers (Stat change, positive deltas) on aura-bg-surface / -canvas. Never on lime fills. ADDED 4.3.",TEXT_FILL
+semantic/chart-1,color,light,#5e2cb5,"Categorical chart colours chart-1…8, in this order: violet, teal, orange, blue, magenta, green, gold, rose. Every one is ≥3:1 on bg-surface and bg-canvas in both themes (WCAG 1.4.11), and neighbours alternate dark/mid lightness (about 2:1 apart) so they stay apart under colour-blindness. chart-1 follows the brand in createTheme. Label series too; colour is never the only cue. ADDED 4.10.",ALL_FILLS
+semantic/chart-2,color,light,#0a8b7a,,ALL_FILLS
+semantic/chart-3,color,light,#803900,,ALL_FILLS
+semantic/chart-4,color,light,#057ed8,,ALL_FILLS
+semantic/chart-5,color,light,#95006c,,ALL_FILLS
+semantic/chart-6,color,light,#2a8e02,,ALL_FILLS
+semantic/chart-7,color,light,#634902,,ALL_FILLS
+semantic/chart-8,color,light,#e23d4e,,ALL_FILLS
+semantic/chart-seq-1,color,light,#9972fe,Sequential ramp chart-seq-1…5 (low → high) for heatmaps and ordered buckets. seq-1 is the value closest to the surface; every step ≥3:1 on bg-surface. Brand hue in createTheme. ADDED 4.10.,ALL_FILLS
+semantic/chart-seq-2,color,light,#8056df,,ALL_FILLS
+semantic/chart-seq-3,color,light,#693ac3,,ALL_FILLS
+semantic/chart-seq-4,color,light,#541ca8,,ALL_FILLS
+semantic/chart-seq-5,color,light,#3f0087,,ALL_FILLS
+semantic/chart-grid,color,light,{primitive/zinc/200},"Chart grid lines. Decorative, no contrast target. ADDED 4.10.",ALL_FILLS
+semantic/chart-axis,color,light,{primitive/zinc/600},"Axis lines, ticks and tick labels (text: 4.5:1 on bg-surface and bg-canvas). ADDED 4.10.",ALL_FILLS
 semantic/bg-surface,color,dark,{primitive/zinc/900},"Default surface: cards, tables, panels, page body. Grounds aura-fg-primary, -secondary and -accent.",FRAME_FILL
 semantic/bg-surface-hover,color,dark,{primitive/zinc/800},"Hover fill for rows, secondary buttons and list items. aura-fg-primary and -secondary still pass on it (≥5.8:1).",FRAME_FILL
 semantic/bg-surface-strong,color,dark,{primitive/zinc/0},"High-emphasis block (the wordmark tile, inverted callouts). Text on it: aura-fg-inverted.",FRAME_FILL
@@ -114,8 +131,8 @@ semantic/mesh-to,color,dark,{primitive/lime/200},Creative mesh: the lime pool (b
 semantic/mesh-ground,color,dark,{primitive/white},Creative mesh: the ground between the pools.,ALL_FILLS
 semantic/on-texture,color,dark,{primitive/ink},"Text and icons on a mesh or grain surface in every theme: ≥7.3:1 on the darkest mesh point (violet-400), 15:1 on lime, 20:1 on white.",ALL_FILLS
 semantic/grain,color,dark,{primitive/ink},"Grain speckle colour, drawn at aura-grain-opacity. Visible only on light grounds.",ALL_FILLS
-semantic/status-neutral-bg,color,dark,{primitive/zinc/100},"Status pill fill for not-started / unknown states (To Do, Draft). Same in both themes. ADDED.",ALL_FILLS
-semantic/status-neutral-fg,color,dark,{primitive/zinc/700},Label and icon on aura-status-neutral-bg (9.5:1).,ALL_FILLS
+semantic/status-neutral-bg,color,dark,{primitive/zinc/800},"Status pill fill for not-started / unknown states (To Do, Draft). Dark theme uses a quiet zinc-800 fill so it sits below the coloured states. ADDED.",ALL_FILLS
+semantic/status-neutral-fg,color,dark,{primitive/zinc/300},"Label and icon on aura-status-neutral-bg (light 9.5:1, dark zinc-300 on zinc-800).",ALL_FILLS
 semantic/status-progress-bg,color,dark,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). ADDED.",ALL_FILLS
 semantic/status-progress-fg,color,dark,{primitive/violet/800},Label and icon on aura-status-progress-bg (7.6:1).,ALL_FILLS
 semantic/status-ready-bg,color,dark,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. ADDED as a named token.",ALL_FILLS
@@ -124,7 +141,7 @@ semantic/status-blocked-bg,color,dark,{primitive/red/700},"Status pill fill for 
 semantic/status-blocked-fg,color,dark,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
 semantic/bg-selected,color,dark,#2c283a,"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
 semantic/border-control,color,dark,{primitive/zinc/400},"Outline of unchecked checkboxes and other small controls that must be seen: ≥4.4:1 on aura-bg-surface, -canvas and aura-bg-selected (the 3:1 a control boundary needs). ADDED.",STROKE_COLOR
-semantic/bg-skeleton,color,dark,{primitive/zinc/800},Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
+semantic/bg-skeleton,color,dark,{primitive/zinc/700},zinc-200 light / zinc-700 dark so bars read on white and on zinc-900 surfaces. Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
 semantic/fg-danger,color,dark,{primitive/red/400},"Error messages, destructive labels and invalid-field text on aura-bg-surface / -canvas: ≥6.2:1 light, ≥5.4:1 dark. ADDED.",TEXT_FILL
 semantic/border-danger,color,dark,{primitive/red/400},Outline of an invalid input (≥5.4:1 on its ground). ADDED.,STROKE_COLOR
 semantic/bg-input,color,dark,{primitive/zinc/900},"Text fields, selects, textareas. Always paired with a 1px aura-border-control outline. ADDED.",FRAME_FILL
@@ -143,10 +160,28 @@ semantic/alert-danger-bg,color,dark,#361e21,Danger alert fill. ADDED.,ALL_FILLS
 semantic/alert-danger-fg,color,dark,{primitive/red/300},"Danger alert title and icon: 5.9:1 light, 8.1:1 dark.",ALL_FILLS
 semantic/alert-danger-border,color,dark,#6e2a2b,Danger alert 1px edge (decorative).,ALL_FILLS
 semantic/fg-positive,color,dark,{primitive/lime/300},"Rising-and-good numbers (Stat change, positive deltas) on aura-bg-surface / -canvas. Never on lime fills. ADDED 4.3.",TEXT_FILL
+semantic/chart-1,color,dark,#bba9ff,"Categorical chart colours chart-1…8, in this order: violet, teal, orange, blue, magenta, green, gold, rose. Every one is ≥3:1 on bg-surface and bg-canvas in both themes (WCAG 1.4.11), and neighbours alternate dark/mid lightness (about 2:1 apart) so they stay apart under colour-blindness. chart-1 follows the brand in createTheme. Label series too; colour is never the only cue. ADDED 4.10.",ALL_FILLS
+semantic/chart-2,color,dark,#0a8b7a,,ALL_FILLS
+semantic/chart-3,color,dark,#fe9c63,,ALL_FILLS
+semantic/chart-4,color,dark,#057ed8,,ALL_FILLS
+semantic/chart-5,color,dark,#ff91d1,,ALL_FILLS
+semantic/chart-6,color,dark,#2a8e02,,ALL_FILLS
+semantic/chart-7,color,dark,#e4ac06,,ALL_FILLS
+semantic/chart-8,color,dark,#e23d4e,,ALL_FILLS
+semantic/chart-seq-1,color,dark,#784cd6,Sequential ramp chart-seq-1…5 (low → high) for heatmaps and ordered buckets. seq-1 is the value closest to the surface; every step ≥3:1 on bg-surface. Brand hue in createTheme. ADDED 4.10.,ALL_FILLS
+semantic/chart-seq-2,color,dark,#8f67f2,,ALL_FILLS
+semantic/chart-seq-3,color,dark,#a78bfe,,ALL_FILLS
+semantic/chart-seq-4,color,dark,#c1b1fe,,ALL_FILLS
+semantic/chart-seq-5,color,dark,#dcd5fe,,ALL_FILLS
+semantic/chart-grid,color,dark,{primitive/zinc/800},"Chart grid lines. Decorative, no contrast target. ADDED 4.10.",ALL_FILLS
+semantic/chart-axis,color,dark,{primitive/zinc/400},"Axis lines, ticks and tick labels (text: 4.5:1 on bg-surface and bg-canvas). ADDED 4.10.",ALL_FILLS
 component/button-primary-bg,color,light,{primitive/zinc/900},"Component: Enterprise (primary) button fill — ink in light, white in dark, as the Storybook story renders it (tokens.json pins it to the light value, which disappears on the dark surface).",ALL_FILLS
 component/button-primary-fg,color,light,{primitive/zinc/0},Component: primary button label on aura-button-primary-bg (17.7:1 both themes).,ALL_FILLS
 component/button-primary-bg-hover,color,light,{primitive/zinc/800},"Component: primary button hover. Light zinc-800 is the source value; dark zinc-200 is an ADDED value (the source has none — its zinc-800 hover hides the dark label at 1.19:1). Label 14.9:1 light, 14.0:1 dark.",ALL_FILLS
 component/button-secondary-border,color,light,{primitive/zinc/450},"Component: secondary button (and secondary Button links) 1px edge. ≥3:1 on aura-bg-surface and -canvas in both themes (zinc-450 light 3.1–3.3:1, zinc-500 dark 3.7–4.1:1), so the pill is visible without its label. ADDED 4.7.1 (was aura-border-default, ~1.3:1).",ALL_FILLS
+component/button-danger-bg,color,light,{primitive/red/700},"Component: variant='danger' fill — red-700 light (white label 6.5:1), red-600 dark (4.8:1; red-700 would sink to 2.7:1 against the dark surface). Only for irreversible or destructive actions — usually the confirm button of a Dialog role='alertdialog'. ADDED 4.10.",ALL_FILLS
+component/button-danger-bg-hover,color,light,{primitive/red/800},"Component: danger button hover — red-800 light, red-700 dark (white label ≥6.5:1). ADDED 4.10.",ALL_FILLS
+component/button-danger-fg,color,light,{primitive/white},Component: label on the danger fill. ADDED 4.10.,ALL_FILLS
 component/button-creative-bg,color,light,{primitive/white},Component: Creative button fill (white in every theme). Label in aura-ink.,ALL_FILLS
 component/button-creative-border,color,light,{primitive/zinc/900},Component: Creative button 2px border.,ALL_FILLS
 component/card-border,color,light,{primitive/zinc/200},Component: card outline (light value; use aura-border-default where the card must follow theme).,ALL_FILLS
@@ -154,6 +189,9 @@ component/button-primary-bg,color,dark,{primitive/zinc/0},"Component: Enterprise
 component/button-primary-fg,color,dark,{primitive/zinc/900},Component: primary button label on aura-button-primary-bg (17.7:1 both themes).,ALL_FILLS
 component/button-primary-bg-hover,color,dark,{primitive/zinc/200},"Component: primary button hover. Light zinc-800 is the source value; dark zinc-200 is an ADDED value (the source has none — its zinc-800 hover hides the dark label at 1.19:1). Label 14.9:1 light, 14.0:1 dark.",ALL_FILLS
 component/button-secondary-border,color,dark,{primitive/zinc/500},"Component: secondary button (and secondary Button links) 1px edge. ≥3:1 on aura-bg-surface and -canvas in both themes (zinc-450 light 3.1–3.3:1, zinc-500 dark 3.7–4.1:1), so the pill is visible without its label. ADDED 4.7.1 (was aura-border-default, ~1.3:1).",ALL_FILLS
+component/button-danger-bg,color,dark,{primitive/red/600},"Component: variant='danger' fill — red-700 light (white label 6.5:1), red-600 dark (4.8:1; red-700 would sink to 2.7:1 against the dark surface). Only for irreversible or destructive actions — usually the confirm button of a Dialog role='alertdialog'. ADDED 4.10.",ALL_FILLS
+component/button-danger-bg-hover,color,dark,{primitive/red/700},"Component: danger button hover — red-800 light, red-700 dark (white label ≥6.5:1). ADDED 4.10.",ALL_FILLS
+component/button-danger-fg,color,dark,{primitive/white},Component: label on the danger fill. ADDED 4.10.,ALL_FILLS
 component/button-creative-bg,color,dark,{primitive/white},Component: Creative button fill (white in every theme). Label in aura-ink.,ALL_FILLS
 component/button-creative-border,color,dark,{primitive/zinc/900},Component: Creative button 2px border.,ALL_FILLS
 component/card-border,color,dark,{primitive/zinc/200},Component: card outline (light value; use aura-border-default where the card must follow theme).,ALL_FILLS
