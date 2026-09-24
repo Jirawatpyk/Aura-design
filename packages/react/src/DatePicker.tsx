@@ -15,142 +15,24 @@ import type {
 } from './types.js';
 
 type PopoverPos = { left: number; top?: number | undefined; bottom?: number | undefined };
-/** Options for formatDate: locale/calendar plus a preset or any Intl.DateTimeFormat options. */
-export type FormatDateOptions = DateDisplayOptions & {
-  format?: 'short' | 'long' | 'numeric' | Intl.DateTimeFormatOptions | undefined;
-};
+import {
+  ERA,
+  addDays,
+  addMonths,
+  dateText,
+  defaultCalendar,
+  fmt,
+  formatDate,
+  fromISO,
+  localeTag,
+  parseDate,
+  same,
+  toISO,
+} from './dates.js';
+import type { FormatDateOptions } from './dates.js';
+export type { FormatDateOptions } from './dates.js';
+export { formatDate, parseDate } from './dates.js';
 
-/* ---------- date helpers: values are ISO 'YYYY-MM-DD' strings (Gregorian), shown in the chosen calendar ---------- */
-const ERA = /^พ\.ศ\.\s?|\s?(BE|พ\.ศ\.)$/g;
-const pad = function (n: number) {
-  return (n < 10 ? '0' : '') + n;
-};
-export function toISO(d: Date | null | undefined): ISODate | null {
-  return d ? d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) : null;
-}
-export function fromISO(s: ISODate | null | undefined): Date | null {
-  if (!s) return null;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
-}
-function addDays(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-}
-function addMonths(d: Date, n: number): Date {
-  const t = new Date(d.getFullYear(), d.getMonth() + n, 1);
-  const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
-  return new Date(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last));
-}
-function same(a: Date | null | undefined, b: Date | null | undefined): boolean {
-  return (
-    !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-  );
-}
-const TAGS: Record<string, string> = { th: 'th-TH', en: 'en-GB', sv: 'sv-SE' };
-/** The calendar when none is set: Gregorian for Swedish, Buddhist for Thai and English (as before 4.10). */
-function defaultCalendar(locale: string | null | undefined): 'buddhist' | 'gregory' {
-  /* พ.ศ. only for Thai; the era is display only (values stay Gregorian ISO dates). */
-  return locale === 'th' ? 'buddhist' : 'gregory';
-}
-function localeTag(locale: string | null | undefined, calendar: string | null | undefined): string {
-  const cal = calendar || defaultCalendar(locale);
-  return (TAGS[locale || 'en'] || 'en-GB') + '-u-ca-' + (cal === 'gregory' ? 'gregory' : 'buddhist');
-}
-/* Built-in text of the date components, by date locale (independent of AuraProvider strings, which default to English). */
-type DateText = {
-  prevYears: string;
-  nextYears: string;
-  prevMonth: string;
-  nextMonth: string;
-  today: string;
-  clear: string;
-  chooseDate: string;
-  datePlaceholder: string;
-  clearDate: string;
-  openCalendar: string;
-  chooseDates: string;
-  rangePlaceholder: string;
-  clearDates: string;
-  chooseStart: string;
-  chooseEnd: string;
-};
-const DATE_TEXT: Record<string, DateText> = {
-  th: {
-    prevYears: 'ช่วงปีก่อนหน้า',
-    nextYears: 'ช่วงปีถัดไป',
-    prevMonth: 'เดือนก่อนหน้า',
-    nextMonth: 'เดือนถัดไป',
-    today: 'วันนี้',
-    clear: 'ล้าง',
-    chooseDate: 'เลือกวันที่',
-    datePlaceholder: 'วว/ดด/ปปปป',
-    clearDate: 'ล้างวันที่',
-    openCalendar: 'เปิดปฏิทิน',
-    chooseDates: 'เลือกช่วงวันที่',
-    rangePlaceholder: 'วว/ดด/ปปปป – วว/ดด/ปปปป',
-    clearDates: 'ล้างช่วงวันที่',
-    chooseStart: 'เลือกวันเริ่มต้น',
-    chooseEnd: 'เลือกวันสิ้นสุด',
-  },
-  en: {
-    prevYears: 'Previous years',
-    nextYears: 'Next years',
-    prevMonth: 'Previous month',
-    nextMonth: 'Next month',
-    today: 'Today',
-    clear: 'Clear',
-    chooseDate: 'Choose date',
-    datePlaceholder: 'DD/MM/YYYY',
-    clearDate: 'Clear date',
-    openCalendar: 'Open calendar',
-    chooseDates: 'Choose dates',
-    rangePlaceholder: 'DD/MM/YYYY – DD/MM/YYYY',
-    clearDates: 'Clear dates',
-    chooseStart: 'Choose the start date',
-    chooseEnd: 'Choose the end date',
-  },
-  sv: {
-    prevYears: 'Tidigare år',
-    nextYears: 'Senare år',
-    prevMonth: 'Föregående månad',
-    nextMonth: 'Nästa månad',
-    today: 'Idag',
-    clear: 'Rensa',
-    chooseDate: 'Välj datum',
-    datePlaceholder: 'åååå-mm-dd',
-    clearDate: 'Rensa datum',
-    openCalendar: 'Öppna kalendern',
-    chooseDates: 'Välj datum',
-    rangePlaceholder: 'åååå-mm-dd – åååå-mm-dd',
-    clearDates: 'Rensa datumen',
-    chooseStart: 'Välj startdatum',
-    chooseEnd: 'Välj slutdatum',
-  },
-};
-function dateText(locale: string | null | undefined): DateText {
-  return DATE_TEXT[locale || 'en'] || DATE_TEXT.en;
-}
-const fmtCache: Record<string, Intl.DateTimeFormat> = {};
-const PRESETS: Record<string, Intl.DateTimeFormatOptions> = {
-  short: { day: 'numeric', month: 'short', year: 'numeric' },
-  long: { day: 'numeric', month: 'long', year: 'numeric' },
-  numeric: { day: '2-digit', month: '2-digit', year: 'numeric' },
-};
-function fmt(tag: string, opts: Intl.DateTimeFormatOptions, d: Date): string {
-  const k = tag + JSON.stringify(opts);
-  if (!fmtCache[k]) fmtCache[k] = new Intl.DateTimeFormat(tag, opts);
-  return fmtCache[k].format(d);
-}
-/** Format an ISO date for display, e.g. "18 ก.ย. 2569" (th, Buddhist) or "18 Sept 2026" (en, Gregorian). */
-export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string {
-  const o: FormatDateOptions = opts || {},
-    d = fromISO(iso);
-  if (!d) return '';
-  const f = typeof o.format === 'object' ? o.format : PRESETS[o.format || 'short'];
-  /* A plain function has no provider to read: it keeps AURA's Thai default. Pass `locale` for English or Swedish. */
-  const loc = o.locale || 'th';
-  return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, '');
-}
 /** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
  * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
 export function useFormatDate(): (iso: ISODate | null | undefined, opts?: FormatDateOptions) => string {
@@ -172,52 +54,6 @@ export function useFormatDate(): (iso: ISODate | null | undefined, opts?: Format
     [locale, calendar],
   );
 }
-let MONTHS: Record<string, number> | null = null;
-function monthIndex(word: string): number {
-  if (!MONTHS) {
-    MONTHS = {};
-    ['th-TH', 'en-GB', 'sv-SE'].forEach(function (tag: string) {
-      (['short', 'long'] as const).forEach(function (w: 'short' | 'long') {
-        for (let i = 0; i < 12; i++) {
-          const n = new Intl.DateTimeFormat(tag, { month: w })
-            .format(new Date(2020, i, 1))
-            .toLowerCase()
-            .replace(/\.$/, '');
-          MONTHS![n] = i;
-          if (/^[a-zåäö]/.test(n)) MONTHS![n.slice(0, 3)] = i;
-        }
-      });
-    });
-  }
-  const k = word.toLowerCase().replace(/\.$/, '');
-  return MONTHS[k] != null ? MONTHS[k] : -1;
-}
-/** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
-export function parseDate(text: string | null | undefined): ISODate | null {
-  const s = String(text || '').trim();
-  let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s),
-    y: number,
-    mo: number,
-    d: number;
-  if (m) {
-    y = +m[1];
-    mo = +m[2];
-    d = +m[3];
-  } else if ((m = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(s))) {
-    d = +m[1];
-    mo = +m[2];
-    y = +m[3];
-  } else if ((m = /^(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(s.replace(ERA, '').trim())) && monthIndex(m[2]) >= 0) {
-    d = +m[1];
-    mo = monthIndex(m[2]) + 1;
-    y = +m[3];
-  } else return null;
-  if (y >= 2400) y -= 543;
-  const dt = new Date(y, mo - 1, d);
-  return dt.getMonth() === mo - 1 && dt.getDate() === d ? toISO(dt) : null;
-}
-
-/* ---------- Calendar ---------- */
 export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function Calendar(props, ref) {
   const ctx = useAuraLocale(),
     locale = props.locale || ctx.locale || 'en',

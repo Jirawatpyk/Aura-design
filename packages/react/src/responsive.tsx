@@ -1,9 +1,8 @@
 import * as React from 'react';
 import type { Breakpoint, Responsive, Space } from './types.js';
 
-/* Breakpoints (min-width, px) — mirror the aura-bp-* tokens. CSS media queries can't read variables, so the values live here too. */
-/** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
-export const breakpoints: { sm: 640; md: 768; lg: 1024; xl: 1280 } = { sm: 640, md: 768, lg: 1024, xl: 1280 };
+import { breakpoints } from './breakpoints.js';
+export { breakpoints };
 
 const ORDER: Breakpoint[] = ['base', 'sm', 'md', 'lg', 'xl'];
 

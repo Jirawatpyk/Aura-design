@@ -1055,3 +1055,176 @@ test.describe('4.16: Button ghost and size sm', () => {
     });
   });
 });
+
+test.describe('4.17: touch targets and the bottom sheet', () => {
+  const s417 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-17--' + id, theme);
+  /* A control's hit area reaches 22px each way from its centre (44px) when these four points still land on it. */
+  const hit44 = (el: import('@playwright/test').Locator) =>
+    el.evaluate((e) => {
+      const r = e.getBoundingClientRect(),
+        cx = r.left + r.width / 2,
+        cy = r.top + r.height / 2;
+      return [
+        [cx - 21, cy],
+        [cx + 21, cy],
+        [cx, cy - 21],
+        [cx, cy + 21],
+      ].every(([x, y]) => {
+        const at = document.elementFromPoint(x, y);
+        return !!at && (at === e || e.contains(at));
+      });
+    });
+  test.describe('tablet, touch', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 820, height: 1180 } });
+    test('menu items, pages, toggles, tag remove, segments and calendar days are 44px targets', async ({ page }) => {
+      await s417(page, 'touch-targets');
+      const checks: Array<[string, import('@playwright/test').Locator]> = [
+        ['segment', page.getByRole('radio', { name: 'Week' })],
+        ['tag remove', page.getByRole('button', { name: /Remove Gold/ })],
+        [
+          'page',
+          page
+            .getByRole('link', { name: /page 4/i })
+            .or(page.getByRole('button', { name: /page 4/i }))
+            .first(),
+        ],
+        ['combobox toggle', page.locator('.aura-combo__toggle').first()],
+        ['combobox clear', page.locator('.aura-combo:not(.aura-date) .aura-combo__clear').first()],
+        ['date toggle', page.locator('.aura-date__toggle').first()],
+        ['calendar day', page.locator('.aura-cal__day').nth(10)],
+      ];
+      for (const [name, el] of checks) {
+        await el.scrollIntoViewIfNeeded();
+        expect(await hit44(el), name).toBe(true);
+      }
+      await page.getByRole('button', { name: 'Actions' }).click();
+      const item = page.getByRole('menuitem', { name: 'Duplicate' });
+      expect(Math.round(await item.evaluate((e) => e.getBoundingClientRect().height))).toBe(44);
+    });
+  });
+  test.describe('phone, touch', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+    test('a long sheet stays within the dynamic viewport and keeps its footer visible', async ({ page }) => {
+      await s417(page, 'touch-targets');
+      await page.getByRole('button', { name: 'New member' }).click();
+      const dlg = page.getByRole('dialog', { name: 'New member' });
+      await expect(dlg).toBeVisible();
+      await page.waitForTimeout(400); // sheet animation
+      const r = await dlg.evaluate((e) => ({
+        bottom: e.getBoundingClientRect().bottom,
+        h: e.getBoundingClientRect().height,
+        vh: innerHeight,
+      }));
+      expect(r.h).toBeLessThanOrEqual(Math.ceil(r.vh * 0.92) + 1);
+      expect(r.bottom).toBeLessThanOrEqual(r.vh + 1);
+      await expect(dlg.getByRole('button', { name: 'Create member' })).toBeInViewport();
+      const rule = await page.evaluate(() =>
+        [...document.styleSheets].some((s) => {
+          try {
+            return [...s.cssRules].some((r) => r.cssText.includes('92dvh'));
+          } catch {
+            return false;
+          }
+        }),
+      );
+      expect(rule).toBe(true);
+    });
+  });
+});
+
+test.describe('4.17: linkComponent on every link component', () => {
+  test('Breadcrumb, Pagination (numbers and arrows) and Stat use their own linkComponent', async ({ page }) => {
+    await story(page, 'aura-new-in-4-17--own-link-component', 'light');
+    const route = page.getByTestId('route');
+    await expect(page.locator('a[data-router-link]')).toHaveCount(
+      await page.locator('.aura-crumbs a, .aura-pagination a, a.aura-stat').count(),
+    );
+    await page.getByRole('link', { name: 'Members' }).click();
+    await expect(route).toHaveText('Route: /members');
+    await page.locator('.aura-pagination a[rel="next"]').click();
+    await expect(route).toHaveText('Route: /members?page=3');
+    await page.locator('.aura-pagination a[rel="prev"]').click();
+    await expect(route).toHaveText('Route: /members?page=1');
+    await page.getByRole('link', { name: /page 4/i }).click();
+    await expect(route).toHaveText('Route: /members?page=4');
+    await page.locator('a.aura-stat').click();
+    await expect(route).toHaveText('Route: /invoices?status=open');
+  });
+});
+
+test.describe('4.17: Command with server search', () => {
+  test('controlled query, loading, results replace each other, the active item survives, empty slot', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-4-17--async-command', 'light');
+    await page.getByRole('button', { name: 'Find a member' }).click();
+    const input = page.getByRole('combobox');
+    await expect(input).toBeFocused();
+    await expect(page.getByText('Type a name to search members.')).toBeVisible();
+    await input.pressSequentially('acme');
+    const list = page.getByRole('listbox');
+    await expect(list).toHaveAttribute('aria-busy', 'true');
+    await expect(page.getByText('Searching…').first()).toBeVisible();
+    await expect(page.getByRole('option')).toHaveCount(3);
+    await expect(list).not.toHaveAttribute('aria-busy', 'true');
+    await expect(page.getByRole('status').filter({ hasText: /3 result/ })).toHaveCount(1);
+    const activeId = () => input.getAttribute('aria-activedescendant');
+    const activeLabel = async () => page.locator(`[id="${await activeId()}"]`).innerText();
+    expect(await activeLabel()).toContain('Acme AB');
+    await page.keyboard.press('ArrowDown');
+    expect(await activeLabel()).toContain('Acme Logistics');
+    await expect(page.locator('[role="option"][aria-selected="true"]')).toContainText('Acme Logistics');
+    // typing starts over at the first result; arrowing while the next results load keeps the item when they arrive
+    await input.pressSequentially(' ');
+    await expect(list).toHaveAttribute('aria-busy', 'true');
+    await page.keyboard.press('ArrowDown'); // old results are still listed: Acme AB → Acme Logistics
+    expect(await activeLabel()).toContain('Acme Logistics');
+    await expect(list).not.toHaveAttribute('aria-busy', 'true');
+    expect(await activeLabel()).toContain('Acme Logistics');
+    await expect(page.locator('[role="option"][aria-selected="true"]')).toHaveCount(1);
+    await input.pressSequentially('n');
+    await expect(page.getByRole('option')).toHaveCount(1);
+    expect(await activeLabel()).toContain('Acme Nordic');
+    await input.pressSequentially('zzz');
+    await expect(page.getByRole('button', { name: 'Create member' })).toBeVisible();
+    await expect(input).not.toHaveAttribute('aria-activedescendant', /.+/);
+    for (let i = 0; i < 3; i++) await page.keyboard.press('Backspace');
+    await expect(page.getByRole('option')).toHaveCount(1);
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('chosen')).toHaveText('Chosen: Acme Nordic');
+    await page.getByRole('button', { name: 'Find a member' }).click();
+    await expect(page.getByRole('combobox')).toHaveValue('');
+  });
+});
+
+test.describe('4.17: DataTable server state in one callback', () => {
+  const s = (page: Page) => story(page, 'aura-new-in-4-17--server-state-table', 'light');
+  test('a sort click from page 3 reports { sort, page: 1 } exactly once; paging reports once too', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await s(page);
+    const calls = page.getByTestId('calls');
+    await expect(page.getByText('21–30 of 57')).toBeVisible();
+    await page.getByRole('button', { name: /AMOUNT/ }).click();
+    await expect(calls).toHaveText('{"sort":{"key":"amount","dir":"asc"},"page":1}');
+    await expect(page.getByText('1–10 of 57')).toBeVisible();
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect(calls).toHaveText(
+      '{"sort":{"key":"amount","dir":"asc"},"page":1}\n{"sort":{"key":"amount","dir":"asc"},"page":2}',
+    );
+  });
+  test('server mode stacks into cards below stackBelow and pages from the cards', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await s(page);
+    await expect(page.locator('.aura-table--stacked')).toHaveCount(1);
+    await expect(page.locator('.aura-table__card').first()).toContainText('INV-1021');
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect(page.locator('.aura-table__card').first()).toContainText('INV-1031');
+    await expect(page.getByTestId('calls')).toHaveText('{"sort":null,"page":4}');
+  });
+  test('server mode drops hideBelow columns on a tablet', async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 900 });
+    await s(page);
+    await expect(page.getByRole('columnheader', { name: /INVOICE/ })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /MEMBER/ })).toHaveCount(0);
+  });
+});

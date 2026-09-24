@@ -1,6 +1,7 @@
 /* A Server Component: it can load data on the server and hand it to AURA components.
  * AURA's components are client components ('use client' is in the package), so they work here directly. */
-import { Container, Stack, Grid, Card, Stat, Alert, ColorSchemeToggle } from '@jirawatpyk/aura-react';
+import { Container, Stack, Grid, Card, Stat, Alert, Button, ColorSchemeToggle } from '@jirawatpyk/aura-react';
+import { formatDate } from '@jirawatpyk/aura-react/server'; /* pure helpers: callable in a Server Component */
 import { OrdersTable, type Order } from './orders-table';
 
 async function getOrders(): Promise<Order[]> {
@@ -20,7 +21,12 @@ export default async function Page() {
       <Stack gap={6} style={{ paddingBlock: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 style={{ fontFamily: 'var(--font-display)', margin: 0 }}>คำสั่งซื้อ</h1>
-          <ColorSchemeToggle />
+          <Stack direction="row" gap={3} align="center">
+            <Button href="/members" variant="secondary" iconRight="arrow-right">
+              สมาชิก
+            </Button>
+            <ColorSchemeToggle />
+          </Stack>
         </div>
         <Alert tone="info" title="AURA starter">
           แก้ไฟล์ <code>app/page.tsx</code> ได้เลย — ดูคอมโพเนนต์ทั้งหมดที่ Storybook ของ AURA
@@ -28,8 +34,18 @@ export default async function Page() {
         <Grid columns={{ base: 1, md: 3 }} gap={4}>
           <Stat label="คำสั่งซื้อ" value={orders.length} unit="รายการ" icon="file-text" />
           <Stat label="ยอดรวม" value={'฿' + total.toLocaleString('en')} icon="chart-column" />
-          <Stat label="ติดปัญหา" value={orders.filter((o) => o.status === 'Blocked').length} unit="รายการ" icon="circle-alert" />
+          <Stat
+            label="ติดปัญหา"
+            value={orders.filter((o) => o.status === 'Blocked').length}
+            unit="รายการ"
+            icon="circle-alert"
+            href="/members"
+          />
         </Grid>
+        {/* Formatted on the server: the /server entry has no 'use client', so its helpers run here. */}
+        <p className="aura-text-caption" data-testid="as-of" style={{ margin: 0 }}>
+          {'ข้อมูล ณ ' + formatDate('2026-09-24', { locale: 'th', format: 'long' })}
+        </p>
         <Card title="รายการล่าสุด" headingLevel={2}>
           <OrdersTable orders={orders} />
         </Card>

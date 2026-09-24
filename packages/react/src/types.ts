@@ -46,6 +46,11 @@ export interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnc
   linkComponent?: React.ElementType | undefined;
 }
 
+/** What DataTable's onStateChange reports: the sort and the 1-based page, together. */
+export interface DataTableState {
+  sort: DataTableSort | null;
+  page: number;
+}
 export interface DataTableColumn {
   /** Key into each row object. */
   key: string;
@@ -124,6 +129,10 @@ export interface DataTableProps {
   /** Initial page when uncontrolled. Default 1. */
   defaultPage?: number | undefined;
   onPageChange?: ((page: number) => void) | undefined;
+  /** Sort and page in one callback (4.17): a sort click reports `{ sort, page: 1 }` once, a page change
+   * `{ sort, page }`. When set, onSortChange and onPageChange are not called for them, so an app that keeps both in
+   * the URL does one navigation per click. Pair with `sort` + `page` for controlled state. */
+  onStateChange?: ((state: DataTableState) => void) | undefined;
   /** Adds drag/keyboard resize handles to every column that has a width. */
   resizable?: boolean | undefined;
   onColumnResize?: ((key: string, width: number) => void) | undefined;
@@ -441,10 +450,20 @@ export interface CommandProps {
   placeholder?: string | undefined;
   /** Default "No matches". */
   emptyText?: string | undefined;
+  /** Shown when nothing matches, instead of `emptyText`: any content, e.g. a hint and a "Create member" button. (4.17) */
+  empty?: React.ReactNode | undefined;
   /** ⌘K / Ctrl+K toggles the palette from anywhere on the page. Default true. */
   hotkey?: boolean | undefined;
-  /** Replace the Thai-aware default filter. */
-  filter?: ((item: CommandItem, query: string) => boolean) | undefined;
+  /** Replace the Thai-aware default filter, or `false` to show `items` as given — for results your server already
+   * searched (4.17). */
+  filter?: ((item: CommandItem, query: string) => boolean) | false | undefined;
+  /** The search text, controlled (4.17). Pair with `onQueryChange`; fetch results for it and pass them as `items`. */
+  query?: string | undefined;
+  /** Called on every keystroke, and with "" when the palette closes. (4.17) */
+  onQueryChange?: ((query: string) => void) | undefined;
+  /** Results are on their way: a "Searching…" row, `aria-busy`, and the result count announced when they arrive. The
+   * current items stay listed meanwhile. (4.17) */
+  loading?: boolean | undefined;
   className?: string | undefined;
 }
 export interface TextareaProps
@@ -619,6 +638,8 @@ export interface BreadcrumbProps {
   /** Root first; the last item is the current page. */
   items: Array<{ label: string; href?: string | undefined; onClick?: (() => void) | undefined }>;
   label?: string | undefined;
+  /** Your router's link (e.g. `Link` from `next/link`) for this component; defaults to AuraProvider's `linkComponent`, then `<a>`. */
+  linkComponent?: React.ElementType | undefined;
   className?: string | undefined;
 }
 export interface AvatarProps {
@@ -894,6 +915,8 @@ export interface StatChange {
   label?: React.ReactNode | undefined;
 }
 export interface StatProps {
+  /** Your router's link (e.g. `Link` from `next/link`) for this component; defaults to AuraProvider's `linkComponent`, then `<a>`. */
+  linkComponent?: React.ElementType | undefined;
   label: React.ReactNode;
   value?: React.ReactNode | undefined;
   /** Small unit after the value ("งาน", "คน", "%"). */
@@ -1028,9 +1051,12 @@ export interface PaginationProps {
   onChange?: ((page: number) => void) | undefined;
   /** Pages shown each side of the current one. Default 1. */
   siblingCount?: number | undefined;
-  /** Render real links (SEO, open in new tab); onChange still runs for client routing. */
+  /** Render real links — page numbers and the previous / next arrows (4.17) — through your router's link. With
+   * `onChange` too, onChange runs instead of following the link. */
   getHref?: ((page: number) => string) | undefined;
   label?: string | undefined;
+  /** Your router's link (e.g. `Link` from `next/link`) for this component; defaults to AuraProvider's `linkComponent`, then `<a>`. */
+  linkComponent?: React.ElementType | undefined;
   className?: string | undefined;
 }
 export interface AccordionItem {

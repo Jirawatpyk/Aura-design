@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "theme": "aura-theme --brand \"#0ea5e9\" --out app/aura-theme.css"
+    "theme": "aura-theme --brand \"#0ea5e9\" --out app/aura-theme.css",
+    "test:links": "node e2e/links.mjs"
   },
   "dependencies": {
     "@jirawatpyk/aura-react": "^4.6.0",

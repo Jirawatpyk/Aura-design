@@ -86,6 +86,8 @@ Dark theme: put `class="dark"` (or `data-theme="dark"`) on `<html>`.
 
 Classes: `bg-bg-surface`, `text-fg-primary`, `border-border-strong`, `text-fg-danger`, `bg-alert-warning-bg`, `fill-chart-1`, `p-aura-6`, `gap-aura-4`, `rounded-aura-xl`, `shadow-aura-overlay`, `ease-aura-ease`, `duration-aura-fast`, `z-aura-dialog`, `font-display` / `font-sans` / `font-mono`. They point at the `--aura-*` variables, so `.dark` or `data-theme="dark"` switches them with no `dark:` prefix; the file also makes `dark:` follow those two switches. `npm run check:tailwind4` compiles it with Tailwind v4 in CI.
 
+Next to an existing Tailwind theme (shadcn) use `@jirawatpyk/aura-tokens/tailwind.prefixed.css` instead (4.17). Every name carries `aura-` (`bg-aura-bg-surface`, `border-aura-border-strong`, `bg-aura-chart-1`, `font-aura-sans`), with no `@custom-variant` and no `@import`. Import `aura.css` yourself in an early layer so your theme keeps its `--font-*`. The React package README has the full setup, with `@jirawatpyk/aura-react/styles.layer.css`.
+
 ### Tailwind v3
 
 ```ts

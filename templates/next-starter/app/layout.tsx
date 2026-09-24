@@ -5,7 +5,8 @@ import type { ReactNode } from 'react';
 import '@jirawatpyk/aura-tokens/aura-fonts.local.css';
 import '@jirawatpyk/aura-tokens/aura.css';
 import '@jirawatpyk/aura-react/styles.css';
-import { AuraProvider, ColorSchemeScript, Toaster } from '@jirawatpyk/aura-react';
+import { ColorSchemeScript } from '@jirawatpyk/aura-react';
+import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = { title: 'AURA starter', description: 'Next.js + AURA Design System' };
@@ -19,11 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ColorSchemeScript />
       </head>
       <body>
-        {/* Thai built-in labels; dates show พ.ศ. by default. Use locale="en" for English labels. */}
-        <AuraProvider locale="th">
-          {children}
-          <Toaster />
-        </AuraProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

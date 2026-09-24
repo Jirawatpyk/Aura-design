@@ -21,8 +21,14 @@ export function Command(props: CommandProps): React.ReactElement | null {
     listId = id + '-list';
   const box = React.useRef<HTMLDivElement | null>(null);
   const input = React.useRef<HTMLInputElement | null>(null);
-  const q = React.useState(''),
-    act = React.useState(0);
+  const qState = React.useState(''),
+    act = React.useState<string | null>(null);
+  /* Controlled (query + onQueryChange, for server search) or not. */
+  const query = props.query !== undefined ? props.query : qState[0];
+  function setQuery(v: string) {
+    if (props.query === undefined) qState[1](v);
+    if (props.onQueryChange) props.onQueryChange(v);
+  }
   const openRef = React.useRef(props.open);
   openRef.current = props.open;
   const close = function () {
@@ -51,16 +57,16 @@ export function Command(props: CommandProps): React.ReactElement | null {
   React.useEffect(
     function () {
       if (!props.open) {
-        q[1]('');
-        act[1](0);
+        if (query) setQuery('');
+        act[1](null);
       }
     },
     [props.open],
   );
 
-  const filter = props.filter || defaultFilter;
+  const filter = props.filter === false ? null : props.filter || defaultFilter;
   const shown = (props.items || []).filter(function (it: CommandItem) {
-    return filter(it as any, q[0]);
+    return !filter || filter(it as any, query);
   });
   /* Group in first-seen order; the flat order is what the arrows walk. */
   const groups: Array<{ name: string; items: CommandItem[] }> = [];
@@ -85,7 +91,15 @@ export function Command(props: CommandProps): React.ReactElement | null {
     .filter(function (i) {
       return i >= 0;
     });
-  const active = enabled.indexOf(act[0]) >= 0 ? act[0] : enabled.length ? enabled[0] : -1;
+  /* The active item is remembered by id, so it stays put while async results change around it; if it's gone, the
+   * first enabled item takes over. */
+  const byId =
+    act[0] == null
+      ? -1
+      : flat.findIndex(function (it) {
+          return it.id === act[0];
+        });
+  const active = enabled.indexOf(byId) >= 0 ? byId : enabled.length ? enabled[0] : -1;
   const optId = function (i: number) {
     return id + '-o' + i;
   };
@@ -111,7 +125,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
     if (dir === 'first') n = 0;
     else if (dir === 'last') n = enabled.length - 1;
     else n = (at + dir + enabled.length) % enabled.length;
-    act[1](enabled[n]);
+    act[1](flat[enabled[n]].id);
   }
   function onKey(e: React.KeyboardEvent) {
     if (e.key === 'ArrowDown') {
@@ -167,22 +181,36 @@ export function Command(props: CommandProps): React.ReactElement | null {
             aria-label={props.label || t.commandMenu}
             placeholder={props.placeholder || t.commandPlaceholder}
             className="aura-command__input"
-            value={q[0]}
+            value={query}
             autoComplete="off"
             spellCheck={false}
             onChange={function (e: React.ChangeEvent<HTMLInputElement>) {
-              q[1](e.target.value);
-              act[1](0);
+              setQuery(e.target.value);
+              act[1](null);
             }}
             onKeyDown={onKey}
           />
           <kbd className="aura-command__kbd">Esc</kbd>
         </div>
-        <div className="aura-command__list" id={listId} role="listbox" aria-label={props.label || t.commandMenu}>
+        <div
+          className="aura-command__list"
+          id={listId}
+          role="listbox"
+          aria-label={props.label || t.commandMenu}
+          aria-busy={props.loading || undefined}
+        >
+          {props.loading ? (
+            <div className="aura-command__loading" role="presentation">
+              <Icon name="loader-circle" className="aura-spin" />
+              {t.searching}
+            </div>
+          ) : null}
           {!flat.length ? (
-            <p className="aura-command__empty" role="presentation">
-              {props.emptyText || t.noMatches}
-            </p>
+            props.loading ? null : (
+              <div className="aura-command__empty" role="presentation">
+                {props.empty != null ? props.empty : props.emptyText || t.noMatches}
+              </div>
+            )
           ) : (
             groups.map(function (g, gi) {
               const gid = id + '-g' + gi;
@@ -213,7 +241,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
                           e.preventDefault();
                         }}
                         onPointerMove={function () {
-                          if (!it.disabled && act[0] !== n) act[1](n);
+                          if (!it.disabled && act[0] !== it.id) act[1](it.id);
                         }}
                         onClick={function () {
                           run(it);
@@ -233,6 +261,10 @@ export function Command(props: CommandProps): React.ReactElement | null {
             })
           )}
         </div>
+        {/* Polite status for async search: "Searching…", then the result count. */}
+        <span className="aura-sr-only" role="status">
+          {props.loading ? t.searching : props.loading === false && query ? t.results(flat.length) : ''}
+        </span>
         <div className="aura-command__foot" aria-hidden={true}>
           {t.commandHint}
           <span className="aura-command__mod">{isMac() ? '⌘K' : 'Ctrl K'}</span>

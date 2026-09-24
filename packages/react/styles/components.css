@@ -247,6 +247,7 @@ a.aura-btn { text-decoration: none; }
 .aura-table__pager > span { margin-right: var(--aura-space-2); }
 
 /* Icon button — 32px round, icon in the text colour */
+a.aura-icon-btn { text-decoration: none; }
 .aura-icon-btn {
   width: var(--aura-control-sm); height: var(--aura-control-sm); flex: none;
   display: inline-flex; align-items: center; justify-content: center;
@@ -1147,10 +1148,23 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 
 /* Touch screens: bigger targets for days and options. */
 @media (pointer: coarse) {
-  .aura-cal { --aura-cal-cell: 40px; }
+  .aura-cal { --aura-cal-cell: var(--aura-touch-target); }
   .aura-combo__option { min-height: 44px; }
-  .aura-segmented__option, .aura-segmented--sm .aura-segmented__option { height: 40px; }
+  .aura-segmented__option, .aura-segmented--sm .aura-segmented__option { height: var(--aura-touch-target); }
   .aura-number__step { width: 44px; }
+  /* 4.17: the rest of the controls under 44px on touch screens. */
+  .aura-menu__item { height: var(--aura-touch-target); }
+  .aura-page { min-width: var(--aura-touch-target); height: var(--aura-touch-target); }
+  /* Side by side, each 44px wide (40px tall inside the 44px field), so their targets never overlap. */
+  .aura-combo__clear, .aura-combo__toggle, .aura-date__toggle { width: var(--aura-touch-target); height: 40px; }
+  .aura-combo__toggle, .aura-date__toggle { right: 0; }
+  .aura-combo__clear, .aura-date .aura-combo__clear { right: var(--aura-touch-target); }
+  .aura-combo .aura-input__control, .aura-date .aura-input__control { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+  .aura-combo__clear::after, .aura-combo__toggle::after, .aura-date__toggle::after, .aura-tag__remove::after {
+    content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, var(--aura-touch-target)); height: max(100%, var(--aura-touch-target)); transform: translate(-50%, -50%);
+  }
+  .aura-tag__remove { position: relative; }
+  .aura-combo.is-multi .aura-combo__clear, .aura-combo.is-multi .aura-combo__toggle { top: calc((var(--aura-input-height) - 2px - 40px) / 2); }
 }
 
 /* ---------- Small screens (< 640px) ---------- */
@@ -1160,7 +1174,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-stepper--horizontal .aura-stepper__item:not(:last-child)::after { right: 8px; }
   .aura-stepper--horizontal .aura-stepper__compact { display: block; }
   .aura-dialog-layer:not(.aura-drawer-layer) { align-items: flex-end; padding: 0; }
-  .aura-dialog { max-width: none !important; max-height: 92vh; border-radius: var(--aura-radius-2xl) var(--aura-radius-2xl) 0 0; border-bottom: 0;
+  .aura-dialog { max-width: none !important; max-height: 92vh; max-height: 92dvh; border-radius: var(--aura-radius-2xl) var(--aura-radius-2xl) 0 0; border-bottom: 0;
     padding-bottom: calc(var(--aura-space-6) + env(safe-area-inset-bottom)); animation-name: aura-sheet-in; }
   .aura-dialog__foot { flex-direction: column-reverse; }
   .aura-dialog__foot > * { width: 100%; }
@@ -1275,6 +1289,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   flex: none; padding: 2px 6px; border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-xs);
   font-family: var(--font-mono); font-size: 11px; line-height: 16px; color: var(--aura-fg-secondary); background: var(--aura-bg-canvas);
 }
+.aura-command__loading { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-2) var(--aura-space-3); font-size: 13px; color: var(--aura-fg-secondary); }
 .aura-command__empty { margin: 0; padding: var(--aura-space-6) var(--aura-space-2); text-align: center; font-size: 14px; color: var(--aura-fg-secondary); }
 .aura-command__foot { display: flex; justify-content: space-between; gap: var(--aura-space-3); padding: var(--aura-space-2) var(--aura-space-4); border-top: 1px solid var(--aura-border-default); font-size: 12px; color: var(--aura-fg-secondary); }
 @media (max-width: 639.98px) {

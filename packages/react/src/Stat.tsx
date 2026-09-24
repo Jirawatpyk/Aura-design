@@ -11,7 +11,7 @@ export const Stat = React.forwardRef<HTMLElement, StatProps>(function Stat(props
   const ch = props.change;
   const dir = ch && (ch.direction || 'flat');
   const tone = ch && (ch.tone || (dir === 'up' ? 'positive' : dir === 'down' ? 'negative' : 'neutral'));
-  const Link = useLinkComponent();
+  const Link = useLinkComponent(props.linkComponent);
   /* Tabular figures only when the value is a number or a formatted amount ("฿31,900", "38,520.00 THB", "4.2k", "12%"):
    * on words they widen hyphens and spaces ("under-used"). A three-letter currency code is allowed. */
   const v = props.value;

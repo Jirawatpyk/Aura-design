@@ -80,12 +80,27 @@ Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu, Tag · F
 
 ## Router links, Swedish, motion
 
+Next.js App Router: `next/link` is a function, and a Server Component (your layout) can't pass functions to a client component. Put the provider in a small `'use client'` file:
+
 ```tsx
+// app/providers.tsx
+'use client';
 import Link from 'next/link';
-<AuraProvider locale="sv" linkComponent={Link}>   {/* th | en | sv */}
+import { AuraProvider } from '@jirawatpyk/aura-react';
+export function Providers({ children, locale }: { children: React.ReactNode; locale: 'th' | 'en' | 'sv' }) {
+  return (
+    <AuraProvider locale={locale} linkComponent={Link}>
+      {children}
+    </AuraProvider>
+  );
+  {
+    /* th | en | sv */
+  }
+}
+// app/layout.tsx (a Server Component): <body><Providers locale="th">{children}</Providers></body>
 ```
 
-`linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row/pager links. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` has no provider to read and stays Thai unless you pass `locale`. Values are always Gregorian ISO dates.
+`linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` from the package root has no provider to read and stays Thai unless you pass `locale` (until 5.0); the one in `@jirawatpyk/aura-react/server` defaults to English and Gregorian. Values are always Gregorian ISO dates.
 
 ## Compact density
 
@@ -123,9 +138,30 @@ toast.error('Could not save');               // danger = role="alert"; the rest 
 <Command open={open} onOpenChange={setOpen} items={commands} />                    {/* ⌘K / Ctrl+K toggles it */}
 ```
 
+Server search in the palette (4.17): control the query and hand over what the server found. The active item is kept by id while results change, and `loading` announces "Searching…" and then the count.
+
+```tsx
+<Command
+  open={open}
+  onOpenChange={setOpen}
+  query={q}
+  onQueryChange={setQ} // fetch results for q (debounced)
+  items={results}
+  filter={false}
+  loading={isFetching}
+  empty={
+    <Button size="sm" icon="plus">
+      Create member
+    </Button>
+  }
+/>
+```
+
+DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page }) => router.push(…)}` reports a sort click once, as `{ sort, page: 1 }`, instead of `onSortChange` and then `onPageChange(1)`. That's one history entry and one server render.
+
 ## Phones and touch
 
-Under 640px every text control uses 16px text (iOS Safari doesn't zoom). On touch screens (`pointer: coarse`) IconButton and `<Button size="sm">` keep their 32px look with a 44px hit area, and Radio, Checkbox and Switch rows are at least 44px with the whole row as the target. `<Button fullWidth>` fills its row and wraps long Thai or Swedish labels.
+Under 640px every text control uses 16px text (iOS Safari doesn't zoom). On touch screens (`pointer: coarse`) IconButton and `<Button size="sm">` keep their 32px look with a 44px hit area, and Radio, Checkbox and Switch rows are at least 44px with the whole row as the target. Since 4.17 so are menu items, page numbers, segments and calendar days (44px); Combobox and DatePicker toggles and the Tag remove button get 44px hit areas. A Dialog sheet on a phone is capped at `92dvh`, so the browser toolbar never hides its footer. `<Button fullWidth>` fills its row and wraps long Thai or Swedish labels.
 
 ## Light and dark
 
@@ -162,6 +198,33 @@ Values are ISO strings (`2026-09-18`); with `locale="th"` display is Thai with B
 Portals (Dialog, Drawer, menus, pickers, toasts) wait until after hydration; `useBreakpoint()` returns `lg` on the server and corrects on the client through `useSyncExternalStore`, so there are no hydration mismatches. `npm run test:ssr` renders every component with `react-dom/server` (ESM and CJS builds).
 
 Layout is right before hydration (4.16). AppShell's sidebar-or-drawer switch is CSS (a 1024px media query), so a phone gets the menu button from the server's HTML. A DataTable with `stackBelow` renders cards and grid together until it has measured itself, and a container query shows the right one. It supports `stackBelow` 360, 400, 480, 520, 560, 600, 640, 720, 768, 800, 900, 960 and 1024; other widths stack once JavaScript runs. `npm run test:layout` loads both at 390 and 1280px with JavaScript off, then hydrated, and requires CLS 0. Columns with `hideBelow` still settle after hydration.
+
+## Next to another Tailwind theme (shadcn), page by page
+
+`styles.css` is unlayered, so it beats utilities. For a migration next to an existing theme, use the layered stylesheet and the prefixed Tailwind theme (4.17):
+
+```css
+@layer aura-tokens, theme, base, aura, components, utilities;
+@import 'tailwindcss';
+@import '@jirawatpyk/aura-tokens/aura.css' layer(aura-tokens); /* your theme wins for --font-sans / --font-mono */
+@import '@jirawatpyk/aura-tokens/tailwind.prefixed.css'; /* bg-aura-bg-surface, font-aura-sans … no @custom-variant */
+@import '@jirawatpyk/aura-react/styles.layer.css'; /* components in @layer aura: a utility className wins */
+```
+
+Nothing an existing page uses is redefined: `npm run check:tailwind4` compiles a shadcn-style page alone and next to this setup, with AURA imported first and last. It checks that the computed styles are identical, and that `rounded-none` overrides `.aura-btn` with no `!important`. While both run, AURA components use your `--font-sans` / `--font-mono`; set them to AURA's stacks in your token bridge when a page moves over.
+
+## Server Components
+
+Everything in the package root is a client module (`'use client'`), so a Server Component can render AURA components but can't call AURA functions. The pure helpers have their own entry with no `'use client'` and no React (4.17):
+
+```tsx
+// app/invoices/[id]/page.tsx — a Server Component
+import { formatDate, createTheme, statusTone, STRINGS } from '@jirawatpyk/aura-react/server';
+formatDate('2026-09-24'); // "24 Sept 2026" — English and Gregorian by default
+formatDate('2026-09-24', { locale: 'th' }); // "24 ก.ย. 2569"
+```
+
+It exports `formatDate`, `parseDate`, `toISO`, `fromISO`, `parseTime`, `formatBytes`, `statusTone`, `STRINGS`, `createTheme`, `contrast`, `brandScale`, `colorSchemeScript` and `breakpoints`. `npm run test:ssr` loads it under Node's `react-server` condition, and the Next.js starter formats a date with it in a Server Component.
 
 ## TypeScript
 

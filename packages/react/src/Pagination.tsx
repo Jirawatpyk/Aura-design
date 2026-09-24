@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { cx, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
@@ -36,7 +37,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
     if (p >= 1 && p <= count && p !== page) st[1](p);
   }
   const link = props.getHref;
-  const Link = useLinkComponent();
+  const Link = useLinkComponent(props.linkComponent);
   function item(p: number, label: React.ReactNode, extra?: Record<string, unknown>) {
     const common = Object.assign(
       {
@@ -71,16 +72,41 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
       </button>
     );
   }
+  /* Previous / next: links through the router when getHref is set (4.17), otherwise buttons; a disabled arrow at
+   * either end is always a button (a link can't be disabled). */
+  function arrow(p: number, icon: 'chevron-left' | 'chevron-right', label: string, rel: string, disabled: boolean) {
+    if (!link || disabled)
+      return (
+        <IconButton
+          icon={icon}
+          label={label}
+          disabled={disabled}
+          onClick={function () {
+            go(p);
+          }}
+        />
+      );
+    return (
+      <Link
+        href={link(p)}
+        rel={rel}
+        className="aura-icon-btn"
+        aria-label={label}
+        title={label}
+        onClick={function (e: React.MouseEvent) {
+          if (props.onChange) {
+            e.preventDefault();
+            go(p);
+          }
+        }}
+      >
+        <Icon name={icon} size="sm" />
+      </Link>
+    );
+  }
   return (
     <nav ref={ref} className={cx('aura-pagination', props.className)} aria-label={props.label || t.pagination}>
-      <IconButton
-        icon="chevron-left"
-        label={t.prevPage}
-        disabled={page <= 1}
-        onClick={function () {
-          go(page - 1);
-        }}
-      />
+      {arrow(page - 1, 'chevron-left', t.prevPage, 'prev', page <= 1)}
       <ol className="aura-pagination__list">
         {pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function (p: number | string) {
           return typeof p === 'number' ? (
@@ -95,14 +121,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
       <span className="aura-pagination__compact" aria-hidden={true}>
         {t.page(page, count)}
       </span>
-      <IconButton
-        icon="chevron-right"
-        label={t.nextPage}
-        disabled={page >= count}
-        onClick={function () {
-          go(page + 1);
-        }}
-      />
+      {arrow(page + 1, 'chevron-right', t.nextPage, 'next', page >= count)}
     </nav>
   );
 });

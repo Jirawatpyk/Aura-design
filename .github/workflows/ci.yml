@@ -28,10 +28,6 @@ jobs:
         if: matrix.react == '18'
         run: |
           set -o pipefail; npm run check:generated -w packages/tokens 2>&1 | tee -a ci.log
-      - name: Tailwind v4 theme compiles (aura-tailwind.css)
-        if: matrix.react == '18'
-        run: |
-          set -o pipefail; npm run check:tailwind4 -w packages/tokens 2>&1 | tee -a ci.log
       - name: Browser for the font check
         if: matrix.react == '18'
         run: npx playwright install --with-deps chromium
@@ -49,6 +45,10 @@ jobs:
       - name: Build
         run: |
           set -o pipefail; npm run build 2>&1 | tee -a ci.log
+      - name: Tailwind v4 theme compiles; prefixed theme and @layer aura sit next to a shadcn theme
+        if: matrix.react == '18'
+        run: |
+          set -o pipefail; npm run check:tailwind4 -w packages/tokens 2>&1 | tee -a ci.log
       - name: Bundle in packages/tokens matches the React source
         if: matrix.react == '18'
         run: |
@@ -147,8 +147,14 @@ jobs:
         run: |
           npx next start -p 3100 & sleep 8
           html=$(curl -fsS http://localhost:3100)
-          for want in 'ORD-1042' 'aura-table' 'aura-stat' 'data-aura-color-scheme'; do echo "$html" | grep -q "$want" || { echo "missing $want"; exit 1; }; done
+          for want in 'ORD-1042' 'aura-table' 'aura-stat' 'data-aura-color-scheme' 'ข้อมูล ณ 24 กันยายน 2569'; do echo "$html" | grep -q "$want" || { echo "missing $want"; exit 1; }; done
           echo "starter renders AURA on the server"
+      - name: Browser for the link test
+        run: npx playwright install --with-deps chromium
+      - name: Every AURA link navigates client-side (next/link, no full page load)
+        working-directory: templates/next-starter
+        env: { NEXT_TELEMETRY_DISABLED: '1' }
+        run: node e2e/links.mjs
 
   # Public Storybook on GitHub Pages — only from main, only after every Storybook test passed.
   # One-time setup: repository Settings → Pages → Source: GitHub Actions.

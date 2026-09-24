@@ -64,13 +64,23 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   const reorderable = props.reorderable !== false && !!props.columnControls;
   const controls = !!props.columnControls;
 
-  const sortState = useMaybeControlled<DataTableSort | null>(props.sort, props.defaultSort || null, props.onSortChange);
+  /* With onStateChange, sort and page report through it alone (one callback per click); see emit(). */
+  const oneCallback = !!props.onStateChange;
+  const sortState = useMaybeControlled<DataTableSort | null>(
+    props.sort,
+    props.defaultSort || null,
+    oneCallback ? null : props.onSortChange,
+  );
   const sort = sortState[0],
     setSort = sortState[1];
   const selState = useMaybeControlled<RowKey[]>(props.selected, props.defaultSelected || [], props.onSelectionChange);
   const selected = selState[0],
     setSelected = selState[1];
-  const pageState = useMaybeControlled<number>(props.page, props.defaultPage || 1, props.onPageChange);
+  const pageState = useMaybeControlled<number>(
+    props.page,
+    props.defaultPage || 1,
+    oneCallback ? null : props.onPageChange,
+  );
   const orderState = useMaybeControlled<string[]>(
     props.columnOrder,
     columns.map(function (c: Col) {
@@ -284,12 +294,16 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   const canSortAny = !busy && (manual ? total > 1 : rows.length > 1);
   const shownTotal = manual && props.totalRows == null ? first + rows.length : total;
   /* Pager links (getPageHref) with no onPageChange: the URL is the page state, so keyboard paging follows the link. */
-  const linkPaging = !!props.getPageHref && !props.onPageChange;
+  const linkPaging = !!props.getPageHref && !props.onPageChange && !oneCallback;
   const prevLink = React.useRef<HTMLElement | null>(null),
     nextLink = React.useRef<HTMLElement | null>(null);
-  function goPage(p: number, focus?: PendingFocus): boolean {
+  function emit(s: DataTableSort | null, p: number) {
+    if (props.onStateChange) props.onStateChange({ sort: s, page: p });
+  }
+  function goPage(p: number, focus?: PendingFocus, quiet?: boolean): boolean {
     const next = Math.min(Math.max(1, p), pageCount);
     if (next === page) return false;
+    if (!quiet) emit(sort, next);
     if (linkPaging) {
       const a = next === page - 1 ? prevLink.current : next === page + 1 ? nextLink.current : null;
       if (a) a.click();
@@ -301,8 +315,13 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     return true;
   }
   function sortBy(key: string) {
-    setSort(nextSort(key));
-    if (!(manual && linkPaging)) goPage(1);
+    applySort(nextSort(key));
+  }
+  /* A new sort starts at page 1: one onStateChange carrying both, or onSortChange then onPageChange(1). */
+  function applySort(s: DataTableSort | null) {
+    setSort(s);
+    if (!(manual && linkPaging)) goPage(1, undefined, true);
+    emit(s, 1);
   }
   /* Row links: the first column's content is the link; a click or Enter elsewhere on the row follows it. */
   const rowHref = props.getRowHref;
@@ -559,16 +578,14 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           label: t.sortAsc,
           icon: 'arrow-up',
           onSelect: function () {
-            setSort({ key: c.key, dir: 'asc' });
-            goPage(1);
+            applySort({ key: c.key, dir: 'asc' });
           },
         },
         {
           label: t.sortDesc,
           icon: 'arrow-down',
           onSelect: function () {
-            setSort({ key: c.key, dir: 'desc' });
-            goPage(1);
+            applySort({ key: c.key, dir: 'desc' });
           },
         },
         { separator: true },
@@ -1043,9 +1060,10 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           className="aura-icon-btn"
           aria-label={label}
           onClick={function (e: React.MouseEvent) {
-            if (props.onPageChange) {
+            if (props.onPageChange || oneCallback) {
               e.preventDefault();
               pageState[1](p);
+              emit(sort, p);
             }
           }}
         >

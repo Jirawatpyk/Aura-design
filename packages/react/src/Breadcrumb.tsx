@@ -6,7 +6,7 @@ import type { BreadcrumbProps } from './types.js';
 
 export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(function Breadcrumb(props, ref) {
   const t = useStrings();
-  const Link = useLinkComponent();
+  const Link = useLinkComponent(props.linkComponent);
   const items = props.items || [];
   return (
     <nav ref={ref} aria-label={props.label || t.breadcrumb} className={cx('aura-crumbs', props.className)}>

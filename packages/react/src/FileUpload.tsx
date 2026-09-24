@@ -7,18 +7,8 @@ import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { Field } from './Field.js';
 
-/** 1536 → "1.5 KB". */
-export function formatBytes(n: number | null | undefined): string {
-  if (n == null) return '';
-  if (n < 1024) return n + ' B';
-  let u = ['KB', 'MB', 'GB'],
-    i = -1;
-  do {
-    n /= 1024;
-    i++;
-  } while (n >= 1024 && i < u.length - 1);
-  return (n >= 10 || Math.round(n) === n ? Math.round(n) : n.toFixed(1)) + ' ' + u[i];
-}
+import { formatBytes } from './text.js';
+export { formatBytes };
 function matches(file: File, accept: string | undefined): boolean {
   if (!accept) return true;
   const name = (file.name || '').toLowerCase(),

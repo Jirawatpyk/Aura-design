@@ -8,40 +8,10 @@ import { DropdownMenu } from './DropdownMenu.js';
  * This module only chooses the attribute, remembers the choice, keeps the Tailwind `.dark` class in step, and
  * applies the saved choice before first paint (ColorSchemeScript) so there is no flash of the wrong scheme. */
 
-/** `system` follows the operating system and changes with it. */
-export type ColorScheme = 'light' | 'dark' | 'system';
-
-export interface ColorSchemeOptions {
-  /** localStorage key for the choice. Default `aura-color-scheme`. */
-  storageKey?: string | undefined;
-  /** Used when nothing is saved. Default `system`. */
-  defaultScheme?: ColorScheme | undefined;
-}
-
-const DEFAULT_KEY = 'aura-color-scheme';
-const SCHEMES: ColorScheme[] = ['light', 'dark', 'system'];
-const EVENT = 'aura-color-scheme';
-
-function valid(v: unknown): v is ColorScheme {
-  return typeof v === 'string' && (SCHEMES as string[]).indexOf(v) >= 0;
-}
-
-/** The script ColorSchemeScript renders, as a string — for frameworks that want it in a raw <head> template. */
-export function colorSchemeScript(options?: ColorSchemeOptions): string {
-  const key = JSON.stringify((options && options.storageKey) || DEFAULT_KEY);
-  const fallback = JSON.stringify((options && options.defaultScheme) || 'system');
-  return (
-    '(function(){try{var s=localStorage.getItem(' +
-    key +
-    ');' +
-    "if(s!=='light'&&s!=='dark'&&s!=='system')s=" +
-    fallback +
-    ';' +
-    'var d=document.documentElement;d.setAttribute("data-theme",s);' +
-    "var dark=s==='dark'||(s==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);" +
-    'd.classList.toggle("dark",dark);}catch(e){}})();'
-  );
-}
+import { DEFAULT_KEY, SCHEMES, EVENT, valid, colorSchemeScript } from './colorSchemeScript.js';
+import type { ColorScheme, ColorSchemeOptions } from './colorSchemeScript.js';
+export { colorSchemeScript };
+export type { ColorScheme, ColorSchemeOptions };
 
 /** Put in <head>: applies the saved colour scheme before the page paints. Server-rendering safe. */
 export function ColorSchemeScript(

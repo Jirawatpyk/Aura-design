@@ -267,6 +267,8 @@ window.Aura = (() => {
 
   // src/locale.tsx
   var React3 = __toESM(require_react(), 1);
+
+  // src/strings.ts
   var n = function(x) {
     return Number(x).toLocaleString("en");
   };
@@ -614,6 +616,8 @@ window.Aura = (() => {
       }
     }
   };
+
+  // src/locale.tsx
   var LocaleContext = React3.createContext(null);
   function AuraProvider(props) {
     const outer = React3.useContext(LocaleContext);
@@ -946,12 +950,8 @@ window.Aura = (() => {
 
   // src/StatusPill.tsx
   var React9 = __toESM(require_react(), 1);
-  var TONE_ICON = {
-    neutral: "circle",
-    progress: "circle-dot-dashed",
-    ready: "circle-check",
-    blocked: "ban"
-  };
+
+  // src/status.ts
   var TONE_WORDS = {
     ready: ["ready", "done", "complete", "completed", "approved", "live", "passed"],
     progress: ["in progress", "in review", "review", "syncing", "running", "pending"],
@@ -963,6 +963,14 @@ window.Aura = (() => {
     return "neutral";
   }
   var TONE_ORDER = { neutral: 0, progress: 1, ready: 2, blocked: 3 };
+
+  // src/StatusPill.tsx
+  var TONE_ICON = {
+    neutral: "circle",
+    progress: "circle-dot-dashed",
+    ready: "circle-check",
+    blocked: "ban"
+  };
   var StatusPill = React9.forwardRef(function StatusPill2(props, ref) {
     const tone2 = props.tone || toneFor(props.children);
     return /* @__PURE__ */ React9.createElement("span", { ref, className: cx("aura-pill", "aura-pill--" + tone2, props.className) }, /* @__PURE__ */ React9.createElement(Icon, { name: TONE_ICON[tone2] || "circle", size: 12 }), props.children);
@@ -1544,6 +1552,8 @@ window.Aura = (() => {
   // src/DatePicker.tsx
   var React17 = __toESM(require_react(), 1);
   var import_react_dom3 = __toESM(require_react_dom(), 1);
+
+  // src/dates.ts
   var ERA = /^พ\.ศ\.\s?|\s?(BE|พ\.ศ\.)$/g;
   var pad = function(n2) {
     return (n2 < 10 ? "0" : "") + n2;
@@ -1649,22 +1659,6 @@ window.Aura = (() => {
     const loc = o.locale || "th";
     return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, "");
   }
-  function useFormatDate() {
-    const ctx = useAuraLocale(), locale = ctx.locale || "en", calendar = ctx.calendar;
-    return React17.useCallback(
-      function(iso, opts) {
-        const o = opts || {}, loc = o.locale || locale;
-        return formatDate(
-          iso,
-          Object.assign({}, o, {
-            locale: loc,
-            calendar: o.calendar || (o.locale ? void 0 : calendar) || defaultCalendar(loc)
-          })
-        );
-      },
-      [locale, calendar]
-    );
-  }
   var MONTHS = null;
   function monthIndex(word) {
     if (!MONTHS) {
@@ -1701,6 +1695,24 @@ window.Aura = (() => {
     if (y >= 2400) y -= 543;
     const dt = new Date(y, mo - 1, d);
     return dt.getMonth() === mo - 1 && dt.getDate() === d ? toISO(dt) : null;
+  }
+
+  // src/DatePicker.tsx
+  function useFormatDate() {
+    const ctx = useAuraLocale(), locale = ctx.locale || "en", calendar = ctx.calendar;
+    return React17.useCallback(
+      function(iso, opts) {
+        const o = opts || {}, loc = o.locale || locale;
+        return formatDate(
+          iso,
+          Object.assign({}, o, {
+            locale: loc,
+            calendar: o.calendar || (o.locale ? void 0 : calendar) || defaultCalendar(loc)
+          })
+        );
+      },
+      [locale, calendar]
+    );
   }
   var Calendar = React17.forwardRef(function Calendar2(props, ref) {
     const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), tag = localeTag(locale, calendar);
@@ -2749,7 +2761,12 @@ window.Aura = (() => {
     const id = uid(), listId = id + "-list";
     const box = React25.useRef(null);
     const input = React25.useRef(null);
-    const q = React25.useState(""), act = React25.useState(0);
+    const qState = React25.useState(""), act = React25.useState(null);
+    const query = props.query !== void 0 ? props.query : qState[0];
+    function setQuery(v) {
+      if (props.query === void 0) qState[1](v);
+      if (props.onQueryChange) props.onQueryChange(v);
+    }
     const openRef = React25.useRef(props.open);
     openRef.current = props.open;
     const close = function() {
@@ -2775,15 +2792,15 @@ window.Aura = (() => {
     React25.useEffect(
       function() {
         if (!props.open) {
-          q[1]("");
-          act[1](0);
+          if (query) setQuery("");
+          act[1](null);
         }
       },
       [props.open]
     );
-    const filter = props.filter || defaultFilter;
+    const filter = props.filter === false ? null : props.filter || defaultFilter;
     const shown = (props.items || []).filter(function(it) {
-      return filter(it, q[0]);
+      return !filter || filter(it, query);
     });
     const groups = [];
     shown.forEach(function(it) {
@@ -2805,7 +2822,10 @@ window.Aura = (() => {
     }).filter(function(i2) {
       return i2 >= 0;
     });
-    const active = enabled.indexOf(act[0]) >= 0 ? act[0] : enabled.length ? enabled[0] : -1;
+    const byId = act[0] == null ? -1 : flat.findIndex(function(it) {
+      return it.id === act[0];
+    });
+    const active = enabled.indexOf(byId) >= 0 ? byId : enabled.length ? enabled[0] : -1;
     const optId = function(i2) {
       return id + "-o" + i2;
     };
@@ -2830,7 +2850,7 @@ window.Aura = (() => {
       if (dir === "first") n2 = 0;
       else if (dir === "last") n2 = enabled.length - 1;
       else n2 = (at + dir + enabled.length) % enabled.length;
-      act[1](enabled[n2]);
+      act[1](flat[enabled[n2]].id);
     }
     function onKey(e) {
       if (e.key === "ArrowDown") {
@@ -2888,56 +2908,68 @@ window.Aura = (() => {
               "aria-label": props.label || t.commandMenu,
               placeholder: props.placeholder || t.commandPlaceholder,
               className: "aura-command__input",
-              value: q[0],
+              value: query,
               autoComplete: "off",
               spellCheck: false,
               onChange: function(e) {
-                q[1](e.target.value);
-                act[1](0);
+                setQuery(e.target.value);
+                act[1](null);
               },
               onKeyDown: onKey
             }
           ), /* @__PURE__ */ React25.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
-          /* @__PURE__ */ React25.createElement("div", { className: "aura-command__list", id: listId, role: "listbox", "aria-label": props.label || t.commandMenu }, !flat.length ? /* @__PURE__ */ React25.createElement("p", { className: "aura-command__empty", role: "presentation" }, props.emptyText || t.noMatches) : groups.map(function(g, gi) {
-            const gid = id + "-g" + gi;
-            return /* @__PURE__ */ React25.createElement(
-              "div",
-              {
-                key: g.name || gi,
-                role: "group",
-                "aria-labelledby": g.name ? gid : void 0,
-                className: "aura-command__group"
-              },
-              g.name ? /* @__PURE__ */ React25.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
-              g.items.map(function(it) {
-                i++;
-                const n2 = i;
-                return /* @__PURE__ */ React25.createElement(
-                  "div",
-                  {
-                    key: it.id,
-                    id: optId(n2),
-                    role: "option",
-                    "aria-selected": n2 === active,
-                    "aria-disabled": it.disabled || void 0,
-                    className: cx("aura-command__item", n2 === active && "is-active", it.disabled && "is-disabled"),
-                    onPointerDown: function(e) {
-                      e.preventDefault();
+          /* @__PURE__ */ React25.createElement(
+            "div",
+            {
+              className: "aura-command__list",
+              id: listId,
+              role: "listbox",
+              "aria-label": props.label || t.commandMenu,
+              "aria-busy": props.loading || void 0
+            },
+            props.loading ? /* @__PURE__ */ React25.createElement("div", { className: "aura-command__loading", role: "presentation" }, /* @__PURE__ */ React25.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), t.searching) : null,
+            !flat.length ? props.loading ? null : /* @__PURE__ */ React25.createElement("div", { className: "aura-command__empty", role: "presentation" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : groups.map(function(g, gi) {
+              const gid = id + "-g" + gi;
+              return /* @__PURE__ */ React25.createElement(
+                "div",
+                {
+                  key: g.name || gi,
+                  role: "group",
+                  "aria-labelledby": g.name ? gid : void 0,
+                  className: "aura-command__group"
+                },
+                g.name ? /* @__PURE__ */ React25.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
+                g.items.map(function(it) {
+                  i++;
+                  const n2 = i;
+                  return /* @__PURE__ */ React25.createElement(
+                    "div",
+                    {
+                      key: it.id,
+                      id: optId(n2),
+                      role: "option",
+                      "aria-selected": n2 === active,
+                      "aria-disabled": it.disabled || void 0,
+                      className: cx("aura-command__item", n2 === active && "is-active", it.disabled && "is-disabled"),
+                      onPointerDown: function(e) {
+                        e.preventDefault();
+                      },
+                      onPointerMove: function() {
+                        if (!it.disabled && act[0] !== it.id) act[1](it.id);
+                      },
+                      onClick: function() {
+                        run(it);
+                      }
                     },
-                    onPointerMove: function() {
-                      if (!it.disabled && act[0] !== n2) act[1](n2);
-                    },
-                    onClick: function() {
-                      run(it);
-                    }
-                  },
-                  it.icon ? /* @__PURE__ */ React25.createElement(Icon, { name: it.icon }) : null,
-                  /* @__PURE__ */ React25.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React25.createElement("span", { className: "aura-command__label" }, it.label), it.description ? /* @__PURE__ */ React25.createElement("span", { className: "aura-command__desc" }, it.description) : null),
-                  it.shortcut ? /* @__PURE__ */ React25.createElement("kbd", { className: "aura-command__kbd" }, it.shortcut) : null
-                );
-              })
-            );
-          })),
+                    it.icon ? /* @__PURE__ */ React25.createElement(Icon, { name: it.icon }) : null,
+                    /* @__PURE__ */ React25.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React25.createElement("span", { className: "aura-command__label" }, it.label), it.description ? /* @__PURE__ */ React25.createElement("span", { className: "aura-command__desc" }, it.description) : null),
+                    it.shortcut ? /* @__PURE__ */ React25.createElement("kbd", { className: "aura-command__kbd" }, it.shortcut) : null
+                  );
+                })
+              );
+            })
+          ),
+          /* @__PURE__ */ React25.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : props.loading === false && query ? t.results(flat.length) : ""),
           /* @__PURE__ */ React25.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React25.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
         )
       ),
@@ -3127,11 +3159,20 @@ window.Aura = (() => {
     const selectable = !!props.selectable;
     const reorderable = props.reorderable !== false && !!props.columnControls;
     const controls = !!props.columnControls;
-    const sortState = useMaybeControlled(props.sort, props.defaultSort || null, props.onSortChange);
+    const oneCallback = !!props.onStateChange;
+    const sortState = useMaybeControlled(
+      props.sort,
+      props.defaultSort || null,
+      oneCallback ? null : props.onSortChange
+    );
     const sort = sortState[0], setSort = sortState[1];
     const selState = useMaybeControlled(props.selected, props.defaultSelected || [], props.onSelectionChange);
     const selected = selState[0], setSelected = selState[1];
-    const pageState = useMaybeControlled(props.page, props.defaultPage || 1, props.onPageChange);
+    const pageState = useMaybeControlled(
+      props.page,
+      props.defaultPage || 1,
+      oneCallback ? null : props.onPageChange
+    );
     const orderState = useMaybeControlled(
       props.columnOrder,
       columns.map(function(c) {
@@ -3301,11 +3342,15 @@ window.Aura = (() => {
     const pageRows = pageSize && !manual ? view.slice(first, first + pageSize) : view;
     const canSortAny = !busy && (manual ? total > 1 : rows.length > 1);
     const shownTotal = manual && props.totalRows == null ? first + rows.length : total;
-    const linkPaging = !!props.getPageHref && !props.onPageChange;
+    const linkPaging = !!props.getPageHref && !props.onPageChange && !oneCallback;
     const prevLink = React28.useRef(null), nextLink = React28.useRef(null);
-    function goPage(p, focus) {
+    function emit(s, p) {
+      if (props.onStateChange) props.onStateChange({ sort: s, page: p });
+    }
+    function goPage(p, focus, quiet) {
       const next = Math.min(Math.max(1, p), pageCount);
       if (next === page) return false;
+      if (!quiet) emit(sort, next);
       if (linkPaging) {
         const a = next === page - 1 ? prevLink.current : next === page + 1 ? nextLink.current : null;
         if (a) a.click();
@@ -3317,8 +3362,12 @@ window.Aura = (() => {
       return true;
     }
     function sortBy(key) {
-      setSort(nextSort(key));
-      if (!(manual && linkPaging)) goPage(1);
+      applySort(nextSort(key));
+    }
+    function applySort(s) {
+      setSort(s);
+      if (!(manual && linkPaging)) goPage(1, void 0, true);
+      emit(s, 1);
     }
     const rowHref = props.getRowHref;
     function followRow(el, e) {
@@ -3533,16 +3582,14 @@ window.Aura = (() => {
             label: t.sortAsc,
             icon: "arrow-up",
             onSelect: function() {
-              setSort({ key: c.key, dir: "asc" });
-              goPage(1);
+              applySort({ key: c.key, dir: "asc" });
             }
           },
           {
             label: t.sortDesc,
             icon: "arrow-down",
             onSelect: function() {
-              setSort({ key: c.key, dir: "desc" });
-              goPage(1);
+              applySort({ key: c.key, dir: "desc" });
             }
           },
           { separator: true }
@@ -3979,9 +4026,10 @@ window.Aura = (() => {
             className: "aura-icon-btn",
             "aria-label": label,
             onClick: function(e) {
-              if (props.onPageChange) {
+              if (props.onPageChange || oneCallback) {
                 e.preventDefault();
                 pageState[1](p);
+                emit(sort, p);
               }
             }
           },
@@ -4475,7 +4523,7 @@ window.Aura = (() => {
   var React32 = __toESM(require_react(), 1);
   var Breadcrumb = React32.forwardRef(function Breadcrumb2(props, ref) {
     const t = useStrings();
-    const Link = useLinkComponent();
+    const Link = useLinkComponent(props.linkComponent);
     const items2 = props.items || [];
     return /* @__PURE__ */ React32.createElement("nav", { ref, "aria-label": props.label || t.breadcrumb, className: cx("aura-crumbs", props.className) }, /* @__PURE__ */ React32.createElement("ol", null, items2.map(function(it, i) {
       const last = i === items2.length - 1;
@@ -4524,7 +4572,11 @@ window.Aura = (() => {
 
   // src/responsive.tsx
   var React34 = __toESM(require_react(), 1);
+
+  // src/breakpoints.ts
   var breakpoints = { sm: 640, md: 768, lg: 1024, xl: 1280 };
+
+  // src/responsive.tsx
   var ORDER = ["base", "sm", "md", "lg", "xl"];
   function useBreakpoint() {
     return React34.useSyncExternalStore(subscribe, current, function() {
@@ -4693,7 +4745,7 @@ window.Aura = (() => {
     const ch = props.change;
     const dir = ch && (ch.direction || "flat");
     const tone2 = ch && (ch.tone || (dir === "up" ? "positive" : dir === "down" ? "negative" : "neutral"));
-    const Link = useLinkComponent();
+    const Link = useLinkComponent(props.linkComponent);
     const v = props.value;
     const numeric = typeof v === "number" || typeof v === "string" && /\d/.test(v) && /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, ""));
     const Tag3 = props.href ? Link : props.onClick ? "button" : "div";
@@ -4717,15 +4769,20 @@ window.Aura = (() => {
   // src/TimePicker.tsx
   var React41 = __toESM(require_react(), 1);
   var import_react_dom9 = __toESM(require_react_dom(), 1);
+
+  // src/text.ts
+  function formatBytes(n2) {
+    if (n2 == null) return "";
+    if (n2 < 1024) return n2 + " B";
+    let u = ["KB", "MB", "GB"], i = -1;
+    do {
+      n2 /= 1024;
+      i++;
+    } while (n2 >= 1024 && i < u.length - 1);
+    return (n2 >= 10 || Math.round(n2) === n2 ? Math.round(n2) : n2.toFixed(1)) + " " + u[i];
+  }
   function pad2(n2) {
     return (n2 < 10 ? "0" : "") + n2;
-  }
-  function toMin(t) {
-    const m = /^(\d{2}):(\d{2})$/.exec(t || "");
-    return m ? +m[1] * 60 + +m[2] : null;
-  }
-  function fromMin(n2) {
-    return pad2(Math.floor(n2 / 60)) + ":" + pad2(n2 % 60);
   }
   function parseTime(text) {
     let s = String(text || "").trim().toLowerCase().replace(/\s*(น\.?|นาฬิกา)$/, "").trim();
@@ -4738,6 +4795,18 @@ window.Aura = (() => {
     if (am && hh === 12) hh = 0;
     if (hh > 23 || mm > 59) return null;
     return pad2(hh) + ":" + pad2(mm);
+  }
+
+  // src/TimePicker.tsx
+  function pad3(n2) {
+    return (n2 < 10 ? "0" : "") + n2;
+  }
+  function toMin(t) {
+    const m = /^(\d{2}):(\d{2})$/.exec(t || "");
+    return m ? +m[1] * 60 + +m[2] : null;
+  }
+  function fromMin(n2) {
+    return pad3(Math.floor(n2 / 60)) + ":" + pad3(n2 % 60);
   }
   var TimePicker = React41.forwardRef(function TimePicker2(props, ref) {
     const t = useStrings();
@@ -5039,16 +5108,6 @@ window.Aura = (() => {
 
   // src/FileUpload.tsx
   var React42 = __toESM(require_react(), 1);
-  function formatBytes(n2) {
-    if (n2 == null) return "";
-    if (n2 < 1024) return n2 + " B";
-    let u = ["KB", "MB", "GB"], i = -1;
-    do {
-      n2 /= 1024;
-      i++;
-    } while (n2 >= 1024 && i < u.length - 1);
-    return (n2 >= 10 || Math.round(n2) === n2 ? Math.round(n2) : n2.toFixed(1)) + " " + u[i];
-  }
   function matches(file, accept) {
     if (!accept) return true;
     const name = (file.name || "").toLowerCase(), type = (file.type || "").toLowerCase();
@@ -5507,6 +5566,8 @@ window.Aura = (() => {
 
   // src/colorScheme.tsx
   var React44 = __toESM(require_react(), 1);
+
+  // src/colorSchemeScript.ts
   var DEFAULT_KEY = "aura-color-scheme";
   var SCHEMES = ["light", "dark", "system"];
   var EVENT = "aura-color-scheme";
@@ -5518,6 +5579,8 @@ window.Aura = (() => {
     const fallback = JSON.stringify(options && options.defaultScheme || "system");
     return "(function(){try{var s=localStorage.getItem(" + key + ");if(s!=='light'&&s!=='dark'&&s!=='system')s=" + fallback + `;var d=document.documentElement;d.setAttribute("data-theme",s);var dark=s==='dark'||(s==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);d.classList.toggle("dark",dark);}catch(e){}})();`;
   }
+
+  // src/colorScheme.tsx
   function ColorSchemeScript(props) {
     return /* @__PURE__ */ React44.createElement(
       "script",
@@ -5745,7 +5808,7 @@ window.Aura = (() => {
       if (p >= 1 && p <= count && p !== page) st[1](p);
     }
     const link = props.getHref;
-    const Link = useLinkComponent();
+    const Link = useLinkComponent(props.linkComponent);
     function item(p, label, extra) {
       const common = Object.assign(
         {
@@ -5780,29 +5843,40 @@ window.Aura = (() => {
         label
       );
     }
-    return /* @__PURE__ */ React49.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, /* @__PURE__ */ React49.createElement(
-      IconButton,
-      {
-        icon: "chevron-left",
-        label: t.prevPage,
-        disabled: page <= 1,
-        onClick: function() {
-          go(page - 1);
-        }
-      }
-    ), /* @__PURE__ */ React49.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
+    function arrow(p, icon, label, rel, disabled) {
+      if (!link || disabled)
+        return /* @__PURE__ */ React49.createElement(
+          IconButton,
+          {
+            icon,
+            label,
+            disabled,
+            onClick: function() {
+              go(p);
+            }
+          }
+        );
+      return /* @__PURE__ */ React49.createElement(
+        Link,
+        {
+          href: link(p),
+          rel,
+          className: "aura-icon-btn",
+          "aria-label": label,
+          title: label,
+          onClick: function(e) {
+            if (props.onChange) {
+              e.preventDefault();
+              go(p);
+            }
+          }
+        },
+        /* @__PURE__ */ React49.createElement(Icon, { name: icon, size: "sm" })
+      );
+    }
+    return /* @__PURE__ */ React49.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, arrow(page - 1, "chevron-left", t.prevPage, "prev", page <= 1), /* @__PURE__ */ React49.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
       return typeof p === "number" ? /* @__PURE__ */ React49.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React49.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
-    })), /* @__PURE__ */ React49.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), /* @__PURE__ */ React49.createElement(
-      IconButton,
-      {
-        icon: "chevron-right",
-        label: t.nextPage,
-        disabled: page >= count,
-        onClick: function() {
-          go(page + 1);
-        }
-      }
-    ));
+    })), /* @__PURE__ */ React49.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), arrow(page + 1, "chevron-right", t.nextPage, "next", page >= count));
   });
 
   // src/Accordion.tsx

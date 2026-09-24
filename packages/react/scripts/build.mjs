@@ -12,7 +12,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = path.join(root, 'src');
 const dist = path.join(root, 'dist');
 fs.rmSync(dist, { recursive: true, force: true });
-const entries = fs.readdirSync(src).filter((f) => /\.tsx?$/.test(f) && f !== 'types.ts').map((f) => path.join(src, f));
+const entries = fs.readdirSync(src).filter((f) => /\.tsx?$/.test(f) && f !== 'types.ts' && f !== 'server.ts').map((f) => path.join(src, f));
 const banner = { js: "'use client';" };
 const external = ['react', 'react-dom', 'react/jsx-runtime'];
 /* Classic JSX (React.createElement): every module already imports React, and the window.Aura bundle needs no jsx-runtime global. */
@@ -20,6 +20,13 @@ const jsx = { tsconfig: path.join(root, 'tsconfig.src.json'), jsx: 'transform', 
 
 await build({ entryPoints: entries, outdir: path.join(dist, 'esm'), format: 'esm', target: 'es2019', banner, logLevel: 'error', ...jsx });
 await build({ entryPoints: [path.join(src, 'index.ts')], outfile: path.join(dist, 'cjs/index.cjs'), bundle: true, format: 'cjs', platform: 'neutral', target: 'es2019', external, banner, logLevel: 'error', ...jsx });
+/* @jirawatpyk/aura-react/server (4.17): the pure helpers bundled on their own, with no 'use client' and no React, so
+ * Server Components can call them. The build fails if React sneaks into it. */
+for (const [format, file] of [['esm', 'index.js'], ['cjs', 'index.cjs']]) {
+  const r = await build({ entryPoints: [path.join(src, 'server.ts')], outfile: path.join(dist, 'server', file), bundle: true, format, platform: 'neutral', target: 'es2019', logLevel: 'error', metafile: true, ...jsx });
+  const inputs = Object.keys(r.metafile.inputs);
+  if (inputs.some((f) => /node_modules[\\/]react/.test(f) || /\.tsx$/.test(f))) throw new Error('server entry pulls in React or a component: ' + inputs.join(', '));
+}
 
 /* IIFE: react / react-dom come from window globals. */
 const globals = {
@@ -40,7 +47,16 @@ const header = `/* @ds-bundle: ${JSON.stringify({ format: 4, namespace: 'Aura', 
 code = header + code.replace(/^var Aura = /m, 'window.Aura = ').replace(/^"use strict";\n/, '');
 fs.writeFileSync(path.join(dist, 'aura.bundle.js'), code);
 fs.copyFileSync(path.join(root, 'styles/components.css'), path.join(dist, 'styles.css'));
+/* The same styles inside `@layer aura` (4.17): a Tailwind utility on an AURA component then wins without !important.
+ * Order it with `@layer theme, base, aura, components, utilities;`. */
+fs.writeFileSync(
+  path.join(dist, 'styles.layer.css'),
+  "/* AURA components in a cascade layer. Declare the order first: @layer theme, base, aura, components, utilities; */\n@layer aura {\n" +
+    fs.readFileSync(path.join(root, 'styles/components.css'), 'utf8') +
+    '\n}\n',
+);
 /* One declaration file for the whole package, generated from the sources (no hand-written .d.ts to drift). */
 const dtsBin = createRequire(import.meta.url).resolve('dts-bundle-generator/dist/bin/dts-bundle-generator.js');
 execFileSync(process.execPath, [dtsBin, '--silent', '--no-banner', '--project', path.join(root, 'tsconfig.build.json'), '-o', path.join(dist, 'index.d.ts'), path.join(src, 'index.ts')], { stdio: 'inherit' });
+execFileSync(process.execPath, [dtsBin, '--silent', '--no-banner', '--project', path.join(root, 'tsconfig.build.json'), '-o', path.join(dist, 'server/index.d.ts'), path.join(src, 'server.ts')], { stdio: 'inherit' });
 console.log(`@aura/react built: ${entries.length} ESM modules, CJS, IIFE (${(code.length / 1024).toFixed(0)} KB, ${names.length} components).`);

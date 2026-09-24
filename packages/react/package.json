@@ -13,7 +13,13 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.cjs"
     },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js",
+      "require": "./dist/server/index.cjs"
+    },
     "./styles.css": "./dist/styles.css",
+    "./styles.layer.css": "./dist/styles.layer.css",
     "./aura.bundle.js": "./dist/aura.bundle.js",
     "./package.json": "./package.json"
   },
@@ -28,7 +34,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/sync-bundle.mjs",
-    "test:ssr": "node scripts/ssr-test.mjs",
+    "test:ssr": "node scripts/ssr-test.mjs && node --conditions=react-server scripts/server-entry-test.mjs",
     "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json && tsc -p tsconfig.exact.json",
     "examples": "node examples/build.mjs",
     "themes": "node scripts/test-themes.mjs",
