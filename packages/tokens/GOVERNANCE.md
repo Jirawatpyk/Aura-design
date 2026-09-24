@@ -53,7 +53,7 @@ Made by the design-system owner in one pass, instead of separate Proposals. Each
 - **Form tokens added**: `aura-bg-input`, `aura-bg-input-disabled`, `aura-fg-danger`, `aura-border-danger`, `aura-border-control`, `aura-input-height`.
 - **Textures adopted** as Creative-only: mesh and 4% grain.
 - **Table tokens adopted**: `aura-bg-selected` (opaque in dark), `aura-bg-skeleton`, `aura-table-select-width`, `aura-control-sm`; the header uses `aura-fg-secondary` instead of 60% opacity.
-- **Fonts** stay on Google Fonts (no self-hosted files) until a team needs offline use.
+- **Fonts** stay on Google Fonts (no self-hosted files) until a team needs offline use. (4.16: Chamber-OS needed it — its CSP allows only `font-src 'self'` — so the four families now also ship as woff2 files with `aura-fonts.local.css`; Google stays the default for `aura-fonts.css`.)
 
 ## Decisions (4.2)
 

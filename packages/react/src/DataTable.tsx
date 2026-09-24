@@ -19,9 +19,14 @@ type Col = DataTableColumn;
 type Row = Record<string, any>;
 type RowKey = string | number;
 /* A cell to focus after the next render: row, column index, or a column key (after reordering). */
-type PendingFocus = { r: number; c?: number; key?: string | null };
-type MenuState = { kind: 'col' | 'picker'; key: string | null; anchor: HTMLElement; rc?: { r: number; c: number } };
-type DragState = { key: string; over?: string; after?: boolean };
+type PendingFocus = { r: number; c?: number | undefined; key?: string | null | undefined };
+type MenuState = {
+  kind: 'col' | 'picker';
+  key: string | null;
+  anchor: HTMLElement;
+  rc?: { r: number; c: number } | undefined;
+};
+type DragState = { key: string; over?: string | undefined; after?: boolean | undefined };
 const BP: Record<string, number> = { sm: 640, md: 768, lg: 1024, xl: 1280 };
 
 const DEFAULT_COLUMNS: Col[] = [
@@ -32,6 +37,9 @@ const DEFAULT_COLUMNS: Col[] = [
 ];
 
 const SKELETON_WIDTHS = ['72%', '56%', '84%', '44%', '64%'];
+/* stackBelow widths the stylesheet has container queries for (styles/components.css, "DataTable: cards before
+ * hydration"). Others still stack, but only once JavaScript has measured the table. */
+const STACK_WIDTHS = [360, 400, 480, 520, 560, 600, 640, 720, 768, 800, 900, 960, 1024];
 const ROW_H_DEFAULT = 48,
   OVERSCAN = 8,
   FLEX_MIN = 160;
@@ -116,6 +124,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     columns.some(function (c: Col) {
       return c.hideBelow != null;
     });
+  /* Before the first measurement, render cards and grid together when the stylesheet has a container query for
+   * this stackBelow value (STACK_WIDTHS); CSS then picks one, so the server's HTML is already right on a phone. */
+  const dual = !!props.stackBelow && boxWidth[0] == null && STACK_WIDTHS.indexOf(props.stackBelow) >= 0;
   React.useEffect(
     function () {
       if (!measure || !wrapRef.current || typeof ResizeObserver === 'undefined') return;
@@ -127,9 +138,15 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         ro.disconnect();
       };
     },
-    [measure],
+    [measure, dual],
   );
   const stacked = !!props.stackBelow && boxWidth[0] != null && boxWidth[0] < props.stackBelow;
+  useIsoLayoutEffect(
+    function () {
+      if (measure && boxWidth[0] == null && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
+    },
+    [measure],
+  );
   function tooNarrow(c: Col): boolean {
     if (c.hideBelow == null || boxWidth[0] == null || stacked) return false;
     const px = typeof c.hideBelow === 'number' ? c.hideBelow : BP[c.hideBelow];
@@ -1069,7 +1086,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   }
 
   /* stacked: below `stackBelow` px the rows become cards (first column = title, a pill column sits beside it, the rest as label/value pairs) */
-  if (stacked) {
+  function renderStacked(wrapRefArg: React.Ref<HTMLDivElement> | undefined): React.ReactElement {
     const titleCol = vis[0],
       pillCol = vis.filter(function (c: Col) {
         return c.pill && c !== titleCol;
@@ -1178,7 +1195,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     }
     return (
       <div
-        ref={wrapMerged}
+        ref={wrapRefArg}
         data-density={props.density}
         className={cx('aura-table aura-table--stacked', refreshing && 'is-refreshing', props.className)}
         role="region"
@@ -1202,6 +1219,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       </div>
     );
   }
+  if (stacked) return renderStacked(wrapMerged);
 
   const scrollStyle: React.CSSProperties = {
     scrollPaddingLeft: 'calc(var(--aura-space-6)' + selW + ' + ' + acc + 'px)',
@@ -1209,9 +1227,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   };
   if (height) scrollStyle.height = height + 'px';
 
-  return (
+  const gridEl = (
     <div
-      ref={wrapMerged}
+      ref={dual ? undefined : wrapMerged}
       data-density={props.density}
       className={cx('aura-table', scrolledX[0] && 'is-scrolled-x', refreshing && 'is-refreshing', props.className)}
     >
@@ -1270,6 +1288,15 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           items={menu.kind === 'picker' ? pickerItems() : byKey[menu.key!] ? columnMenuItems(byKey[menu.key!]) : []}
         />
       ) : null}
+    </div>
+  );
+  if (!dual) return gridEl;
+  /* Width not measured yet (server render, first client render): both layouts, and a container query in the
+   * stylesheet shows the right one, so a phone gets cards before hydration. Measured before paint, then one. */
+  return (
+    <div ref={wrapMerged} className="aura-table-dual" data-stack-below={props.stackBelow}>
+      {renderStacked(undefined)}
+      {gridEl}
     </div>
   );
 });

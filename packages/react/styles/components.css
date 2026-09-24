@@ -49,6 +49,16 @@ a.aura-btn { text-decoration: none; }
 .aura-btn--secondary { border: 1px solid var(--aura-button-secondary-border); color: var(--aura-fg-primary); }
 .aura-btn--secondary:hover { background: var(--aura-bg-surface-hover); }
 /* Destructive: filled for the confirm step, outline beside other actions. Loading keeps the colour (busy, not unavailable). */
+.aura-btn--ghost { color: var(--aura-fg-primary); }
+.aura-btn--ghost:hover { background: var(--aura-bg-surface-hover); }
+/* size="sm" (4.16): 32px for toolbars, table rows and card footers. On touch the pill stays 32px and a transparent
+ * ::after grows the hit area to 44px, as IconButton does. */
+.aura-btn--sm { height: var(--aura-button-height-sm); padding: 0 var(--aura-space-3); gap: 6px; }
+.aura-btn--sm.aura-btn--full { height: auto; min-height: var(--aura-button-height-sm); padding-block: var(--aura-space-1); }
+@media (pointer: coarse) {
+  .aura-btn--sm { position: relative; }
+  .aura-btn--sm::after { content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, var(--aura-touch-target)); height: max(100%, var(--aura-touch-target)); transform: translate(-50%, -50%); }
+}
 .aura-btn--danger { background: var(--aura-button-danger-bg); color: var(--aura-button-danger-fg); }
 .aura-btn--danger:hover { background: var(--aura-button-danger-bg-hover); }
 .aura-btn--danger-secondary { border: 1px solid var(--aura-border-danger); color: var(--aura-fg-danger); background: transparent; }
@@ -809,7 +819,17 @@ a.aura-btn { text-decoration: none; }
   position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: var(--aura-space-2);
   min-height: 56px; padding: 0 var(--aura-space-6); background: var(--aura-bg-surface); border-bottom: 1px solid var(--aura-border-default);
 }
-.aura-shell.is-compact .aura-shell__bar { padding: 0 var(--aura-space-2) 0 var(--aura-space-2); }
+/* Responsive in CSS (4.16), so the server's HTML is already right on a phone: below lg the sidebar is hidden and the
+ * menu button shows; from lg up the reverse. JavaScript only opens and closes the drawer. */
+.aura-shell__menu { display: inline-flex; }
+@media (max-width: 1023.98px) {
+  .aura-shell__nav { display: none; }
+  .aura-shell__bar { padding: 0 var(--aura-space-2) 0 var(--aura-space-2); }
+}
+@media (min-width: 1024px) {
+  .aura-shell__menu { display: none; }
+  .aura-shell__bar--menu-only { display: none; }
+}
 .aura-shell__bar-content { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--aura-space-3); }
 .aura-shell__content { flex: 1; min-width: 0; padding: var(--aura-space-6) var(--aura-space-4); }
 @media (min-width: 640px) { .aura-shell__content { padding: var(--aura-space-6); } }
@@ -1281,3 +1301,33 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 }
 .aura-density { display: contents; }
 
+
+/* DataTable: cards before hydration (4.16). While a stackBelow table hasn't measured itself yet (server HTML, first
+ * client render) it holds both layouts; these container queries show one, so a phone never sees the grid first. */
+.aura-table-dual { container-type: inline-size; }
+@container (min-width: 360px) { .aura-table-dual[data-stack-below='360'] > .aura-table--stacked { display: none; } }
+@container (max-width: 359.98px) { .aura-table-dual[data-stack-below='360'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 400px) { .aura-table-dual[data-stack-below='400'] > .aura-table--stacked { display: none; } }
+@container (max-width: 399.98px) { .aura-table-dual[data-stack-below='400'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 480px) { .aura-table-dual[data-stack-below='480'] > .aura-table--stacked { display: none; } }
+@container (max-width: 479.98px) { .aura-table-dual[data-stack-below='480'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 520px) { .aura-table-dual[data-stack-below='520'] > .aura-table--stacked { display: none; } }
+@container (max-width: 519.98px) { .aura-table-dual[data-stack-below='520'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 560px) { .aura-table-dual[data-stack-below='560'] > .aura-table--stacked { display: none; } }
+@container (max-width: 559.98px) { .aura-table-dual[data-stack-below='560'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 600px) { .aura-table-dual[data-stack-below='600'] > .aura-table--stacked { display: none; } }
+@container (max-width: 599.98px) { .aura-table-dual[data-stack-below='600'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 640px) { .aura-table-dual[data-stack-below='640'] > .aura-table--stacked { display: none; } }
+@container (max-width: 639.98px) { .aura-table-dual[data-stack-below='640'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 720px) { .aura-table-dual[data-stack-below='720'] > .aura-table--stacked { display: none; } }
+@container (max-width: 719.98px) { .aura-table-dual[data-stack-below='720'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 768px) { .aura-table-dual[data-stack-below='768'] > .aura-table--stacked { display: none; } }
+@container (max-width: 767.98px) { .aura-table-dual[data-stack-below='768'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 800px) { .aura-table-dual[data-stack-below='800'] > .aura-table--stacked { display: none; } }
+@container (max-width: 799.98px) { .aura-table-dual[data-stack-below='800'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 900px) { .aura-table-dual[data-stack-below='900'] > .aura-table--stacked { display: none; } }
+@container (max-width: 899.98px) { .aura-table-dual[data-stack-below='900'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 960px) { .aura-table-dual[data-stack-below='960'] > .aura-table--stacked { display: none; } }
+@container (max-width: 959.98px) { .aura-table-dual[data-stack-below='960'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+@container (min-width: 1024px) { .aura-table-dual[data-stack-below='1024'] > .aura-table--stacked { display: none; } }
+@container (max-width: 1023.98px) { .aura-table-dual[data-stack-below='1024'] > .aura-table:not(.aura-table--stacked) { display: none; } }

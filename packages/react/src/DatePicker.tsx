@@ -14,10 +14,10 @@ import type {
   ISODate,
 } from './types.js';
 
-type PopoverPos = { left: number; top?: number; bottom?: number };
+type PopoverPos = { left: number; top?: number | undefined; bottom?: number | undefined };
 /** Options for formatDate: locale/calendar plus a preset or any Intl.DateTimeFormat options. */
 export type FormatDateOptions = DateDisplayOptions & {
-  format?: 'short' | 'long' | 'numeric' | Intl.DateTimeFormatOptions;
+  format?: 'short' | 'long' | 'numeric' | Intl.DateTimeFormatOptions | undefined;
 };
 
 /* ---------- date helpers: values are ISO 'YYYY-MM-DD' strings (Gregorian), shown in the chosen calendar ---------- */
@@ -543,20 +543,20 @@ interface DateFieldInternalProps {
   id: string;
   dialogId: string;
   label: string;
-  hint?: React.ReactNode;
-  error?: React.ReactNode;
-  required?: boolean;
-  optional?: boolean;
-  disabled?: boolean;
-  className?: string;
-  name?: string;
+  hint?: React.ReactNode | undefined;
+  error?: React.ReactNode | undefined;
+  required?: boolean | undefined;
+  optional?: boolean | undefined;
+  disabled?: boolean | undefined;
+  className?: string | undefined;
+  name?: string | undefined;
   open: boolean;
   display: string;
   placeholder: string;
   boxRef: React.Ref<HTMLDivElement>;
   inputRef: React.Ref<HTMLInputElement>;
   hasValue: boolean;
-  clearable?: boolean;
+  clearable?: boolean | undefined;
   onClear: () => void;
   clearLabel: string;
   toggleLabel: string;

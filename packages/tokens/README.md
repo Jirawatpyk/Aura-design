@@ -4,19 +4,20 @@ Enterprise Standard, Human Creative. Tokens, Tailwind preset, Figma variables a 
 
 ## What's inside
 
-| File | What |
-|---|---|
-| `tokens.json` | **Source of truth.** 3-tier: primitive → semantic (light/dark) → component, plus spacing, radius, shadow (per theme), size, motion, opacity, z-index, typography. |
-| `aura.css` | Every token as a CSS variable. Light on `:root` / `[data-theme="light"]`, dark on `.dark` / `[data-theme="dark"]`. **Generated.** |
-| `aura-fonts.css` | The Google Fonts `@import` (Fraunces, Inter, JetBrains Mono, Noto Sans Thai). Kept separate so a network that blocks Google can't break `aura.css`. **Generated.** |
-| `tailwind.config.ts` + `tailwind.tokens.cjs` | Tailwind v3 theme wired to the variables (`bg-bg-surface`, `text-fg-danger`, `rounded-aura-xl`, `shadow-aura-overlay` …). The `.cjs` is **generated**. |
-| `aura-tailwind.css` | The same class names for Tailwind v4 (`@theme inline`, CSS-first). **Generated**; exported as `@jirawatpyk/aura-tokens/tailwind.css`. |
-| `figma-variables.csv` | 204 variables: all colours in both modes (aliases kept), spacing, radius and sizes. **Generated.** |
-| `components/` | `aura.bundle.js` (sets `window.Aura`), `aura.components.css`, `index.d.ts`. |
-| `eslint-plugin-aura.js` | `aura/no-hardcoded-color`: hex, rgb()/hsl() and Tailwind `bg-[#…]` classes. |
-| `scripts/build-tokens.js` | Rebuilds the generated files from `tokens.json`. |
-| `scripts/a11y-check.js` | Checks 94 text/ground pairs in both themes (WCAG AA). |
-| `scripts/lint-tokens.js` | Fails on hard-coded colours (a file that must hold them says `aura-lint: allow-colours` with a reason). |
+| File                                         | What                                                                                                                                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tokens.json`                                | **Source of truth.** 3-tier: primitive → semantic (light/dark) → component, plus spacing, radius, shadow (per theme), size, motion, opacity, z-index, typography.                           |
+| `aura.css`                                   | Every token as a CSS variable. Light on `:root` / `[data-theme="light"]`, dark on `.dark` / `[data-theme="dark"]`. **Generated.**                                                           |
+| `aura-fonts.css`                             | The Google Fonts `@import` (Fraunces, Inter, JetBrains Mono, Noto Sans Thai). Kept separate so a network that blocks Google can't break `aura.css`. **Generated.**                          |
+| `aura-fonts.local.css` + `fonts/`            | The same four families self-hosted: `@font-face` rules over woff2 files in the package (4.16), for a `font-src 'self'` CSP. `npm run check:fonts` loads them under that CSP. **Generated.** |
+| `tailwind.config.ts` + `tailwind.tokens.cjs` | Tailwind v3 theme wired to the variables (`bg-bg-surface`, `text-fg-danger`, `rounded-aura-xl`, `shadow-aura-overlay` …). The `.cjs` is **generated**.                                      |
+| `aura-tailwind.css`                          | The same class names for Tailwind v4 (`@theme inline`, CSS-first). **Generated**; exported as `@jirawatpyk/aura-tokens/tailwind.css`.                                                       |
+| `figma-variables.csv`                        | 204 variables: all colours in both modes (aliases kept), spacing, radius and sizes. **Generated.**                                                                                          |
+| `components/`                                | `aura.bundle.js` (sets `window.Aura`), `aura.components.css`, `index.d.ts`.                                                                                                                 |
+| `eslint-plugin-aura.js`                      | `aura/no-hardcoded-color`: hex, rgb()/hsl() and Tailwind `bg-[#…]` classes.                                                                                                                 |
+| `scripts/build-tokens.js`                    | Rebuilds the generated files from `tokens.json`.                                                                                                                                            |
+| `scripts/a11y-check.js`                      | Checks 94 text/ground pairs in both themes (WCAG AA).                                                                                                                                       |
+| `scripts/lint-tokens.js`                     | Fails on hard-coded colours (a file that must hold them says `aura-lint: allow-colours` with a reason).                                                                                     |
 
 ## ใช้งาน (5 นาที)
 
@@ -28,16 +29,49 @@ npm install @aura/tokens@npm:@jirawatpyk/aura-tokens @aura/react@npm:@jirawatpyk
 
 ```tsx
 // app/layout.tsx
-import '@aura/tokens/aura-fonts.css'       // Google Fonts (or use the <link> tags below instead)
-import '@aura/tokens/aura.css'             // tokens
-import '@aura/react/styles.css'            // component styles (with @aura/react)
+import '@aura/tokens/aura-fonts.css'; // Google Fonts (or use the <link> tags below instead)
+import '@aura/tokens/aura.css'; // tokens
+import '@aura/react/styles.css'; // component styles (with @aura/react)
 ```
 
 ```html
 <!-- Preferred: load the fonts from <head> instead of aura-fonts.css — faster, and a blocked host fails quietly -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap"
+/>
+```
+
+### Fonts
+
+Pick one of three ways to load Fraunces, Inter, JetBrains Mono and Noto Sans Thai:
+
+| Option             | Use when                                                                    | How                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Self-hosted (4.16) | Your CSP allows only `font-src 'self'`, or you want no third-party requests | `import '@jirawatpyk/aura-tokens/aura-fonts.local.css'` — woff2 files ship in the package (`fonts/`, OFL-1.1), split by unicode range so a page downloads only what it uses |
+| `next/font`        | Next.js apps that want preloading and zero layout shift                     | Load the families with `next/font` and point the AURA font variables at them (below)                                                                                        |
+| Google Fonts       | Anything else                                                               | The `<link>` tags below, or `aura-fonts.css`                                                                                                                                |
+
+```tsx
+// app/layout.tsx — next/font (downloads at build time and self-hosts, so font-src 'self' is enough)
+import { Fraunces, Inter, JetBrains_Mono, Noto_Sans_Thai } from 'next/font/google';
+const display = Fraunces({ subsets: ['latin', 'latin-ext'], axes: ['opsz'], variable: '--next-display' });
+const sans = Inter({ subsets: ['latin', 'latin-ext'], variable: '--next-sans' });
+const mono = JetBrains_Mono({ subsets: ['latin', 'latin-ext'], weight: '400', variable: '--next-mono' });
+const thai = Noto_Sans_Thai({ subsets: ['thai'], variable: '--next-thai' });
+// <html className={[display, sans, mono, thai].map((f) => f.variable).join(' ')}>
+```
+
+```css
+/* app/globals.css, after aura.css — AURA's stacks now use the next/font families */
+:root {
+  --font-display: var(--next-display), var(--next-thai), serif;
+  --font-sans: var(--next-sans), var(--next-thai), sans-serif;
+  --font-mono: var(--next-mono), monospace;
+  --font-thai: var(--next-thai), sans-serif;
+}
 ```
 
 Dark theme: put `class="dark"` (or `data-theme="dark"`) on `<html>`.
@@ -46,8 +80,8 @@ Dark theme: put `class="dark"` (or `data-theme="dark"`) on `<html>`.
 
 ```css
 /* app/globals.css */
-@import "tailwindcss";
-@import "@jirawatpyk/aura-tokens/tailwind.css";   /* imports aura.css too */
+@import 'tailwindcss';
+@import '@jirawatpyk/aura-tokens/tailwind.css'; /* imports aura.css too */
 ```
 
 Classes: `bg-bg-surface`, `text-fg-primary`, `border-border-strong`, `text-fg-danger`, `bg-alert-warning-bg`, `fill-chart-1`, `p-aura-6`, `gap-aura-4`, `rounded-aura-xl`, `shadow-aura-overlay`, `ease-aura-ease`, `duration-aura-fast`, `z-aura-dialog`, `font-display` / `font-sans` / `font-mono`. They point at the `--aura-*` variables, so `.dark` or `data-theme="dark"` switches them with no `dark:` prefix; the file also makes `dark:` follow those two switches. `npm run check:tailwind4` compiles it with Tailwind v4 in CI.
@@ -70,11 +104,12 @@ Classes: `bg-bg-surface`, `text-fg-primary`, `border-border-strong`, `text-fg-da
 The bundle is a classic script that reads `window.React` / `window.ReactDOM` and sets `window.Aura`:
 
 ```tsx
-import React from 'react'
-import ReactDOM from 'react-dom'
-;(window as any).React = React; (window as any).ReactDOM = ReactDOM
-import '@aura/tokens/components.js'
-const { Button, TextField, DataTable, Dialog, toast, Toaster } = (window as any).Aura
+import React from 'react';
+import ReactDOM from 'react-dom';
+(window as any).React = React;
+(window as any).ReactDOM = ReactDOM;
+import '@aura/tokens/components.js';
+const { Button, TextField, DataTable, Dialog, toast, Toaster } = (window as any).Aura;
 ```
 
 Types for every component are in `components/index.d.ts`.

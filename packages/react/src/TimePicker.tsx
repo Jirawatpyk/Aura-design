@@ -6,7 +6,13 @@ import { Icon } from './Icon.js';
 import { Field } from './Field.js';
 import type { TimePickerProps } from './types.js';
 
-type PopoverPos = { left: number; width: number; top?: number; bottom?: number; maxHeight: number };
+type PopoverPos = {
+  left: number;
+  width: number;
+  top?: number | undefined;
+  bottom?: number | undefined;
+  maxHeight: number;
+};
 
 function pad(n: number): string {
   return (n < 10 ? '0' : '') + n;

@@ -5,11 +5,11 @@ import { FOCUSABLE, useMounted } from './internal.js';
  * trap Tab, close on Escape, and hand focus back to whatever opened it. */
 export interface ModalOptions {
   /** Selector of the body part that should receive focus first. */
-  bodySelector?: string;
+  bodySelector?: string | undefined;
   /** Selector of the footer, focused when the body has nothing focusable. */
-  footSelector?: string;
-  autoFocus?: boolean;
-  onEscape?: () => void;
+  footSelector?: string | undefined;
+  autoFocus?: boolean | undefined;
+  onEscape?: (() => void) | undefined;
 }
 export function useModal(
   open: boolean | undefined,

@@ -9,15 +9,15 @@ const h = React.createElement;
 /** Field: label, required/optional marks, the control, then the hint or error line. Wrap a custom control in it. */
 export interface FieldComponentProps extends Omit<FieldPropsPublic, 'label'> {
   /** Visible label. Omit only when the control is labelled another way. */
-  label?: React.ReactNode;
+  label?: React.ReactNode | undefined;
   /** The control's id: the label points at it, and the hint/error ids derive from it. */
-  id?: string;
-  children?: React.ReactNode;
+  id?: string | undefined;
+  children?: React.ReactNode | undefined;
   /** Render the label as another element (e.g. `span` for a group of controls) with this id. */
-  labelAs?: string;
-  labelId?: string;
-  disabled?: boolean;
-  className?: string;
+  labelAs?: string | undefined;
+  labelId?: string | undefined;
+  disabled?: boolean | undefined;
+  className?: string | undefined;
 }
 
 export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(function Field(props, ref) {
@@ -55,7 +55,10 @@ export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(funct
   );
 });
 
-export function describedBy(id: string, p: { error?: React.ReactNode; hint?: React.ReactNode }): string | undefined {
+export function describedBy(
+  id: string,
+  p: { error?: React.ReactNode | undefined; hint?: React.ReactNode | undefined },
+): string | undefined {
   return p.error ? id + '-error' : p.hint ? id + '-hint' : undefined;
 }
 

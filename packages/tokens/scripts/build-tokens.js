@@ -61,6 +61,25 @@ fs.writeFileSync(path.join(root, 'aura-fonts.css'),
   '/* AURA fonts from Google Fonts: Fraunces 600, Inter 400/500/600, JetBrains Mono 400, Noto Sans Thai 400/500/600. GENERATED. */\n' +
   `@import url("${T.typography.googleFonts}");\n`);
 
+/* ---------- aura-fonts.local.css (4.16) ----------
+ * Self-hosted: the same four families as woff2 files in ./fonts (Fontsource 5.3.0, OFL-1.1), for apps whose CSP
+ * allows only font-src 'self'. Split by unicode-range, so a page downloads only the subsets it uses. */
+const RANGE = { latin: "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD", latinExt: "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF", thai: "U+02D7,U+0303,U+0331,U+0E01-0E5B,U+200C-200D,U+25CC" };
+const FACES = [
+  ['Fraunces', '100 900', 'fraunces-latin-opsz-normal', RANGE.latin],
+  ['Fraunces', '100 900', 'fraunces-latin-ext-opsz-normal', RANGE.latinExt],
+  ['Inter', '100 900', 'inter-latin-wght-normal', RANGE.latin],
+  ['Inter', '100 900', 'inter-latin-ext-wght-normal', RANGE.latinExt],
+  ['JetBrains Mono', '400', 'jetbrains-mono-latin-400-normal', RANGE.latin],
+  ['JetBrains Mono', '400', 'jetbrains-mono-latin-ext-400-normal', RANGE.latinExt],
+  ['Noto Sans Thai', '100 900', 'noto-sans-thai-thai-wght-normal', RANGE.thai],
+];
+fs.writeFileSync(path.join(root, 'aura-fonts.local.css'),
+  '/* AURA fonts, self-hosted: Fraunces, Inter, JetBrains Mono and Noto Sans Thai from ./fonts (OFL-1.1, see fonts/LICENSE.md).\n' +
+  ' * Use instead of aura-fonts.css when your CSP allows only font-src \'self\'. GENERATED. */\n' +
+  FACES.map(([family, weight, file, range]) =>
+    `@font-face {\n  font-family: "${family}";\n  font-style: normal;\n  font-weight: ${weight};\n  font-display: swap;\n  src: url("./fonts/${file}.woff2") format("woff2");\n  unicode-range: ${range};\n}`).join('\n') + '\n');
+
 /* ---------- tailwind.tokens.cjs ---------- */
 const colors = { aura: {} };
 for (const [fam, scale] of Object.entries(T.primitive)) {
@@ -136,4 +155,4 @@ for (const fam of ['spacing', 'radius', 'size']) for (const [k, v] of Object.ent
 const csv = rows.map((r) => r.map((c) => (/[",\n]/.test(c) ? `"${String(c).replace(/"/g, '""')}"` : c)).join(',')).join('\n');
 fs.writeFileSync(path.join(root, 'figma-variables.csv'), csv + '\n');
 
-console.log(`AURA ${T.version}: aura.css, aura-fonts.css, tailwind.tokens.cjs, aura-tailwind.css, figma-variables.csv written (${rows.length - 1} Figma variables).`);
+console.log(`AURA ${T.version}: aura.css, aura-fonts.css, aura-fonts.local.css, tailwind.tokens.cjs, aura-tailwind.css, figma-variables.csv written (${rows.length - 1} Figma variables).`);

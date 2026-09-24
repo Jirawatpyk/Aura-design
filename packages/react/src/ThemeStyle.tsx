@@ -4,7 +4,7 @@ import type { ThemeOptions } from './types.js';
 
 export interface ThemeStyleProps extends ThemeOptions {
   /** Scope the theme to this selector instead of the whole page (multi-tenant). */
-  selector?: string;
+  selector?: string | undefined;
 }
 
 /* ThemeStyle — render a project/tenant theme as a <style> element (works in server rendering).

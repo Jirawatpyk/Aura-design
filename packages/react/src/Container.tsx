@@ -6,11 +6,11 @@ const h = React.createElement;
 /** Centred page column. */
 export interface ContainerProps {
   /** `narrow` caps it at aura-container-narrow (720px). Default `default` (1280px). */
-  size?: 'default' | 'narrow';
-  as?: keyof React.JSX.IntrinsicElements;
-  className?: string;
-  style?: React.CSSProperties;
-  children?: React.ReactNode;
+  size?: 'default' | 'narrow' | undefined;
+  as?: keyof React.JSX.IntrinsicElements | undefined;
+  className?: string | undefined;
+  style?: React.CSSProperties | undefined;
+  children?: React.ReactNode | undefined;
 }
 
 /** Container — centres content up to aura-container-max (1280px) with responsive side padding. */

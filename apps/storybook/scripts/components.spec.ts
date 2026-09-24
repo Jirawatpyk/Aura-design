@@ -1014,3 +1014,44 @@ test.describe('4.15: SideNav rail', () => {
     await expect(page.getByRole('button', { name: /sidebar/ })).toHaveCount(0);
   });
 });
+
+test.describe('4.16: Button ghost and size sm', () => {
+  const s416 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-16--' + id, theme);
+  const box = (l: import('@playwright/test').Locator) =>
+    l.evaluate((e) => e.getBoundingClientRect().toJSON() as DOMRect);
+  test('ghost has no fill or edge until hover; sm is 32px', async ({ page }) => {
+    await s416(page, 'ghost-and-small');
+    const ghost = page.getByRole('button', { name: 'Cancel' });
+    const css = (p: string) => ghost.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), p);
+    expect(await css('background-color')).toBe('rgba(0, 0, 0, 0)');
+    expect(await css('border-top-width')).toBe('0px');
+    await ghost.hover();
+    await expect.poll(() => css('background-color')).not.toBe('rgba(0, 0, 0, 0)');
+    expect(Math.round((await box(page.getByRole('button', { name: 'Save' }))).height)).toBe(44);
+    for (const name of ['Add row', 'Filter', 'Edit', 'Remove', 'Saving']) {
+      expect(Math.round((await box(page.getByRole('button', { name }))).height), name).toBe(32);
+    }
+    expect(Math.round((await box(page.getByRole('link', { name: 'All invoices' }))).height)).toBe(32);
+  });
+  test('a sm ghost button keeps a compact table row at 40px', async ({ page }) => {
+    await s416(page, 'small-buttons-in-compact-table');
+    const row = page.locator('.aura-table__row').first();
+    expect(Math.round((await box(row)).height)).toBe(40);
+    expect(Math.round((await box(row.locator('.aura-btn'))).height)).toBe(32);
+  });
+  test.describe('touch', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+    test('sm stays 32px to the eye with a 44px hit area', async ({ page }) => {
+      await s416(page, 'ghost-and-small');
+      const btn = page.getByRole('button', { name: 'Filter' });
+      const b = await box(btn);
+      expect(Math.round(b.height)).toBe(32);
+      // 5px above the pill's edge is still the button (the 44px area reaches 6px out)
+      const hit = await page.evaluate(
+        ([x, y]) => document.elementFromPoint(x, y)?.closest('button')?.textContent,
+        [b.x + b.width / 2, b.y - 5],
+      );
+      expect(hit).toBe('Filter');
+    });
+  });
+});

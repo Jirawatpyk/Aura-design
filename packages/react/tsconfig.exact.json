@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2020",
+    "skipLibCheck": false,
+    "lib": ["dom", "es2020"],
+    "types": []
+  },
+  "files": ["types-test/exact-optional.tsx"]
+}

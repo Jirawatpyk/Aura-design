@@ -661,7 +661,8 @@ window.Aura = (() => {
       "disabled",
       "linkComponent",
       "href",
-      "fullWidth"
+      "fullWidth",
+      "size"
     ]);
     const Tag3 = disabled ? "a" : Link;
     return /* @__PURE__ */ React4.createElement(
@@ -673,7 +674,13 @@ window.Aura = (() => {
         role: disabled ? "link" : void 0,
         "aria-disabled": disabled || void 0,
         tabIndex: disabled ? -1 : props.tabIndex,
-        className: cx("aura-btn", "aura-btn--" + variant, props.fullWidth && "aura-btn--full", props.className),
+        className: cx(
+          "aura-btn",
+          "aura-btn--" + variant,
+          props.size === "sm" && "aura-btn--sm",
+          props.fullWidth && "aura-btn--full",
+          props.className
+        ),
         onClick: disabled ? void 0 : props.onClick
       },
       props.icon ? /* @__PURE__ */ React4.createElement(Icon, { name: props.icon }) : null,
@@ -699,7 +706,8 @@ window.Aura = (() => {
         "iconRight",
         "loading",
         "onClick",
-        "fullWidth"
+        "fullWidth",
+        "size"
       ]);
       return /* @__PURE__ */ React4.createElement(
         "button",
@@ -710,6 +718,7 @@ window.Aura = (() => {
           className: cx(
             "aura-btn",
             "aura-btn--" + variant,
+            props.size === "sm" && "aura-btn--sm",
             props.fullWidth && "aura-btn--full",
             loading && "is-loading",
             props.className
@@ -3097,6 +3106,7 @@ window.Aura = (() => {
     { key: "owner", label: "OWNER" }
   ];
   var SKELETON_WIDTHS = ["72%", "56%", "84%", "44%", "64%"];
+  var STACK_WIDTHS = [360, 400, 480, 520, 560, 600, 640, 720, 768, 800, 900, 960, 1024];
   var ROW_H_DEFAULT = 48;
   var OVERSCAN = 8;
   var FLEX_MIN = 160;
@@ -3163,6 +3173,7 @@ window.Aura = (() => {
     const measure = !!props.stackBelow || columns.some(function(c) {
       return c.hideBelow != null;
     });
+    const dual = !!props.stackBelow && boxWidth[0] == null && STACK_WIDTHS.indexOf(props.stackBelow) >= 0;
     React28.useEffect(
       function() {
         if (!measure || !wrapRef.current || typeof ResizeObserver === "undefined") return;
@@ -3174,9 +3185,15 @@ window.Aura = (() => {
           ro.disconnect();
         };
       },
-      [measure]
+      [measure, dual]
     );
     const stacked = !!props.stackBelow && boxWidth[0] != null && boxWidth[0] < props.stackBelow;
+    useIsoLayoutEffect(
+      function() {
+        if (measure && boxWidth[0] == null && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
+      },
+      [measure]
+    );
     function tooNarrow(c) {
       if (c.hideBelow == null || boxWidth[0] == null || stacked) return false;
       const px = typeof c.hideBelow === "number" ? c.hideBelow : BP[c.hideBelow];
@@ -3988,7 +4005,7 @@ window.Aura = (() => {
     } else if (height && rows.length && !loading) {
       foot = /* @__PURE__ */ React28.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React28.createElement("span", null, t.rowCount(shownTotal)), selectable && selected.length ? /* @__PURE__ */ React28.createElement("span", null, t.selectedCount(selected.length)) : /* @__PURE__ */ React28.createElement("span", null));
     }
-    if (stacked) {
+    function renderStacked(wrapRefArg) {
       const titleCol = vis[0], pillCol = vis.filter(function(c) {
         return c.pill && c !== titleCol;
       })[0];
@@ -4052,7 +4069,7 @@ window.Aura = (() => {
       return /* @__PURE__ */ React28.createElement(
         "div",
         {
-          ref: wrapMerged,
+          ref: wrapRefArg,
           "data-density": props.density,
           className: cx("aura-table aura-table--stacked", refreshing && "is-refreshing", props.className),
           role: "region",
@@ -4073,15 +4090,16 @@ window.Aura = (() => {
         foot
       );
     }
+    if (stacked) return renderStacked(wrapMerged);
     const scrollStyle = {
       scrollPaddingLeft: "calc(var(--aura-space-6)" + selW + " + " + acc + "px)",
       scrollPaddingTop: ROW_H + "px"
     };
     if (height) scrollStyle.height = height + "px";
-    return /* @__PURE__ */ React28.createElement(
+    const gridEl = /* @__PURE__ */ React28.createElement(
       "div",
       {
-        ref: wrapMerged,
+        ref: dual ? void 0 : wrapMerged,
         "data-density": props.density,
         className: cx("aura-table", scrolledX[0] && "is-scrolled-x", refreshing && "is-refreshing", props.className)
       },
@@ -4137,6 +4155,8 @@ window.Aura = (() => {
         }
       ) : null
     );
+    if (!dual) return gridEl;
+    return /* @__PURE__ */ React28.createElement("div", { ref: wrapMerged, className: "aura-table-dual", "data-stack-below": props.stackBelow }, renderStacked(void 0), gridEl);
   });
 
   // src/Card.tsx
@@ -4598,26 +4618,25 @@ window.Aura = (() => {
   var AppShell = React38.forwardRef(function AppShell2(props, ref) {
     const t = useStrings();
     const bp = useBreakpoint();
-    const compact = bp === "base" || bp === "sm" || bp === "md";
+    const wide = bp === "lg" || bp === "xl";
     const st = React38.useState(false), open = st[0], setOpen = st[1];
     React38.useEffect(
       function() {
-        if (!compact) setOpen(false);
+        if (wide) setOpen(false);
       },
-      [compact]
+      [wide]
     );
-    const navEl = props.nav;
-    const nav = props.nav && React38.isValidElement(props.nav) && compact ? React38.cloneElement(navEl, {
+    const navEl = props.nav && React38.isValidElement(props.nav) ? props.nav : null;
+    const drawerNav = navEl ? React38.cloneElement(navEl, {
       onChange: function(id) {
         if (navEl.props.onChange) navEl.props.onChange(id);
         setOpen(false);
       },
       className: cx(navEl.props.className, "is-in-drawer"),
-      /* The drawer is already full-size: never a rail, no collapse button. */
       collapsed: false,
       collapsible: false
     }) : props.nav;
-    return /* @__PURE__ */ React38.createElement("div", { ref, className: cx("aura-shell", compact && "is-compact", props.className) }, !compact ? /* @__PURE__ */ React38.createElement("div", { className: "aura-shell__nav" }, nav) : null, compact ? /* @__PURE__ */ React38.createElement(
+    return /* @__PURE__ */ React38.createElement("div", { ref, className: cx("aura-shell", props.className) }, props.nav ? /* @__PURE__ */ React38.createElement("div", { className: "aura-shell__nav" }, props.nav) : null, props.nav ? /* @__PURE__ */ React38.createElement(
       Drawer,
       {
         open,
@@ -4629,10 +4648,11 @@ window.Aura = (() => {
         "aria-label": props.navLabel || t.navigation,
         dismissible: true
       },
-      nav
-    ) : null, /* @__PURE__ */ React38.createElement("div", { className: "aura-shell__main" }, props.header || compact ? /* @__PURE__ */ React38.createElement("header", { className: "aura-shell__bar" }, compact ? /* @__PURE__ */ React38.createElement(
+      drawerNav
+    ) : null, /* @__PURE__ */ React38.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React38.createElement("header", { className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React38.createElement(
       IconButton,
       {
+        className: "aura-shell__menu",
         icon: "menu",
         label: props.menuLabel || t.openNav,
         size: "md",
@@ -5668,7 +5688,10 @@ window.Aura = (() => {
         rows
       );
     }
-    const style = { width: props.width, height: props.height };
+    const style = {
+      width: props.width,
+      height: props.height
+    };
     if (v === "circle") {
       style.width = style.height = props.size || props.width || 40;
     }

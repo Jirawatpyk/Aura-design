@@ -21,7 +21,10 @@ export const Skeleton = React.forwardRef<HTMLSpanElement, SkeletonProps>(functio
       </span>
     );
   }
-  const style: { width?: number | string; height?: number | string } = { width: props.width, height: props.height };
+  const style: { width?: number | string | undefined; height?: number | string | undefined } = {
+    width: props.width,
+    height: props.height,
+  };
   if (v === 'circle') {
     style.width = style.height = props.size || props.width || 40;
   }

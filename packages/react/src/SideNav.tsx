@@ -227,7 +227,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
     >
       {props.header ? <div className="aura-nav__header">{props.header}</div> : null}
       <div className="aura-nav__scroll">
-        {sections.map(function (s: { title?: string; items: NavItem[] }, i: number) {
+        {sections.map(function (s: { title?: string | undefined; items: NavItem[] }, i: number) {
           return (
             <div key={i} className="aura-nav__section">
               {s.title ? <p className="aura-nav__title">{s.title}</p> : null}

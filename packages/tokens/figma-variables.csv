@@ -222,6 +222,7 @@ radius/radius-squircle,number,light,20,,CORNER_RADIUS
 radius/card-radius,number,light,20,,CORNER_RADIUS
 radius/button-radius,number,light,9999,,CORNER_RADIUS
 size/button-height,number,light,44,,GAP
+size/button-height-sm,number,light,32,"Button size='sm': toolbars, table rows, card footers. Touch screens keep a 44px hit area around it. ADDED 4.16.",GAP
 size/icon-sm,number,light,16,,GAP
 size/icon-md,number,light,20,,GAP
 size/icon-lg,number,light,24,,GAP

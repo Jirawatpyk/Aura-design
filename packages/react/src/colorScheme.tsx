@@ -13,9 +13,9 @@ export type ColorScheme = 'light' | 'dark' | 'system';
 
 export interface ColorSchemeOptions {
   /** localStorage key for the choice. Default `aura-color-scheme`. */
-  storageKey?: string;
+  storageKey?: string | undefined;
   /** Used when nothing is saved. Default `system`. */
-  defaultScheme?: ColorScheme;
+  defaultScheme?: ColorScheme | undefined;
 }
 
 const DEFAULT_KEY = 'aura-color-scheme';
@@ -47,7 +47,7 @@ export function colorSchemeScript(options?: ColorSchemeOptions): string {
 export function ColorSchemeScript(
   props: ColorSchemeOptions & {
     /** Nonce for a nonce-based Content-Security-Policy (script-src 'nonce-…'). */
-    nonce?: string;
+    nonce?: string | undefined;
   },
 ): React.ReactElement {
   return (
@@ -134,7 +134,7 @@ export function useColorScheme(options?: ColorSchemeOptions): ColorSchemeState {
 
 export interface ColorSchemeToggleProps extends ColorSchemeOptions {
   /** Accessible name of the button. Default: the built-in "Colour scheme" label. */
-  label?: string;
+  label?: string | undefined;
 }
 
 /** Icon button with a menu: Light, Dark, System. Shows a sun or a moon for what is on screen. */

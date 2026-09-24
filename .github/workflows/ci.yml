@@ -32,6 +32,13 @@ jobs:
         if: matrix.react == '18'
         run: |
           set -o pipefail; npm run check:tailwind4 -w packages/tokens 2>&1 | tee -a ci.log
+      - name: Browser for the font check
+        if: matrix.react == '18'
+        run: npx playwright install --with-deps chromium
+      - name: Self-hosted fonts load under a font-src 'self' CSP
+        if: matrix.react == '18'
+        run: |
+          set -o pipefail; npm run check:fonts -w packages/tokens 2>&1 | tee -a ci.log
       - name: Contrast, token lint, SSR, types
         run: |
           set -o pipefail; npm test 2>&1 | tee -a ci.log
@@ -98,7 +105,7 @@ jobs:
         working-directory: apps/storybook
       - name: Hydration in a real browser (React development build, no console errors)
         run: |
-          set -o pipefail; npm run build -w packages/react 2>&1 | tee ci.log; npm run test:hydrate -w packages/react 2>&1 | tee -a ci.log
+          set -o pipefail; npm run build -w packages/react 2>&1 | tee ci.log; npm run test:hydrate -w packages/react 2>&1 | tee -a ci.log; npm run test:layout -w packages/react 2>&1 | tee -a ci.log
       - name: Storybook build and tests
         run: |
           set -o pipefail; npm run test:storybook 2>&1 | tee -a ci.log

@@ -41,13 +41,15 @@ npm i @jirawatpyk/aura-react @jirawatpyk/aura-tokens   # React 18 or 19; import 
 npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens
 ```
 
+React 18.3 and 19 are both tested: the dev dependencies pin 18, and CI switches the whole workspace to 19 (`node scripts/use-react.mjs 19 && npm install`) and runs every suite again — contrast, token lint, SSR, types, build, hydration with 0 warnings, layout before hydration, the three pilot pages and Storybook (axe + behaviour).
+
 Public on npmjs; internal projects can use GitHub Packages instead ([repository README](https://github.com/Jirawatpyk/Aura-design#use-it-in-a-project)).
 
 ```tsx
 // app root (once)
 import '@aura/tokens/aura.css'; // tokens (light + dark)
 import '@aura/react/styles.css'; // component styles
-// fonts: Google Fonts <link> tags in <head>, or '@aura/tokens/aura-fonts.css'
+// fonts: '@jirawatpyk/aura-tokens/aura-fonts.local.css' (self-hosted, CSP font-src 'self'), next/font, or Google Fonts — see the tokens README
 
 import { AuraProvider, AppShell, SideNav, DataTable, DatePicker } from '@aura/react';
 
@@ -74,7 +76,7 @@ export default function Root() {
 
 ## Components (49)
 
-Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette) · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
+Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette) · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
 
 ## Router links, Swedish, motion
 
@@ -123,7 +125,7 @@ toast.error('Could not save');               // danger = role="alert"; the rest 
 
 ## Phones and touch
 
-Under 640px every text control uses 16px text (iOS Safari doesn't zoom). On touch screens (`pointer: coarse`) IconButton keeps its 32px look with a 44px hit area, and Radio, Checkbox and Switch rows are at least 44px with the whole row as the target. `<Button fullWidth>` fills its row and wraps long Thai or Swedish labels.
+Under 640px every text control uses 16px text (iOS Safari doesn't zoom). On touch screens (`pointer: coarse`) IconButton and `<Button size="sm">` keep their 32px look with a 44px hit area, and Radio, Checkbox and Switch rows are at least 44px with the whole row as the target. `<Button fullWidth>` fills its row and wraps long Thai or Swedish labels.
 
 ## Light and dark
 
@@ -158,6 +160,12 @@ Values are ISO strings (`2026-09-18`); with `locale="th"` display is Thai with B
 ## Server rendering
 
 Portals (Dialog, Drawer, menus, pickers, toasts) wait until after hydration; `useBreakpoint()` returns `lg` on the server and corrects on the client through `useSyncExternalStore`, so there are no hydration mismatches. `npm run test:ssr` renders every component with `react-dom/server` (ESM and CJS builds).
+
+Layout is right before hydration (4.16). AppShell's sidebar-or-drawer switch is CSS (a 1024px media query), so a phone gets the menu button from the server's HTML. A DataTable with `stackBelow` renders cards and grid together until it has measured itself, and a container query shows the right one. It supports `stackBelow` 360, 400, 480, 520, 560, 600, 640, 720, 768, 800, 900, 960 and 1024; other widths stack once JavaScript runs. `npm run test:layout` loads both at 390 and 1280px with JavaScript off, then hydrated, and requires CLS 0. Columns with `hideBelow` still settle after hydration.
+
+## TypeScript
+
+Every optional prop takes `undefined` (4.16), so apps on `exactOptionalPropertyTypes` can write `hint={t.hint}` or `icon={x ?? undefined}`. `types-test/exact-optional.tsx` checks every exported component against the published declarations under `strict`, `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
 
 ## Scripts
 

@@ -10,10 +10,16 @@ import type { ComboboxMultipleProps, ComboboxOption, ComboboxProps } from './typ
 export interface ComboboxComponent {
   (props: ComboboxMultipleProps & React.RefAttributes<HTMLInputElement>): React.ReactElement | null;
   (props: ComboboxProps & React.RefAttributes<HTMLInputElement>): React.ReactElement | null;
-  displayName?: string;
+  displayName?: string | undefined;
 }
 
-type PopoverPos = { left: number; width: number; top?: number; bottom?: number; maxHeight: number };
+type PopoverPos = {
+  left: number;
+  width: number;
+  top?: number | undefined;
+  bottom?: number | undefined;
+  maxHeight: number;
+};
 
 function norm(s: unknown): string {
   return String(s == null ? '' : s)

@@ -8,6 +8,8 @@
     "tokens.json",
     "aura.css",
     "aura-fonts.css",
+    "aura-fonts.local.css",
+    "fonts",
     "tailwind.config.ts",
     "tailwind.tokens.cjs",
     "aura-tailwind.css",
@@ -25,6 +27,8 @@
   "exports": {
     "./aura.css": "./aura.css",
     "./aura-fonts.css": "./aura-fonts.css",
+    "./aura-fonts.local.css": "./aura-fonts.local.css",
+    "./fonts/*": "./fonts/*",
     "./tokens.json": "./tokens.json",
     "./tailwind": "./tailwind.tokens.cjs",
     "./tailwind.css": "./aura-tailwind.css",
@@ -37,8 +41,9 @@
     "a11y": "node scripts/a11y-check.js",
     "check:tailwind4": "node scripts/tailwind4-check.mjs",
     "lint:tokens": "node scripts/lint-tokens.js ../react/src && node scripts/lint-tokens.js ../react/styles",
-    "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css tailwind.tokens.cjs aura-tailwind.css figma-variables.csv",
-    "prepack": "npm run build"
+    "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css aura-fonts.local.css tailwind.tokens.cjs aura-tailwind.css figma-variables.csv",
+    "prepack": "npm run build",
+    "check:fonts": "node scripts/fonts-check.mjs"
   },
   "keywords": [
     "design-system",

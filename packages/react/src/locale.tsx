@@ -434,9 +434,9 @@ export interface AuraLocaleValue {
   calendar: 'buddhist' | 'gregory' | null;
   strings: AuraStrings;
   /** The router link set on AuraProvider, if any. */
-  linkComponent?: React.ElementType | null;
+  linkComponent?: React.ElementType | null | undefined;
   /** The density set on the nearest AuraProvider that sets one (null: none, i.e. comfortable unless an ancestor's data-density says otherwise). */
-  density?: 'comfortable' | 'compact' | null;
+  density?: 'comfortable' | 'compact' | null | undefined;
 }
 const LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 

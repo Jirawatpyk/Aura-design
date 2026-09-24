@@ -8,7 +8,7 @@ import type { ButtonLinkProps, ButtonProps } from './types.js';
 export interface ButtonComponent {
   (props: ButtonLinkProps & React.RefAttributes<HTMLAnchorElement>): React.ReactElement | null;
   (props: ButtonProps & React.RefAttributes<HTMLButtonElement>): React.ReactElement | null;
-  displayName?: string;
+  displayName?: string | undefined;
 }
 
 function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorElement>, Link: React.ElementType) {
@@ -24,6 +24,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
     'linkComponent',
     'href',
     'fullWidth',
+    'size',
   ]);
   const Tag: React.ElementType = disabled ? 'a' : Link;
   return (
@@ -34,7 +35,13 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
       role={disabled ? 'link' : undefined}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : props.tabIndex}
-      className={cx('aura-btn', 'aura-btn--' + variant, props.fullWidth && 'aura-btn--full', props.className)}
+      className={cx(
+        'aura-btn',
+        'aura-btn--' + variant,
+        props.size === 'sm' && 'aura-btn--sm',
+        props.fullWidth && 'aura-btn--full',
+        props.className,
+      )}
       onClick={disabled ? undefined : props.onClick}
     >
       {props.icon ? <Icon name={props.icon} /> : null}
@@ -66,6 +73,7 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
       'loading',
       'onClick',
       'fullWidth',
+      'size',
     ]);
     return (
       <button
@@ -75,6 +83,7 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
         className={cx(
           'aura-btn',
           'aura-btn--' + variant,
+          props.size === 'sm' && 'aura-btn--sm',
           props.fullWidth && 'aura-btn--full',
           loading && 'is-loading',
           props.className,

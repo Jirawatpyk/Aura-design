@@ -10,7 +10,7 @@ import type { FeedbackTone, ToastOptions, ToastShorthandOptions } from './types.
 /* Toasts: Aura.toast({...}) from anywhere; render <Aura.Toaster /> once near the app root. */
 
 /** A toast on screen: its options with the id and tone filled in; `rev` changes when the same id is shown again. */
-type ToastEntry = ToastOptions & { id: string; tone: FeedbackTone; rev: number; loading?: boolean };
+type ToastEntry = ToastOptions & { id: string; tone: FeedbackTone; rev: number; loading?: boolean | undefined };
 
 const toastState: { list: ToastEntry[]; subs: Array<(list: ToastEntry[]) => void>; n: number } = {
   list: [],
@@ -24,7 +24,7 @@ function emitToasts() {
   });
 }
 
-function show(opts: ToastOptions & { loading?: boolean }): string {
+function show(opts: ToastOptions & { loading?: boolean | undefined }): string {
   const id = opts.id || 't' + ++toastState.n;
   const at = toastState.list.findIndex(function (t) {
     return t.id === id;
@@ -153,7 +153,7 @@ function ToastItem(props: { toast: ToastEntry }) {
 
 export interface ToasterProps {
   /** Default `bottom`. */
-  position?: 'bottom' | 'top';
+  position?: 'bottom' | 'top' | undefined;
 }
 
 export function Toaster(props: ToasterProps): React.ReactElement | null {

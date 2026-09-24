@@ -136,6 +136,7 @@ export function fixtures(A, React) {
       h(A.DatePicker, { label: 'Datum', defaultValue: '2026-09-18' }),
       h(A.Breadcrumb, { items: [{ label: 'Hem', href: '/' }, { label: 'Order' }] }),
     ),
+    StackTable: h(A.DataTable, { label: 'Stack', stackBelow: 640, rows: [{ id: 'A-1', status: 'Paid' }], columns: [{ key: 'id', label: 'ID', width: 96 }, { key: 'status', label: 'STATUS', pill: true }] }),
     RailSideNav: h(A.SideNav, {
       collapsed: true,
       collapsible: true,

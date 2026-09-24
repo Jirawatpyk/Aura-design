@@ -29,7 +29,7 @@
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/sync-bundle.mjs",
     "test:ssr": "node scripts/ssr-test.mjs",
-    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json && tsc -p tsconfig.exact.json",
     "examples": "node examples/build.mjs",
     "themes": "node scripts/test-themes.mjs",
     "test:pilots": "npm run examples && npm run themes && python3 tests/pilot_test.py && python3 tests/pilots_test.py",
@@ -39,7 +39,8 @@
     "prethemes": "node scripts/build.mjs",
     "test:hydrate": "node scripts/hydrate-test.mjs",
     "size": "node scripts/size-check.mjs",
-    "preexamples": "node scripts/build.mjs"
+    "preexamples": "node scripts/build.mjs",
+    "test:layout": "node scripts/layout-test.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
