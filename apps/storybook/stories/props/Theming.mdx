@@ -5,7 +5,7 @@ import * as Aura from '@aura/react';
 
 # Theming and locale — props
 
-A brand colour per project, and Thai or English built-in labels. Tables are generated from the TypeScript sources of `@jirawatpyk/aura-react`, so they always match the published types. `*` = required.
+A brand colour per project, and Thai, English or Swedish built-in labels. Tables are generated from the TypeScript sources of `@jirawatpyk/aura-react`, so they always match the published types. `*` = required.
 
 ## ThemeStyle
 
@@ -14,6 +14,12 @@ A brand colour per project, and Thai or English built-in labels. Tables are gene
 ## AuraProvider
 
 <ArgTypes of={Aura.AuraProvider} />
+
+`locale="sv"` gives Swedish labels, `sv-SE` dates, the Gregorian calendar and Monday as the first day. `th` and `en` keep the Buddhist calendar by default (pass `calendar="gregory"` to change it). `linkComponent={Link}` (from `next/link`) makes every AURA link — Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row and pager links — use client-side navigation.
+
+## Chart colours
+
+`--aura-chart-1` … `--aura-chart-8` for series, in this order: violet, teal, orange, blue, magenta, green, gold, rose. `--aura-chart-seq-1` … `-5` for ordered values (low → high), `--aura-chart-grid` and `--aura-chart-axis`. Every mark colour is ≥3:1 on the surface in both themes and neighbours alternate dark and mid lightness, so series next to each other stay apart without hue. `createTheme` moves chart-1 and the sequential ramp to the brand. Label series in the legend or on the chart as well; colour is never the only cue. With Recharts: `<Bar fill="var(--aura-chart-1)" />`.
 ## ColorSchemeToggle
 
 <ArgTypes of={Aura.ColorSchemeToggle} />
@@ -23,3 +29,5 @@ A brand colour per project, and Thai or English built-in labels. Tables are gene
 Put it in `<head>`: it applies the saved choice (or `system`) before the page paints, so there is no flash of the wrong scheme. `useColorScheme()` returns `{ scheme, resolved, setScheme }` for your own controls.
 
 <ArgTypes of={Aura.ColorSchemeScript} />
+
+With a nonce-based Content-Security-Policy pass the request's nonce: `<ColorSchemeScript nonce={nonce} />`.

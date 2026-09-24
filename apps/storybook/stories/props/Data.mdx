@@ -11,6 +11,21 @@ Column objects for DataTable are described by `DataTableColumn` in the package t
 
 <ArgTypes of={Aura.DataTable} />
 
+### Server mode
+
+For lists paged and sorted by the server (search params, API), pass `manual`: `rows` is the current page as the server returned it, and the table only reports changes.
+
+```tsx
+<DataTable manual rows={page.items} totalRows={page.total} pageSize={25}
+  page={p} onPageChange={setP} sort={sort} onSortChange={(s) => { setSort(s); setP(1); }}
+  loading={isFetching}                       // keeps the current rows, dimmed, with a progress bar
+  getRowHref={(r) => `/members/${r.id}`}     // first cell is the link; click/Enter anywhere on the row follows it
+  getPageHref={(n) => `?page=${n}`}          // pager arrows as links (no onPageChange → the link navigates)
+  columns={[{ key: 'amount', label: 'AMOUNT', align: 'end' }, …]} />
+```
+
+Links render with AuraProvider's `linkComponent` (or the table's own). `align: 'end'` right-aligns a column and uses tabular figures.
+
 ## Stat
 
 <ArgTypes of={Aura.Stat} />

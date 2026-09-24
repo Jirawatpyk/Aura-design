@@ -39,6 +39,8 @@ import * as Aura from '@aura/react';
 
 <ArgTypes of={Aura.SideNav} />
 
+Items with `children` become collapsible groups (a button with `aria-expanded`). A group opens by itself when it holds the active item and stays open after you leave; `defaultOpen` opens it from the start. Arrow Up/Down move through the visible items, Right opens a group, Left closes it. `badge` takes a number or any node (a Badge). Only the active leaf gets `aria-current="page"`.
+
 ## Breadcrumb
 
 <ArgTypes of={Aura.Breadcrumb} />

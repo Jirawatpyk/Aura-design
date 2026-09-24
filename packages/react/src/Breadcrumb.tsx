@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx } from './internal.js';
-import { useStrings } from './locale.js';
+import { useLinkComponent, useStrings } from './locale.js';
 import type { BreadcrumbProps } from './types.js';
 
 export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(function Breadcrumb(props, ref) {
   const t = useStrings();
+  const Link = useLinkComponent();
   const items = props.items || [];
   return (
     <nav ref={ref} aria-label={props.label || t.breadcrumb} className={cx('aura-crumbs', props.className)}>
@@ -19,9 +20,9 @@ export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(functio
                   {it.label}
                 </span>
               ) : it.href ? (
-                <a href={it.href} onClick={it.onClick}>
+                <Link href={it.href} onClick={it.onClick}>
                   {it.label}
-                </a>
+                </Link>
               ) : (
                 <button type="button" onClick={it.onClick}>
                   {it.label}

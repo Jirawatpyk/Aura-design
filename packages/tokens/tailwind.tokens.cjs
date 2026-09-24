@@ -44,7 +44,9 @@ module.exports = {
         "200": "var(--aura-red-200)",
         "300": "var(--aura-red-300)",
         "400": "var(--aura-red-400)",
-        "700": "var(--aura-red-700)"
+        "600": "var(--aura-red-600)",
+        "700": "var(--aura-red-700)",
+        "800": "var(--aura-red-800)"
       },
       "amber": {
         "50": "var(--aura-amber-50)",
@@ -100,6 +102,23 @@ module.exports = {
       "ready-fg": "var(--aura-status-ready-fg)",
       "blocked-bg": "var(--aura-status-blocked-bg)",
       "blocked-fg": "var(--aura-status-blocked-fg)"
+    },
+    "chart": {
+      "1": "var(--aura-chart-1)",
+      "2": "var(--aura-chart-2)",
+      "3": "var(--aura-chart-3)",
+      "4": "var(--aura-chart-4)",
+      "5": "var(--aura-chart-5)",
+      "6": "var(--aura-chart-6)",
+      "7": "var(--aura-chart-7)",
+      "8": "var(--aura-chart-8)",
+      "seq-1": "var(--aura-chart-seq-1)",
+      "seq-2": "var(--aura-chart-seq-2)",
+      "seq-3": "var(--aura-chart-seq-3)",
+      "seq-4": "var(--aura-chart-seq-4)",
+      "seq-5": "var(--aura-chart-seq-5)",
+      "grid": "var(--aura-chart-grid)",
+      "axis": "var(--aura-chart-axis)"
     },
     "alert": {
       "info-bg": "var(--aura-alert-info-bg)",

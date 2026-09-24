@@ -144,6 +144,27 @@ function fit(hex: string, grounds: string[], target: number, dir: number): strin
   return c;
 }
 
+/* The brand hue at a given relative luminance (binary search on OKLCH lightness, chroma kept in gamut).
+ * Chart colours are placed by luminance, not by scale step, so contrast and neighbour spacing hold for any brand. */
+function atLuminance(hex: string, Y: number): string {
+  const o = rgbToOklch(hexToRgb(hex)),
+    C = Math.max(o[1], 0.02);
+  let lo = 0,
+    hi = 1,
+    c = hex;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    c = oklchToHex(mid, C, o[2]);
+    if (luminance(c) < Y) lo = mid;
+    else hi = mid;
+  }
+  return c;
+}
+/* Same luminance targets as tokens.json: chart-1 (dark in light theme, light in dark theme) and seq-1…5. */
+const CHART_Y = { light: 0.075, dark: 0.46 };
+const SEQ_Y = { light: [0.26, 0.165, 0.1, 0.055, 0.028], dark: [0.14, 0.22, 0.34, 0.5, 0.7] };
+const CHART_2 = '#0a8b7a';
+
 const ZINC = { 0: '#ffffff', 50: '#fafafa', 100: '#f4f4f5', 800: '#27272a', 900: '#18181b', 950: '#09090b' };
 const INK = '#18181b';
 
@@ -171,6 +192,14 @@ export function createTheme(opts: ThemeOptions): Theme {
   L['alert-info-fg'] = fit(b[800], [b[50]], 4.5, -1);
   L['alert-info-border'] = b[200];
   L['mesh-from'] = b[400];
+  L['chart-1'] = atLuminance(o.brand, CHART_Y.light);
+  D['chart-1'] = atLuminance(o.brand, CHART_Y.dark);
+  SEQ_Y.light.forEach(function (y, i) {
+    L['chart-seq-' + (i + 1)] = atLuminance(o.brand, y);
+  });
+  SEQ_Y.dark.forEach(function (y, i) {
+    D['chart-seq-' + (i + 1)] = atLuminance(o.brand, y);
+  });
 
   D['fg-accent'] = fit(b[300], darkGrounds, 4.5, 1);
   D['accent-violet'] = fit(b[400], darkGrounds, 3, 1);
@@ -241,6 +270,22 @@ export function createTheme(opts: ThemeOptions): Theme {
     check('dark', 'fg-accent', g[0], 4.5, D['fg-accent'], g[1]);
     check('dark', 'focus-ring', g[0], 3, D['focus-ring'], g[1]);
   });
+  [
+    ['light', ZINC[0], L],
+    ['light', ZINC[50], L],
+    ['dark', ZINC[900], D],
+    ['dark', ZINC[950], D],
+  ].forEach(function (g) {
+    const t = g[0] as ThemeCheck['theme'],
+      ground = g[1] as string,
+      m = g[2] as Record<string, string>,
+      name = ground === ZINC[0] || ground === ZINC[900] ? 'bg-surface' : 'bg-canvas';
+    ['chart-1', 'chart-seq-1', 'chart-seq-5'].forEach(function (k) {
+      check(t, k, name, 3, m[k], ground);
+    });
+  });
+  check('light', 'chart-1', 'chart-2 (lightness step)', 1.8, L['chart-1'], CHART_2);
+  check('dark', 'chart-1', 'chart-2 (lightness step)', 1.8, D['chart-1'], CHART_2);
   check('light', 'fg-primary', 'bg-selected', 4.5, INK, L['bg-selected']);
   check('dark', 'fg-primary', 'bg-selected', 4.5, '#ffffff', D['bg-selected']);
   check('light', 'status-progress-fg', 'status-progress-bg', 4.5, L['status-progress-fg'], L['status-progress-bg']);

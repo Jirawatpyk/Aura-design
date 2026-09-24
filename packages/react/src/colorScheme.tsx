@@ -44,8 +44,19 @@ export function colorSchemeScript(options?: ColorSchemeOptions): string {
 }
 
 /** Put in <head>: applies the saved colour scheme before the page paints. Server-rendering safe. */
-export function ColorSchemeScript(props: ColorSchemeOptions): React.ReactElement {
-  return <script data-aura-color-scheme="" dangerouslySetInnerHTML={{ __html: colorSchemeScript(props) }} />;
+export function ColorSchemeScript(
+  props: ColorSchemeOptions & {
+    /** Nonce for a nonce-based Content-Security-Policy (script-src 'nonce-…'). */
+    nonce?: string;
+  },
+): React.ReactElement {
+  return (
+    <script
+      data-aura-color-scheme=""
+      nonce={props.nonce}
+      dangerouslySetInnerHTML={{ __html: colorSchemeScript(props) }}
+    />
+  );
 }
 
 function systemDark(): boolean {

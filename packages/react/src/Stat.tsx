@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cx } from './internal.js';
 import { Icon } from './Icon.js';
+import { useLinkComponent } from './locale.js';
 import type { StatProps } from './types.js';
 
 /* Stat — one number on a card: label, value, optional change and caption. Dashboards and page summaries.
@@ -10,8 +11,17 @@ export const Stat = React.forwardRef<HTMLElement, StatProps>(function Stat(props
   const ch = props.change;
   const dir = ch && (ch.direction || 'flat');
   const tone = ch && (ch.tone || (dir === 'up' ? 'positive' : dir === 'down' ? 'negative' : 'neutral'));
-  const Tag = (props.href ? 'a' : props.onClick ? 'button' : 'div') as React.ElementType;
-  const interactive = Tag !== 'div';
+  const Link = useLinkComponent();
+  /* Tabular figures only when the value is a number or a formatted amount ("฿31,900", "38,520.00 THB", "4.2k", "12%"):
+   * on words they widen hyphens and spaces ("under-used"). A three-letter currency code is allowed. */
+  const v = props.value;
+  const numeric =
+    typeof v === 'number' ||
+    (typeof v === 'string' &&
+      /\d/.test(v) &&
+      /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, '')));
+  const Tag = (props.href ? Link : props.onClick ? 'button' : 'div') as React.ElementType;
+  const interactive = !!(props.href || props.onClick);
   return (
     <Tag
       ref={ref}
@@ -34,7 +44,7 @@ export const Stat = React.forwardRef<HTMLElement, StatProps>(function Stat(props
           <span className="aura-skel aura-stat__skel" />
         </span>
       ) : (
-        <span className="aura-stat__value">
+        <span className={cx('aura-stat__value', numeric && 'is-numeric')}>
           {props.value}
           {props.unit ? <span className="aura-stat__unit">{props.unit}</span> : null}
         </span>

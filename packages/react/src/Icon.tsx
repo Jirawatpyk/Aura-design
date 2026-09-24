@@ -12,9 +12,21 @@ export const ICONS: Record<IconName, IconShape[]> = {"check":[["path",{"d":"M20 
 const SIZES: Record<string, number> = { sm: 16, md: 20, lg: 24 };
 
 export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(props, ref) {
-  const shapes = ICONS[props.name];
-  if (!shapes) return null;
   const size = SIZES[props.size as string] || props.size || 16;
+  if (React.isValidElement(props.name)) {
+    /* Your own icon element (lucide-react, an SVG component…): same box, stroke and a11y as a built-in one. */
+    return (
+      <span
+        className={cx('aura-icon', 'aura-icon--custom', props.className)}
+        style={{ width: size, height: size, ['--aura-icon-stroke' as string]: props.strokeWidth || 2 }}
+        {...(props.label ? { role: 'img', 'aria-label': props.label } : { 'aria-hidden': true })}
+      >
+        {props.name}
+      </span>
+    );
+  }
+  const shapes = ICONS[props.name as IconName];
+  if (!shapes) return null;
   const a11y: React.SVGProps<SVGSVGElement> = props.label
     ? { role: 'img', 'aria-label': props.label }
     : { 'aria-hidden': true, focusable: 'false' };

@@ -6,6 +6,9 @@ import type { AuraProviderProps } from './types.js';
 const n = function (x: number | string) {
   return Number(x).toLocaleString('en');
 };
+const nsv = function (x: number | string) {
+  return Number(x).toLocaleString('sv-SE');
+};
 /** Every built-in label. Function entries build the text from their arguments. */
 export interface AuraStrings {
   close: string;
@@ -73,7 +76,7 @@ export interface AuraStrings {
   pageN: (p: number) => string;
   accepts: (list?: string, max?: number | string) => string;
 }
-export const STRINGS: { en: AuraStrings; th: AuraStrings } = {
+export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
   en: {
     close: 'Close',
     dismiss: 'Dismiss',
@@ -270,12 +273,112 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings } = {
       return [list, max && 'ไม่เกิน ' + max + ' ต่อไฟล์'].filter(Boolean).join(' · ');
     },
   },
+  sv: {
+    close: 'Stäng',
+    dismiss: 'Stäng',
+    dismissToast: 'Stäng aviseringen',
+    notifications: 'Aviseringar',
+    mainNav: 'Huvudmeny',
+    breadcrumb: 'Brödsmulor',
+    navigation: 'Navigering',
+    openNav: 'Öppna menyn',
+    searching: 'Söker…',
+    noMatches: 'Inga träffar',
+    clear: function (what) {
+      return 'Rensa ' + (what || 'urvalet');
+    },
+    keepTyping: function (total) {
+      return 'Skriv mer för att begränsa ' + nsv(total) + ' alternativ';
+    },
+    sortAsc: 'Sortera stigande',
+    sortDesc: 'Sortera fallande',
+    pin: 'Fäst till vänster',
+    unpin: 'Lossa kolumnen',
+    moveLeft: 'Flytta vänster',
+    moveRight: 'Flytta höger',
+    hideColumn: 'Dölj kolumnen',
+    resetColumns: 'Återställ kolumner',
+    selectRows: 'Välj rader',
+    selectAllRows: 'Välj alla rader',
+    deselectAllRows: 'Avmarkera alla rader',
+    selectAll: 'Välj alla',
+    selectRow: function (k) {
+      return 'Välj ' + k;
+    },
+    selectedCount: function (c) {
+      return nsv(c) + ' valda';
+    },
+    pinned: 'Fäst',
+    columnOptions: function (label) {
+      return 'Alternativ för kolumnen ' + label;
+    },
+    column: function (label) {
+      return label ? 'Kolumnen ' + label : 'Kolumn';
+    },
+    columns: 'Kolumner',
+    showHideColumns: 'Visa eller dölj kolumner',
+    empty: 'Inget här ännu',
+    loading: 'Laddar…',
+    loadingRows: 'Laddar rader',
+    range: function (a, b, total) {
+      return a + '–' + b + ' av ' + nsv(total);
+    },
+    page: function (p, total) {
+      return 'Sida ' + p + ' av ' + total;
+    },
+    prevPage: 'Föregående sida',
+    nextPage: 'Nästa sida',
+    rowCount: function (c) {
+      return nsv(c) + ' rader';
+    },
+    actions: 'Åtgärder',
+    optional: 'valfritt',
+    timePlaceholder: 'tt:mm',
+    timeInvalid: 'Skriv en tid som 09:30',
+    timeOutOfRange: function (a, b) {
+      return 'Välj en tid mellan ' + a + ' och ' + b;
+    },
+    dropFiles: 'Dra filer hit eller',
+    browse: 'Välj filer',
+    browseOne: 'Välj en fil',
+    remove: function (n) {
+      return 'Ta bort ' + n;
+    },
+    fileTooBig: function (max) {
+      return 'Större än ' + max;
+    },
+    fileWrongType: 'Den här filtypen godtas inte',
+    tooManyFiles: function (n) {
+      return 'Högst ' + n + ' filer';
+    },
+    colorScheme: 'Färgläge',
+    increase: 'Öka',
+    decrease: 'Minska',
+    stepDone: 'klart',
+    stepOf: function (i, total) {
+      return 'Steg ' + i + ' av ' + total;
+    },
+    schemeLight: 'Ljust',
+    schemeDark: 'Mörkt',
+    schemeSystem: 'System',
+    uploading: 'Laddar upp…',
+    images: 'Bilder',
+    pagination: 'Sidnumrering',
+    pageN: function (p) {
+      return 'Sida ' + p;
+    },
+    accepts: function (list, max) {
+      return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
+    },
+  },
 };
 /** What useAuraLocale returns. `locale` and `calendar` are null outside an AuraProvider. */
 export interface AuraLocaleValue {
-  locale: 'th' | 'en' | null;
+  locale: 'th' | 'en' | 'sv' | null;
   calendar: 'buddhist' | 'gregory' | null;
   strings: AuraStrings;
+  /** The router link set on AuraProvider, if any. */
+  linkComponent?: React.ElementType | null;
 }
 const LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 
@@ -288,15 +391,21 @@ export function AuraProvider(props: AuraProviderProps): React.ReactElement {
         locale: props.locale || 'en',
         calendar: props.calendar || null,
         strings: props.strings ? (Object.assign({}, base, props.strings) as AuraStrings) : base,
+        linkComponent: props.linkComponent || null,
       };
     },
-    [props.locale, props.calendar, props.strings],
+    [props.locale, props.calendar, props.strings, props.linkComponent],
   );
   return <LocaleContext.Provider value={value}>{props.children}</LocaleContext.Provider>;
 }
 /** { locale, calendar, strings } from the nearest AuraProvider (English strings when there is none). */
 export function useAuraLocale(): AuraLocaleValue {
   return React.useContext(LocaleContext) || { locale: null, calendar: null, strings: STRINGS.en };
+}
+/** The element to render a link with: the component's own `linkComponent`, else the provider's, else `a`. */
+export function useLinkComponent(own?: React.ElementType | null): React.ElementType {
+  const ctx = React.useContext(LocaleContext);
+  return own || (ctx && ctx.linkComponent) || 'a';
 }
 export function useStrings(): AuraStrings {
   return useAuraLocale().strings;

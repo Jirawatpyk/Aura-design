@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { IconButton } from './IconButton.js';
 import { cx, useMaybeControlled } from './internal.js';
-import { useStrings } from './locale.js';
+import { useLinkComponent, useStrings } from './locale.js';
 import type { PaginationProps } from './types.js';
 
 /* ---------- Pagination: page links for lists outside DataTable ---------- */
@@ -36,6 +36,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
     if (p >= 1 && p <= count && p !== page) st[1](p);
   }
   const link = props.getHref;
+  const Link = useLinkComponent();
   function item(p: number, label: React.ReactNode, extra?: Record<string, unknown>) {
     const common = Object.assign(
       {
@@ -46,7 +47,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
       extra,
     );
     return link ? (
-      <a
+      <Link
         href={link(p)}
         onClick={function (e: React.MouseEvent) {
           if (props.onChange) {
@@ -57,7 +58,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
         {...common}
       >
         {label}
-      </a>
+      </Link>
     ) : (
       <button
         type="button"

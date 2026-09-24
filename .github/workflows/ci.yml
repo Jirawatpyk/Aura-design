@@ -28,6 +28,10 @@ jobs:
         if: matrix.react == '18'
         run: |
           set -o pipefail; npm run check:generated -w packages/tokens 2>&1 | tee -a ci.log
+      - name: Tailwind v4 theme compiles (aura-tailwind.css)
+        if: matrix.react == '18'
+        run: |
+          set -o pipefail; npm run check:tailwind4 -w packages/tokens 2>&1 | tee -a ci.log
       - name: Contrast, token lint, SSR, types
         run: |
           set -o pipefail; npm test 2>&1 | tee -a ci.log
