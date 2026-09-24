@@ -13,8 +13,10 @@
   .aura-welcome a.aura-btn.aura-btn--secondary { color: var(--aura-fg-primary); }
   /* Storybook's docs link blue (2.9:1) and code colours (3.6–4:1) miss AA; the Welcome page uses AURA's accent and darker code colours. */
   .aura-welcome a.sbdocs-a { color: var(--aura-fg-accent) !important; text-decoration: underline; text-underline-offset: 2px; }
-  .aura-welcome .token.class-name { color: var(--aura-fg-accent) !important; }
-  .aura-welcome .token.attr-name { color: var(--aura-fg-danger) !important; }
+  /* Same code colours on every docs page (props pages have code samples too). */
+  .sbdocs .token.class-name { color: var(--aura-fg-accent) !important; }
+  .sbdocs .token.attr-name { color: var(--aura-fg-danger) !important; }
+  .sbdocs .token.number, .sbdocs .token.boolean { color: var(--aura-fg-positive) !important; }
   /* Long lines wrap instead of scrolling sideways, so the code blocks have no scroll region to reach by keyboard. */
-  .aura-welcome pre, .aura-welcome pre code, .aura-welcome pre span { white-space: pre-wrap !important; overflow-wrap: anywhere; }
+  .sbdocs pre, .sbdocs pre code, .sbdocs pre span { white-space: pre-wrap !important; overflow-wrap: anywhere; }
 </style>
