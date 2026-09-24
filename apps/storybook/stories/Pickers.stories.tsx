@@ -60,9 +60,9 @@ export const DatePickerStory: StoryObj = {
     const [a, setA] = React.useState<string | null>('2026-09-18');
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 320px))', gap: 24 }}>
-        <Aura.DatePicker label="วันที่ส่ง" value={a} onChange={setA} min="2026-09-01" hint={'ISO: ' + String(a)} />
+        <Aura.DatePicker locale="th" label="วันที่ส่ง" value={a} onChange={setA} min="2026-09-01" hint={'ISO: ' + String(a)} />
         <Aura.DatePicker label="Due date" locale="en" calendar="gregory" weekStartsOn={1} optional />
-        <Aura.DatePicker label="วันเกิด" required error="ใส่วันเกิดเป็น วว/ดด/ปปปป เช่น 05/12/2530" />
+        <Aura.DatePicker locale="th" label="วันเกิด" required error="ใส่วันเกิดเป็น วว/ดด/ปปปป เช่น 05/12/2530" />
         <Aura.DatePicker label="Locked" defaultValue="2026-09-18" disabled />
       </div>
     );
@@ -73,7 +73,7 @@ export const DateRangePickerStory: StoryObj = {
   name: 'DateRangePicker',
   render: () => {
     const [r, setR] = React.useState({ start: '2026-09-07', end: '2026-09-18' } as { start: string | null; end: string | null });
-    return <div style={{ maxWidth: 340 }}><Aura.DateRangePicker label="ช่วงวันที่" value={r} onChange={setR} /></div>;
+    return <div style={{ maxWidth: 340 }}><Aura.DateRangePicker locale="th" label="ช่วงวันที่" value={r} onChange={setR} /></div>;
   },
 };
 
@@ -84,7 +84,7 @@ export const CalendarStory: StoryObj = {
     const weekend = (iso: string) => [0, 6].includes(new Date(iso + 'T00:00').getDay());
     return (
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-        <Aura.Calendar autoFocus={false} start={a} focus={a} onSelect={setA} />
+        <Aura.Calendar autoFocus={false} locale="th" start={a} focus={a} onSelect={setA} />
         <Aura.Calendar autoFocus={false} locale="en" calendar="gregory" weekStartsOn={1} start="2026-09-21" focus="2026-09-21" isDateDisabled={weekend} />
       </div>
     );

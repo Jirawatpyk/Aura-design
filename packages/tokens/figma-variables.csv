@@ -67,10 +67,10 @@ semantic/on-texture,color,light,{primitive/ink},"Text and icons on a mesh or gra
 semantic/grain,color,light,{primitive/ink},"Grain speckle colour, drawn at aura-grain-opacity. Visible only on light grounds.",ALL_FILLS
 semantic/status-neutral-bg,color,light,{primitive/zinc/100},"Status pill fill for not-started / unknown states (To Do, Draft). Dark theme uses a quiet zinc-800 fill so it sits below the coloured states. ADDED.",ALL_FILLS
 semantic/status-neutral-fg,color,light,{primitive/zinc/700},"Label and icon on aura-status-neutral-bg (light 9.5:1, dark zinc-300 on zinc-800).",ALL_FILLS
-semantic/status-progress-bg,color,light,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). ADDED.",ALL_FILLS
-semantic/status-progress-fg,color,light,{primitive/violet/800},Label and icon on aura-status-progress-bg (7.6:1).,ALL_FILLS
-semantic/status-ready-bg,color,light,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. ADDED as a named token.",ALL_FILLS
-semantic/status-ready-fg,color,light,{primitive/ink},Label and icon on aura-status-ready-bg (15.2:1).,ALL_FILLS
+semantic/status-progress-bg,color,light,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). Dark: a quiet violet-tinted fill (violet-500 at 20% over zinc-900) so the pill sits below the row text. ADDED; dark 4.11.",ALL_FILLS
+semantic/status-progress-fg,color,light,{primitive/violet/800},"Label and icon on aura-status-progress-bg (light 7.6:1; dark violet-300, 7.6:1).",ALL_FILLS
+semantic/status-ready-bg,color,light,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. Dark: a lime-tinted fill (lime-400 at 14% over zinc-900). ADDED as a named token; dark 4.11.",ALL_FILLS
+semantic/status-ready-fg,color,light,{primitive/ink},"Label and icon on aura-status-ready-bg (light 15.2:1; dark lime-300, 9.9:1).",ALL_FILLS
 semantic/status-blocked-bg,color,light,{primitive/red/700},"Status pill fill for stopped / failed states (Blocked, Failed). Dark on purpose: 5.5:1 lighter-to-darker against the lime Ready fill, so Ready and Blocked differ by lightness, not only red vs green. ADDED.",ALL_FILLS
 semantic/status-blocked-fg,color,light,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
 semantic/bg-selected,color,light,{primitive/violet/50},"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
@@ -133,10 +133,10 @@ semantic/on-texture,color,dark,{primitive/ink},"Text and icons on a mesh or grai
 semantic/grain,color,dark,{primitive/ink},"Grain speckle colour, drawn at aura-grain-opacity. Visible only on light grounds.",ALL_FILLS
 semantic/status-neutral-bg,color,dark,{primitive/zinc/800},"Status pill fill for not-started / unknown states (To Do, Draft). Dark theme uses a quiet zinc-800 fill so it sits below the coloured states. ADDED.",ALL_FILLS
 semantic/status-neutral-fg,color,dark,{primitive/zinc/300},"Label and icon on aura-status-neutral-bg (light 9.5:1, dark zinc-300 on zinc-800).",ALL_FILLS
-semantic/status-progress-bg,color,dark,{primitive/violet/100},"Status pill fill for work under way (In Progress, In Review). ADDED.",ALL_FILLS
-semantic/status-progress-fg,color,dark,{primitive/violet/800},Label and icon on aura-status-progress-bg (7.6:1).,ALL_FILLS
-semantic/status-ready-bg,color,dark,{primitive/lime/200},"Status pill fill for finished / good states (Ready, Done). The source's lime pill. ADDED as a named token.",ALL_FILLS
-semantic/status-ready-fg,color,dark,{primitive/ink},Label and icon on aura-status-ready-bg (15.2:1).,ALL_FILLS
+semantic/status-progress-bg,color,dark,#2f2647,"Status pill fill for work under way (In Progress, In Review). Dark: a quiet violet-tinted fill (violet-500 at 20% over zinc-900) so the pill sits below the row text. ADDED; dark 4.11.",ALL_FILLS
+semantic/status-progress-fg,color,dark,{primitive/violet/300},"Label and icon on aura-status-progress-bg (light 7.6:1; dark violet-300, 7.6:1).",ALL_FILLS
+semantic/status-ready-bg,color,dark,#2b351f,"Status pill fill for finished / good states (Ready, Done). The source's lime pill. Dark: a lime-tinted fill (lime-400 at 14% over zinc-900). ADDED as a named token; dark 4.11.",ALL_FILLS
+semantic/status-ready-fg,color,dark,{primitive/lime/300},"Label and icon on aura-status-ready-bg (light 15.2:1; dark lime-300, 9.9:1).",ALL_FILLS
 semantic/status-blocked-bg,color,dark,{primitive/red/700},"Status pill fill for stopped / failed states (Blocked, Failed). Dark on purpose: 5.5:1 lighter-to-darker against the lime Ready fill, so Ready and Blocked differ by lightness, not only red vs green. ADDED.",ALL_FILLS
 semantic/status-blocked-fg,color,dark,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
 semantic/bg-selected,color,dark,#2c283a,"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
@@ -185,6 +185,8 @@ component/button-danger-fg,color,light,{primitive/white},Component: label on the
 component/button-creative-bg,color,light,{primitive/white},Component: Creative button fill (white in every theme). Label in aura-ink.,ALL_FILLS
 component/button-creative-border,color,light,{primitive/zinc/900},Component: Creative button 2px border.,ALL_FILLS
 component/card-border,color,light,{primitive/zinc/200},Component: card outline (light value; use aura-border-default where the card must follow theme).,ALL_FILLS
+component/progress-track,color,light,{semantic/bg-skeleton},Empty part of Progress and FileUpload bars (fill). Its edge carries the 3:1. ADDED 4.11.,ALL_FILLS
+component/progress-track-edge,color,light,{component/button-secondary-border},"1px inset edge of Progress / upload tracks: ≥3:1 on bg-surface and bg-canvas in both themes (WCAG 1.4.11), so the track reads without the fill. ADDED 4.11.",ALL_FILLS
 component/button-primary-bg,color,dark,{primitive/zinc/0},"Component: Enterprise (primary) button fill — ink in light, white in dark, as the Storybook story renders it (tokens.json pins it to the light value, which disappears on the dark surface).",ALL_FILLS
 component/button-primary-fg,color,dark,{primitive/zinc/900},Component: primary button label on aura-button-primary-bg (17.7:1 both themes).,ALL_FILLS
 component/button-primary-bg-hover,color,dark,{primitive/zinc/200},"Component: primary button hover. Light zinc-800 is the source value; dark zinc-200 is an ADDED value (the source has none — its zinc-800 hover hides the dark label at 1.19:1). Label 14.9:1 light, 14.0:1 dark.",ALL_FILLS
@@ -195,6 +197,8 @@ component/button-danger-fg,color,dark,{primitive/white},Component: label on the 
 component/button-creative-bg,color,dark,{primitive/white},Component: Creative button fill (white in every theme). Label in aura-ink.,ALL_FILLS
 component/button-creative-border,color,dark,{primitive/zinc/900},Component: Creative button 2px border.,ALL_FILLS
 component/card-border,color,dark,{primitive/zinc/200},Component: card outline (light value; use aura-border-default where the card must follow theme).,ALL_FILLS
+component/progress-track,color,dark,{semantic/bg-skeleton},Empty part of Progress and FileUpload bars (fill). Its edge carries the 3:1. ADDED 4.11.,ALL_FILLS
+component/progress-track-edge,color,dark,{component/button-secondary-border},"1px inset edge of Progress / upload tracks: ≥3:1 on bg-surface and bg-canvas in both themes (WCAG 1.4.11), so the track reads without the fill. ADDED 4.11.",ALL_FILLS
 spacing/space-0,number,light,0,,GAP
 spacing/space-1,number,light,4,,GAP
 spacing/space-2,number,light,8,,GAP
@@ -243,3 +247,5 @@ size/container-max,number,light,1280,Container max width — matches aura-bp-xl.
 size/container-narrow,number,light,720,Narrow container for forms and reading. ADDED 4.2.,GAP
 size/cal-cell,number,light,36,Calendar day cell (DatePicker). 40px on touch screens via media query. ADDED 4.2.,GAP
 size/popover-max-height,number,light,320,Max height of Combobox listbox and DatePicker popover lists. ADDED 4.2.,GAP
+size/input-font-size,number,light,14,"Text size in inputs, textareas, selects and pickers. Phones (<640px) use at least 16px so iOS Safari does not zoom on focus. ADDED 4.11.",GAP
+size/touch-target,number,light,44,"Minimum hit area on touch screens (pointer: coarse): IconButton, and Radio / Checkbox / Switch rows (WCAG 2.5.5). ADDED 4.11.",GAP

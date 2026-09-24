@@ -8,7 +8,15 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
   const st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
   const on = !!st[0];
   return (
-    <div className={cx('aura-switch-row', props.disabled && 'is-disabled', props.className)}>
+    <div
+      className={cx('aura-switch-row', props.disabled && 'is-disabled', props.className)}
+      onClick={function (e: React.MouseEvent<HTMLDivElement>) {
+        /* The whole row is the target (44px on touch); the switch and its <label> already toggle by themselves. */
+        const t = e.target as HTMLElement;
+        if (props.disabled || t.closest('button, label, a, input')) return;
+        st[1](!on);
+      }}
+    >
       <button
         ref={ref}
         type="button"

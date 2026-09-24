@@ -17,7 +17,7 @@ export const DrawerStory: StoryObj = {
           footer={<><Aura.Button variant="secondary" onClick={() => setOpen(false)}>Close</Aura.Button><Aura.Button icon="pencil">Edit</Aura.Button></>}>
           <Aura.Stack gap={5}>
             <Aura.TextField label="Customer" defaultValue="คุณสมชาย ใจดี" />
-            <Aura.DatePicker label="วันที่" defaultValue="2026-09-18" />
+            <Aura.DatePicker locale="th" label="วันที่" defaultValue="2026-09-18" />
             <Aura.Combobox label="ผู้ดูแล" options={['กมล ศรีวงศ์', 'ธนพร ใจงาม']} />
           </Aura.Stack>
         </Aura.Drawer>

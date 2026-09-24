@@ -119,6 +119,8 @@ export function V410() {
     <AuraProvider locale="sv" linkComponent={RouterLink}>
       <ColorSchemeScript nonce="abc123" />
       <Button variant="danger" icon={svg}>Delete</Button>
+      <Button fullWidth>Förhandsgranska som mottagarna ser det</Button>
+      <Button fullWidth href="/preview">Preview</Button>
       <Button variant="danger-secondary" href="/x" iconRight={svg}>Cancel</Button>
       <IconButton icon={svg} tone="danger" label="Delete" />
       <Icon name={svg} label="Company" />

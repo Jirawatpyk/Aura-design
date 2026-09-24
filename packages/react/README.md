@@ -74,9 +74,13 @@ import Link from 'next/link';
 <AuraProvider locale="sv" linkComponent={Link}>   {/* th | en | sv */}
 ```
 
-`linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row/pager links. `sv` uses the Gregorian calendar and Monday first; `th` and `en` default to the Buddhist calendar.
+`linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row/pager links. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. `formatDate()` has no provider to read, so it stays Thai unless you pass `locale`. Values are always Gregorian ISO dates.
 
 Motion: skeleton pulses and indeterminate bars honour `prefers-reduced-motion: reduce` — skeletons stop (a static bar), spinners and progress bars slow to a third.
+
+## Phones and touch
+
+Under 640px every text control uses 16px text (iOS Safari doesn't zoom). On touch screens (`pointer: coarse`) IconButton keeps its 32px look with a 44px hit area, and Radio, Checkbox and Switch rows are at least 44px with the whole row as the target. `<Button fullWidth>` fills its row and wraps long Thai or Swedish labels.
 
 ## Light and dark
 
@@ -106,7 +110,7 @@ Every component forwards `ref` to its real element — fields to the `<input>`/`
 
 ## Thai dates
 
-Values are ISO strings (`2026-09-18`); display is Thai with Buddhist-era years (`18 ก.ย. 2569`). People can type `18/09/2569`, `18/09/2026`, `2026-09-18` or `18 ก.ย. 2569`. Store ISO, never พ.ศ. `formatDate(iso, { format: 'long' })` → `18 กันยายน 2569`.
+Values are ISO strings (`2026-09-18`); with `locale="th"` display is Thai with Buddhist-era years (`18 ก.ย. 2569`). People can type `18/09/2569`, `18/09/2026`, `2026-09-18` or `18 ก.ย. 2569`. Store ISO, never พ.ศ. `formatDate(iso, { format: 'long' })` → `18 กันยายน 2569`.
 
 ## Server rendering
 

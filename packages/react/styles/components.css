@@ -28,6 +28,11 @@
 .aura-btn:active { transform: scale(0.98); }
 .aura-btn:disabled, a.aura-btn[aria-disabled='true'] { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 a.aura-btn { text-decoration: none; }
+/* fullWidth: fills the row and wraps a long label (Thai and Swedish run ~30% longer) instead of overflowing. */
+.aura-btn--full {
+  width: 100%; height: auto; min-height: var(--aura-button-height); white-space: normal; flex-shrink: 1;
+  padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere;
+}
 .aura-btn.is-loading { cursor: progress; }
 .aura-btn.is-loading:active { transform: none; }
 
@@ -243,6 +248,11 @@ a.aura-btn { text-decoration: none; }
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 .aura-icon-btn:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+/* Touch: same 32px look, a 44px hit area around it (WCAG 2.5.5). */
+@media (pointer: coarse) {
+  .aura-icon-btn { position: relative; }
+  .aura-icon-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, var(--aura-touch-target)); height: max(100%, var(--aura-touch-target)); transform: translate(-50%, -50%); }
+}
 
 /* Skeleton */
 @keyframes aura-pulse { 50% { opacity: 0.6; } }
@@ -361,9 +371,11 @@ a.aura-btn { text-decoration: none; }
   min-height: var(--aura-input-height);
   background: var(--aura-bg-input); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-control); border-radius: var(--aura-radius-md);
-  font-family: var(--font-sans); font-size: 14px;
+  font-family: var(--font-sans); font-size: var(--aura-input-font-size);
   transition: border-color var(--aura-duration-fast) var(--aura-ease);
 }
+/* Phones: iOS Safari zooms into any focused control under 16px and does not zoom back. */
+@media (max-width: 639.98px) { .aura-input { font-size: max(16px, var(--aura-input-font-size)); } }
 .aura-input:hover { border-color: var(--aura-fg-secondary); }
 .aura-input:focus-within { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-color: var(--aura-border-strong); }
 .aura-input__control {
@@ -859,7 +871,7 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-upload__name { font-size: 13px; font-weight: 500; color: var(--aura-fg-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-upload__sub { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--aura-fg-secondary); }
 .aura-upload__item.is-error .aura-upload__sub { color: var(--aura-fg-danger); }
-.aura-upload__bar { display: block; height: 4px; border-radius: var(--aura-radius-full); background: var(--aura-bg-skeleton); overflow: hidden; }
+.aura-upload__bar { display: block; height: 4px; border-radius: var(--aura-radius-full); background: var(--aura-progress-track); box-shadow: inset 0 0 0 1px var(--aura-progress-track-edge); overflow: hidden; }
 .aura-upload__bar > span { display: block; height: 100%; background: var(--aura-fg-accent); transition: width var(--aura-duration-base) var(--aura-ease); }
 
 /* ---------- Checkbox with a visible label ---------- */
@@ -908,7 +920,7 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-progress__head { display: flex; justify-content: space-between; gap: var(--aura-space-2); font-size: 13px; }
 .aura-progress__label { font-weight: 500; color: var(--aura-fg-primary); }
 .aura-progress__value { color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
-.aura-progress__track { position: relative; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-bg-skeleton); overflow: hidden; }
+.aura-progress__track { position: relative; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-progress-track); box-shadow: inset 0 0 0 1px var(--aura-progress-track-edge); overflow: hidden; }
 .aura-progress.is-sm .aura-progress__track { height: 4px; }
 .aura-progress__bar { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--aura-fg-accent); transition: width var(--aura-duration-base) var(--aura-ease); }
 .aura-progress--success .aura-progress__bar { background: var(--aura-fg-positive); }
@@ -1116,3 +1128,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-tabs__list { gap: var(--aura-space-4); }
 }
 @keyframes aura-sheet-in { from { transform: translateY(24px); opacity: 0; } }
+
+/* Touch (pointer: coarse): Radio, Checkbox and Switch rows are at least 44px tall (WCAG 2.5.5), padded above and
+ * below a one-line 20px label; the whole row is the target (label rows natively, Switch rows by a click handler). */
+@media (pointer: coarse) {
+  .aura-choice, .aura-check--labelled, .aura-switch-row {
+    box-sizing: border-box; min-height: var(--aura-touch-target);
+    padding-block: calc((var(--aura-touch-target) - 20px) / 2);
+  }
+  .aura-check--labelled .aura-check__input { top: calc((var(--aura-touch-target) - 20px) / 2 + 3px); }
+  .aura-switch-row:not(.is-disabled) { cursor: pointer; }
+  .aura-radio-group__list { gap: 0; }
+  .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); }
+}

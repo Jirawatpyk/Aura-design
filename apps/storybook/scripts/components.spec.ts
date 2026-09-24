@@ -641,3 +641,75 @@ test.describe('4.10: Chamber-OS group A', () => {
     expect(sk).toBe('rgb(63, 63, 70)'); // zinc-700
   });
 });
+
+test.describe('4.11: Chamber-OS addendum (phones and touch)', () => {
+  const s411 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-11--' + id, theme);
+  test.describe('on a phone with touch', () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    test('18: text controls use 16px under 640px (no iOS zoom)', async ({ page }) => {
+      await s411(page, 'touch-and-phones');
+      const fs = await page.getByLabel('Member name').evaluate((e) => getComputedStyle(e).fontSize);
+      expect(fs).toBe('16px');
+    });
+    test('19: IconButton keeps its 32px look with a 44px hit area', async ({ page }) => {
+      await s411(page, 'touch-and-phones');
+      const b = page.getByRole('button', { name: 'Copy' });
+      expect(Math.round((await b.boundingBox())!.width)).toBe(32);
+      const hit = await b.evaluate((e) => { const s = getComputedStyle(e, '::after'); return [s.width, s.height]; });
+      expect(hit).toEqual(['44px', '44px']);
+    });
+    test('20: Radio, Checkbox and Switch rows are 44px; tapping the row toggles', async ({ page }) => {
+      await s411(page, 'touch-and-phones');
+      for (const sel of ['.aura-choice', '.aura-check--labelled', '.aura-switch-row']) {
+        const h = (await page.locator(sel).first().boundingBox())!.height;
+        expect(h, sel).toBeGreaterThanOrEqual(44);
+      }
+      const row = page.locator('.aura-switch-row');
+      const sw = page.getByRole('switch', { name: 'Email me about renewals' });
+      await expect(sw).toHaveAttribute('aria-checked', 'false');
+      const box = (await row.boundingBox())!;
+      await page.touchscreen.tap(box.x + box.width - 4, box.y + 4); // the row's far corner, outside switch and label
+      await expect(sw).toHaveAttribute('aria-checked', 'true');
+      await page.locator('.aura-choice').filter({ hasText: 'Svenska' }).tap({ position: { x: 150, y: 4 } }).catch(() =>
+        page.locator('.aura-choice').filter({ hasText: 'Svenska' }).tap());
+      await expect(page.getByRole('radio', { name: 'Svenska' })).toBeChecked();
+    });
+  });
+  test('21: a full-width button wraps a long label at 320px and stays at least 44px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await s411(page, 'touch-and-phones');
+    const b = page.getByRole('button', { name: /Förhandsgranska/ });
+    const box = (await b.boundingBox())!;
+    expect(box.height).toBeGreaterThan(44);
+    expect(await b.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
+    expect(box.x + box.width).toBeLessThanOrEqual(320);
+    expect((await page.getByRole('button', { name: 'Save' }).boundingBox())!.height).toBe(44);
+  });
+  test('22: dark pills are quiet fills that still pass 4.5:1', async ({ page }) => {
+    await s411(page, 'pills-and-tracks', 'dark');
+    const bg = (t: string) => page.getByText(t, { exact: true }).evaluate((e) => getComputedStyle(e.closest('.aura-pill')!).backgroundColor);
+    expect(await bg('Awaiting review')).toBe('rgb(47, 38, 71)');
+    expect(await bg('Sent')).toBe('rgb(43, 53, 31)');
+    expect(await bg('Lapsed')).toBe('rgb(39, 39, 42)');
+  });
+  test('23: progress tracks have a 3:1 edge in both themes', async ({ page }) => {
+    for (const [theme, edge] of [['light', 'rgb(142, 142, 151)'], ['dark', 'rgb(113, 113, 122)']]) {
+      await s411(page, 'pills-and-tracks', theme);
+      const sh = await page.locator('.aura-progress__track').first().evaluate((e) => getComputedStyle(e).boxShadow);
+      expect(sh, theme).toContain(edge);
+    }
+  });
+  test('24: no provider → English and Gregorian; th → พ.ศ. on screen, ISO value; sv → Swedish', async ({ page }) => {
+    await s411(page, 'date-defaults');
+    const en = page.getByLabel('Registration date');
+    await expect(en).toHaveAttribute('placeholder', 'DD/MM/YYYY');
+    await expect(page.getByRole('button', { name: 'Open calendar' })).toBeVisible();
+    await en.fill('18/09/2026'); await en.press('Enter');
+    await expect(en).toHaveValue(/2026/);
+    const th = page.getByLabel('วันที่สมัคร');
+    await expect(th).toHaveValue(/2569/);
+    await th.fill('01/10/2569'); await th.press('Enter');
+    await expect(page.getByText('value: 2026-10-01')).toBeVisible();
+    await expect(page.getByLabel('Registreringsdatum')).toHaveAttribute('placeholder', 'åååå-mm-dd');
+  });
+});

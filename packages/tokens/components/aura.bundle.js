@@ -602,7 +602,8 @@ window.Aura = (() => {
       "iconRight",
       "disabled",
       "linkComponent",
-      "href"
+      "href",
+      "fullWidth"
     ]);
     const Tag3 = disabled ? "a" : Link;
     return /* @__PURE__ */ React4.createElement(
@@ -614,7 +615,7 @@ window.Aura = (() => {
         role: disabled ? "link" : void 0,
         "aria-disabled": disabled || void 0,
         tabIndex: disabled ? -1 : props.tabIndex,
-        className: cx("aura-btn", "aura-btn--" + variant, props.className),
+        className: cx("aura-btn", "aura-btn--" + variant, props.fullWidth && "aura-btn--full", props.className),
         onClick: disabled ? void 0 : props.onClick
       },
       props.icon ? /* @__PURE__ */ React4.createElement(Icon, { name: props.icon }) : null,
@@ -631,14 +632,30 @@ window.Aura = (() => {
       const props = all;
       const variant = props.variant || "primary";
       const loading = !!props.loading;
-      const rest = omit(props, ["variant", "className", "children", "type", "icon", "iconRight", "loading", "onClick"]);
+      const rest = omit(props, [
+        "variant",
+        "className",
+        "children",
+        "type",
+        "icon",
+        "iconRight",
+        "loading",
+        "onClick",
+        "fullWidth"
+      ]);
       return /* @__PURE__ */ React4.createElement(
         "button",
         {
           ...rest,
           ref,
           type: props.type || "button",
-          className: cx("aura-btn", "aura-btn--" + variant, loading && "is-loading", props.className),
+          className: cx(
+            "aura-btn",
+            "aura-btn--" + variant,
+            props.fullWidth && "aura-btn--full",
+            loading && "is-loading",
+            props.className
+          ),
           "aria-busy": loading || void 0,
           "aria-disabled": loading || void 0,
           onClick: loading ? function(e) {
@@ -1081,25 +1098,37 @@ window.Aura = (() => {
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
     const on = !!st[0];
-    return /* @__PURE__ */ React15.createElement("div", { className: cx("aura-switch-row", props.disabled && "is-disabled", props.className) }, /* @__PURE__ */ React15.createElement(
-      "button",
+    return /* @__PURE__ */ React15.createElement(
+      "div",
       {
-        ref,
-        type: "button",
-        role: "switch",
-        id,
-        "aria-checked": on,
-        disabled: props.disabled,
-        "aria-labelledby": props.label ? id + "-label" : void 0,
-        "aria-label": props.label ? void 0 : props["aria-label"],
-        "aria-describedby": props.description ? id + "-desc" : void 0,
-        className: cx("aura-switch", on && "is-on"),
-        onClick: function() {
+        className: cx("aura-switch-row", props.disabled && "is-disabled", props.className),
+        onClick: function(e) {
+          const t = e.target;
+          if (props.disabled || t.closest("button, label, a, input")) return;
           st[1](!on);
         }
       },
-      /* @__PURE__ */ React15.createElement("span", { className: "aura-switch__thumb" })
-    ), props.label ? /* @__PURE__ */ React15.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React15.createElement("label", { className: "aura-choice__label", id: id + "-label", htmlFor: id }, props.label), props.description ? /* @__PURE__ */ React15.createElement("span", { className: "aura-choice__desc", id: id + "-desc" }, props.description) : null) : null);
+      /* @__PURE__ */ React15.createElement(
+        "button",
+        {
+          ref,
+          type: "button",
+          role: "switch",
+          id,
+          "aria-checked": on,
+          disabled: props.disabled,
+          "aria-labelledby": props.label ? id + "-label" : void 0,
+          "aria-label": props.label ? void 0 : props["aria-label"],
+          "aria-describedby": props.description ? id + "-desc" : void 0,
+          className: cx("aura-switch", on && "is-on"),
+          onClick: function() {
+            st[1](!on);
+          }
+        },
+        /* @__PURE__ */ React15.createElement("span", { className: "aura-switch__thumb" })
+      ),
+      props.label ? /* @__PURE__ */ React15.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React15.createElement("label", { className: "aura-choice__label", id: id + "-label", htmlFor: id }, props.label), props.description ? /* @__PURE__ */ React15.createElement("span", { className: "aura-choice__desc", id: id + "-desc" }, props.description) : null) : null
+    );
   });
 
   // src/Combobox.tsx
@@ -1473,11 +1502,11 @@ window.Aura = (() => {
   }
   var TAGS = { th: "th-TH", en: "en-GB", sv: "sv-SE" };
   function defaultCalendar(locale) {
-    return locale === "sv" ? "gregory" : "buddhist";
+    return locale === "th" ? "buddhist" : "gregory";
   }
   function localeTag(locale, calendar) {
     const cal = calendar || defaultCalendar(locale);
-    return (TAGS[locale || "th"] || "th-TH") + "-u-ca-" + (cal === "gregory" ? "gregory" : "buddhist");
+    return (TAGS[locale || "en"] || "en-GB") + "-u-ca-" + (cal === "gregory" ? "gregory" : "buddhist");
   }
   var DATE_TEXT = {
     th: {
@@ -1505,11 +1534,11 @@ window.Aura = (() => {
       today: "Today",
       clear: "Clear",
       chooseDate: "Choose date",
-      datePlaceholder: "dd/mm/yyyy",
+      datePlaceholder: "DD/MM/YYYY",
       clearDate: "Clear date",
       openCalendar: "Open calendar",
       chooseDates: "Choose dates",
-      rangePlaceholder: "dd/mm/yyyy \u2013 dd/mm/yyyy",
+      rangePlaceholder: "DD/MM/YYYY \u2013 DD/MM/YYYY",
       clearDates: "Clear dates",
       chooseStart: "Choose the start date",
       chooseEnd: "Choose the end date"
@@ -1533,7 +1562,7 @@ window.Aura = (() => {
     }
   };
   function dateText(locale) {
-    return DATE_TEXT[locale || "th"] || DATE_TEXT.th;
+    return DATE_TEXT[locale || "en"] || DATE_TEXT.en;
   }
   var fmtCache = {};
   var PRESETS = {
@@ -1550,7 +1579,8 @@ window.Aura = (() => {
     const o = opts || {}, d = fromISO(iso);
     if (!d) return "";
     const f = typeof o.format === "object" ? o.format : PRESETS[o.format || "short"];
-    return fmt(localeTag(o.locale, o.calendar), f, d).replace(ERA, "");
+    const loc = o.locale || "th";
+    return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, "");
   }
   var MONTHS = null;
   function monthIndex(word) {
@@ -1590,7 +1620,7 @@ window.Aura = (() => {
     return dt.getMonth() === mo - 1 && dt.getDate() === d ? toISO(dt) : null;
   }
   var Calendar = React17.forwardRef(function Calendar2(props, ref) {
-    const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "th", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), tag = localeTag(locale, calendar);
+    const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), tag = localeTag(locale, calendar);
     const weekStart = props.weekStartsOn == null ? locale === "sv" ? 1 : 0 : props.weekStartsOn;
     let today = /* @__PURE__ */ new Date();
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -1775,6 +1805,7 @@ window.Aura = (() => {
                 tabIndex: same(d, focusDate) ? 0 : -1,
                 disabled: dis,
                 "aria-label": fmt(tag, { weekday: "long", day: "numeric", month: "long", year: "numeric" }, d),
+                suppressHydrationWarning: true,
                 "aria-current": same(d, today) ? "date" : void 0,
                 "aria-pressed": sel || void 0,
                 className: cx(
@@ -1933,7 +1964,7 @@ window.Aura = (() => {
   }
   var DatePicker = React17.forwardRef(function DatePicker2(props, ref) {
     const auto = uid(), id = props.id || auto, dialogId = id + "-cal";
-    const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "th", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), dt = dateText(locale);
+    const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), dt = dateText(locale);
     const st = useMaybeControlled(
       props.value,
       props.defaultValue == null ? null : props.defaultValue,
@@ -2028,7 +2059,7 @@ window.Aura = (() => {
   var DateRangePicker = React17.forwardRef(
     function DateRangePicker2(props, ref) {
       const auto = uid(), id = props.id || auto, dialogId = id + "-cal";
-      const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "th", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), dt = dateText(locale);
+      const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), dt = dateText(locale);
       const st = useMaybeControlled(
         props.value,
         props.defaultValue || { start: null, end: null },
@@ -4666,8 +4697,8 @@ window.Aura = (() => {
     D["alert-info-bg"] = D["bg-selected"];
     D["alert-info-fg"] = fit(b[300], [D["alert-info-bg"]], 4.5, 1);
     D["alert-info-border"] = mix(ZINC[900], b[400], 0.4);
-    D["status-progress-bg"] = b[100];
-    D["status-progress-fg"] = L["status-progress-fg"];
+    D["status-progress-bg"] = mix(ZINC[900], b[500], 0.2);
+    D["status-progress-fg"] = fit(b[300], [D["status-progress-bg"]], 4.5, 1);
     if (s) {
       L["accent-dot"] = s[200];
       L["accent-lime"] = s[200];
@@ -4734,6 +4765,7 @@ window.Aura = (() => {
     check("light", "fg-primary", "bg-selected", 4.5, INK, L["bg-selected"]);
     check("dark", "fg-primary", "bg-selected", 4.5, "#ffffff", D["bg-selected"]);
     check("light", "status-progress-fg", "status-progress-bg", 4.5, L["status-progress-fg"], L["status-progress-bg"]);
+    check("dark", "status-progress-fg", "status-progress-bg", 4.5, D["status-progress-fg"], D["status-progress-bg"]);
     check("light", "alert-info-fg", "alert-info-bg", 4.5, L["alert-info-fg"], L["alert-info-bg"]);
     check("dark", "alert-info-fg", "alert-info-bg", 4.5, D["alert-info-fg"], D["alert-info-bg"]);
     if (o.primary === "brand") {

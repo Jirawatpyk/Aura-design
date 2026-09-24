@@ -67,6 +67,9 @@ for (const bg of ['bg-surface', 'bg-canvas']) {
   pairs.push(['chart-axis', bg, TEXT]);
 }
 for (let i = 1; i < 8; i++) pairs.push([`chart-${i}`, `chart-${i + 1}`, NEIGHBOUR]);
+/* Progress / upload tracks: the edge shows the empty part at 3:1; the bar colours also clear 3:1 on the track fill. */
+for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['progress-track-edge', bg, UI]);
+for (const fg of ['fg-accent', 'fg-positive', 'fg-danger', 'fg-secondary']) pairs.push([fg, 'progress-track', UI]);
 
 const results = [], fails = [];
 for (const theme of ['light', 'dark']) for (const [fg, bg, min] of pairs) {

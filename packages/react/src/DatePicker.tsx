@@ -49,11 +49,12 @@ function same(a: Date | null | undefined, b: Date | null | undefined): boolean {
 const TAGS: Record<string, string> = { th: 'th-TH', en: 'en-GB', sv: 'sv-SE' };
 /** The calendar when none is set: Gregorian for Swedish, Buddhist for Thai and English (as before 4.10). */
 function defaultCalendar(locale: string | null | undefined): 'buddhist' | 'gregory' {
-  return locale === 'sv' ? 'gregory' : 'buddhist';
+  /* พ.ศ. only for Thai; the era is display only (values stay Gregorian ISO dates). */
+  return locale === 'th' ? 'buddhist' : 'gregory';
 }
 function localeTag(locale: string | null | undefined, calendar: string | null | undefined): string {
   const cal = calendar || defaultCalendar(locale);
-  return (TAGS[locale || 'th'] || 'th-TH') + '-u-ca-' + (cal === 'gregory' ? 'gregory' : 'buddhist');
+  return (TAGS[locale || 'en'] || 'en-GB') + '-u-ca-' + (cal === 'gregory' ? 'gregory' : 'buddhist');
 }
 /* Built-in text of the date components, by date locale (independent of AuraProvider strings, which default to English). */
 type DateText = {
@@ -99,11 +100,11 @@ const DATE_TEXT: Record<string, DateText> = {
     today: 'Today',
     clear: 'Clear',
     chooseDate: 'Choose date',
-    datePlaceholder: 'dd/mm/yyyy',
+    datePlaceholder: 'DD/MM/YYYY',
     clearDate: 'Clear date',
     openCalendar: 'Open calendar',
     chooseDates: 'Choose dates',
-    rangePlaceholder: 'dd/mm/yyyy – dd/mm/yyyy',
+    rangePlaceholder: 'DD/MM/YYYY – DD/MM/YYYY',
     clearDates: 'Clear dates',
     chooseStart: 'Choose the start date',
     chooseEnd: 'Choose the end date',
@@ -127,7 +128,7 @@ const DATE_TEXT: Record<string, DateText> = {
   },
 };
 function dateText(locale: string | null | undefined): DateText {
-  return DATE_TEXT[locale || 'th'] || DATE_TEXT.th;
+  return DATE_TEXT[locale || 'en'] || DATE_TEXT.en;
 }
 const fmtCache: Record<string, Intl.DateTimeFormat> = {};
 const PRESETS: Record<string, Intl.DateTimeFormatOptions> = {
@@ -146,7 +147,9 @@ export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOpt
     d = fromISO(iso);
   if (!d) return '';
   const f = typeof o.format === 'object' ? o.format : PRESETS[o.format || 'short'];
-  return fmt(localeTag(o.locale, o.calendar), f, d).replace(ERA, '');
+  /* A plain function has no provider to read: it keeps AURA's Thai default. Pass `locale` for English or Swedish. */
+  const loc = o.locale || 'th';
+  return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, '');
 }
 let MONTHS: Record<string, number> | null = null;
 function monthIndex(word: string): number {
@@ -196,7 +199,7 @@ export function parseDate(text: string | null | undefined): ISODate | null {
 /* ---------- Calendar ---------- */
 export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function Calendar(props, ref) {
   const ctx = useAuraLocale(),
-    locale = props.locale || ctx.locale || 'th',
+    locale = props.locale || ctx.locale || 'en',
     calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
     tag = localeTag(locale, calendar);
   const weekStart = props.weekStartsOn == null ? (locale === 'sv' ? 1 : 0) : props.weekStartsOn;
@@ -416,6 +419,8 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
                         tabIndex={same(d, focusDate) ? 0 : -1}
                         disabled={dis}
                         aria-label={fmt(tag, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, d)}
+                        /* Server and browser ICU can punctuate long dates differently ("Sunday, 30 August" vs "Sunday 30 August"). */
+                        suppressHydrationWarning
                         aria-current={same(d, today) ? 'date' : undefined}
                         aria-pressed={sel || undefined}
                         className={cx(
@@ -622,14 +627,14 @@ function DateField(props: DateFieldInternalProps) {
 }
 
 /* DatePicker — one date, typed (dd/mm/yyyy, Buddhist or Christian year) or picked from a calendar.
- * Shows Thai months and Buddhist-era years by default (locale 'th', calendar 'buddhist'). */
-/** Typed date field + calendar popover. Shows Buddhist-era dates (18 ก.ย. 2569); accepts dd/mm/yyyy in พ.ศ. or ค.ศ. and yyyy-mm-dd. */
+ * Locale from the prop, else AuraProvider, else English with Gregorian years; Thai (locale 'th') shows Buddhist-era years. */
+/** Typed date field + calendar popover. English / Gregorian unless a locale is set; `th` shows Buddhist-era dates (18 ก.ย. 2569) and accepts พ.ศ. or ค.ศ. years. The value is always a Gregorian ISO date. */
 export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(function DatePicker(props, ref) {
   const auto = uid(),
     id = props.id || auto,
     dialogId = id + '-cal';
   const ctx = useAuraLocale(),
-    locale = props.locale || ctx.locale || 'th',
+    locale = props.locale || ctx.locale || 'en',
     calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
     dt = dateText(locale);
   const st = useMaybeControlled<ISODate | null>(
@@ -733,7 +738,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
       id = props.id || auto,
       dialogId = id + '-cal';
     const ctx = useAuraLocale(),
-      locale = props.locale || ctx.locale || 'th',
+      locale = props.locale || ctx.locale || 'en',
       calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
       dt = dateText(locale);
     const st = useMaybeControlled<DateRange>(

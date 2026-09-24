@@ -208,8 +208,9 @@ export function createTheme(opts: ThemeOptions): Theme {
   D['alert-info-bg'] = D['bg-selected'];
   D['alert-info-fg'] = fit(b[300], [D['alert-info-bg']], 4.5, 1);
   D['alert-info-border'] = mix(ZINC[900], b[400], 0.4);
-  D['status-progress-bg'] = b[100];
-  D['status-progress-fg'] = L['status-progress-fg'];
+  /* Dark: a quiet brand-tinted fill, so the pill sits below the row text instead of a pale chip on a dark page. */
+  D['status-progress-bg'] = mix(ZINC[900], b[500], 0.2);
+  D['status-progress-fg'] = fit(b[300], [D['status-progress-bg']], 4.5, 1);
 
   if (s) {
     L['accent-dot'] = s[200];
@@ -289,6 +290,7 @@ export function createTheme(opts: ThemeOptions): Theme {
   check('light', 'fg-primary', 'bg-selected', 4.5, INK, L['bg-selected']);
   check('dark', 'fg-primary', 'bg-selected', 4.5, '#ffffff', D['bg-selected']);
   check('light', 'status-progress-fg', 'status-progress-bg', 4.5, L['status-progress-fg'], L['status-progress-bg']);
+  check('dark', 'status-progress-fg', 'status-progress-bg', 4.5, D['status-progress-fg'], D['status-progress-bg']);
   check('light', 'alert-info-fg', 'alert-info-bg', 4.5, L['alert-info-fg'], L['alert-info-bg']);
   check('dark', 'alert-info-fg', 'alert-info-bg', 4.5, D['alert-info-fg'], D['alert-info-bg']);
   if (o.primary === 'brand') {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import type { AuraProviderProps } from './types.js';
 
 /* UI strings built into components. Thai first; English kept for mixed teams.
- * Wrap the app once: <AuraProvider locale="th">. Without a provider, strings are English and dates are Thai/พ.ศ. (4.1 behaviour). */
+ * Wrap the app once: <AuraProvider locale="th">. Without a provider everything is English, with Gregorian dates (4.11). */
 const n = function (x: number | string) {
   return Number(x).toLocaleString('en');
 };

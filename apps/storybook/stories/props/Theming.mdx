@@ -15,7 +15,7 @@ A brand colour per project, and Thai, English or Swedish built-in labels. Tables
 
 <ArgTypes of={Aura.AuraProvider} />
 
-`locale="sv"` gives Swedish labels, `sv-SE` dates, the Gregorian calendar and Monday as the first day. `th` and `en` keep the Buddhist calendar by default (pass `calendar="gregory"` to change it). `linkComponent={Link}` (from `next/link`) makes every AURA link — Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row and pager links — use client-side navigation.
+`locale="sv"` gives Swedish labels, `sv-SE` dates, the Gregorian calendar and Monday as the first day. Only `th` shows Buddhist-era years (pass `calendar` to override). Without a provider, components are English with Gregorian dates. `linkComponent={Link}` (from `next/link`) makes every AURA link — Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row and pager links — use client-side navigation.
 
 ## Chart colours
 

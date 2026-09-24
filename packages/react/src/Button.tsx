@@ -23,6 +23,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
     'disabled',
     'linkComponent',
     'href',
+    'fullWidth',
   ]);
   const Tag: React.ElementType = disabled ? 'a' : Link;
   return (
@@ -33,7 +34,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
       role={disabled ? 'link' : undefined}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : props.tabIndex}
-      className={cx('aura-btn', 'aura-btn--' + variant, props.className)}
+      className={cx('aura-btn', 'aura-btn--' + variant, props.fullWidth && 'aura-btn--full', props.className)}
       onClick={disabled ? undefined : props.onClick}
     >
       {props.icon ? <Icon name={props.icon} /> : null}
@@ -55,13 +56,29 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
     const props = all as ButtonProps;
     const variant = props.variant || 'primary';
     const loading = !!props.loading;
-    const rest = omit(props, ['variant', 'className', 'children', 'type', 'icon', 'iconRight', 'loading', 'onClick']);
+    const rest = omit(props, [
+      'variant',
+      'className',
+      'children',
+      'type',
+      'icon',
+      'iconRight',
+      'loading',
+      'onClick',
+      'fullWidth',
+    ]);
     return (
       <button
         {...rest}
         ref={ref as React.ForwardedRef<HTMLButtonElement>}
         type={props.type || 'button'}
-        className={cx('aura-btn', 'aura-btn--' + variant, loading && 'is-loading', props.className)}
+        className={cx(
+          'aura-btn',
+          'aura-btn--' + variant,
+          props.fullWidth && 'aura-btn--full',
+          loading && 'is-loading',
+          props.className,
+        )}
         aria-busy={loading || undefined}
         aria-disabled={loading || undefined}
         onClick={

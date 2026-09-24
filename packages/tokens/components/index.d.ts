@@ -14,6 +14,8 @@ export interface ButtonProps extends React$1.ButtonHTMLAttributes<HTMLButtonElem
 	iconRight?: IconInput;
 	/** Shows a spinner in place of the leading icon, sets aria-busy and swallows clicks. Keeps the label and width. */
 	loading?: boolean;
+	/** Fills its container and lets a long label wrap onto more lines (at least 44px tall) — phones, Thai and Swedish labels. */
+	fullWidth?: boolean;
 }
 /** A link that looks like a Button: give `Button` an `href` and it renders an `<a>` (navigation, not actions). */
 export interface ButtonLinkProps extends Omit<React$1.AnchorHTMLAttributes<HTMLAnchorElement>, "children"> {
@@ -28,6 +30,8 @@ export interface ButtonLinkProps extends Omit<React$1.AnchorHTMLAttributes<HTMLA
 	iconRight?: IconInput;
 	/** Looks unavailable and can't be followed: no href, `aria-disabled`, out of the Tab order. */
 	disabled?: boolean;
+	/** Fills its container and lets a long label wrap (at least 44px tall). */
+	fullWidth?: boolean;
 	/** A router's link to render instead of `<a>`, e.g. `Link` from `next/link` (client-side navigation). It gets `href`, `className`, the children and the ref. */
 	linkComponent?: React$1.ElementType;
 }
@@ -174,9 +178,9 @@ export interface SurfaceProps extends React$1.HTMLAttributes<HTMLElement> {
 }
 /** Sets the language of built-in labels (pagination, close buttons, empty states…) and the default date display for everything inside. */
 export interface AuraProviderProps {
-	/** Built-in labels and date display. `sv` = Swedish labels, `sv-SE` dates, Monday weeks and the Gregorian calendar. Default `en` strings when there is no provider (dates still default to Thai / พ.ศ.). */
+	/** Built-in labels and date display. `sv` = Swedish labels, `sv-SE` dates, Monday weeks and the Gregorian calendar. Without a provider everything is English: labels, `en-GB` dates, Gregorian years. */
 	locale?: "th" | "en" | "sv";
-	/** Default calendar for DatePicker / DateRangePicker / Calendar / formatDate callers that read it. Unset: `buddhist` for `th` and `en` (unchanged), `gregory` for `sv`. */
+	/** Default calendar for DatePicker / DateRangePicker / Calendar / formatDate callers that read it. Unset: `buddhist` (พ.ศ.) for `th`, `gregory` for `en` and `sv`. */
 	calendar?: "buddhist" | "gregory";
 	/** Override individual strings. */
 	strings?: Partial<Record<string, string | ((...args: any[]) => string)>>;
@@ -580,9 +584,9 @@ export interface SegmentedControlProps {
 /** ISO date string, `YYYY-MM-DD` (Gregorian — the era is display only). */
 export type ISODate = string;
 export interface DateDisplayOptions {
-	/** `th` (default), `en` or `sv`. */
+	/** Components: the AuraProvider's locale, else `en`. `formatDate()` (no provider to read): `th` unless given. */
 	locale?: "th" | "en" | "sv";
-	/** `buddhist` (พ.ศ.; default for th and en) or `gregory` (ค.ศ.; default for sv). */
+	/** `buddhist` (พ.ศ.; default for th) or `gregory` (ค.ศ.; default for en and sv). */
 	calendar?: "buddhist" | "gregory";
 }
 export interface CalendarProps extends DateDisplayOptions {
@@ -965,7 +969,7 @@ export declare function formatDate(iso: ISODate | null | undefined, opts?: Forma
 /** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
 export declare function parseDate(text: string | null | undefined): ISODate | null;
 export declare const Calendar: React$1.ForwardRefExoticComponent<CalendarProps & React$1.RefAttributes<HTMLDivElement>>;
-/** Typed date field + calendar popover. Shows Buddhist-era dates (18 ก.ย. 2569); accepts dd/mm/yyyy in พ.ศ. or ค.ศ. and yyyy-mm-dd. */
+/** Typed date field + calendar popover. English / Gregorian unless a locale is set; `th` shows Buddhist-era dates (18 ก.ย. 2569) and accepts พ.ศ. or ค.ศ. years. The value is always a Gregorian ISO date. */
 export declare const DatePicker: React$1.ForwardRefExoticComponent<DatePickerProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const DateRangePicker: React$1.ForwardRefExoticComponent<DateRangePickerProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const Alert: React$1.ForwardRefExoticComponent<AlertProps & React$1.RefAttributes<HTMLDivElement>>;

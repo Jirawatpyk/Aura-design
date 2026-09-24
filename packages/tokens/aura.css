@@ -122,6 +122,8 @@
   --aura-button-creative-bg: var(--aura-white);
   --aura-button-creative-border: var(--aura-zinc-900);
   --aura-card-border: var(--aura-zinc-200);
+  --aura-progress-track: var(--aura-bg-skeleton);
+  --aura-progress-track-edge: var(--aura-button-secondary-border);
   --aura-shadow-enterprise: 0 1px 2px rgba(0,0,0,0.05);
   --aura-shadow-overlay: 0 16px 48px rgba(8,8,10,0.16), 0 2px 8px rgba(8,8,10,0.08);
   --aura-shadow-creative: 4px 4px 0px #18181b;
@@ -148,6 +150,10 @@
   --aura-focus-ring: var(--aura-violet-400);
   --aura-status-neutral-bg: var(--aura-zinc-800);
   --aura-status-neutral-fg: var(--aura-zinc-300);
+  --aura-status-progress-bg: #2f2647;
+  --aura-status-progress-fg: var(--aura-violet-300);
+  --aura-status-ready-bg: #2b351f;
+  --aura-status-ready-fg: var(--aura-lime-300);
   --aura-bg-selected: #2c283a;
   --aura-border-control: var(--aura-zinc-400);
   --aura-bg-skeleton: var(--aura-zinc-700);
@@ -213,6 +219,10 @@
     --aura-focus-ring: var(--aura-violet-400);
     --aura-status-neutral-bg: var(--aura-zinc-800);
     --aura-status-neutral-fg: var(--aura-zinc-300);
+    --aura-status-progress-bg: #2f2647;
+    --aura-status-progress-fg: var(--aura-violet-300);
+    --aura-status-ready-bg: #2b351f;
+    --aura-status-ready-fg: var(--aura-lime-300);
     --aura-bg-selected: #2c283a;
     --aura-border-control: var(--aura-zinc-400);
     --aura-bg-skeleton: var(--aura-zinc-700);
@@ -308,6 +318,8 @@
   --aura-container-narrow: 720px;
   --aura-cal-cell: 36px;
   --aura-popover-max-height: 320px;
+  --aura-input-font-size: 14px;
+  --aura-touch-target: 44px;
   --aura-bp-sm: 640px;
   --aura-bp-md: 768px;
   --aura-bp-lg: 1024px;
