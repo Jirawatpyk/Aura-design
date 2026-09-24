@@ -62,6 +62,7 @@ export function fixtures(A, React) {
     CustomIcon: h(A.IconButton, { tone: 'danger', label: 'Delete', icon: h('svg', { viewBox: '0 0 24 24' }, h('path', { d: 'M4 4h16' })) }),
     SwedishProvider: h(A.AuraProvider, { locale: 'sv', linkComponent: 'a' }, h(A.DatePicker, { label: 'Datum', defaultValue: '2026-09-18' }), h(A.Breadcrumb, { items: [{ label: 'Hem', href: '/' }, { label: 'Order' }] })),
     NestedSideNav: h(A.SideNav, { value: 'inv', items: [{ id: 'd', label: 'Dashboard', href: '/', badge: 3 }, { id: 'bill', label: 'Billing', icon: 'file-text', children: [{ id: 'inv', label: 'Invoices', href: '/invoices' }, { id: 'pay', label: 'Payments', href: '/payments' }] }] }),
+    FormatDateHook: h(A.AuraProvider, { locale: 'sv' }, h(function Due() { const fmt = A.useFormatDate(); return h('span', null, fmt('2026-09-18', { format: 'long' })); })),
     ServerTable: h(A.DataTable, { manual: true, rows, totalRows: 312, pageSize: 2, page: 3, sort: { key: 'id', dir: 'desc' }, loading: true, getRowHref: (r) => '/orders/' + r.id, getPageHref: (p) => '?page=' + p, columns: [{ key: 'id', label: 'ID', width: 96, sortable: true }, { key: 'owner', label: 'AMOUNT', align: 'end' }] }),
   };
 }

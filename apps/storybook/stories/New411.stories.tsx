@@ -70,3 +70,20 @@ export const DateDefaults: StoryObj = {
     );
   },
 };
+
+/* 4.12: useFormatDate follows the provider, so a table's dates switch with the page language. */
+function Due({ iso }: { iso: string }) {
+  const fmt = Aura.useFormatDate();
+  return <span data-testid="due">{fmt(iso, { format: 'long' })}</span>;
+}
+export const FormatDateHook: StoryObj = {
+  name: 'useFormatDate',
+  render: () => (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <Aura.AuraProvider locale="th"><Due iso="2026-09-18" /></Aura.AuraProvider>
+      <Aura.AuraProvider locale="en"><Due iso="2026-09-18" /></Aura.AuraProvider>
+      <Aura.AuraProvider locale="sv"><Due iso="2026-09-18" /></Aura.AuraProvider>
+      <Due iso="2026-09-18" />
+    </div>
+  ),
+};

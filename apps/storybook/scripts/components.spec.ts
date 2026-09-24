@@ -713,3 +713,12 @@ test.describe('4.11: Chamber-OS addendum (phones and touch)', () => {
     await expect(page.getByLabel('Registreringsdatum')).toHaveAttribute('placeholder', 'åååå-mm-dd');
   });
 });
+
+test('4.12: useFormatDate follows the provider (th พ.ศ., en and sv Gregorian, English without one)', async ({ page }) => {
+  await story(page, 'aura-new-in-4-11--format-date-hook');
+  const t = await page.getByTestId('due').allInnerTexts();
+  expect(t[0]).toMatch(/กันยายน 2569/);
+  expect(t[1]).toMatch(/September 2026/);
+  expect(t[2]).toMatch(/september 2026/);
+  expect(t[3]).toMatch(/September 2026/);
+});

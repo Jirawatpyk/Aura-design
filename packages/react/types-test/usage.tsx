@@ -109,12 +109,15 @@ export function General() {
 }
 
 /* 4.10 */
-import { AuraProvider, Breadcrumb, Icon, ColorSchemeScript, type DataTableSort } from '../src/index';
+import { AuraProvider, Breadcrumb, Icon, ColorSchemeScript, useFormatDate, type DataTableSort } from '../src/index';
 const RouterLink = React.forwardRef<HTMLAnchorElement, { href: string; className?: string; children?: React.ReactNode }>(
   function RouterLink(p, ref) { return <a ref={ref} {...p} />; });
 export function V410() {
   const [sort, setSort] = React.useState<DataTableSort | null>(null);
   const svg = <svg viewBox="0 0 24 24" />;
+  const fmt = useFormatDate();
+  const s: string = fmt('2026-09-18', { format: 'long' }) + fmt(null) + fmt('2026-09-18', { locale: 'sv' });
+  void s;
   return (
     <AuraProvider locale="sv" linkComponent={RouterLink}>
       <ColorSchemeScript nonce="abc123" />

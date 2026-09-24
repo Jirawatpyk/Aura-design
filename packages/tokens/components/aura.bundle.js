@@ -119,6 +119,7 @@ window.Aura = (() => {
     useAuraLocale: () => useAuraLocale,
     useBreakpoint: () => useBreakpoint,
     useColorScheme: () => useColorScheme,
+    useFormatDate: () => useFormatDate,
     useResponsive: () => useResponsive
   });
 
@@ -1581,6 +1582,22 @@ window.Aura = (() => {
     const f = typeof o.format === "object" ? o.format : PRESETS[o.format || "short"];
     const loc = o.locale || "th";
     return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, "");
+  }
+  function useFormatDate() {
+    const ctx = useAuraLocale(), locale = ctx.locale || "en", calendar = ctx.calendar;
+    return React17.useCallback(
+      function(iso, opts) {
+        const o = opts || {}, loc = o.locale || locale;
+        return formatDate(
+          iso,
+          Object.assign({}, o, {
+            locale: loc,
+            calendar: o.calendar || (o.locale ? void 0 : calendar) || defaultCalendar(loc)
+          })
+        );
+      },
+      [locale, calendar]
+    );
   }
   var MONTHS = null;
   function monthIndex(word) {

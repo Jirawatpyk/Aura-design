@@ -966,6 +966,9 @@ export type FormatDateOptions = DateDisplayOptions & {
 };
 /** Format an ISO date for display, e.g. "18 ก.ย. 2569" (th, Buddhist) or "18 Sept 2026" (en, Gregorian). */
 export declare function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string;
+/** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
+ * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
+export declare function useFormatDate(): (iso: ISODate | null | undefined, opts?: FormatDateOptions) => string;
 /** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
 export declare function parseDate(text: string | null | undefined): ISODate | null;
 export declare const Calendar: React$1.ForwardRefExoticComponent<CalendarProps & React$1.RefAttributes<HTMLDivElement>>;

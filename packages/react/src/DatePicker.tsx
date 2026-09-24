@@ -151,6 +151,27 @@ export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOpt
   const loc = o.locale || 'th';
   return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, '');
 }
+/** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
+ * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
+export function useFormatDate(): (iso: ISODate | null | undefined, opts?: FormatDateOptions) => string {
+  const ctx = useAuraLocale(),
+    locale = ctx.locale || 'en',
+    calendar = ctx.calendar;
+  return React.useCallback(
+    function (iso: ISODate | null | undefined, opts?: FormatDateOptions): string {
+      const o: FormatDateOptions = opts || {},
+        loc = o.locale || locale;
+      return formatDate(
+        iso,
+        Object.assign({}, o, {
+          locale: loc,
+          calendar: o.calendar || (o.locale ? undefined : calendar) || defaultCalendar(loc),
+        }),
+      );
+    },
+    [locale, calendar],
+  );
+}
 let MONTHS: Record<string, number> | null = null;
 function monthIndex(word: string): number {
   if (!MONTHS) {

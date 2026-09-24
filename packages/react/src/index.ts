@@ -13,7 +13,7 @@ export { Select } from './Select.js';
 export { RadioGroup } from './RadioGroup.js';
 export { Switch } from './Switch.js';
 export { Combobox, defaultFilter as comboboxFilter } from './Combobox.js';
-export { DatePicker, DateRangePicker, Calendar, formatDate, parseDate } from './DatePicker.js';
+export { DatePicker, DateRangePicker, Calendar, formatDate, parseDate, useFormatDate } from './DatePicker.js';
 export { Alert } from './Alert.js';
 export { Toaster, toast } from './Toaster.js';
 export { Tooltip } from './Tooltip.js';
