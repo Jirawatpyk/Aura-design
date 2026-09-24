@@ -504,6 +504,21 @@ export interface ComboboxOption {
   /** Leading icon in the list. */
   icon?: IconName;
 }
+/** Combobox with `multiple`: pick any number; the picks show as removable chips in the field. */
+export interface ComboboxMultipleProps extends Omit<
+  ComboboxProps,
+  'value' | 'defaultValue' | 'onChange' | 'clearable'
+> {
+  multiple: true;
+  /** Selected option values, in the order they were picked (controlled). */
+  value?: string[];
+  defaultValue?: string[];
+  onChange?: (value: string[]) => void;
+  /** Clear-all button while anything is selected. Default true. */
+  clearable?: boolean;
+  /** Most picks allowed; further options are disabled. */
+  max?: number;
+}
 export interface ComboboxProps extends FieldProps {
   options: Array<ComboboxOption | string>;
   /** Selected option value (controlled). */
@@ -528,6 +543,80 @@ export interface ComboboxProps extends FieldProps {
   limit?: number;
   /** Replace the Thai-aware default filter (label, description, keywords). */
   filter?: (option: ComboboxOption, query: string) => boolean;
+  className?: string;
+}
+
+/** Number input: thousands separators, +/− buttons, arrow keys, min/max/step, prefix/suffix (฿, %). */
+export interface NumberFieldProps extends FieldProps {
+  /** The number (controlled). `null` = empty. */
+  value?: number | null;
+  defaultValue?: number | null;
+  /** Called with the parsed number (or null when emptied) as the person types, and with the clamped value on blur. */
+  onChange?: (value: number | null) => void;
+  min?: number;
+  max?: number;
+  /** Arrow keys and buttons move by this. Default 1. PageUp/PageDown move 10×. */
+  step?: number;
+  /** Decimal places shown and kept. Default: 0 when step is whole, else step's decimals. */
+  decimals?: number;
+  /** Text before the number, e.g. `฿`. */
+  prefix?: React.ReactNode;
+  /** Text after the number, e.g. `%` or `ชิ้น`. */
+  suffix?: React.ReactNode;
+  /** +/− buttons beside the number. Default true. */
+  stepper?: boolean;
+  id?: string;
+  name?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  readOnly?: boolean;
+  className?: string;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+}
+
+/** One step of a Stepper. */
+export interface StepItem {
+  id: string;
+  label: React.ReactNode;
+  /** Short line under the label, e.g. what the step asks for. */
+  description?: React.ReactNode;
+}
+/** Progress through a multi-step flow (wizard, checkout, booking). */
+export interface StepperProps {
+  steps: StepItem[];
+  /** id of the step the person is on. Steps before it are completed. */
+  current: string;
+  /** Accessible name of the list. Default: none (give one when the page has several). */
+  label?: string;
+  /** Makes completed steps buttons that go back to them. Upcoming steps never are. */
+  onStepClick?: (id: string) => void;
+  /** Default `horizontal`. Below `sm` a horizontal stepper shows only the current step ("Step 2 of 4"). */
+  orientation?: 'horizontal' | 'vertical';
+  className?: string;
+}
+
+export interface SegmentedOption {
+  value: string;
+  label: string;
+  icon?: IconName;
+  /** Show only the icon; `label` becomes its accessible name and tooltip. */
+  iconOnly?: boolean;
+  disabled?: boolean;
+}
+/** A row of 2–5 mutually exclusive choices that apply at once (view, period, unit). A radio group underneath. */
+export interface SegmentedControlProps {
+  /** Accessible name of the group, e.g. "View". Required. */
+  label: string;
+  options: Array<SegmentedOption | string>;
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+  /** `md` (default, 36px) or `sm` (28px) for toolbars. */
+  size?: 'sm' | 'md';
+  /** Stretch across the container, segments equal width. */
+  fullWidth?: boolean;
+  disabled?: boolean;
+  id?: string;
   className?: string;
 }
 

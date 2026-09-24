@@ -60,6 +60,10 @@ export interface AuraStrings {
   fileWrongType: string;
   tooManyFiles: (n: number | string) => string;
   colorScheme: string;
+  increase: string;
+  decrease: string;
+  stepDone: string;
+  stepOf: (i: number, total: number) => string;
   schemeLight: string;
   schemeDark: string;
   schemeSystem: string;
@@ -149,6 +153,12 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings } = {
       return 'Up to ' + n + ' files';
     },
     colorScheme: 'Colour scheme',
+    increase: 'Increase',
+    decrease: 'Decrease',
+    stepDone: 'completed',
+    stepOf: function (i, total) {
+      return 'Step ' + i + ' of ' + total;
+    },
     schemeLight: 'Light',
     schemeDark: 'Dark',
     schemeSystem: 'System',
@@ -241,6 +251,12 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings } = {
       return 'แนบได้ไม่เกิน ' + n + ' ไฟล์';
     },
     colorScheme: 'โหมดสี',
+    increase: 'เพิ่ม',
+    decrease: 'ลด',
+    stepDone: 'เสร็จแล้ว',
+    stepOf: function (i, total) {
+      return 'ขั้นที่ ' + i + ' จาก ' + total;
+    },
     schemeLight: 'สว่าง',
     schemeDark: 'มืด',
     schemeSystem: 'ตามระบบ',

@@ -18,6 +18,33 @@ export const Cards: StoryObj = {
     </div>
   ),
 };
+const bookingSteps = [
+  { id: 'service', label: 'บริการ', description: 'เลือกประเภทงาน' },
+  { id: 'time', label: 'วันและเวลา', description: 'นัดหมาย' },
+  { id: 'details', label: 'ข้อมูลติดต่อ' },
+  { id: 'confirm', label: 'ยืนยัน' },
+];
+export const StepperStory: StoryObj = {
+  name: 'Stepper',
+  render: () => {
+    const [cur, setCur] = React.useState('details');
+    const i = bookingSteps.findIndex((s) => s.id === cur);
+    return (
+      <div style={{ display: 'grid', gap: 32, maxWidth: 760 }}>
+        <Aura.Stepper label="สร้างการจอง" steps={bookingSteps} current={cur} onStepClick={setCur} />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <Aura.Button variant="secondary" disabled={i === 0} onClick={() => setCur(bookingSteps[i - 1].id)}>ย้อนกลับ</Aura.Button>
+          <Aura.Button disabled={i === bookingSteps.length - 1} onClick={() => setCur(bookingSteps[i + 1].id)}>ถัดไป</Aura.Button>
+        </div>
+        <Aura.Stepper label="Onboarding" orientation="vertical" current="team" steps={[
+          { id: 'profile', label: 'Profile', description: 'Name, photo and time zone' },
+          { id: 'team', label: 'Invite your team', description: 'Up to 5 seats on this plan' },
+          { id: 'billing', label: 'Billing' },
+        ]} />
+      </div>
+    );
+  },
+};
 export const TabsStory: StoryObj = {
   name: 'Tabs',
   render: () => (

@@ -45,6 +45,9 @@ export { EmptyState } from './EmptyState.js';
 export { Pagination } from './Pagination.js';
 export { Accordion } from './Accordion.js';
 export { Popover } from './Popover.js';
+export { NumberField } from './NumberField.js';
+export { Stepper } from './Stepper.js';
+export { SegmentedControl } from './SegmentedControl.js';
 
 /* Types: every public prop and value type. */
 export type * from './types.js';

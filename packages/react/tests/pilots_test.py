@@ -82,6 +82,12 @@ def s_rhf_validation(pg):
     expect(pg.get_by_text('Use an address like name@company.com')).to_be_visible()
     expect(name).to_be_focused()                                    # RHF focuses the first error via the forwarded ref
     expect(name).to_have_attribute('aria-invalid', 'true')
+    hours = pg.get_by_role('spinbutton', name=re.compile('^Working hours'))
+    hours.fill('70'); save.click()
+    expect(pg.get_by_text('Up to 60 hours a week')).to_be_visible()      # RHF rule on a NumberField (Controller)
+    hours.fill('38')
+    stepper = pg.get_by_role('navigation', name='Workspace setup')
+    expect(stepper.locator('[aria-current="step"]')).to_contain_text('Invite your team')
     name.fill('Tao Pyk'); email.fill('tao@acme.co'); save.click()
     expect(pg.get_by_text('Profile saved')).to_be_visible()
     expect(save).to_be_disabled()

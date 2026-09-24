@@ -1,6 +1,6 @@
 /* Compile-only check that the public types describe real usage. `npm run typecheck`. */
 import * as React from 'react';
-import { AppShell, SideNav, Stack, Grid, Container, Combobox, DatePicker, DateRangePicker, Drawer, DropdownMenu, IconButton, Button,
+import { NumberField, Stepper, SegmentedControl, AppShell, SideNav, Stack, Grid, Container, Combobox, DatePicker, DateRangePicker, Drawer, DropdownMenu, IconButton, Button,
   DataTable, Stat, Badge, Tag, Progress, Skeleton, EmptyState, Pagination, Accordion, Popover, Checkbox, createTheme, ThemeStyle, TimePicker, FileUpload, formatBytes, parseTime, type UploadItem, formatDate, parseDate, useBreakpoint, useResponsive, breakpoints, toast, type DateRange } from '../src/index';
 
 export function Page() {
@@ -66,6 +66,25 @@ export function ButtonLinks() {
     <Button href="/x" loading>Nope</Button>
     {/* @ts-expect-error an anchor ref on a button */}
     <Button ref={a}>Nope</Button>
+  </>);
+}
+
+/* Combobox multiple: string[] in and out; single stays string | null. NumberField: number | null. */
+export function NewIn49() {
+  const [tags, setTags] = React.useState<string[]>([]);
+  const [one, setOne] = React.useState<string | null>(null);
+  const [n, setN] = React.useState<number | null>(null);
+  const input = React.useRef<HTMLInputElement>(null);
+  return (<>
+    <Combobox multiple label="Tags" options={['a', 'b']} value={tags} onChange={setTags} max={2} ref={input} />
+    <Combobox label="One" options={['a']} value={one} onChange={setOne} />
+    {/* @ts-expect-error multiple wants string[] */}
+    <Combobox multiple label="Bad" options={['a']} value="a" />
+    {/* @ts-expect-error single onChange gets string | null, not string[] */}
+    <Combobox label="Bad" options={['a']} onChange={(v: string[]) => v} />
+    <NumberField label="Qty" value={n} onChange={setN} min={0} max={10} step={1} prefix="฿" suffix="ชิ้น" ref={input} />
+    <Stepper steps={[{ id: 'a', label: 'A' }]} current="a" onStepClick={(id: string) => id} orientation="vertical" />
+    <SegmentedControl label="View" options={['Table', { value: 'c', label: 'Cards', icon: 'columns-3', iconOnly: true }]} onChange={(v: string) => v} size="sm" fullWidth />
   </>);
 }
 

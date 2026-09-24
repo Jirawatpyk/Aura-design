@@ -5,12 +5,14 @@ import {
   AppShell, SideNav, Container, Stack, Grid, Stat, Button, IconButton, DropdownMenu, Avatar, Breadcrumb,
   Combobox, DateRangePicker, DatePicker, TimePicker, FileUpload, Select, TextField, Textarea, RadioGroup, Switch,
   DataTable, StatusPill, Drawer, Dialog, Alert, Toaster, toast, formatDate, useBreakpoint, ColorSchemeToggle,
+  NumberField, SegmentedControl,
 } from '@aura/react';
 import { STAFF, CATEGORIES, PRIORITIES, STATUSES, TONE, statusLabel, priorityLabel, makeOrders } from './data.js';
 
 const baht = (n) => '฿' + n.toLocaleString('th-TH');
 const ownerName = (v) => (STAFF.find((m) => m.value === v) || {}).label || '—';
 const TODAY = '2026-09-18';
+const WEEK_END = '2026-09-24';
 
 function Filters({ value, onChange, idPrefix }) {
   const set = (k) => (v) => onChange({ ...value, [k]: v });
@@ -18,6 +20,7 @@ function Filters({ value, onChange, idPrefix }) {
     <>
       <TextField id={idPrefix + '-q'} label="ค้นหา" icon="search" placeholder="ชื่อลูกค้า หรือ ORD-…" value={value.q} onChange={(e) => set('q')(e.target.value)} />
       <Combobox id={idPrefix + '-owner'} label="ผู้ดูแล" placeholder="ทุกคน" options={STAFF} value={value.owner} onChange={set('owner')} />
+      <Combobox id={idPrefix + '-cat'} multiple label="ประเภท" placeholder="ทุกประเภท" options={CATEGORIES} value={value.categories} onChange={set('categories')} />
       <DateRangePicker id={idPrefix + '-range'} label="ช่วงวันที่" value={value.range} onChange={set('range')} />
       <Select id={idPrefix + '-status'} label="สถานะ" value={value.status} onChange={(e) => set('status')(e.target.value)}
         options={[{ value: '', label: 'ทุกสถานะ' }, ...STATUSES.map((s) => ({ value: statusLabel(s), label: statusLabel(s) }))]} />
@@ -25,10 +28,10 @@ function Filters({ value, onChange, idPrefix }) {
   );
 }
 
-const EMPTY_FILTERS = { q: '', owner: null, range: { start: null, end: null }, status: '' };
+const EMPTY_FILTERS = { q: '', owner: null, categories: [], range: { start: null, end: null }, status: '' };
 
 function NewOrderDialog({ open, onClose, onCreate }) {
-  const EMPTY = { customer: '', owner: null, date: null, time: null, category: CATEGORIES[0], priority: 'normal', notes: '', notify: true, files: [] };
+  const EMPTY = { customer: '', owner: null, amount: null, date: null, time: null, category: CATEGORIES[0], priority: 'normal', notes: '', notify: true, files: [] };
   const [f, setF] = React.useState(EMPTY);
   const [tried, setTried] = React.useState(false);
   const errors = {
@@ -37,8 +40,9 @@ function NewOrderDialog({ open, onClose, onCreate }) {
     date: !f.date ? 'เลือกวันที่ หรือพิมพ์ วว/ดด/ปปปป' : f.date < TODAY && 'เลือกวันนี้หรือหลังจากนี้',
     time: !f.time && 'เลือกเวลาส่ง',
     files: f.files.some((p) => p.error) && 'ลบไฟล์ที่มีปัญหาก่อนบันทึก',
+    amount: f.amount == null ? 'ใส่ยอดเงิน' : f.amount <= 0 && 'ยอดต้องมากกว่า 0',
   };
-  const ok = !errors.customer && !errors.owner && !errors.date && !errors.time && !errors.files;
+  const ok = !errors.customer && !errors.owner && !errors.amount && !errors.date && !errors.time && !errors.files;
   const set = (k) => (v) => setF({ ...f, [k]: v });
   function submit(e) {
     e.preventDefault();
@@ -62,7 +66,10 @@ function NewOrderDialog({ open, onClose, onCreate }) {
             <DatePicker label="วันที่ส่ง" required min={TODAY} value={f.date} onChange={set('date')} error={tried && errors.date} />
             <TimePicker label="เวลาส่ง" required min="08:00" max="18:00" step={30} suggest="09:00" value={f.time} onChange={set('time')} error={tried && errors.time} />
           </Grid>
-          <Select label="ประเภท" options={CATEGORIES} value={f.category} onChange={(e) => set('category')(e.target.value)} />
+          <Grid columns={{ base: 1, sm: 2 }} gap={4}>
+            <Select label="ประเภท" options={CATEGORIES} value={f.category} onChange={(e) => set('category')(e.target.value)} />
+            <NumberField label="ยอด" required prefix="฿" min={0} step={100} value={f.amount} onChange={set('amount')} error={tried && errors.amount} />
+          </Grid>
           <RadioGroup label="ความเร่งด่วน" orientation="horizontal" options={PRIORITIES} value={f.priority} onChange={set('priority')} />
           <Textarea label="หมายเหตุ" optional rows={3} value={f.notes} onChange={(e) => set('notes')(e.target.value)} />
           <FileUpload label="ไฟล์แนบ" optional accept="image/*,.pdf" multiple maxFiles={3} maxSize={5 * 1024 * 1024}
@@ -100,6 +107,7 @@ export function App() {
   const [nav, setNav] = React.useState('orders');
   const [rows, setRows] = React.useState(() => makeOrders());
   const [filters, setFilters] = React.useState(EMPTY_FILTERS);
+  const [scope, setScope] = React.useState('all');
   const [draft, setDraft] = React.useState(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
   const [detail, setDetail] = React.useState(null);
@@ -113,17 +121,20 @@ export function App() {
     const q = filters.q.trim().toLocaleLowerCase('th');
     if (q && !(r.customer.toLocaleLowerCase('th').includes(q) || r.id.toLowerCase().includes(q))) return false;
     if (filters.owner && r.owner !== filters.owner) return false;
+    if (filters.categories.length && filters.categories.indexOf(r.category) < 0) return false;
+    if (scope === 'today' && r.date !== TODAY) return false;
+    if (scope === 'week' && (r.date < TODAY || r.date > WEEK_END)) return false;
     if (filters.status && r.status !== filters.status) return false;
     if (filters.range.start && r.date < filters.range.start) return false;
     if (filters.range.end && r.date > filters.range.end) return false;
     return true;
   });
-  const activeFilters = ['q', 'owner', 'status'].filter((k) => filters[k]).length + (filters.range.start ? 1 : 0);
+  const activeFilters = ['q', 'owner', 'status'].filter((k) => filters[k]).length + (filters.range.start ? 1 : 0) + (filters.categories.length ? 1 : 0);
   const today = rows.filter((r) => r.date === TODAY);
 
   function create(f) {
     const id = 'ORD-' + (1040 + rows.length);
-    setRows([{ id, customer: f.customer, branch: 'ออนไลน์', date: f.date, time: f.time, category: f.category, priority: f.priority, owner: f.owner, status: 'รอยืนยัน', amount: 1500 }, ...rows]);
+    setRows([{ id, customer: f.customer, branch: 'ออนไลน์', date: f.date, time: f.time, category: f.category, priority: f.priority, owner: f.owner, status: 'รอยืนยัน', amount: f.amount }, ...rows]);
     setCreating(false);
     toast({ title: 'บันทึก ' + id + ' แล้ว', description: formatDate(f.date) + ' ' + f.time + ' · ' + ownerName(f.owner) + (f.files.length ? ' · ไฟล์ ' + f.files.length : ''), tone: 'success' });
   }
@@ -196,6 +207,9 @@ export function App() {
           {rows.some((r) => r.date === TODAY && r.status === 'ยกเลิก') ? (
             <Alert tone="warning" title="มีคำสั่งซื้อที่ต้องส่งวันนี้ถูกยกเลิก">ตรวจสอบสต็อกและแจ้งผู้ดูแลที่เกี่ยวข้อง</Alert>
           ) : null}
+
+          <SegmentedControl label="กำหนดส่ง" value={scope} onChange={setScope} fullWidth={phone}
+            options={[{ value: 'all', label: 'ทั้งหมด' }, { value: 'today', label: 'วันนี้' }, { value: 'week', label: '7 วันข้างหน้า' }]} />
 
           {phone ? (
             <Stack direction="row" gap={3}>

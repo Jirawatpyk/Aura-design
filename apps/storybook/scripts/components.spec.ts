@@ -451,3 +451,89 @@ test.describe('4.4', () => {
     await expect(name).toBeFocused();
   });
 });
+
+test.describe('4.9: multi-select, numbers, steps, segments', () => {
+  test('Combobox multiple: picks toggle as chips, the list stays open, Backspace removes the last, max disables the rest', async ({ page }) => {
+    await story(page, 'aura-pickers--combobox-multiple');
+    const cb = page.getByRole('combobox', { name: 'ผู้รับผิดชอบ' });
+    await cb.click();
+    const list = page.getByRole('listbox', { name: 'ผู้รับผิดชอบ' });
+    await expect(list).toHaveAttribute('aria-multiselectable', 'true');
+    await list.getByRole('option', { name: /ธนพร/ }).click();
+    await expect(list).toBeVisible(); // stays open for the next pick
+    await cb.fill('piya');
+    await cb.press('Enter');
+    await expect(page.getByText('Value: ["m1","m2","m4"]')).toBeVisible();
+    await expect(cb).toHaveValue(''); // typed filter cleared after a pick
+    await expect(list.getByRole('option', { name: /กมล/ })).toHaveAttribute('aria-selected', 'true');
+    await cb.press('Escape');
+    await cb.press('Backspace');
+    await expect(page.getByText('Value: ["m1","m2"]')).toBeVisible();
+    await page.getByRole('button', { name: /กมล/ }).click(); // the chip's remove button
+    await expect(page.getByText('Value: ["m2"]')).toBeVisible();
+    await expect(cb).toBeFocused();
+    const tags = page.getByRole('combobox', { name: 'Tags' });
+    await tags.click();
+    await page.getByRole('listbox', { name: 'Tags' }).getByRole('option', { name: 'Urgent' }).click();
+    await expect(page.getByRole('listbox', { name: 'Tags' }).getByRole('option', { name: 'Corporate' })).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  test('NumberField: spinbutton keys, clamps and formats on blur, buttons stop at the bounds', async ({ page }) => {
+    await story(page, 'aura-forms--number-fields');
+    const qty = page.getByRole('spinbutton', { name: 'จำนวน' });
+    await expect(qty).toHaveAttribute('aria-valuenow', '2');
+    await qty.press('ArrowUp');
+    await expect(page.getByText('Value: 3')).toBeVisible();
+    await qty.press('PageUp'); // +10
+    await expect(page.getByText('Value: 13')).toBeVisible();
+    await qty.press('Tab'); // leaving after a key step keeps the value (regression: it used to clear it)
+    await expect(page.getByText('Value: 13')).toBeVisible();
+    await expect(qty).toHaveValue('13');
+    await qty.fill('25');
+    await qty.press('Tab');
+    await expect(qty).toHaveValue('20'); // clamped to max
+    await expect(page.getByRole('button', { name: 'Increase' }).first()).toBeDisabled();
+    await page.getByRole('button', { name: 'Decrease' }).first().click();
+    await expect(qty).toHaveValue('19');
+    const price = page.getByRole('spinbutton', { name: 'ราคาต่อหน่วย' });
+    await expect(price).toHaveValue('12,500.00');
+    await price.fill('9,999.5');
+    await price.press('Tab');
+    await expect(price).toHaveValue('9,999.50');
+    await expect(price).toHaveAttribute('aria-valuetext', '฿ 9,999.50');
+    await qty.fill('');
+    await qty.press('Tab');
+    await expect(page.getByText('Value: null')).toBeVisible();
+  });
+
+  test('SegmentedControl: one Tab stop, arrows move and select, disabled options are skipped', async ({ page }) => {
+    await story(page, 'aura-forms--segmented-controls');
+    const group = page.getByRole('radiogroup', { name: 'View' });
+    const table = group.getByRole('radio', { name: 'Table' });
+    await expect(table).toHaveAttribute('aria-checked', 'true');
+    await expect(group.locator('[tabindex="0"]')).toHaveCount(1);
+    await table.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByTestId('view-status')).toHaveText('View: cards');
+    await expect(group.getByRole('radio', { name: 'Cards' })).toBeFocused();
+    await page.keyboard.press('ArrowRight'); // Archived is disabled → wraps to Table
+    await expect(page.getByTestId('view-status')).toHaveText('View: table');
+    await page.keyboard.press('End');
+    await expect(page.getByTestId('view-status')).toHaveText('View: cards');
+    await expect(page.getByRole('radiogroup', { name: 'Align' }).getByRole('radio', { name: 'Align right' })).toBeVisible();
+  });
+
+  test('Stepper: current step is aria-current, completed steps go back, upcoming ones are not buttons; phones show "Step x of y"', async ({ page }) => {
+    await story(page, 'aura-layout--stepper-story');
+    const nav = page.getByRole('navigation', { name: 'สร้างการจอง' });
+    await expect(nav.locator('[aria-current="step"]')).toContainText('ข้อมูลติดต่อ');
+    await expect(nav.getByRole('button')).toHaveCount(2);
+    await expect(nav.getByRole('button', { name: /บริการ.*completed/ })).toBeVisible();
+    await nav.getByRole('button', { name: /วันและเวลา/ }).click();
+    await expect(nav.locator('[aria-current="step"]')).toContainText('วันและเวลา');
+    await expect(nav.getByRole('button')).toHaveCount(1);
+    await page.setViewportSize({ width: 390, height: 700 });
+    await expect(nav.locator('.aura-stepper__compact')).toBeVisible();
+    await expect(nav.locator('.aura-stepper__compact')).toContainText('Step 2 of 4');
+  });
+});

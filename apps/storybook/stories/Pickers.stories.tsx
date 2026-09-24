@@ -26,6 +26,19 @@ export const ComboboxStory: StoryObj = {
   },
 };
 
+export const ComboboxMultiple: StoryObj = {
+  name: 'Combobox (multiple)',
+  render: () => {
+    const [v, setV] = React.useState<string[]>(['m1']);
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 360px))', gap: 24 }}>
+        <Aura.Combobox multiple label="ผู้รับผิดชอบ" placeholder="เพิ่มคน" options={staff} value={v} onChange={setV} hint={'Value: ' + JSON.stringify(v)} />
+        <Aura.Combobox multiple label="Tags" options={['Urgent', 'VIP', 'Corporate', 'Repeat', 'Weekend']} defaultValue={['VIP', 'Weekend']} max={3} hint="Up to 3." />
+      </div>
+    );
+  },
+};
+
 export const ComboboxServer: StoryObj = {
   name: 'Combobox (server search)',
   render: () => {

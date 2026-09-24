@@ -63,9 +63,9 @@ export default function Root() {
 | `dist/styles.css` | Component CSS (no font import). |
 | `dist/index.d.ts` | Types for every component and helper, generated from the TypeScript sources (one file). |
 
-## Components (43)
+## Components (49)
 
-Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, Textarea, Select, RadioGroup, Checkbox, Switch, Combobox, FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, Toaster/`toast()`, Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Stat · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
+Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, Toaster/`toast()`, Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Stat · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
 
 ## Light and dark
 

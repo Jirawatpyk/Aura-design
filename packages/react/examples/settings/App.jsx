@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   AppShell, SideNav, Container, Stack, Grid, Tabs, Card, Button, IconButton, Badge, Tag, Progress, Accordion, Popover,
   EmptyState, Pagination, TextField, Textarea, Select, RadioGroup, Checkbox, Switch, Combobox, TimePicker, FileUpload,
-  Dialog, Alert, Toaster, toast, Skeleton, AuraProvider, ColorSchemeToggle,
+  Dialog, Alert, Toaster, toast, Skeleton, AuraProvider, ColorSchemeToggle, NumberField, Stepper,
 } from '@aura/react';
 
 const TIMEZONES = ['Asia/Bangkok', 'Asia/Singapore', 'Asia/Tokyo', 'Europe/London', 'America/New_York'].map((z) => ({ value: z, label: z.replace('_', ' ') }));
@@ -13,12 +13,19 @@ const AUDIT = Array.from({ length: 46 }, (_, i) => ({ id: i, who: ['Tao', 'Mai',
 
 function Profile() {
   const { register, control, handleSubmit, reset, formState: { errors, isDirty, isSubmitting } } = useForm({
-    defaultValues: { name: 'Tao P', email: 'tao@example.com', role: 'Project Manager', bio: '', timezone: 'Asia/Bangkok', avatar: [], quietFrom: '22:00', quietTo: '07:00' },
+    defaultValues: { name: 'Tao P', email: 'tao@example.com', role: 'Project Manager', bio: '', timezone: 'Asia/Bangkok', avatar: [], quietFrom: '22:00', quietTo: '07:00', hours: 40 },
   });
   async function save(v) { await new Promise((r) => setTimeout(r, 300)); reset(v); toast({ title: 'Profile saved', tone: 'success' }); }
   return (
     <form onSubmit={handleSubmit(save)} noValidate>
       <Stack gap={6}>
+        <Card headingLevel={2} title="Getting started" description="Three steps to a working workspace.">
+          <Stepper label="Workspace setup" orientation="vertical" current="team" steps={[
+            { id: 'profile', label: 'Complete your profile', description: 'Name, photo and time zone' },
+            { id: 'team', label: 'Invite your team', description: '3 of 5 seats used' },
+            { id: 'billing', label: 'Choose a plan', description: 'Free until you add a sixth member' },
+          ]} />
+        </Card>
         <Card headingLevel={2} title="Profile" description="Shown to your team on comments and assignments.">
           <Stack gap={5}>
             <Grid columns={{ base: 1, sm: 2 }} gap={4}>
@@ -35,6 +42,8 @@ function Profile() {
           <Grid columns={{ base: 1, sm: 2 }} gap={4}>
             <Controller name="quietFrom" control={control} render={({ field }) => <TimePicker label="From" value={field.value} onChange={field.onChange} ref={field.ref} step={60} />} />
             <Controller name="quietTo" control={control} render={({ field }) => <TimePicker label="To" value={field.value} onChange={field.onChange} ref={field.ref} step={60} />} />
+            <Controller name="hours" control={control} rules={{ required: 'Enter your working hours', max: { value: 60, message: 'Up to 60 hours a week' } }}
+              render={({ field }) => <NumberField label="Working hours a week" suffix="h" min={0} max={80} value={field.value} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} error={errors.hours?.message} />} />
           </Grid>
         </Card>
         <Stack direction="row" gap={3} justify="flex-end">

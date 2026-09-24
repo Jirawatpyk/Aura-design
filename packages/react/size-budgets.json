@@ -1,12 +1,12 @@
 {
-  "everything (import *)": 38400,
+  "everything (import *)": 40960,
   "Button only": 4096,
-  "DataTable only": 14336,
+  "DataTable only": 14848,
   "DatePicker only": 11264,
   "createTheme only": 3072,
-  "styles.css": 12288,
+  "styles.css": 13824,
   "aura.css (tokens)": 3072,
-  "aura.bundle.js (window.Aura, minified)": 38400,
+  "aura.bundle.js (window.Aura, minified)": 40960,
   "Card only": 1024,
   "Skeleton only": 1024
 }

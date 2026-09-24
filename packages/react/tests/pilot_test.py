@@ -105,6 +105,9 @@ def d_new_order(pg):
     assert pg.evaluate('document.activeElement.closest(".aura-field") && document.activeElement.id') , 'autofocus'
     pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').click()
     expect(dlg.get_by_text('ใส่ชื่อลูกค้า')).to_be_visible(); expect(dlg.get_by_text(re.compile('เลือกผู้ดูแล'))).to_be_visible()
+    expect(dlg.get_by_text('ใส่ยอดเงิน')).to_be_visible()
+    amount = dlg.get_by_role('spinbutton', name=re.compile('^ยอด'))
+    amount.fill('2450'); amount.press('ArrowUp'); expect(amount).to_have_value('2,550')   # typed, then +step (100), formatted
     dlg.get_by_role('textbox', name=re.compile('^ลูกค้า')).fill('คุณทดสอบ ระบบ')
     cb = dlg.get_by_role('combobox', name=re.compile('^ผู้ดูแล')); cb.fill('ธนพร'); cb.press('Enter')
     # the calendar popover opens above the dialog (z-index) and picks a date
@@ -167,6 +170,24 @@ def d_grid_one_tab_stop(pg):
     pg.keyboard.press('Shift+Tab'); assert pg.evaluate("document.activeElement.getAttribute('role')") == 'gridcell'
     n = pg.evaluate("[...document.querySelectorAll('[role=grid] .aura-table__td button')].filter(b => b.tabIndex >= 0).length")
     assert n == 0, f'{n} buttons in cells still in the tab order'
+def d_new_filters(pg):
+    # 4.9 on the pilot: multi-select category filter, and the delivery-scope segmented control
+    before = count_text(pg)
+    cat = pg.get_by_role('combobox', name='ประเภท', exact=True)
+    cat.click()
+    lst = pg.get_by_role('listbox', name='ประเภท')
+    lst.get_by_role('option', name='บริการ').click(); lst.get_by_role('option', name='ค่าติดตั้ง').click()
+    cat.press('Escape')
+    cells = pg.locator('.aura-table__row [data-rc$=":5"]').all_inner_texts()
+    shown = pg.locator('.aura-table__row').count()
+    assert count_text(pg) != before, 'category filter did not narrow the table'
+    pg.get_by_role('button', name='ล้าง', exact=True).click() if pg.get_by_role('button', name='ล้าง', exact=True).count() else None
+    seg = pg.get_by_role('radiogroup', name='กำหนดส่ง')
+    seg.get_by_role('radio', name='ทั้งหมด').focus(); pg.keyboard.press('ArrowRight')
+    expect(seg.get_by_role('radio', name='วันนี้')).to_have_attribute('aria-checked', 'true')
+    dates = pg.locator('.aura-table__row [data-rc$=":3"]').all_inner_texts()
+    assert dates and all(d.startswith('18 ก.ย.') for d in dates), dates
+
 def d_stats(pg):
     stats = pg.locator('.aura-stat'); expect(stats).to_have_count(4)
     expect(stats.nth(1).locator('.aura-stat__change.is-negative')).to_contain_text('+3')   # a rise that is bad news
@@ -228,7 +249,7 @@ def p_bottom_sheet(pg):
 
 with sync_playwright() as p:
     br = p.chromium.launch(**({'executable_path': CHROMIUM} if CHROMIUM else {}))
-    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes, d_color_scheme]),
+    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes, d_color_scheme, d_new_filters]),
                              ('tablet 820', {'width': 820, 'height': 1100}, [t_table_fits, t_axe]),
                              ('phone 390', {'width': 390, 'height': 844}, [p_no_overflow, p_axe, p_nav_drawer, p_filters, p_card_detail, p_card_menu, p_bottom_sheet])]:
         print(label)

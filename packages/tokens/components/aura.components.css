@@ -944,6 +944,107 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-popover__head + .aura-popover__body { padding-top: var(--aura-space-2); }
 @media (prefers-reduced-motion: reduce) { .aura-popover { animation: none; } }
 
+/* ---------- Combobox, multiple: picks as chips in the field ---------- */
+.aura-combo.is-multi { flex-wrap: wrap; align-items: center; gap: var(--aura-space-1); padding: 5px calc(var(--aura-space-2) + 2 * var(--aura-control-sm)) 5px calc(var(--aura-space-3) + var(--aura-icon-sm) + var(--aura-space-2)); }
+.aura-combo.is-multi .aura-input__icon { top: calc(var(--aura-input-height) / 2 - var(--aura-icon-sm) / 2 - 1px); }
+.aura-combo.is-multi .aura-input__control { flex: 1 0 4ch; height: 32px; padding: 0 var(--aura-space-1); }
+/* Wrapped chips grow the field: keep the icon and buttons on the first line. */
+.aura-combo.is-multi .aura-combo__clear, .aura-combo.is-multi .aura-combo__toggle { top: calc((var(--aura-input-height) - 2px - var(--aura-control-sm)) / 2); }
+.aura-combo__chips { display: contents; }
+.aura-combo__chip {
+  display: inline-flex; align-items: center; gap: 2px; max-width: 100%; height: 28px; box-sizing: border-box;
+  padding: 0 2px 0 var(--aura-space-2); border-radius: var(--aura-radius-full);
+  background: var(--aura-bg-selected); color: var(--aura-fg-primary); font-size: 13px; font-weight: 500;
+}
+.aura-combo__chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 24ch; }
+.aura-combo__chip-remove {
+  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0;
+  border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-secondary); cursor: pointer;
+}
+.aura-combo__chip-remove:hover { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-combo__chip-remove .aura-icon { width: 14px; height: 14px; }
+
+/* ---------- NumberField ---------- */
+.aura-number .aura-input__control { font-variant-numeric: tabular-nums; }
+.aura-number__affix { padding-left: var(--aura-space-3); color: var(--aura-fg-secondary); font-size: 14px; white-space: nowrap; }
+.aura-number__affix + .aura-input__control { padding-left: var(--aura-space-2); }
+.aura-input__control + .aura-number__affix { padding: 0 var(--aura-space-2) 0 0; }
+.aura-number__steps { display: flex; align-self: stretch; border-left: 1px solid var(--aura-border-default); }
+.aura-number__step {
+  display: inline-flex; align-items: center; justify-content: center; width: 36px; padding: 0;
+  border: 0; background: transparent; color: var(--aura-fg-secondary); cursor: pointer;
+  transition: background-color var(--aura-duration-fast) var(--aura-ease), color var(--aura-duration-fast) var(--aura-ease);
+}
+.aura-number__step + .aura-number__step { border-left: 1px solid var(--aura-border-default); }
+.aura-number__step:last-child { border-radius: 0 calc(var(--aura-radius-md) - 1px) calc(var(--aura-radius-md) - 1px) 0; }
+.aura-number__step:hover:not(:disabled) { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-number__step:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
+
+/* ---------- Stepper ---------- */
+.aura-stepper { font-family: var(--font-sans); }
+.aura-stepper__list { display: flex; list-style: none; margin: 0; padding: 0; }
+.aura-stepper--vertical .aura-stepper__list { flex-direction: column; }
+.aura-stepper__item { position: relative; flex: 1 1 0; min-width: 0; }
+.aura-stepper__step {
+  display: flex; align-items: flex-start; gap: var(--aura-space-3); width: 100%; box-sizing: border-box; padding: 0 var(--aura-space-3) 0 0;
+  border: 0; background: none; color: inherit; font: inherit; text-align: left; border-radius: var(--aura-radius-md);
+}
+button.aura-stepper__step { cursor: pointer; }
+button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underline; }
+.aura-stepper__marker {
+  position: relative; z-index: 1; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; box-sizing: border-box;
+  border-radius: var(--aura-radius-full); border: 1px solid var(--aura-border-control); background: var(--aura-bg-surface);
+  color: var(--aura-fg-secondary); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.aura-stepper__marker .aura-icon { width: 16px; height: 16px; }
+.aura-stepper__item.is-done .aura-stepper__marker { background: var(--aura-button-primary-bg); border-color: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); }
+.aura-stepper__item.is-current .aura-stepper__marker { border: 2px solid var(--aura-fg-accent); color: var(--aura-fg-accent); }
+.aura-stepper__text { display: flex; flex-direction: column; min-width: 0; padding-top: 4px; }
+.aura-stepper__label { font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--aura-fg-secondary); }
+.aura-stepper__item.is-current .aura-stepper__label, .aura-stepper__item.is-done .aura-stepper__label { color: var(--aura-fg-primary); }
+.aura-stepper__item.is-current .aura-stepper__label { font-weight: 600; }
+.aura-stepper__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+/* Connector: a line from each marker to the next (labels sit under the markers), or down the left when vertical. */
+.aura-stepper--horizontal .aura-stepper__item:not(:last-child)::after {
+  content: ""; position: absolute; top: 14px; left: 36px; right: var(--aura-space-2); height: 1px; background: var(--aura-border-control); pointer-events: none;
+}
+.aura-stepper--horizontal .aura-stepper__step { flex-direction: column; gap: var(--aura-space-2); }
+.aura-stepper--horizontal .aura-stepper__text { padding-top: 0; }
+.aura-stepper--horizontal .aura-stepper__item.is-done::after { background: var(--aura-button-primary-bg); }
+.aura-stepper--vertical .aura-stepper__item { flex: none; padding-bottom: var(--aura-space-5); }
+.aura-stepper--vertical .aura-stepper__item:not(:last-child)::after {
+  content: ""; position: absolute; left: 14px; top: 32px; bottom: 4px; width: 1px; background: var(--aura-border-control);
+}
+.aura-stepper--vertical .aura-stepper__item.is-done::after { background: var(--aura-button-primary-bg); }
+.aura-stepper__compact { display: none; margin: var(--aura-space-2) 0 0; font-size: 13px; }
+.aura-stepper__count { color: var(--aura-fg-secondary); margin-right: var(--aura-space-2); }
+.aura-stepper__compact-label { font-weight: 600; }
+
+/* ---------- SegmentedControl ---------- */
+.aura-segmented {
+  display: inline-flex; gap: 2px; padding: 2px; box-sizing: border-box; max-width: 100%;
+  border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-full); background: var(--aura-bg-surface-hover);
+  font-family: var(--font-sans);
+}
+.aura-segmented:not(.is-full) { width: fit-content; justify-self: start; align-self: flex-start; }
+.aura-segmented.is-full { display: flex; width: 100%; }
+.aura-segmented__option {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; padding: 0 var(--aura-space-4); box-sizing: border-box;
+  border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-secondary);
+  font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: background-color var(--aura-duration-fast) var(--aura-ease), color var(--aura-duration-fast) var(--aura-ease), box-shadow var(--aura-duration-fast) var(--aura-ease);
+}
+.aura-segmented.is-full .aura-segmented__option { flex: 1 1 0; min-width: 0; }
+.aura-segmented__option.is-icon { padding: 0; width: 36px; }
+.aura-segmented__option:hover:not(:disabled):not(.is-selected) { color: var(--aura-fg-primary); }
+.aura-segmented__option.is-selected { background: var(--aura-bg-surface); color: var(--aura-fg-primary); box-shadow: var(--aura-shadow-enterprise); }
+.aura-segmented__option:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; }
+.aura-segmented__option:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
+.aura-segmented--sm .aura-segmented__option { height: 24px; padding: 0 var(--aura-space-3); font-size: 12px; }
+.aura-segmented--sm .aura-segmented__option.is-icon { width: 28px; padding: 0; }
+.aura-segmented.is-disabled { opacity: var(--aura-disabled-opacity); }
+
 /* A field inside a row Stack takes the remaining width (a search box beside its button). */
 .aura-stack > .aura-field { flex: 1 1 auto; min-width: 0; }
 
@@ -951,10 +1052,16 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 @media (pointer: coarse) {
   .aura-cal { --aura-cal-cell: 40px; }
   .aura-combo__option { min-height: 44px; }
+  .aura-segmented__option, .aura-segmented--sm .aura-segmented__option { height: 40px; }
+  .aura-number__step { width: 44px; }
 }
 
 /* ---------- Small screens (< 640px) ---------- */
 @media (max-width: 639.98px) {
+  /* Horizontal stepper on phones: markers only (names kept for screen readers), the current step named underneath. */
+  .aura-stepper--horizontal .aura-stepper__text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; padding: 0; }
+  .aura-stepper--horizontal .aura-stepper__item:not(:last-child)::after { right: 8px; }
+  .aura-stepper--horizontal .aura-stepper__compact { display: block; }
   .aura-dialog-layer:not(.aura-drawer-layer) { align-items: flex-end; padding: 0; }
   .aura-dialog { max-width: none !important; max-height: 92vh; border-radius: var(--aura-radius-2xl) var(--aura-radius-2xl) 0 0; border-bottom: 0;
     padding-bottom: calc(var(--aura-space-6) + env(safe-area-inset-bottom)); animation-name: aura-sheet-in; }

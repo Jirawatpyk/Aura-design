@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Aura","components":[{"name":"Icon"},{"name":"Button"},{"name":"IconButton"},{"name":"Menu"},{"name":"DropdownMenu"},{"name":"Checkbox"},{"name":"StatusPill"},{"name":"TextField"},{"name":"Textarea"},{"name":"Select"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Combobox"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"Calendar"},{"name":"Alert"},{"name":"Toaster"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Drawer"},{"name":"DataTable"},{"name":"Card"},{"name":"Tabs"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"Stack"},{"name":"Grid"},{"name":"Container"},{"name":"AppShell"},{"name":"Surface"},{"name":"Stat"},{"name":"TimePicker"},{"name":"FileUpload"},{"name":"ColorSchemeScript"},{"name":"ColorSchemeToggle"},{"name":"Badge"},{"name":"Tag"},{"name":"Progress"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Pagination"},{"name":"Accordion"},{"name":"Popover"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Aura","components":[{"name":"Icon"},{"name":"Button"},{"name":"IconButton"},{"name":"Menu"},{"name":"DropdownMenu"},{"name":"Checkbox"},{"name":"StatusPill"},{"name":"TextField"},{"name":"Textarea"},{"name":"Select"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Combobox"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"Calendar"},{"name":"Alert"},{"name":"Toaster"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Drawer"},{"name":"DataTable"},{"name":"Card"},{"name":"Tabs"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"Stack"},{"name":"Grid"},{"name":"Container"},{"name":"AppShell"},{"name":"Surface"},{"name":"Stat"},{"name":"TimePicker"},{"name":"FileUpload"},{"name":"ColorSchemeScript"},{"name":"ColorSchemeToggle"},{"name":"Badge"},{"name":"Tag"},{"name":"Progress"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Pagination"},{"name":"Accordion"},{"name":"Popover"},{"name":"NumberField"},{"name":"Stepper"},{"name":"SegmentedControl"}]} */
 window.Aura = (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
@@ -79,17 +79,20 @@ window.Aura = (() => {
     Icon: () => Icon,
     IconButton: () => IconButton,
     Menu: () => Menu,
+    NumberField: () => NumberField,
     Pagination: () => Pagination,
     Popover: () => Popover,
     Progress: () => Progress,
     RadioGroup: () => RadioGroup,
     STRINGS: () => STRINGS,
+    SegmentedControl: () => SegmentedControl,
     Select: () => Select,
     SideNav: () => SideNav,
     Skeleton: () => Skeleton,
     Stack: () => Stack,
     Stat: () => Stat,
     StatusPill: () => StatusPill,
+    Stepper: () => Stepper,
     Surface: () => Surface,
     Switch: () => Switch,
     Tabs: () => Tabs,
@@ -624,6 +627,12 @@ window.Aura = (() => {
         return "Up to " + n2 + " files";
       },
       colorScheme: "Colour scheme",
+      increase: "Increase",
+      decrease: "Decrease",
+      stepDone: "completed",
+      stepOf: function(i, total) {
+        return "Step " + i + " of " + total;
+      },
       schemeLight: "Light",
       schemeDark: "Dark",
       schemeSystem: "System",
@@ -716,6 +725,12 @@ window.Aura = (() => {
         return "\u0E41\u0E19\u0E1A\u0E44\u0E14\u0E49\u0E44\u0E21\u0E48\u0E40\u0E01\u0E34\u0E19 " + n2 + " \u0E44\u0E1F\u0E25\u0E4C";
       },
       colorScheme: "\u0E42\u0E2B\u0E21\u0E14\u0E2A\u0E35",
+      increase: "\u0E40\u0E1E\u0E34\u0E48\u0E21",
+      decrease: "\u0E25\u0E14",
+      stepDone: "\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27",
+      stepOf: function(i, total) {
+        return "\u0E02\u0E31\u0E49\u0E19\u0E17\u0E35\u0E48 " + i + " \u0E08\u0E32\u0E01 " + total;
+      },
       schemeLight: "\u0E2A\u0E27\u0E48\u0E32\u0E07",
       schemeDark: "\u0E21\u0E37\u0E14",
       schemeSystem: "\u0E15\u0E32\u0E21\u0E23\u0E30\u0E1A\u0E1A",
@@ -985,19 +1000,39 @@ window.Aura = (() => {
       return norm(k).indexOf(q) >= 0;
     });
   }
-  var Combobox = React16.forwardRef(function Combobox2(props, ref) {
+  var Combobox = React16.forwardRef(function Combobox2(all, ref) {
+    const props = all;
+    const multi = all.multiple === true;
+    const mp = all;
     const t = useStrings();
     const auto = uid(), id = props.id || auto, listId = id + "-list";
     const options = (props.options || []).map(toOpt);
     const st = useMaybeControlled(
-      props.value,
-      props.defaultValue == null ? null : props.defaultValue,
-      props.onChange
+      multi ? mp.value : props.value === void 0 ? void 0 : props.value == null ? [] : [props.value],
+      multi ? mp.defaultValue || [] : props.defaultValue == null ? [] : [props.defaultValue],
+      function(next) {
+        if (multi) {
+          if (mp.onChange) mp.onChange(next);
+        } else if (props.onChange) props.onChange(next.length ? next[0] : null);
+      }
     );
-    const value = st[0], setValue = st[1];
-    const selected = options.filter(function(o) {
+    const values = st[0], setValues = st[1];
+    const value = values.length ? values[0] : null;
+    function setValue(v) {
+      setValues(v == null ? [] : [v]);
+    }
+    const isPicked = function(v) {
+      return values.indexOf(v) >= 0;
+    };
+    const full = multi && mp.max != null && values.length >= mp.max;
+    const selected = multi ? null : options.filter(function(o) {
       return o.value === value;
     })[0] || null;
+    const picked = multi ? values.map(function(v) {
+      return options.filter(function(o) {
+        return o.value === v;
+      })[0];
+    }).filter(Boolean) : [];
     const openState = React16.useState(false), open = openState[0], setOpen = openState[1];
     const qState = React16.useState(null), query = qState[0], setQuery = qState[1];
     const aState = React16.useState(0), active = aState[0], setActive = aState[1];
@@ -1073,6 +1108,18 @@ window.Aura = (() => {
     }
     function choose(o) {
       if (!o || o.disabled) return;
+      if (multi) {
+        if (isPicked(o.value))
+          setValues(
+            values.filter(function(v) {
+              return v !== o.value;
+            })
+          );
+        else if (!full) setValues(values.concat([o.value]));
+        setQuery(null);
+        if (inputRef.current) inputRef.current.focus();
+        return;
+      }
       setValue(o.value);
       setQuery(null);
       setOpen(false);
@@ -1104,50 +1151,65 @@ window.Aura = (() => {
           e.preventDefault();
           e.stopPropagation();
           close();
-        } else if (props.clearable !== false && value != null && query == null) {
+        } else if (!multi && props.clearable !== false && value != null && query == null) {
           setValue(null);
         }
+      } else if (k === "Backspace" && multi && !text && values.length) {
+        setValues(values.slice(0, -1));
       } else if (k === "Tab") {
         if (open) close();
       }
     }
     const text = query != null ? query : selected ? selected.label : "";
+    const summaryId = id + "-picked";
     const optId = function(i) {
       return id + "-opt-" + i;
     };
     const list = open && mounted && posState[0] ? (0, import_react_dom2.createPortal)(
-      /* @__PURE__ */ React16.createElement("div", { ref: listRef, className: "aura-combo__popover", style: posState[0] }, /* @__PURE__ */ React16.createElement("ul", { id: listId, role: "listbox", "aria-label": props.label, className: "aura-combo__list" }, props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, /* @__PURE__ */ React16.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), props.loadingText || t.searching) : !shown.length ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, props.emptyText || t.noMatches) : shown.map(function(o, i) {
-        const isSel = selected && o.value === selected.value;
-        return /* @__PURE__ */ React16.createElement(
-          "li",
-          {
-            key: o.value,
-            id: optId(i),
-            role: "option",
-            "data-idx": i,
-            "aria-selected": isSel,
-            "aria-disabled": o.disabled || void 0,
-            className: cx(
-              "aura-combo__option",
-              i === activeIdx && "is-active",
-              isSel && "is-selected",
-              o.disabled && "is-disabled"
-            ),
-            onPointerDown: function(e) {
-              e.preventDefault();
+      /* @__PURE__ */ React16.createElement("div", { ref: listRef, className: "aura-combo__popover", style: posState[0] }, /* @__PURE__ */ React16.createElement(
+        "ul",
+        {
+          id: listId,
+          role: "listbox",
+          "aria-label": props.label,
+          "aria-multiselectable": multi || void 0,
+          className: "aura-combo__list"
+        },
+        props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, /* @__PURE__ */ React16.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), props.loadingText || t.searching) : !shown.length ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, props.emptyText || t.noMatches) : shown.map(function(o, i) {
+          const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
+          const blocked = o.disabled || multi && full && !isSel;
+          return /* @__PURE__ */ React16.createElement(
+            "li",
+            {
+              key: o.value,
+              id: optId(i),
+              role: "option",
+              "data-idx": i,
+              "aria-selected": isSel,
+              "aria-disabled": blocked || void 0,
+              className: cx(
+                "aura-combo__option",
+                i === activeIdx && "is-active",
+                isSel && "is-selected",
+                blocked && "is-disabled"
+              ),
+              onPointerDown: function(e) {
+                e.preventDefault();
+              },
+              onClick: function() {
+                if (!blocked || isSel) choose(o);
+              },
+              onPointerMove: function() {
+                if (activeIdx !== i) setActive(i);
+              }
             },
-            onClick: function() {
-              choose(o);
-            },
-            onPointerMove: function() {
-              if (activeIdx !== i) setActive(i);
-            }
-          },
-          o.icon ? /* @__PURE__ */ React16.createElement(Icon, { name: o.icon }) : null,
-          /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
-          isSel ? /* @__PURE__ */ React16.createElement(Icon, { name: "check", className: "aura-combo__check" }) : null
-        );
-      }), more && !props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, t.keepTyping((props.options || []).length)) : null)),
+            o.icon ? /* @__PURE__ */ React16.createElement(Icon, { name: o.icon }) : null,
+            /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
+            isSel ? /* @__PURE__ */ React16.createElement(Icon, { name: "check", className: "aura-combo__check" }) : null
+          );
+        }),
+        more && !props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, t.keepTyping((props.options || []).length)) : null
+      )),
       document.body
     ) : null;
     return /* @__PURE__ */ React16.createElement(
@@ -1162,7 +1224,33 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React16.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open") }, /* @__PURE__ */ React16.createElement(Icon, { name: props.icon || "search", className: "aura-input__icon" }), /* @__PURE__ */ React16.createElement(
+      /* @__PURE__ */ React16.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open", multi && "is-multi") }, /* @__PURE__ */ React16.createElement(Icon, { name: props.icon || "search", className: "aura-input__icon" }), multi && picked.length ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__chips" }, picked.map(function(o) {
+        return /* @__PURE__ */ React16.createElement("span", { key: o.value, className: "aura-combo__chip" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__chip-label" }, o.label), props.disabled || props.readOnly ? null : /* @__PURE__ */ React16.createElement(
+          "button",
+          {
+            type: "button",
+            tabIndex: -1,
+            className: "aura-combo__chip-remove",
+            "aria-label": t.remove(o.label),
+            onPointerDown: function(e) {
+              e.preventDefault();
+            },
+            onClick: function() {
+              setValues(
+                values.filter(function(v) {
+                  return v !== o.value;
+                })
+              );
+              if (inputRef.current) inputRef.current.focus();
+            }
+          },
+          /* @__PURE__ */ React16.createElement(Icon, { name: "x" })
+        ));
+      })) : null, multi ? /* @__PURE__ */ React16.createElement("span", { id: summaryId, className: "aura-sr-only" }, picked.length ? t.selectedCount(picked.length) + ": " + picked.map(function(o) {
+        return o.label;
+      }).join(", ") : "") : null, multi && props.name ? values.map(function(v) {
+        return /* @__PURE__ */ React16.createElement("input", { key: v, type: "hidden", name: props.name, value: v });
+      }) : null, /* @__PURE__ */ React16.createElement(
         "input",
         {
           ref: inputMerged,
@@ -1176,12 +1264,12 @@ window.Aura = (() => {
           "aria-autocomplete": "list",
           "aria-activedescendant": open && shown[activeIdx] ? optId(activeIdx) : void 0,
           "aria-invalid": props.error ? true : void 0,
-          "aria-describedby": props.error ? id + "-error" : props.hint ? id + "-hint" : void 0,
-          placeholder: props.placeholder,
+          "aria-describedby": [props.error ? id + "-error" : props.hint ? id + "-hint" : "", multi && picked.length ? summaryId : ""].filter(Boolean).join(" ") || void 0,
+          placeholder: multi && values.length ? void 0 : props.placeholder,
           disabled: props.disabled,
           readOnly: props.readOnly,
-          required: props.required,
-          name: props.name,
+          required: props.required && (!multi || !values.length),
+          name: multi ? void 0 : props.name,
           value: text,
           onChange: function(e) {
             setQuery(e.target.value);
@@ -1199,7 +1287,7 @@ window.Aura = (() => {
             }, 0);
           }
         }
-      ), props.clearable !== false && value != null && !props.disabled ? /* @__PURE__ */ React16.createElement(
+      ), props.clearable !== false && values.length && !props.disabled ? /* @__PURE__ */ React16.createElement(
         "button",
         {
           type: "button",
@@ -1207,7 +1295,7 @@ window.Aura = (() => {
           "aria-label": t.clear(props.label),
           tabIndex: -1,
           onClick: function() {
-            setValue(null);
+            setValues([]);
             setQuery(null);
             if (inputRef.current) inputRef.current.focus();
           }
@@ -4802,5 +4890,323 @@ window.Aura = (() => {
       "aria-controls": open ? id : void 0
     }), panel);
   });
+
+  // src/NumberField.tsx
+  var React48 = __toESM(require_react(), 1);
+  function decimalsOf(n2) {
+    const s = String(n2);
+    const i = s.indexOf(".");
+    return i < 0 ? 0 : s.length - i - 1;
+  }
+  function parse(text) {
+    const s = text.replace(/[,\s ]/g, "");
+    if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+    return Number(s);
+  }
+  var NumberField = React48.forwardRef(function NumberField2(props, ref) {
+    const t = useStrings();
+    const auto = uid(), id = props.id || auto;
+    const step = props.step || 1;
+    const decimals = props.decimals != null ? props.decimals : decimalsOf(step);
+    const st = useMaybeControlled(
+      props.value,
+      props.defaultValue == null ? null : props.defaultValue,
+      props.onChange
+    );
+    const value = st[0], setValue = st[1];
+    const draftState = React48.useState(null), draft = draftState[0], setDraft = draftState[1];
+    function fmt2(n2) {
+      if (n2 == null || isNaN(n2)) return "";
+      return n2.toLocaleString("en", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+    function fit2(n2) {
+      let v = n2;
+      if (props.min != null && v < props.min) v = props.min;
+      if (props.max != null && v > props.max) v = props.max;
+      const f = Math.pow(10, decimals);
+      return Math.round(v * f) / f;
+    }
+    function nudge(by) {
+      if (props.disabled || props.readOnly) return;
+      const base = value == null ? props.min != null && props.min > 0 ? props.min - by : 0 : value;
+      const next = fit2(base + by);
+      setValue(next);
+      setDraft(null);
+    }
+    function onKeyDown(e) {
+      const k = e.key;
+      let by = 0;
+      if (k === "ArrowUp") by = step;
+      else if (k === "ArrowDown") by = -step;
+      else if (k === "PageUp") by = step * 10;
+      else if (k === "PageDown") by = -step * 10;
+      else if (k === "Home" && props.min != null) {
+        e.preventDefault();
+        setValue(props.min);
+        setDraft(null);
+        return;
+      } else if (k === "End" && props.max != null) {
+        e.preventDefault();
+        setValue(props.max);
+        setDraft(null);
+        return;
+      }
+      if (by) {
+        e.preventDefault();
+        nudge(by);
+      }
+    }
+    const atMin = value != null && props.min != null && value <= props.min;
+    const atMax = value != null && props.max != null && value >= props.max;
+    const affixText = function(x) {
+      return typeof x === "string" || typeof x === "number" ? String(x) : "";
+    };
+    const valueText = value == null ? void 0 : [affixText(props.prefix), fmt2(value), affixText(props.suffix)].join(" ").trim();
+    const stepper = props.stepper !== false && !props.readOnly;
+    return /* @__PURE__ */ React48.createElement(
+      Field,
+      {
+        id,
+        label: props.label,
+        hint: props.hint,
+        error: props.error,
+        required: props.required,
+        optional: props.optional,
+        disabled: props.disabled,
+        className: props.className
+      },
+      /* @__PURE__ */ React48.createElement("div", { className: cx("aura-input aura-number", stepper && "has-stepper") }, props.prefix != null ? /* @__PURE__ */ React48.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.prefix) : null, /* @__PURE__ */ React48.createElement(
+        "input",
+        {
+          ref,
+          id,
+          type: "text",
+          role: "spinbutton",
+          inputMode: decimals > 0 || props.min != null && props.min < 0 ? "decimal" : "numeric",
+          autoComplete: "off",
+          className: "aura-input__control",
+          name: props.name,
+          placeholder: props.placeholder,
+          disabled: props.disabled,
+          readOnly: props.readOnly,
+          required: props.required,
+          "aria-valuenow": value == null ? void 0 : value,
+          "aria-valuemin": props.min,
+          "aria-valuemax": props.max,
+          "aria-valuetext": valueText,
+          "aria-invalid": props.error ? true : void 0,
+          "aria-describedby": describedBy(id, props),
+          value: draft != null ? draft : fmt2(value),
+          onFocus: function() {
+            setDraft(fmt2(value));
+          },
+          onChange: function(e) {
+            const text = e.target.value;
+            setDraft(text);
+            if (!text.trim()) setValue(null);
+            else {
+              const n2 = parse(text);
+              if (!isNaN(n2)) setValue(n2);
+            }
+          },
+          onBlur: function(e) {
+            const n2 = draft == null ? value : !draft.trim() ? null : parse(draft);
+            if (n2 == null) {
+              if (value != null) setValue(null);
+            } else if (!isNaN(n2)) {
+              const f = fit2(n2);
+              if (f !== value) setValue(f);
+            }
+            setDraft(null);
+            if (props.onBlur) props.onBlur(e);
+          },
+          onKeyDown
+        }
+      ), props.suffix != null ? /* @__PURE__ */ React48.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.suffix) : null, stepper ? /* @__PURE__ */ React48.createElement("span", { className: "aura-number__steps" }, /* @__PURE__ */ React48.createElement(
+        "button",
+        {
+          type: "button",
+          tabIndex: -1,
+          className: "aura-number__step",
+          "aria-label": t.decrease,
+          "aria-controls": id,
+          disabled: props.disabled || atMin,
+          onPointerDown: function(e) {
+            e.preventDefault();
+          },
+          onClick: function() {
+            nudge(-step);
+          }
+        },
+        /* @__PURE__ */ React48.createElement(Icon, { name: "minus" })
+      ), /* @__PURE__ */ React48.createElement(
+        "button",
+        {
+          type: "button",
+          tabIndex: -1,
+          className: "aura-number__step",
+          "aria-label": t.increase,
+          "aria-controls": id,
+          disabled: props.disabled || atMax,
+          onPointerDown: function(e) {
+            e.preventDefault();
+          },
+          onClick: function() {
+            nudge(step);
+          }
+        },
+        /* @__PURE__ */ React48.createElement(Icon, { name: "plus" })
+      )) : null)
+    );
+  });
+
+  // src/Stepper.tsx
+  var React49 = __toESM(require_react(), 1);
+  var Stepper = React49.forwardRef(function Stepper2(props, ref) {
+    const t = useStrings();
+    const steps = props.steps || [];
+    let at = -1;
+    steps.forEach(function(s, i) {
+      if (s.id === props.current) at = i;
+    });
+    if (at < 0) at = 0;
+    const vertical = props.orientation === "vertical";
+    const cur = steps[at];
+    return /* @__PURE__ */ React49.createElement(
+      "nav",
+      {
+        ref,
+        "aria-label": props.label,
+        className: cx("aura-stepper", vertical ? "aura-stepper--vertical" : "aura-stepper--horizontal", props.className)
+      },
+      /* @__PURE__ */ React49.createElement("ol", { className: "aura-stepper__list" }, steps.map(function(s, i) {
+        const state = i < at ? "done" : i === at ? "current" : "upcoming";
+        const marker = /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, state === "done" ? /* @__PURE__ */ React49.createElement(Icon, { name: "check" }) : i + 1);
+        const text = /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__text" }, /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__label" }, s.label, state === "done" ? /* @__PURE__ */ React49.createElement("span", { className: "aura-sr-only" }, ", " + t.stepDone) : null), s.description ? /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__desc" }, s.description) : null);
+        const clickable = state === "done" && !!props.onStepClick;
+        return /* @__PURE__ */ React49.createElement(
+          "li",
+          {
+            key: s.id,
+            className: cx("aura-stepper__item", "is-" + state),
+            "aria-current": state === "current" ? "step" : void 0
+          },
+          clickable ? /* @__PURE__ */ React49.createElement(
+            "button",
+            {
+              type: "button",
+              className: "aura-stepper__step aura-focusable",
+              onClick: function() {
+                props.onStepClick(s.id);
+              }
+            },
+            marker,
+            text
+          ) : /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__step" }, marker, text)
+        );
+      })),
+      !vertical && cur ? /* @__PURE__ */ React49.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length)), /* @__PURE__ */ React49.createElement("span", { className: "aura-stepper__compact-label" }, cur.label)) : null
+    );
+  });
+
+  // src/SegmentedControl.tsx
+  var React50 = __toESM(require_react(), 1);
+  function toOpt2(o) {
+    return typeof o === "object" ? o : { value: o, label: o };
+  }
+  var SegmentedControl = React50.forwardRef(
+    function SegmentedControl2(props, ref) {
+      const options = (props.options || []).map(toOpt2);
+      const firstEnabled = options.filter(function(o) {
+        return !o.disabled;
+      })[0];
+      const st = useMaybeControlled(
+        props.value,
+        props.defaultValue != null ? props.defaultValue : firstEnabled ? firstEnabled.value : void 0,
+        props.onChange
+      );
+      const value = st[0], setValue = st[1];
+      const auto = uid(), id = props.id || auto;
+      const refs = React50.useRef([]);
+      const selIdx = options.findIndex(function(o) {
+        return o.value === value;
+      });
+      const tabIdx = selIdx >= 0 && !options[selIdx].disabled ? selIdx : options.indexOf(firstEnabled);
+      function move(from, dir) {
+        const n2 = options.length;
+        for (let k = 1; k <= n2; k++) {
+          const i = ((from + dir * k) % n2 + n2) % n2;
+          if (!options[i].disabled) {
+            setValue(options[i].value);
+            const el = refs.current[i];
+            if (el) el.focus();
+            return;
+          }
+        }
+      }
+      function onKeyDown(e, i) {
+        const k = e.key;
+        if (k === "ArrowRight" || k === "ArrowDown") {
+          e.preventDefault();
+          move(i, 1);
+        } else if (k === "ArrowLeft" || k === "ArrowUp") {
+          e.preventDefault();
+          move(i, -1);
+        } else if (k === "Home") {
+          e.preventDefault();
+          move(-1, 1);
+        } else if (k === "End") {
+          e.preventDefault();
+          move(options.length, -1);
+        }
+      }
+      return /* @__PURE__ */ React50.createElement(
+        "div",
+        {
+          ref,
+          id,
+          role: "radiogroup",
+          "aria-label": props.label,
+          "aria-disabled": props.disabled || void 0,
+          className: cx(
+            "aura-segmented",
+            props.size === "sm" && "aura-segmented--sm",
+            props.fullWidth && "is-full",
+            props.disabled && "is-disabled",
+            props.className
+          )
+        },
+        options.map(function(o, i) {
+          const on = o.value === value;
+          const off = props.disabled || o.disabled;
+          return /* @__PURE__ */ React50.createElement(
+            "button",
+            {
+              key: o.value,
+              ref: function(el) {
+                refs.current[i] = el;
+              },
+              type: "button",
+              role: "radio",
+              "aria-checked": on,
+              "aria-label": o.iconOnly ? o.label : void 0,
+              title: o.iconOnly ? o.label : void 0,
+              tabIndex: i === tabIdx && !props.disabled ? 0 : -1,
+              disabled: off,
+              className: cx("aura-segmented__option", on && "is-selected", o.iconOnly && "is-icon"),
+              onClick: function() {
+                setValue(o.value);
+              },
+              onKeyDown: function(e) {
+                onKeyDown(e, i);
+              }
+            },
+            o.icon ? /* @__PURE__ */ React50.createElement(Icon, { name: o.icon }) : null,
+            o.iconOnly ? null : /* @__PURE__ */ React50.createElement("span", null, o.label)
+          );
+        })
+      );
+    }
+  );
   return __toCommonJS(index_exports);
 })();

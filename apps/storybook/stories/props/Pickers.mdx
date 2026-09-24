@@ -11,6 +11,8 @@ Values are ISO strings (`2026-09-18`, `09:30`); display is Thai with Buddhist-er
 
 <ArgTypes of={Aura.Combobox} />
 
+With `multiple`, `value` / `defaultValue` are `string[]` and `onChange` gets the whole list; picks show as removable chips, the list stays open between picks, Backspace in the empty field removes the last one, `max` caps the count (further options are disabled), and `name` posts one hidden input per value.
+
 ## DatePicker
 
 <ArgTypes of={Aura.DatePicker} />
