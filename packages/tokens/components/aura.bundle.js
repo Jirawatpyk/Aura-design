@@ -1000,330 +1000,332 @@ window.Aura = (() => {
       return norm(k).indexOf(q) >= 0;
     });
   }
-  var Combobox = React16.forwardRef(function Combobox2(all, ref) {
-    const props = all;
-    const multi = all.multiple === true;
-    const mp = all;
-    const t = useStrings();
-    const auto = uid(), id = props.id || auto, listId = id + "-list";
-    const options = (props.options || []).map(toOpt);
-    const st = useMaybeControlled(
-      multi ? mp.value : props.value === void 0 ? void 0 : props.value == null ? [] : [props.value],
-      multi ? mp.defaultValue || [] : props.defaultValue == null ? [] : [props.defaultValue],
-      function(next) {
-        if (multi) {
-          if (mp.onChange) mp.onChange(next);
-        } else if (props.onChange) props.onChange(next.length ? next[0] : null);
+  var Combobox = React16.forwardRef(
+    function Combobox2(all, ref) {
+      const props = all;
+      const multi = all.multiple === true;
+      const mp = all;
+      const t = useStrings();
+      const auto = uid(), id = props.id || auto, listId = id + "-list";
+      const options = (props.options || []).map(toOpt);
+      const st = useMaybeControlled(
+        multi ? mp.value : props.value === void 0 ? void 0 : props.value == null ? [] : [props.value],
+        multi ? mp.defaultValue || [] : props.defaultValue == null ? [] : [props.defaultValue],
+        function(next) {
+          if (multi) {
+            if (mp.onChange) mp.onChange(next);
+          } else if (props.onChange) props.onChange(next.length ? next[0] : null);
+        }
+      );
+      const values = st[0], setValues = st[1];
+      const value = values.length ? values[0] : null;
+      function setValue(v) {
+        setValues(v == null ? [] : [v]);
       }
-    );
-    const values = st[0], setValues = st[1];
-    const value = values.length ? values[0] : null;
-    function setValue(v) {
-      setValues(v == null ? [] : [v]);
-    }
-    const isPicked = function(v) {
-      return values.indexOf(v) >= 0;
-    };
-    const full = multi && mp.max != null && values.length >= mp.max;
-    const selected = multi ? null : options.filter(function(o) {
-      return o.value === value;
-    })[0] || null;
-    const picked = multi ? values.map(function(v) {
-      return options.filter(function(o) {
-        return o.value === v;
-      })[0];
-    }).filter(Boolean) : [];
-    const openState = React16.useState(false), open = openState[0], setOpen = openState[1];
-    const qState = React16.useState(null), query = qState[0], setQuery = qState[1];
-    const aState = React16.useState(0), active = aState[0], setActive = aState[1];
-    const posState = React16.useState(null);
-    const inputRef = React16.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React16.useRef(null), listRef = React16.useRef(null);
-    const mounted = useMounted();
-    const limit = props.limit || 200;
-    const filter = props.filter || defaultFilter;
-    let shown = props.onSearch || query == null ? options : options.filter(function(o) {
-      return filter(o, query);
-    });
-    const more = shown.length > limit;
-    shown = shown.slice(0, limit);
-    const activeIdx = Math.min(active, shown.length - 1);
-    function place() {
-      if (!boxRef.current) return;
-      const r = boxRef.current.getBoundingClientRect();
-      const maxH = 320, below = window.innerHeight - r.bottom - 8, up = below < 200 && r.top > below;
-      posState[1]({
-        left: r.left,
-        width: r.width,
-        top: up ? void 0 : r.bottom + 4,
-        bottom: up ? window.innerHeight - r.top + 4 : void 0,
-        maxHeight: Math.min(maxH, (up ? r.top : below) - 8)
+      const isPicked = function(v) {
+        return values.indexOf(v) >= 0;
+      };
+      const full = multi && mp.max != null && values.length >= mp.max;
+      const selected = multi ? null : options.filter(function(o) {
+        return o.value === value;
+      })[0] || null;
+      const picked = multi ? values.map(function(v) {
+        return options.filter(function(o) {
+          return o.value === v;
+        })[0];
+      }).filter(Boolean) : [];
+      const openState = React16.useState(false), open = openState[0], setOpen = openState[1];
+      const qState = React16.useState(null), query = qState[0], setQuery = qState[1];
+      const aState = React16.useState(0), active = aState[0], setActive = aState[1];
+      const posState = React16.useState(null);
+      const inputRef = React16.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React16.useRef(null), listRef = React16.useRef(null);
+      const mounted = useMounted();
+      const limit = props.limit || 200;
+      const filter = props.filter || defaultFilter;
+      let shown = props.onSearch || query == null ? options : options.filter(function(o) {
+        return filter(o, query);
       });
-    }
-    useIsoLayoutEffect(
-      function() {
-        if (open) place();
-      },
-      [open, shown.length]
-    );
-    React16.useEffect(
-      function() {
-        if (!open) return;
-        function outside(e) {
-          if (boxRef.current && boxRef.current.contains(e.target)) return;
-          if (listRef.current && listRef.current.contains(e.target)) return;
-          close(false);
-        }
-        function onScroll(e) {
-          if (!listRef.current || !listRef.current.contains(e.target)) place();
-        }
-        document.addEventListener("pointerdown", outside, true);
-        window.addEventListener("scroll", onScroll, true);
-        window.addEventListener("resize", place);
-        return function() {
-          document.removeEventListener("pointerdown", outside, true);
-          window.removeEventListener("scroll", onScroll, true);
-          window.removeEventListener("resize", place);
-        };
-      },
-      [open]
-    );
-    React16.useEffect(
-      function() {
-        if (!open || !listRef.current) return;
-        const el = listRef.current.querySelector('[data-idx="' + activeIdx + '"]');
-        if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
-      },
-      [activeIdx, open]
-    );
-    function openList() {
-      if (!open && !props.disabled && !props.readOnly) {
-        setOpen(true);
-        const i = selected ? shown.indexOf(selected) : 0;
-        setActive(i < 0 ? 0 : i);
+      const more = shown.length > limit;
+      shown = shown.slice(0, limit);
+      const activeIdx = Math.min(active, shown.length - 1);
+      function place() {
+        if (!boxRef.current) return;
+        const r = boxRef.current.getBoundingClientRect();
+        const maxH = 320, below = window.innerHeight - r.bottom - 8, up = below < 200 && r.top > below;
+        posState[1]({
+          left: r.left,
+          width: r.width,
+          top: up ? void 0 : r.bottom + 4,
+          bottom: up ? window.innerHeight - r.top + 4 : void 0,
+          maxHeight: Math.min(maxH, (up ? r.top : below) - 8)
+        });
       }
-    }
-    function close(restoreLabel) {
-      setOpen(false);
-      setQuery(null);
-    }
-    function choose(o) {
-      if (!o || o.disabled) return;
-      if (multi) {
-        if (isPicked(o.value))
-          setValues(
-            values.filter(function(v) {
-              return v !== o.value;
-            })
-          );
-        else if (!full) setValues(values.concat([o.value]));
-        setQuery(null);
-        if (inputRef.current) inputRef.current.focus();
-        return;
-      }
-      setValue(o.value);
-      setQuery(null);
-      setOpen(false);
-      if (inputRef.current) inputRef.current.focus();
-    }
-    function onKeyDown(e) {
-      const k = e.key;
-      if (k === "ArrowDown") {
-        e.preventDefault();
-        if (!open) openList();
-        else setActive(Math.min(activeIdx + 1, shown.length - 1));
-      } else if (k === "ArrowUp") {
-        e.preventDefault();
-        if (!open) openList();
-        else setActive(Math.max(activeIdx - 1, 0));
-      } else if (k === "Home" && open) {
-        e.preventDefault();
-        setActive(0);
-      } else if (k === "End" && open) {
-        e.preventDefault();
-        setActive(shown.length - 1);
-      } else if (k === "Enter") {
-        if (open && shown[activeIdx]) {
-          e.preventDefault();
-          choose(shown[activeIdx]);
-        }
-      } else if (k === "Escape") {
-        if (open) {
-          e.preventDefault();
-          e.stopPropagation();
-          close();
-        } else if (!multi && props.clearable !== false && value != null && query == null) {
-          setValue(null);
-        }
-      } else if (k === "Backspace" && multi && !text && values.length) {
-        setValues(values.slice(0, -1));
-      } else if (k === "Tab") {
-        if (open) close();
-      }
-    }
-    const text = query != null ? query : selected ? selected.label : "";
-    const summaryId = id + "-picked";
-    const optId = function(i) {
-      return id + "-opt-" + i;
-    };
-    const list = open && mounted && posState[0] ? (0, import_react_dom2.createPortal)(
-      /* @__PURE__ */ React16.createElement("div", { ref: listRef, className: "aura-combo__popover", style: posState[0] }, /* @__PURE__ */ React16.createElement(
-        "ul",
-        {
-          id: listId,
-          role: "listbox",
-          "aria-label": props.label,
-          "aria-multiselectable": multi || void 0,
-          className: "aura-combo__list"
+      useIsoLayoutEffect(
+        function() {
+          if (open) place();
         },
-        props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, /* @__PURE__ */ React16.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), props.loadingText || t.searching) : !shown.length ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, props.emptyText || t.noMatches) : shown.map(function(o, i) {
-          const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
-          const blocked = o.disabled || multi && full && !isSel;
-          return /* @__PURE__ */ React16.createElement(
-            "li",
+        [open, shown.length]
+      );
+      React16.useEffect(
+        function() {
+          if (!open) return;
+          function outside(e) {
+            if (boxRef.current && boxRef.current.contains(e.target)) return;
+            if (listRef.current && listRef.current.contains(e.target)) return;
+            close(false);
+          }
+          function onScroll(e) {
+            if (!listRef.current || !listRef.current.contains(e.target)) place();
+          }
+          document.addEventListener("pointerdown", outside, true);
+          window.addEventListener("scroll", onScroll, true);
+          window.addEventListener("resize", place);
+          return function() {
+            document.removeEventListener("pointerdown", outside, true);
+            window.removeEventListener("scroll", onScroll, true);
+            window.removeEventListener("resize", place);
+          };
+        },
+        [open]
+      );
+      React16.useEffect(
+        function() {
+          if (!open || !listRef.current) return;
+          const el = listRef.current.querySelector('[data-idx="' + activeIdx + '"]');
+          if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+        },
+        [activeIdx, open]
+      );
+      function openList() {
+        if (!open && !props.disabled && !props.readOnly) {
+          setOpen(true);
+          const i = selected ? shown.indexOf(selected) : 0;
+          setActive(i < 0 ? 0 : i);
+        }
+      }
+      function close(restoreLabel) {
+        setOpen(false);
+        setQuery(null);
+      }
+      function choose(o) {
+        if (!o || o.disabled) return;
+        if (multi) {
+          if (isPicked(o.value))
+            setValues(
+              values.filter(function(v) {
+                return v !== o.value;
+              })
+            );
+          else if (!full) setValues(values.concat([o.value]));
+          setQuery(null);
+          if (inputRef.current) inputRef.current.focus();
+          return;
+        }
+        setValue(o.value);
+        setQuery(null);
+        setOpen(false);
+        if (inputRef.current) inputRef.current.focus();
+      }
+      function onKeyDown(e) {
+        const k = e.key;
+        if (k === "ArrowDown") {
+          e.preventDefault();
+          if (!open) openList();
+          else setActive(Math.min(activeIdx + 1, shown.length - 1));
+        } else if (k === "ArrowUp") {
+          e.preventDefault();
+          if (!open) openList();
+          else setActive(Math.max(activeIdx - 1, 0));
+        } else if (k === "Home" && open) {
+          e.preventDefault();
+          setActive(0);
+        } else if (k === "End" && open) {
+          e.preventDefault();
+          setActive(shown.length - 1);
+        } else if (k === "Enter") {
+          if (open && shown[activeIdx]) {
+            e.preventDefault();
+            choose(shown[activeIdx]);
+          }
+        } else if (k === "Escape") {
+          if (open) {
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+          } else if (!multi && props.clearable !== false && value != null && query == null) {
+            setValue(null);
+          }
+        } else if (k === "Backspace" && multi && !text && values.length) {
+          setValues(values.slice(0, -1));
+        } else if (k === "Tab") {
+          if (open) close();
+        }
+      }
+      const text = query != null ? query : selected ? selected.label : "";
+      const summaryId = id + "-picked";
+      const optId = function(i) {
+        return id + "-opt-" + i;
+      };
+      const list = open && mounted && posState[0] ? (0, import_react_dom2.createPortal)(
+        /* @__PURE__ */ React16.createElement("div", { ref: listRef, className: "aura-combo__popover", style: posState[0] }, /* @__PURE__ */ React16.createElement(
+          "ul",
+          {
+            id: listId,
+            role: "listbox",
+            "aria-label": props.label,
+            "aria-multiselectable": multi || void 0,
+            className: "aura-combo__list"
+          },
+          props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, /* @__PURE__ */ React16.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), props.loadingText || t.searching) : !shown.length ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, props.emptyText || t.noMatches) : shown.map(function(o, i) {
+            const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
+            const blocked = o.disabled || multi && full && !isSel;
+            return /* @__PURE__ */ React16.createElement(
+              "li",
+              {
+                key: o.value,
+                id: optId(i),
+                role: "option",
+                "data-idx": i,
+                "aria-selected": isSel,
+                "aria-disabled": blocked || void 0,
+                className: cx(
+                  "aura-combo__option",
+                  i === activeIdx && "is-active",
+                  isSel && "is-selected",
+                  blocked && "is-disabled"
+                ),
+                onPointerDown: function(e) {
+                  e.preventDefault();
+                },
+                onClick: function() {
+                  if (!blocked || isSel) choose(o);
+                },
+                onPointerMove: function() {
+                  if (activeIdx !== i) setActive(i);
+                }
+              },
+              o.icon ? /* @__PURE__ */ React16.createElement(Icon, { name: o.icon }) : null,
+              /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
+              isSel ? /* @__PURE__ */ React16.createElement(Icon, { name: "check", className: "aura-combo__check" }) : null
+            );
+          }),
+          more && !props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, t.keepTyping((props.options || []).length)) : null
+        )),
+        document.body
+      ) : null;
+      return /* @__PURE__ */ React16.createElement(
+        Field,
+        {
+          id,
+          label: props.label,
+          hint: props.hint,
+          error: props.error,
+          required: props.required,
+          optional: props.optional,
+          disabled: props.disabled,
+          className: props.className
+        },
+        /* @__PURE__ */ React16.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open", multi && "is-multi") }, /* @__PURE__ */ React16.createElement(Icon, { name: props.icon || "search", className: "aura-input__icon" }), multi && picked.length ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__chips" }, picked.map(function(o) {
+          return /* @__PURE__ */ React16.createElement("span", { key: o.value, className: "aura-combo__chip" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__chip-label" }, o.label), props.disabled || props.readOnly ? null : /* @__PURE__ */ React16.createElement(
+            "button",
             {
-              key: o.value,
-              id: optId(i),
-              role: "option",
-              "data-idx": i,
-              "aria-selected": isSel,
-              "aria-disabled": blocked || void 0,
-              className: cx(
-                "aura-combo__option",
-                i === activeIdx && "is-active",
-                isSel && "is-selected",
-                blocked && "is-disabled"
-              ),
+              type: "button",
+              tabIndex: -1,
+              className: "aura-combo__chip-remove",
+              "aria-label": t.remove(o.label),
               onPointerDown: function(e) {
                 e.preventDefault();
               },
               onClick: function() {
-                if (!blocked || isSel) choose(o);
-              },
-              onPointerMove: function() {
-                if (activeIdx !== i) setActive(i);
+                setValues(
+                  values.filter(function(v) {
+                    return v !== o.value;
+                  })
+                );
+                if (inputRef.current) inputRef.current.focus();
               }
             },
-            o.icon ? /* @__PURE__ */ React16.createElement(Icon, { name: o.icon }) : null,
-            /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
-            isSel ? /* @__PURE__ */ React16.createElement(Icon, { name: "check", className: "aura-combo__check" }) : null
-          );
-        }),
-        more && !props.loading ? /* @__PURE__ */ React16.createElement("li", { className: "aura-combo__note", role: "presentation" }, t.keepTyping((props.options || []).length)) : null
-      )),
-      document.body
-    ) : null;
-    return /* @__PURE__ */ React16.createElement(
-      Field,
-      {
-        id,
-        label: props.label,
-        hint: props.hint,
-        error: props.error,
-        required: props.required,
-        optional: props.optional,
-        disabled: props.disabled,
-        className: props.className
-      },
-      /* @__PURE__ */ React16.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open", multi && "is-multi") }, /* @__PURE__ */ React16.createElement(Icon, { name: props.icon || "search", className: "aura-input__icon" }), multi && picked.length ? /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__chips" }, picked.map(function(o) {
-        return /* @__PURE__ */ React16.createElement("span", { key: o.value, className: "aura-combo__chip" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-combo__chip-label" }, o.label), props.disabled || props.readOnly ? null : /* @__PURE__ */ React16.createElement(
+            /* @__PURE__ */ React16.createElement(Icon, { name: "x" })
+          ));
+        })) : null, multi ? /* @__PURE__ */ React16.createElement("span", { id: summaryId, className: "aura-sr-only" }, picked.length ? t.selectedCount(picked.length) + ": " + picked.map(function(o) {
+          return o.label;
+        }).join(", ") : "") : null, multi && props.name ? values.map(function(v) {
+          return /* @__PURE__ */ React16.createElement("input", { key: v, type: "hidden", name: props.name, value: v });
+        }) : null, /* @__PURE__ */ React16.createElement(
+          "input",
+          {
+            ref: inputMerged,
+            id,
+            type: "text",
+            role: "combobox",
+            className: "aura-input__control",
+            autoComplete: "off",
+            "aria-expanded": open,
+            "aria-controls": listId,
+            "aria-autocomplete": "list",
+            "aria-activedescendant": open && shown[activeIdx] ? optId(activeIdx) : void 0,
+            "aria-invalid": props.error ? true : void 0,
+            "aria-describedby": [props.error ? id + "-error" : props.hint ? id + "-hint" : "", multi && picked.length ? summaryId : ""].filter(Boolean).join(" ") || void 0,
+            placeholder: multi && values.length ? void 0 : props.placeholder,
+            disabled: props.disabled,
+            readOnly: props.readOnly,
+            required: props.required && (!multi || !values.length),
+            name: multi ? void 0 : props.name,
+            value: text,
+            onChange: function(e) {
+              setQuery(e.target.value);
+              setActive(0);
+              if (!open) setOpen(true);
+              if (props.onSearch) props.onSearch(e.target.value);
+            },
+            onClick: openList,
+            onKeyDown,
+            onBlur: function() {
+              setTimeout(function() {
+                if (listRef.current && listRef.current.contains(document.activeElement)) return;
+                setOpen(false);
+                setQuery(null);
+              }, 0);
+            }
+          }
+        ), props.clearable !== false && values.length && !props.disabled ? /* @__PURE__ */ React16.createElement(
           "button",
           {
             type: "button",
+            className: "aura-combo__clear",
+            "aria-label": t.clear(props.label),
             tabIndex: -1,
-            className: "aura-combo__chip-remove",
-            "aria-label": t.remove(o.label),
-            onPointerDown: function(e) {
-              e.preventDefault();
-            },
             onClick: function() {
-              setValues(
-                values.filter(function(v) {
-                  return v !== o.value;
-                })
-              );
+              setValues([]);
+              setQuery(null);
               if (inputRef.current) inputRef.current.focus();
             }
           },
           /* @__PURE__ */ React16.createElement(Icon, { name: "x" })
-        ));
-      })) : null, multi ? /* @__PURE__ */ React16.createElement("span", { id: summaryId, className: "aura-sr-only" }, picked.length ? t.selectedCount(picked.length) + ": " + picked.map(function(o) {
-        return o.label;
-      }).join(", ") : "") : null, multi && props.name ? values.map(function(v) {
-        return /* @__PURE__ */ React16.createElement("input", { key: v, type: "hidden", name: props.name, value: v });
-      }) : null, /* @__PURE__ */ React16.createElement(
-        "input",
-        {
-          ref: inputMerged,
-          id,
-          type: "text",
-          role: "combobox",
-          className: "aura-input__control",
-          autoComplete: "off",
-          "aria-expanded": open,
-          "aria-controls": listId,
-          "aria-autocomplete": "list",
-          "aria-activedescendant": open && shown[activeIdx] ? optId(activeIdx) : void 0,
-          "aria-invalid": props.error ? true : void 0,
-          "aria-describedby": [props.error ? id + "-error" : props.hint ? id + "-hint" : "", multi && picked.length ? summaryId : ""].filter(Boolean).join(" ") || void 0,
-          placeholder: multi && values.length ? void 0 : props.placeholder,
-          disabled: props.disabled,
-          readOnly: props.readOnly,
-          required: props.required && (!multi || !values.length),
-          name: multi ? void 0 : props.name,
-          value: text,
-          onChange: function(e) {
-            setQuery(e.target.value);
-            setActive(0);
-            if (!open) setOpen(true);
-            if (props.onSearch) props.onSearch(e.target.value);
-          },
-          onClick: openList,
-          onKeyDown,
-          onBlur: function() {
-            setTimeout(function() {
-              if (listRef.current && listRef.current.contains(document.activeElement)) return;
-              setOpen(false);
-              setQuery(null);
-            }, 0);
-          }
-        }
-      ), props.clearable !== false && values.length && !props.disabled ? /* @__PURE__ */ React16.createElement(
-        "button",
-        {
-          type: "button",
-          className: "aura-combo__clear",
-          "aria-label": t.clear(props.label),
-          tabIndex: -1,
-          onClick: function() {
-            setValues([]);
-            setQuery(null);
-            if (inputRef.current) inputRef.current.focus();
-          }
-        },
-        /* @__PURE__ */ React16.createElement(Icon, { name: "x" })
-      ) : null, /* @__PURE__ */ React16.createElement(
-        "button",
-        {
-          type: "button",
-          tabIndex: -1,
-          "aria-hidden": true,
-          className: "aura-combo__toggle",
-          onPointerDown: function(e) {
-            e.preventDefault();
-          },
-          onClick: function() {
-            if (open) close();
-            else {
-              openList();
-              inputRef.current && inputRef.current.focus();
+        ) : null, /* @__PURE__ */ React16.createElement(
+          "button",
+          {
+            type: "button",
+            tabIndex: -1,
+            "aria-hidden": true,
+            className: "aura-combo__toggle",
+            onPointerDown: function(e) {
+              e.preventDefault();
+            },
+            onClick: function() {
+              if (open) close();
+              else {
+                openList();
+                inputRef.current && inputRef.current.focus();
+              }
             }
-          }
-        },
-        /* @__PURE__ */ React16.createElement(Icon, { name: "chevron-down" })
-      )),
-      list
-    );
-  });
+          },
+          /* @__PURE__ */ React16.createElement(Icon, { name: "chevron-down" })
+        )),
+        list
+      );
+    }
+  );
 
   // src/DatePicker.tsx
   var React17 = __toESM(require_react(), 1);
