@@ -47,6 +47,21 @@ def color_scheme(pg, name, dark, system, after_reload=lambda pg: None):
     assert root() == ['system', True] and canvas() != light_bg, ('system should follow the OS', root(), canvas())
     axe(pg, 'system dark')
 
+# Compact density (4.14): data-density="compact" on <html> gives 36px fields/buttons and 40px rows; nothing may clip
+# that didn't already (ellipsis columns do on purpose), and axe stays clean in both themes.
+CLIPPED = """() => [...document.querySelectorAll('.aura-btn, .aura-input__control, .aura-table__th-label, .aura-tabs__tab, .aura-page, .aura-seg__item, .aura-choice__label')]
+  .filter(e => e.offsetParent && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 2))
+  .map(e => e.className.split(' ')[0] + ': ' + (e.textContent || e.value || '').trim().slice(0, 30))"""
+def compact(pg, label):
+    before = set(pg.evaluate(CLIPPED))
+    pg.evaluate("document.documentElement.setAttribute('data-density','compact')")
+    h = pg.evaluate("getComputedStyle(document.querySelector('.aura-btn')).height")
+    assert h == '36px', label + ' compact button height ' + h
+    new = [c for c in pg.evaluate(CLIPPED) if c not in before]
+    assert not new, label + ' clipped in compact: ' + '; '.join(new[:5])
+    axe(pg, label + ' compact light')
+    pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); axe(pg, label + ' compact dark')
+    pg.evaluate("document.documentElement.removeAttribute('data-theme'); document.documentElement.removeAttribute('data-density')")
 def ready(pg):
     pg.goto(URL); pg.wait_for_selector('.aura-table:not([aria-busy]) .aura-table__row:not(.aura-table__row--skeleton), .aura-table--stacked:not([aria-busy]) .aura-table__card', timeout=5000)
 
@@ -203,6 +218,11 @@ def d_themes(pg):
             axe(pg, os.path.basename(f) + ' ' + th)
     pg.evaluate("document.documentElement.removeAttribute('data-theme')")
 def d_color_scheme(pg): color_scheme(pg, 'โหมดสี', 'มืด', 'ตามระบบ', ready)
+def d_compact(pg):
+    compact(pg, 'orders')
+    pg.evaluate("document.documentElement.setAttribute('data-density','compact')")
+    rows = pg.evaluate("[...document.querySelectorAll('.aura-table__row')].slice(0,3).map(r => r.getBoundingClientRect().height)")
+    assert all(abs(h - 40) < 0.6 for h in rows), rows
 
 # ---------- tablet ----------
 def t_table_fits(pg):
@@ -249,7 +269,7 @@ def p_bottom_sheet(pg):
 
 with sync_playwright() as p:
     br = p.chromium.launch(**({'executable_path': CHROMIUM} if CHROMIUM else {}))
-    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes, d_color_scheme, d_new_filters]),
+    for label, vp, tests in [('desktop 1440', {'width': 1440, 'height': 1000}, [d_axe, d_thai_strings, d_combobox, d_range_typed, d_calendar_keys, d_row_menu_drawer, d_cell_enter, d_new_order, d_past_date, d_cancel_undo, d_upload, d_grid_one_tab_stop, d_stats, d_themes, d_color_scheme, d_new_filters, d_compact]),
                              ('tablet 820', {'width': 820, 'height': 1100}, [t_table_fits, t_axe]),
                              ('phone 390', {'width': 390, 'height': 844}, [p_no_overflow, p_axe, p_nav_drawer, p_filters, p_card_detail, p_card_menu, p_bottom_sheet])]:
         print(label)

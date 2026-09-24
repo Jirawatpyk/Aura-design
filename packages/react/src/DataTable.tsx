@@ -32,7 +32,7 @@ const DEFAULT_COLUMNS: Col[] = [
 ];
 
 const SKELETON_WIDTHS = ['72%', '56%', '84%', '44%', '64%'];
-const ROW_H = 48,
+const ROW_H_DEFAULT = 48,
   OVERSCAN = 8,
   FLEX_MIN = 160;
 
@@ -136,6 +136,16 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     return px != null && boxWidth[0] < px;
   }
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  /* Row height comes from CSS (--aura-table-row-height: 48, 40 in compact density, 48 again on touch), so the
+   * virtual window always matches what the browser draws. Server render assumes 48. */
+  const rowH = React.useState(ROW_H_DEFAULT);
+  const ROW_H = rowH[0];
+  useIsoLayoutEffect(function () {
+    const el = wrapRef.current;
+    if (!el || typeof getComputedStyle === 'undefined') return;
+    const v = parseFloat(getComputedStyle(el).getPropertyValue('--aura-table-row-height'));
+    if (v > 0 && v !== rowH[0]) rowH[1](v);
+  });
   const pending = React.useRef<PendingFocus | null>(null);
   const resizing = React.useRef(false);
 
@@ -1169,6 +1179,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     return (
       <div
         ref={wrapMerged}
+        data-density={props.density}
         className={cx('aura-table aura-table--stacked', refreshing && 'is-refreshing', props.className)}
         role="region"
         aria-label={props.label}
@@ -1201,6 +1212,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   return (
     <div
       ref={wrapMerged}
+      data-density={props.density}
       className={cx('aura-table', scrolledX[0] && 'is-scrolled-x', refreshing && 'is-refreshing', props.className)}
     >
       {refreshing ? <span className="aura-table__busy-bar" aria-hidden={true} /> : null}

@@ -10,7 +10,7 @@ import {
   useMergedRef,
   useMounted,
 } from './internal.js';
-import { useStrings } from './locale.js';
+import { useDensity, useStrings } from './locale.js';
 import { createPortal } from 'react-dom';
 import type { PopoverProps } from './types.js';
 
@@ -37,6 +37,7 @@ function position(
 
 export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function Popover(props, ref) {
   const t = useStrings();
+  const density = useDensity();
   const auto = uid(),
     id = props.id || auto;
   const st = useMaybeControlled(props.open, !!props.defaultOpen, props.onOpenChange);
@@ -104,6 +105,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
           <div
             ref={popMerged}
             id={id}
+            data-density={density}
             role="dialog"
             aria-modal={false}
             aria-label={props.title ? undefined : props.label}

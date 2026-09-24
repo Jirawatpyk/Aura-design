@@ -34,7 +34,7 @@ export { Container } from './Container.js';
 export { AppShell } from './AppShell.js';
 export { useBreakpoint, useResponsive, breakpoints } from './responsive.js';
 export { Surface } from './Surface.js';
-export { AuraProvider, useAuraLocale, STRINGS } from './locale.js';
+export { AuraProvider, useAuraLocale, useDensity, STRINGS } from './locale.js';
 export { Stat } from './Stat.js';
 export { TimePicker, parseTime } from './TimePicker.js';
 export { FileUpload, formatBytes } from './FileUpload.js';

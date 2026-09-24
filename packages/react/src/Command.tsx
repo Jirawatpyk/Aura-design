@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Icon } from './Icon.js';
 import { defaultFilter } from './Combobox.js';
 import { cx, uid } from './internal.js';
-import { useStrings } from './locale.js';
+import { useDensity, useStrings } from './locale.js';
 import { useModal } from './useModal.js';
 import type { CommandItem, CommandProps } from './types.js';
 
@@ -16,6 +16,7 @@ function isMac(): boolean {
  * Enter runs it, Escape closes and returns focus. Opens above a Dialog too. No dependency. */
 export function Command(props: CommandProps): React.ReactElement | null {
   const t = useStrings();
+  const density = useDensity();
   const id = uid(),
     listId = id + '-list';
   const box = React.useRef<HTMLDivElement | null>(null);
@@ -136,6 +137,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
   return createPortal(
     <div
       className="aura-dialog-layer aura-command-layer"
+      data-density={density}
       onKeyDown={function (e: React.KeyboardEvent) {
         modal.onKeyDown(e);
         /* Keys handled here never reach a Dialog this palette was opened from. */

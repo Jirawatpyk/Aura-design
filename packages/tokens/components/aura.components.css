@@ -7,7 +7,7 @@
   box-sizing: border-box;
   height: var(--aura-button-height);
   white-space: nowrap; flex-shrink: 0;   /* a pill never wraps its label */
-  padding: 0 var(--aura-space-6);
+  padding: 0 var(--aura-button-padding-x, var(--aura-space-6));
   border-radius: var(--aura-button-radius);
   border: 0;
   background: transparent;
@@ -74,14 +74,14 @@ a.aura-btn { text-decoration: none; }
 }
 .aura-table__scroll { position: relative; overflow: auto; overscroll-behavior: contain; }
 .aura-table__head {
-  position: sticky; top: 0; z-index: 3;
-  display: flex; height: var(--aura-space-12);
+  position: sticky; top: 0; z-index: 3; box-sizing: border-box;   /* the hairline is inside the row height */
+  display: flex; height: var(--aura-table-row-height);
   background: var(--aura-bg-canvas);
   border-bottom: 1px solid var(--aura-border-default);
   font-family: var(--font-mono); font-size: 12px; color: var(--aura-fg-secondary);
 }
 .aura-table__row {
-  display: flex; height: var(--aura-space-12);
+  box-sizing: border-box; display: flex; height: var(--aura-table-row-height);   /* exactly the virtual row height */
   background: var(--aura-bg-surface);
   border-bottom: 1px solid var(--aura-border-default);
   font-size: 13px;
@@ -105,7 +105,7 @@ a.aura-btn { text-decoration: none; }
 /* Server mode refresh: the previous page stays, inactive, under a progress bar until the next one arrives */
 .aura-table.is-refreshing .aura-table__row, .aura-table.is-refreshing .aura-table__card { opacity: 0.6; pointer-events: none; }
 .aura-table__busy-bar {
-  position: absolute; z-index: 6; top: calc(var(--aura-space-12) - 2px); left: 0; right: 0; height: 2px; overflow: hidden;
+  position: absolute; z-index: 6; top: calc(var(--aura-table-row-height) - 2px); left: 0; right: 0; height: 2px; overflow: hidden;
   border-radius: var(--aura-radius-full); pointer-events: none;
 }
 .aura-table--stacked .aura-table__busy-bar { top: 0; }
@@ -117,7 +117,7 @@ a.aura-btn { text-decoration: none; }
 
 /* Cells: text cells stay block so long values end in an ellipsis */
 .aura-table__td {
-  box-sizing: border-box; height: 100%; line-height: calc(var(--aura-space-12) - 1px);
+  box-sizing: border-box; height: 100%; line-height: calc(var(--aura-table-row-height) - 1px);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: var(--aura-space-4);
 }
 .aura-table__td .aura-pill, .aura-table__td .aura-dropdown, .aura-table__td > .aura-icon-btn, .aura-table__td > .aura-btn { vertical-align: middle; }
@@ -130,7 +130,7 @@ a.aura-btn { text-decoration: none; }
 .aura-table__gutter { flex: none; width: var(--aura-space-6); position: sticky; left: 0; z-index: 2; background: inherit; }
 .aura-table__gutter--end { position: static; }
 .aura-table__picker {
-  position: absolute; top: 0; right: 0; z-index: 5; width: var(--aura-space-12); height: calc(var(--aura-space-12) - 1px);
+  position: absolute; top: 0; right: 0; z-index: 5; width: var(--aura-space-12); height: calc(var(--aura-table-row-height) - 1px);
   display: flex; align-items: center; justify-content: center; background: var(--aura-bg-canvas); border-top-right-radius: calc(var(--aura-card-radius) - 1px);
 }
 .aura-table__gutter--end.has-picker {
@@ -228,7 +228,7 @@ a.aura-btn { text-decoration: none; }
 
 /* Footer + pager */
 .aura-table__foot {
-  height: var(--aura-space-12); display: flex; align-items: center; justify-content: space-between;
+  height: var(--aura-table-row-height); display: flex; align-items: center; justify-content: space-between;
   padding: 0 var(--aura-space-3) 0 var(--aura-space-6);
   border-top: 1px solid var(--aura-border-default); background: var(--aura-bg-surface);
   font-size: 13px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums;
@@ -1240,4 +1240,20 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-command__item { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { .aura-command { animation: none; } }
+
+/* Density. data-density="compact" on <html> or any container (AuraProvider density="compact" and DataTable
+ * density do it for you): 36px fields and buttons, 40px table rows, less button padding — for dense admin screens.
+ * Touch screens keep 44px targets whatever the density. "comfortable" inside compact switches back. */
+[data-density='compact'] {
+  --aura-input-height: 36px; --aura-button-height: 36px; --aura-table-row-height: 40px;
+  --aura-button-padding-x: var(--aura-space-4);
+}
+[data-density='comfortable'] {
+  --aura-input-height: 44px; --aura-button-height: 44px; --aura-table-row-height: 48px;
+  --aura-button-padding-x: var(--aura-space-6);
+}
+@media (pointer: coarse) {
+  [data-density='compact'] { --aura-input-height: 44px; --aura-button-height: 44px; --aura-table-row-height: 48px; --aura-button-padding-x: var(--aura-space-6); }
+}
+.aura-density { display: contents; }
 

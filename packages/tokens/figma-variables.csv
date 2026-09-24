@@ -249,3 +249,4 @@ size/cal-cell,number,light,36,Calendar day cell (DatePicker). 40px on touch scre
 size/popover-max-height,number,light,320,Max height of Combobox listbox and DatePicker popover lists. ADDED 4.2.,GAP
 size/input-font-size,number,light,14,"Text size in inputs, textareas, selects and pickers. Phones (<640px) use at least 16px so iOS Safari does not zoom on focus. ADDED 4.11.",GAP
 size/touch-target,number,light,44,"Minimum hit area on touch screens (pointer: coarse): IconButton, and Radio / Checkbox / Switch rows (WCAG 2.5.5). ADDED 4.11.",GAP
+size/table-row-height,number,light,48,DataTable row and header height. 40px in compact density on fine pointers; 48px on touch. ADDED 4.14.,GAP

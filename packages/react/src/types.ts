@@ -154,6 +154,8 @@ export interface DataTableProps {
   /** Controlled pinned columns (keys); pair with onPinnedColumnsChange. */
   pinnedColumns?: string[];
   onPinnedColumnsChange?: (keys: string[]) => void;
+  /** `compact` = 40px rows (48px on touch screens). Default: the surrounding density. */
+  density?: 'comfortable' | 'compact';
   /** Container width in px below which rows render as stacked cards (phones). Try 640. Measured with ResizeObserver, so it follows the container, not the window. */
   stackBelow?: number;
   className?: string;
@@ -254,6 +256,8 @@ export interface AuraProviderProps {
   calendar?: 'buddhist' | 'gregory';
   /** Override individual strings. */
   strings?: Partial<Record<string, string | ((...args: any[]) => string)>>;
+  /** `compact`: 36px fields and buttons, 40px table rows — dense admin screens. Touch screens keep 44px. Default: comfortable (or an ancestor's `data-density`). */
+  density?: 'comfortable' | 'compact';
   /** Your router's link (e.g. `Link` from `next/link`), used by every AURA component that renders a link: Button with `href`, SideNav, Breadcrumb, Stat, Pagination, DataTable row links. It gets `href`, `className`, `aria-current`, the children and the ref. A component's own `linkComponent` wins. */
   linkComponent?: React.ElementType;
   children?: React.ReactNode;

@@ -9,8 +9,8 @@ AURA Design System components as a real React package — ES modules, TypeScript
 One HTML file, no install — the packages are on npmjs, so jsDelivr serves them:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-tokens@4/aura.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/styles.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-tokens@4/aura.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/styles.css" />
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/aura.bundle.js"></script>
@@ -19,10 +19,17 @@ One HTML file, no install — the packages are on npmjs, so jsDelivr serves them
 <script>
   const h = React.createElement;
   ReactDOM.createRoot(document.getElementById('root')).render(
-    h(Aura.AuraProvider, { locale: 'th' },
-      h(Aura.Stack, { gap: 4 },
+    h(
+      Aura.AuraProvider,
+      { locale: 'th' },
+      h(
+        Aura.Stack,
+        { gap: 4 },
         h(Aura.Button, { icon: 'plus' }, 'New order'),
-        h(Aura.DatePicker, { label: 'Delivery date' }))));
+        h(Aura.DatePicker, { label: 'Delivery date' }),
+      ),
+    ),
+  );
 </script>
 ```
 
@@ -38,15 +45,17 @@ Public on npmjs; internal projects can use GitHub Packages instead ([repository 
 
 ```tsx
 // app root (once)
-import '@aura/tokens/aura.css';          // tokens (light + dark)
-import '@aura/react/styles.css';         // component styles
+import '@aura/tokens/aura.css'; // tokens (light + dark)
+import '@aura/react/styles.css'; // component styles
 // fonts: Google Fonts <link> tags in <head>, or '@aura/tokens/aura-fonts.css'
 
 import { AuraProvider, AppShell, SideNav, DataTable, DatePicker } from '@aura/react';
 
 export default function Root() {
   return (
-    <AuraProvider locale="th">           {/* Thai built-in labels; dates are พ.ศ. by default */}
+    <AuraProvider locale="th">
+      {' '}
+      {/* Thai built-in labels; dates are พ.ศ. by default */}
       <App />
     </AuraProvider>
   );
@@ -55,17 +64,17 @@ export default function Root() {
 
 ## What's inside
 
-| Output | For |
-|---|---|
-| `dist/esm/*.js` | Bundlers (Vite, Next.js, webpack). One file per module with `'use client'`, so Next.js App Router can import it from Server Components. `sideEffects` is limited to CSS, so unused components are dropped. |
-| `dist/cjs/index.cjs` | `require()` / Jest. |
-| `dist/aura.bundle.js` | A classic `<script>` that sets `window.Aura` (needs `window.React` / `window.ReactDOM`). The design-system artifact uses this file. |
-| `dist/styles.css` | Component CSS (no font import). |
-| `dist/index.d.ts` | Types for every component and helper, generated from the TypeScript sources (one file). |
+| Output                | For                                                                                                                                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dist/esm/*.js`       | Bundlers (Vite, Next.js, webpack). One file per module with `'use client'`, so Next.js App Router can import it from Server Components. `sideEffects` is limited to CSS, so unused components are dropped. |
+| `dist/cjs/index.cjs`  | `require()` / Jest.                                                                                                                                                                                        |
+| `dist/aura.bundle.js` | A classic `<script>` that sets `window.Aura` (needs `window.React` / `window.ReactDOM`). The design-system artifact uses this file.                                                                        |
+| `dist/styles.css`     | Component CSS (no font import).                                                                                                                                                                            |
+| `dist/index.d.ts`     | Types for every component and helper, generated from the TypeScript sources (one file).                                                                                                                    |
 
 ## Components (49)
 
-Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette) · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`.
+Actions: Button, IconButton, Menu, DropdownMenu, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette) · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
 
 ## Router links, Swedish, motion
 
@@ -75,6 +84,15 @@ import Link from 'next/link';
 ```
 
 `linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref`, Stat `href`, SideNav and DataTable row/pager links. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` has no provider to read and stays Thai unless you pass `locale`. Values are always Gregorian ISO dates.
+
+## Compact density
+
+```tsx
+<AuraProvider density="compact">…</AuraProvider>   {/* whole app or one section */}
+<DataTable density="compact" … />                   {/* just one table */}
+```
+
+Compact makes fields and buttons 36px (from 44px), table rows 40px (from 48px) and tightens button padding. Dialogs, drawers, popovers and the ⌘K palette opened inside the provider follow it. On touch screens (`pointer: coarse`) compact keeps 44px targets and 48px rows. Read it with `useDensity()`. Without CSS-in-JS you can set `data-density="compact"` on any element — the CSS variables `--aura-input-height`, `--aura-button-height`, `--aura-table-row-height` and `--aura-button-padding-x` do the rest; virtual DataTables read the row height from CSS.
 
 Motion: skeleton pulses and indeterminate bars honour `prefers-reduced-motion: reduce` — skeletons stop (a static bar), spinners and progress bars slow to a third.
 

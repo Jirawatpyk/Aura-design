@@ -42,6 +42,22 @@ def color_scheme(pg, name, dark, system, after_reload=lambda pg: None):
     axe(pg, 'system dark')
 
 GHA = bool(os.environ.get('GITHUB_ACTIONS'))
+# Compact density (4.14): data-density="compact" on <html> gives 36px fields/buttons and 40px rows; nothing may clip
+# that didn't already (ellipsis columns do on purpose), and axe stays clean in both themes.
+CLIPPED = """() => [...document.querySelectorAll('.aura-btn, .aura-input__control, .aura-table__th-label, .aura-tabs__tab, .aura-page, .aura-seg__item, .aura-choice__label')]
+  .filter(e => e.offsetParent && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 2))
+  .map(e => e.className.split(' ')[0] + ': ' + (e.textContent || e.value || '').trim().slice(0, 30))"""
+def compact(pg, label):
+    before = set(pg.evaluate(CLIPPED))
+    pg.evaluate("document.documentElement.setAttribute('data-density','compact')")
+    h = pg.evaluate("getComputedStyle(document.querySelector('.aura-btn')).height")
+    assert h == '36px', label + ' compact button height ' + h
+    new = [c for c in pg.evaluate(CLIPPED) if c not in before]
+    assert not new, label + ' clipped in compact: ' + '; '.join(new[:5])
+    axe(pg, label + ' compact light')
+    pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); axe(pg, label + ' compact dark')
+    pg.evaluate("document.documentElement.removeAttribute('data-theme'); document.documentElement.removeAttribute('data-density')")
+
 def gha(level, title, msg):
     if GHA: print(f"::{level} title={title}::{msg.replace(chr(10), ' ')[:400]}")
 def run(br, name, url, vp, fn):
@@ -137,6 +153,8 @@ def s_phone(pg):
     pg.get_by_role('tab', name=re.compile('^Team')).click(); pg.wait_for_timeout(300)
     f = pg.get_by_role('textbox', name='Add a domain'); b = pg.get_by_role('button', name='Add', exact=True)
     assert abs(f.bounding_box()['width'] - b.bounding_box()['width']) <= 3, 'stacked field and button should be full width on phones'
+def s_compact(pg): compact(pg, 'settings')
+def l_compact(pg): compact(pg, 'landing')
 def s_color_scheme(pg): color_scheme(pg, 'Colour scheme', 'Dark', 'System', lambda pg: pg.wait_for_timeout(500))
 
 def l_axe_brands(pg):
@@ -177,10 +195,10 @@ def l_color_scheme(pg): color_scheme(pg, 'โหมดสี', 'มืด', 'ต
 with sync_playwright() as p:
     br = p.chromium.launch(**({'executable_path': CHROMIUM} if CHROMIUM else {}))
     print('settings')
-    for fn in [s_axe_all_tabs, s_rhf_validation, s_time_and_zone, s_checkbox_labels, s_team, s_billing, s_audit, s_color_scheme]: run(br, fn.__name__, S, {'width': 1440, 'height': 1000}, fn)
+    for fn in [s_axe_all_tabs, s_rhf_validation, s_time_and_zone, s_checkbox_labels, s_team, s_billing, s_audit, s_color_scheme, s_compact]: run(br, fn.__name__, S, {'width': 1440, 'height': 1000}, fn)
     run(br, 's_phone', S, {'width': 390, 'height': 844}, s_phone)
     print('landing')
-    for fn in [l_axe_brands, l_theme_switch, l_surface_light_in_dark, l_signup, l_hero_cta_focus, l_color_scheme]: run(br, fn.__name__, L, {'width': 1440, 'height': 900}, fn)
+    for fn in [l_axe_brands, l_theme_switch, l_surface_light_in_dark, l_signup, l_hero_cta_focus, l_color_scheme, l_compact]: run(br, fn.__name__, L, {'width': 1440, 'height': 900}, fn)
     run(br, 'l_phone', L, {'width': 390, 'height': 844}, l_phone)
     br.close()
 bad = [r for r in results if not r[1]]

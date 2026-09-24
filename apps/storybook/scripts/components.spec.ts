@@ -812,3 +812,41 @@ test.describe('4.13: Chamber-OS group B', () => {
     await expect(page.getByRole('dialog', { name: 'Edit member' })).toBeVisible();
   });
 });
+
+test.describe('4.14: compact density', () => {
+  const s414 = (page: Page, id: string, theme = 'light') => story(page, 'aura-new-in-4-14--' + id, theme);
+  const h = (l: import('@playwright/test').Locator) => l.evaluate((e) => Math.round(e.getBoundingClientRect().height));
+  test('provider compact: 36px fields and buttons, 40px rows, the Dialog too; the virtual table reaches its last row', async ({ page }) => {
+    await s414(page, 'compact');
+    expect(await h(page.getByRole('button', { name: 'Export' }))).toBe(36);
+    expect(await h(page.locator('.aura-input').first())).toBe(36);
+    expect(await h(page.locator('.aura-table__row').first())).toBe(40);
+    expect(await h(page.locator('.aura-table__head'))).toBe(40);
+    await page.getByRole('button', { name: 'New invoice' }).click();
+    const dlg = page.getByRole('dialog', { name: 'New invoice' });
+    // Poll: the dialog scales in, so its first frames measure a pixel short.
+    await expect.poll(() => h(dlg.locator('.aura-input'))).toBe(36);
+    await expect.poll(() => h(dlg.getByRole('button', { name: 'Create' }))).toBe(36);
+    await page.keyboard.press('Escape');
+    const first = page.locator('.aura-table__row [role="gridcell"]').first();
+    await first.focus();
+    await page.keyboard.press('Control+End');
+    await expect(page.locator('.aura-table__row').last()).toContainText('INV-1400');
+    const cell = page.locator(':focus');
+    await expect(cell).toBeInViewport();
+  });
+  test('DataTable density="compact" on its own leaves the rest comfortable', async ({ page }) => {
+    await s414(page, 'compact-table-only');
+    expect(await h(page.getByRole('button', { name: 'Comfortable button' }))).toBe(44);
+    expect(await h(page.locator('.aura-table__row').first())).toBe(40);
+  });
+  test.describe('touch', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 820, height: 1000 } });
+    test('compact falls back to 44px fields and 48px rows on touch screens', async ({ page }) => {
+      await s414(page, 'compact');
+      expect(await h(page.getByRole('button', { name: 'Export' }))).toBe(44);
+      expect(await h(page.locator('.aura-input').first())).toBe(44);
+      expect(await h(page.locator('.aura-table__row').first())).toBe(48);
+    });
+  });
+});

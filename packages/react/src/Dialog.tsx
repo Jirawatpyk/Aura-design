@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStrings, useAuraLocale } from './locale.js';
+import { useStrings, useDensity } from './locale.js';
 import { createPortal } from 'react-dom';
 import { cx, uid, useMergedRef } from './internal.js';
 import { IconButton } from './IconButton.js';
@@ -8,6 +8,7 @@ import type { DialogProps, DrawerProps } from './types.js';
 
 export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dialog(props, ref) {
   const t = useStrings();
+  const density = useDensity();
   const own = React.useRef<HTMLDivElement | null>(null),
     merged = useMergedRef(ref, own),
     titleId = uid(),
@@ -23,7 +24,7 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
   });
   if (!modal.ready) return null;
   return createPortal(
-    <div className="aura-dialog-layer" onKeyDown={modal.onKeyDown}>
+    <div className="aura-dialog-layer" data-density={density} onKeyDown={modal.onKeyDown}>
       <div className="aura-scrim" onClick={close} aria-hidden={true} />
       <div
         ref={merged}
@@ -59,6 +60,7 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
 /** Side panel over the page: record detail, filters, mobile navigation. Modal (focus trap, scroll lock, focus restore). */
 export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Drawer(props, ref) {
   const t = useStrings();
+  const density = useDensity();
   const own = React.useRef<HTMLDivElement | null>(null),
     merged = useMergedRef(ref, own),
     titleId = uid(),
@@ -75,7 +77,7 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
   if (!modal.ready) return null;
   const side = props.side === 'left' ? 'left' : 'right';
   return createPortal(
-    <div className="aura-dialog-layer aura-drawer-layer" onKeyDown={modal.onKeyDown}>
+    <div className="aura-dialog-layer aura-drawer-layer" data-density={density} onKeyDown={modal.onKeyDown}>
       <div className="aura-scrim" onClick={close} aria-hidden={true} />
       <div
         ref={merged}

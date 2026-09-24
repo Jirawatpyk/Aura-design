@@ -123,6 +123,7 @@ window.Aura = (() => {
     useAuraLocale: () => useAuraLocale,
     useBreakpoint: () => useBreakpoint,
     useColorScheme: () => useColorScheme,
+    useDensity: () => useDensity,
     useFormatDate: () => useFormatDate,
     useResponsive: () => useResponsive
   });
@@ -609,6 +610,8 @@ window.Aura = (() => {
   };
   var LocaleContext = React3.createContext(null);
   function AuraProvider(props) {
+    const outer = React3.useContext(LocaleContext);
+    const density = props.density || outer && outer.density || null;
     const value = React3.useMemo(
       function() {
         const base = props.locale && STRINGS[props.locale] || STRINGS.en;
@@ -616,12 +619,13 @@ window.Aura = (() => {
           locale: props.locale || "en",
           calendar: props.calendar || null,
           strings: props.strings ? Object.assign({}, base, props.strings) : base,
-          linkComponent: props.linkComponent || null
+          linkComponent: props.linkComponent || null,
+          density
         };
       },
-      [props.locale, props.calendar, props.strings, props.linkComponent]
+      [props.locale, props.calendar, props.strings, props.linkComponent, density]
     );
-    return /* @__PURE__ */ React3.createElement(LocaleContext.Provider, { value }, props.children);
+    return /* @__PURE__ */ React3.createElement(LocaleContext.Provider, { value }, props.density ? /* @__PURE__ */ React3.createElement("div", { className: "aura-density", "data-density": props.density }, props.children) : props.children);
   }
   function useAuraLocale() {
     return React3.useContext(LocaleContext) || { locale: null, calendar: null, strings: STRINGS.en };
@@ -629,6 +633,10 @@ window.Aura = (() => {
   function useLinkComponent(own) {
     const ctx = React3.useContext(LocaleContext);
     return own || ctx && ctx.linkComponent || "a";
+  }
+  function useDensity() {
+    const ctx = React3.useContext(LocaleContext);
+    return ctx && ctx.density || void 0;
   }
   function useStrings() {
     return useAuraLocale().strings;
@@ -2722,6 +2730,7 @@ window.Aura = (() => {
   }
   function Command(props) {
     const t = useStrings();
+    const density = useDensity();
     const id = uid(), listId = id + "-list";
     const box = React25.useRef(null);
     const input = React25.useRef(null);
@@ -2833,6 +2842,7 @@ window.Aura = (() => {
         "div",
         {
           className: "aura-dialog-layer aura-command-layer",
+          "data-density": density,
           onKeyDown: function(e) {
             modal.onKeyDown(e);
             e.stopPropagation();
@@ -3002,6 +3012,7 @@ window.Aura = (() => {
   var import_react_dom7 = __toESM(require_react_dom(), 1);
   var Dialog = React27.forwardRef(function Dialog2(props, ref) {
     const t = useStrings();
+    const density = useDensity();
     const own = React27.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
     function close() {
       if (props.dismissible !== false && props.onClose) props.onClose();
@@ -3014,7 +3025,7 @@ window.Aura = (() => {
     });
     if (!modal.ready) return null;
     return (0, import_react_dom7.createPortal)(
-      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer", onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
+      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
         "div",
         {
           ref: merged,
@@ -3035,6 +3046,7 @@ window.Aura = (() => {
   });
   var Drawer = React27.forwardRef(function Drawer2(props, ref) {
     const t = useStrings();
+    const density = useDensity();
     const own = React27.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
     function close() {
       if (props.dismissible !== false && props.onClose) props.onClose();
@@ -3048,7 +3060,7 @@ window.Aura = (() => {
     if (!modal.ready) return null;
     const side = props.side === "left" ? "left" : "right";
     return (0, import_react_dom7.createPortal)(
-      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
+      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
         "div",
         {
           ref: merged,
@@ -3079,7 +3091,7 @@ window.Aura = (() => {
     { key: "owner", label: "OWNER" }
   ];
   var SKELETON_WIDTHS = ["72%", "56%", "84%", "44%", "64%"];
-  var ROW_H = 48;
+  var ROW_H_DEFAULT = 48;
   var OVERSCAN = 8;
   var FLEX_MIN = 160;
   var DataTable = React28.forwardRef(function DataTable2(props, ref) {
@@ -3165,6 +3177,14 @@ window.Aura = (() => {
       return px != null && boxWidth[0] < px;
     }
     const scrollRef = React28.useRef(null);
+    const rowH = React28.useState(ROW_H_DEFAULT);
+    const ROW_H = rowH[0];
+    useIsoLayoutEffect(function() {
+      const el = wrapRef.current;
+      if (!el || typeof getComputedStyle === "undefined") return;
+      const v = parseFloat(getComputedStyle(el).getPropertyValue("--aura-table-row-height"));
+      if (v > 0 && v !== rowH[0]) rowH[1](v);
+    });
     const pending = React28.useRef(null);
     const resizing = React28.useRef(false);
     useIsoLayoutEffect(function() {
@@ -4027,6 +4047,7 @@ window.Aura = (() => {
         "div",
         {
           ref: wrapMerged,
+          "data-density": props.density,
           className: cx("aura-table aura-table--stacked", refreshing && "is-refreshing", props.className),
           role: "region",
           "aria-label": props.label,
@@ -4055,6 +4076,7 @@ window.Aura = (() => {
       "div",
       {
         ref: wrapMerged,
+        "data-density": props.density,
         className: cx("aura-table", scrolledX[0] && "is-scrolled-x", refreshing && "is-refreshing", props.className)
       },
       refreshing ? /* @__PURE__ */ React28.createElement("span", { className: "aura-table__busy-bar", "aria-hidden": true }) : null,
@@ -5759,6 +5781,7 @@ window.Aura = (() => {
   }
   var Popover = React51.forwardRef(function Popover2(props, ref) {
     const t = useStrings();
+    const density = useDensity();
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.open, !!props.defaultOpen, props.onOpenChange);
     const open = !!st[0];
@@ -5816,6 +5839,7 @@ window.Aura = (() => {
         {
           ref: popMerged,
           id,
+          "data-density": density,
           role: "dialog",
           "aria-modal": false,
           "aria-label": props.title ? void 0 : props.label,
