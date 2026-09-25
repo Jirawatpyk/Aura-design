@@ -234,6 +234,16 @@ a.aura-btn { text-decoration: none; }
 }
 .aura-menu__check.is-on { background: var(--aura-button-primary-bg); border-color: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); }
 .aura-menu__check.is-on .aura-icon { color: inherit; }
+.aura-menu__item--danger, .aura-menu__item--danger .aura-icon { color: var(--aura-fg-danger); }
+.aura-menu__item--danger:hover, .aura-menu__item--danger:focus { background: var(--aura-alert-danger-bg); color: var(--aura-alert-danger-fg); }
+.aura-menu__item--danger:hover .aura-icon, .aura-menu__item--danger:focus .aura-icon { color: var(--aura-alert-danger-fg); }
+a.aura-menu__item { text-decoration: none; box-sizing: border-box; }
+.aura-menu__radio {
+  flex: none; box-sizing: border-box; width: 16px; height: 16px; border-radius: var(--aura-radius-full);
+  border: 1px solid var(--aura-border-control); display: inline-flex; align-items: center; justify-content: center;
+}
+.aura-menu__radio.is-on { border-color: var(--aura-button-primary-bg); }
+.aura-menu__radio.is-on::after { content: ''; width: 8px; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-button-primary-bg); }
 .aura-menu__sep { height: 1px; margin: var(--aura-space-1) calc(-1 * var(--aura-space-1)); background: var(--aura-border-default); }
 
 /* Footer + pager */
@@ -564,7 +574,8 @@ a.aura-icon-btn { text-decoration: none; }
 }
 .aura-tab:hover { color: var(--aura-fg-primary); }
 .aura-tab.is-active { color: var(--aura-fg-primary); border-bottom-color: var(--aura-fg-primary); }
-.aura-tab:disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
+.aura-tab:disabled, .aura-tab.is-disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
+a.aura-tab { text-decoration: none; }
 .aura-tab:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: -4px; border-radius: var(--aura-radius-xs); }
 .aura-tab__count {
   min-width: 18px; padding: 0 6px; box-sizing: border-box; border-radius: var(--aura-radius-full);
@@ -856,6 +867,13 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-table__card-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--aura-space-2) var(--aura-space-4); margin: 0; }
 .aura-table__card-fields dt { font-family: var(--font-mono); font-size: 11px; color: var(--aura-fg-secondary); }
 .aura-table__card-fields dd { margin: 2px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aura-table__card-fields dd.is-end { text-align: right; font-variant-numeric: tabular-nums; }
+.aura-table__card--total { background: var(--aura-bg-canvas); font-weight: 600; }
+/* Totals row (4.19): under the body, a strong top edge; sticky at the bottom of a `height` table with stickyFooter. */
+.aura-table__total { background: var(--aura-bg-canvas); border-top: 1px solid var(--aura-border-strong); font-weight: 600; }
+.aura-table__total.is-sticky { position: sticky; bottom: 0; z-index: 3; }
+.aura-table__total .aura-table__td.is-end { font-variant-numeric: tabular-nums; }
+.aura-tooltip--above { transform: translateY(-100%); max-width: min(var(--aura-tooltip-max), 90vw); white-space: normal; }
 .aura-table--stacked .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); }
 .aura-table--stacked .aura-table__empty { background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); }
 
@@ -1349,3 +1367,67 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @container (max-width: 959.98px) { .aura-table-dual[data-stack-below='960'] > .aura-table:not(.aura-table--stacked) { display: none; } }
 @container (min-width: 1024px) { .aura-table-dual[data-stack-below='1024'] > .aura-table--stacked { display: none; } }
 @container (max-width: 1023.98px) { .aura-table-dual[data-stack-below='1024'] > .aura-table:not(.aura-table--stacked) { display: none; } }
+
+/* ---------- 4.19: BottomNav ---------- */
+/* Fixed to the bottom and padded for the home indicator; the spacer before it holds the same height in the flow.
+ * Shown below its breakpoint in CSS, so the server's HTML is right before hydration. */
+.aura-bottomnav-spacer { height: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); flex: none; }
+.aura-bottomnav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--aura-z-bar); box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--aura-bg-surface); border-top: 1px solid var(--aura-border-default); font-family: var(--font-sans);
+}
+.aura-bottomnav__list { display: flex; margin: 0; padding: 0; list-style: none; }
+.aura-bottomnav__cell { flex: 1 1 0; min-width: 0; }
+.aura-bottomnav__item {
+  box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  width: 100%; height: var(--aura-bottomnav-height); padding: 0 2px; border: 0; background: transparent;
+  color: var(--aura-fg-secondary); font: inherit; font-size: 11px; font-weight: 500; line-height: 14px;
+  text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.aura-bottomnav__item:hover { color: var(--aura-fg-primary); }
+.aura-bottomnav__item.is-active { color: var(--aura-fg-primary); font-weight: 600; }
+.aura-bottomnav__item.is-active .aura-icon { color: var(--aura-fg-accent); }
+.aura-bottomnav__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: -2px; border-radius: var(--aura-radius-sm); }
+.aura-bottomnav__icon {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 28px; border-radius: var(--aura-radius-full);
+}
+.aura-bottomnav__item.is-active .aura-bottomnav__icon { background: var(--aura-bg-selected); }
+.aura-bottomnav__label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aura-bottomnav__count {
+  position: absolute; top: -2px; left: calc(50% + 4px); min-width: 16px; height: 16px; box-sizing: border-box; padding: 0 4px;
+  border-radius: var(--aura-radius-full); background: var(--aura-bg-inverted); color: var(--aura-fg-inverted);
+  font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--aura-bg-surface);
+}
+.aura-bottomnav__dot {
+  position: absolute; top: 2px; left: calc(50% + 6px); width: 8px; height: 8px; border-radius: var(--aura-radius-full);
+  background: var(--aura-fg-accent); box-shadow: 0 0 0 2px var(--aura-bg-surface);
+}
+@media (min-width: 768px) { .aura-bottomnav.aura-bottomnav--below-md, .aura-bottomnav-spacer.aura-bottomnav--below-md { display: none; } }
+@media (min-width: 1024px) { .aura-bottomnav.aura-bottomnav--below-lg, .aura-bottomnav-spacer.aura-bottomnav--below-lg { display: none; } }
+@media (min-width: 1280px) { .aura-bottomnav.aura-bottomnav--below-xl, .aura-bottomnav-spacer.aura-bottomnav--below-xl { display: none; } }
+/* While a BottomNav shows, viewport ActionBars and phone toasts sit on top of it. */
+:root:has(.aura-bottomnav--always) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 767.98px) { :root:has(.aura-bottomnav--below-md) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 1023.98px) { :root:has(.aura-bottomnav--below-lg) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 1279.98px) { :root:has(.aura-bottomnav--below-xl) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 639.98px) { .aura-toaster:not(.is-top) { bottom: calc(var(--aura-space-4) + var(--aura-bottomnav-offset, 0px)); } }
+
+/* ---------- 4.19: ActionBar ---------- */
+/* Sticky, not fixed: it keeps its place at the end of its parent, so it never covers the last field. */
+.aura-actionbar { position: sticky; z-index: var(--aura-z-bar); box-sizing: border-box; background: var(--aura-bg-surface); color: var(--aura-fg-primary); font-family: var(--font-sans); }
+.aura-actionbar--viewport {
+  bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px)));
+  margin-top: var(--aura-space-6);
+  border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay);
+}
+.aura-actionbar--container { bottom: 0; border-top: 1px solid var(--aura-border-default); }
+.aura-actionbar__inner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2) var(--aura-space-3); min-height: 60px; box-sizing: border-box; padding: var(--aura-space-2) var(--aura-space-3) var(--aura-space-2) var(--aura-space-4); }
+.aura-actionbar__status { flex: 1 1 8rem; min-width: 0; font-size: 14px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
+.aura-actionbar__status:empty { flex-basis: 0; }
+.aura-actionbar__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin-left: auto; }
+/* Bulk bar with nothing selected: out of sight and out of the tab order, its live region still in the page. */
+.aura-actionbar.is-idle { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; box-shadow: none; }
+.aura-actionbar--container > .aura-actionbar__inner { padding-left: 0; padding-right: 0; }

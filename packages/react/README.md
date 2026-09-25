@@ -74,9 +74,9 @@ export default function Root() {
 | `dist/styles.css`     | Component CSS (no font import).                                                                                                                                                                            |
 | `dist/index.d.ts`     | Types for every component and helper, generated from the TypeScript sources (one file).                                                                                                                    |
 
-## Components (49)
+## Components (51)
 
-Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette) · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
+Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu (link, danger and radio items), ActionBar, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette), BottomNav · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
 
 ## Router links, Swedish, motion
 
@@ -100,7 +100,7 @@ export function Providers({ children, locale }: { children: React.ReactNode; loc
 // app/layout.tsx (a Server Component): <body><Providers locale="th">{children}</Providers></body>
 ```
 
-`linkComponent` is used by Button `href`, Breadcrumb, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` from the package root has no provider to read and stays Thai unless you pass `locale` (until 5.0); the one in `@jirawatpyk/aura-react/server` defaults to English and Gregorian. Values are always Gregorian ISO dates.
+`linkComponent` is used by Button `href`, Breadcrumb, Tabs and Menu items with `href`, BottomNav, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` from the package root has no provider to read and stays Thai unless you pass `locale` (until 5.0); the one in `@jirawatpyk/aura-react/server` defaults to English and Gregorian. Values are always Gregorian ISO dates.
 
 ## Compact density
 
@@ -158,6 +158,33 @@ Server search in the palette (4.17): control the query and hand over what the se
 ```
 
 DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page }) => router.push(…)}` reports a sort click once, as `{ sort, page: 1 }`, instead of `onSortChange` and then `onPageChange(1)`. That's one history entry and one server render.
+
+## Phone bars, totals, link tabs, time zones (4.19)
+
+```tsx
+<AppShell nav={<SideNav … />} bottomNav={<BottomNav value={tab} items={[{ id: 'home', label: 'Home', icon: 'house', href: '/' }, …]} />}>
+  <form>
+    …fields…
+    <ActionBar status={dirty ? 'Unsaved changes' : 'Total 107,000.00 THB · due Oct 22, 2026'}>   {/* last child of the form */}
+      <Button>Save</Button>
+    </ActionBar>
+  </form>
+</AppShell>
+
+<ActionBar selected={ids.length} onClearSelection={clear}><Button size="sm">Send reminder</Button></ActionBar>
+<DataTable … footer={{ id: 'Total', vat: '9,779.00', total: '149,479.00' }} stickyFooter height={480} />
+<Tabs label="Renewals" value="review" tabs={[{ id: 'pipeline', label: 'Pipeline', href: '/renewals' }, …]} />
+<DropdownMenu items={[{ label: 'Open', href: '/m/1' }, { label: 'Grid', type: 'radio', group: 'View', checked }, { label: 'Void', tone: 'danger' }]} … />
+<DatePicker label="Payment date" max="today" />   {/* with <AuraProvider timeZone="Asia/Bangkok"> */}
+```
+
+- **ActionBar** is `position: sticky`, so it stays in the flow and never covers the last field; it sticks while its parent (the form or card) is on screen. `viewport` (default) floats above the home indicator and above a BottomNav; `container` sits flush at the bottom of a card. The status line is a live region. With `selected`, it reads "N selected", adds Clear, and hides at 0 (focus goes back to where it came from).
+- **BottomNav**: up to five icon + label tabs, 44px+ targets at 320px, `aria-current="page"`, counts and dots. Hidden from `lg` up in CSS (`hideFrom`), with a spacer in the flow, so the server's HTML is right and nothing shifts on hydration. For the notch and home indicator add `viewport-fit=cover` to your viewport meta.
+- **DataTable `footer`**: a totals row with the body's widths and alignment (a Totals card when stacked); `stickyFooter` keeps it in view in a `height` table. Truncated cells show their full text on hover and keyboard focus.
+- **Tabs with `href`** on every item render a `nav` of links (no panels), the current one `aria-current="page"`.
+- **Menu items**: `href` (through `linkComponent`), `tone: 'danger'`, and `type: 'radio'` with `group` / `checked` (menuitemradio in a labelled group).
+- **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
+- **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
 ## Phones and touch
 

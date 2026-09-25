@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
+import { useLinkComponent } from './locale.js';
 import type { TabItem, TabsProps } from './types.js';
 
 export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(props, ref) {
@@ -16,6 +17,54 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
     items.filter(function (t: TabItem) {
       return t.id === st[0];
     })[0] || items[0];
+  const Link = useLinkComponent(props.linkComponent);
+  /* Section tabs that are routes (4.19): links in a nav, the current one marked as the page, no panels. Links are
+   * reached with Tab (not arrows) — they're navigation, not a tab widget. */
+  const asLinks =
+    items.length > 0 &&
+    items.every(function (t: TabItem) {
+      return !!t.href;
+    });
+  if (asLinks)
+    return (
+      <nav
+        ref={ref as React.Ref<HTMLElement>}
+        aria-label={props.label}
+        className={cx('aura-tabs aura-tabs--links', props.className)}
+      >
+        <div className="aura-tabs__list">
+          {items.map(function (t: TabItem) {
+            const on = current && t.id === current.id;
+            const inner = [
+              t.icon ? <Icon key="i" name={t.icon} /> : null,
+              t.label,
+              t.count != null ? (
+                <span key="c" className="aura-tab__count">
+                  {t.count}
+                </span>
+              ) : null,
+            ];
+            return t.disabled ? (
+              <span key={t.id} className="aura-tab is-disabled" aria-disabled={true}>
+                {inner}
+              </span>
+            ) : (
+              <Link
+                key={t.id}
+                href={t.href}
+                className={cx('aura-tab', on && 'is-active')}
+                aria-current={on ? 'page' : undefined}
+                onClick={function () {
+                  st[1](t.id);
+                }}
+              >
+                {inner}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    );
   function go(i: number) {
     const enabled = items.filter(function (t: TabItem) {
       return !t.disabled;

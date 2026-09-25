@@ -32,6 +32,7 @@ export const DropdownMenu = React.forwardRef<HTMLSpanElement, DropdownMenuProps>
           anchor={anchor}
           label={props.label as string}
           items={props.items}
+          linkComponent={props.linkComponent}
           onClose={function (restore: boolean) {
             setAnchor(null);
             if (restore && typeof anchor!.focus === 'function') anchor!.focus();

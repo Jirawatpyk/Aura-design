@@ -45,7 +45,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       })
     : props.nav;
   return (
-    <div ref={ref} className={cx('aura-shell', props.className)}>
+    <div ref={ref} className={cx('aura-shell', props.bottomNav && 'aura-shell--bottomnav', props.className)}>
       {props.nav ? <div className="aura-shell__nav">{props.nav}</div> : null}
       {props.nav ? (
         <Drawer
@@ -82,6 +82,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
         <main className="aura-shell__content" id={props.mainId || 'main'}>
           {props.children}
         </main>
+        {props.bottomNav || null}
       </div>
     </div>
   );

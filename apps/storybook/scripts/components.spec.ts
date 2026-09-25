@@ -1268,3 +1268,239 @@ test.describe('4.18: the open Command palette passes axe', () => {
     });
   }
 });
+
+test.describe('4.19: Chamber-OS group D', () => {
+  const axeOn = async (page: Page, sel: string) => {
+    const { violations } = await new AxeBuilder({ page })
+      .include(sel)
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
+  };
+
+  test('41: totals row lines up with the body; sticky footer stays in view; stacked gets a Totals card', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-4-19--table-totals', 'light');
+    const grid = page.getByTestId('grid-totals');
+    const total = grid.getByRole('row', { name: 'Totals' });
+    await expect(total).toBeVisible();
+    await expect(page.getByRole('grid', { name: 'Output VAT register', exact: true })).toHaveAttribute(
+      'aria-rowcount',
+      '7',
+    );
+    /* Right edges of the money columns match the body's. */
+    const edges = await grid.evaluate((g) => {
+      const right = (row: Element, i: number) =>
+        row.querySelectorAll('[role="gridcell"]')[i].getBoundingClientRect().right;
+      const body = g.querySelector('.aura-table__row:not(.aura-table__total):not(.aura-table__head)')!;
+      const tot = g.querySelector('.aura-table__total')!;
+      return [2, 3, 4].map((i) => [Math.round(right(body, i)), Math.round(right(tot, i))]);
+    });
+    for (const [b, t] of edges) expect(t).toBe(b);
+    await expect(total.getByRole('gridcell').nth(4)).toHaveCSS('text-align', /right|end/);
+    /* Sticky: visible at the bottom of the scrolled-to-top 260px table. */
+    const sticky = page.getByTestId('sticky-totals');
+    const [boxBottom, rowBottom] = await sticky.evaluate((s) => [
+      s.querySelector('[role="grid"]')!.getBoundingClientRect().bottom,
+      s.querySelector('.aura-table__total')!.getBoundingClientRect().bottom,
+    ]);
+    expect(Math.abs(boxBottom - rowBottom)).toBeLessThanOrEqual(2);
+    /* Stacked: a Totals card with the amounts right-aligned. */
+    const card = page.getByTestId('stacked-totals').getByRole('group', { name: 'Totals' });
+    await expect(card).toContainText('149,479.00');
+    expect(await axeOn(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('41: a truncated cell shows its full text on hover and on keyboard focus', async ({ page }) => {
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await story(page, 'aura-new-in-4-19--table-totals', 'light');
+    const cell = page.getByTestId('grid-totals').getByRole('gridcell', { name: /Scandinavian-Thai/ });
+    await cell.hover();
+    const tip = page.locator('.aura-tooltip--above');
+    await expect(tip).toHaveText(/Foundation for Trade and Culture/);
+    await expect(tip).toHaveAttribute('aria-hidden', 'true');
+    await page.mouse.move(0, 0);
+    await expect(tip).toHaveCount(0);
+    /* A short cell shows nothing. */
+    await page.getByTestId('grid-totals').getByRole('gridcell', { name: 'Nordic Rail' }).hover();
+    await expect(tip).toHaveCount(0);
+    await cell.focus();
+    await expect(tip).toHaveText(/Foundation for Trade and Culture/);
+  });
+
+  test('42: link item goes through linkComponent, danger item, radio group; axe on the open menu', async ({ page }) => {
+    for (const theme of ['light', 'dark']) {
+      await story(page, 'aura-new-in-4-19--menu-kinds', theme);
+      await page.getByRole('button', { name: 'Invoice actions' }).click();
+      const menu = page.getByRole('menu');
+      await expect(menu.getByRole('menuitem', { name: 'Open member' })).toHaveAttribute('href', '/members/acme');
+      const group = menu.getByRole('group', { name: 'View' });
+      await expect(group.getByRole('menuitemradio')).toHaveCount(2);
+      await expect(group.getByRole('menuitemradio', { name: 'Grid' })).toHaveAttribute('aria-checked', 'true');
+      await expect(group.getByRole('menuitemradio', { name: 'List' })).toHaveAttribute('aria-checked', 'false');
+      expect(await axeOn(page, '.aura-menu'), theme).toEqual([]);
+      /* Keyboard unchanged: arrows move through every item, links and radios included. */
+      await expect(menu.getByRole('menuitem', { name: 'Open member' })).toBeFocused();
+      await page.keyboard.press('ArrowDown');
+      await expect(menu.getByRole('menuitem', { name: 'Download PDF' })).toBeFocused();
+      await page.keyboard.press('End');
+      await expect(menu.getByRole('menuitem', { name: 'Void invoice' })).toBeFocused();
+      await page.keyboard.press('ArrowUp');
+      await expect(menu.getByRole('menuitemradio', { name: 'List' })).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(page.getByTestId('route')).toContainText('View: list');
+      await page.getByRole('button', { name: 'Invoice actions' }).click();
+      await page.getByRole('menuitem', { name: 'Open member' }).click();
+      await expect(page.getByTestId('route')).toContainText('Route: /members/acme');
+    }
+  });
+
+  test('43: container bar sticks under the last field; status is announced; bulk bar hides at 0', async ({ page }) => {
+    await story(page, 'aura-new-in-4-19--action-bars', 'light');
+    const form = page.getByRole('region', { name: 'Actions', exact: true });
+    const status = form.getByRole('status');
+    await expect(status).toHaveText('Total 107,000.00 THB · due Oct 22, 2026');
+    await page.getByLabel('Reference').fill('x');
+    await expect(status).toHaveText('Unsaved changes');
+    const [fieldBottom, barTop] = await page.evaluate(() => [
+      document.getElementById('last-field')!.getBoundingClientRect().bottom,
+      document.querySelector('.aura-actionbar--container')!.getBoundingClientRect().top,
+    ]);
+    expect(barTop).toBeGreaterThanOrEqual(fieldBottom);
+    const bulk = page.locator('.aura-actionbar').filter({ has: page.getByRole('button', { name: 'Send reminder' }) });
+    await expect(page.getByRole('button', { name: 'Send reminder' })).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Bulk actions' }).getByRole('status')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Select one more' }).click();
+    await page.getByRole('button', { name: 'Select one more' }).click();
+    await expect(page.getByRole('region', { name: 'Bulk actions' }).getByRole('status')).toHaveText('2 selected');
+    await expect(bulk).toBeVisible();
+    await page.getByRole('button', { name: 'Clear selection' }).click();
+    await expect(page.getByRole('button', { name: 'Send reminder' })).toHaveCount(0);
+    /* Clear took its own button away: focus goes back to where it came from, not to the page. */
+    await expect(page.getByRole('button', { name: 'Select one more' })).toBeFocused();
+  });
+
+  test.describe('phone', () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    test('43/44: viewport bar above the bottom nav at 390 × 844, not over the last field', async ({ page }) => {
+      await story(page, 'aura-new-in-4-19--bottom-tabs', 'light');
+      const m = await page.evaluate(() => {
+        const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
+        const mid = r('.aura-actionbar');
+        const out = {
+          bar: mid.bottom,
+          nav: r('.aura-bottomnav').top,
+          navBottom: r('.aura-bottomnav').bottom,
+          vh: innerHeight,
+        };
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        return {
+          ...out,
+          endBar: r('.aura-actionbar').top,
+          endField: r('#last-field').bottom,
+          endNav: r('.aura-bottomnav').top,
+          endBarBottom: r('.aura-actionbar').bottom,
+        };
+      });
+      expect(m.bar).toBeLessThanOrEqual(m.nav);
+      expect(Math.round(m.navBottom)).toBe(m.vh);
+      expect(m.endBar).toBeGreaterThanOrEqual(m.endField);
+      expect(m.endBarBottom).toBeLessThanOrEqual(m.endNav);
+    });
+  });
+
+  test.describe('narrow phone', () => {
+    test.use({ viewport: { width: 320, height: 640 }, hasTouch: true, isMobile: true });
+    test('44: five tabs fit at 320px with whole labels, 44px targets, current page, count in the name', async ({
+      page,
+    }) => {
+      await story(page, 'aura-new-in-4-19--bottom-tabs', 'light');
+      const nav = page.getByRole('navigation', { name: 'Main' });
+      const links = nav.getByRole('link');
+      await expect(links).toHaveCount(5);
+      for (const b of await links.evaluateAll((l) =>
+        l.map((e) => {
+          const r = e.getBoundingClientRect(),
+            lab = e.querySelector('.aura-bottomnav__label')!;
+          return { w: r.width, h: r.height, cut: lab.scrollWidth > lab.clientWidth };
+        }),
+      )) {
+        expect(b.w).toBeGreaterThanOrEqual(44);
+        expect(b.h).toBeGreaterThanOrEqual(44);
+        expect(b.cut).toBe(false);
+      }
+      await expect(nav.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
+      await expect(nav.getByRole('link', { name: 'Invoices (2)' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Inbox (new)' })).toBeVisible();
+      await nav.getByRole('link', { name: /Events/ }).click();
+      await expect(page.getByTestId('route')).toHaveText('Route: /events');
+      await expect(nav.getByRole('link', { name: 'Events' })).toHaveAttribute('aria-current', 'page');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+      expect(await axeOn(page, '.aura-bottomnav')).toEqual([]);
+    });
+  });
+
+  test('44: hidden from lg up', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, 'aura-new-in-4-19--bottom-tabs', 'light');
+    await expect(page.locator('.aura-bottomnav')).toBeHidden();
+    await expect(page.locator('.aura-bottomnav-spacer')).toBeHidden();
+  });
+
+  test.describe('45: in UTC−08:00', () => {
+    test.use({ timezoneId: 'Etc/GMT+8' });
+    test('20:00 on Sep 24 in the browser: Bangkok today (Sep 25) is marked and allowed with max="today"', async ({
+      page,
+    }) => {
+      await page.clock.setFixedTime(new Date('2026-09-25T04:00:00Z'));
+      await story(page, 'aura-new-in-4-19--date-in-time-zone', 'light');
+      expect(await page.evaluate(() => new Date().getDate())).toBe(24);
+      await page
+        .getByRole('button', { name: /choose date|Payment date|calendar/i })
+        .first()
+        .click();
+      const today = page.locator('[aria-current="date"]');
+      await expect(today).toHaveCount(1);
+      await expect(today).toHaveText('25');
+      await expect(today).toBeEnabled();
+      await expect(today).not.toHaveAttribute('aria-disabled', 'true');
+      await expect(page.locator('button[data-date="2026-09-26"]')).toBeDisabled();
+      await today.click();
+      await expect(page.getByRole('textbox', { name: 'Payment date' })).toHaveValue(/25/);
+    });
+  });
+
+  test('46: link tabs mark the current page, navigate through linkComponent, keep scrolling', async ({ page }) => {
+    await story(page, 'aura-new-in-4-19--link-tabs', 'light');
+    const nav = page.getByRole('navigation', { name: 'Renewals' });
+    await expect(page.getByRole('tablist')).toHaveCount(0);
+    await expect(page.getByRole('tabpanel')).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: 'Pipeline' })).toHaveAttribute('aria-current', 'page');
+    await nav.getByRole('link', { name: /Tier upgrades/ }).click();
+    await expect(page.getByTestId('route')).toHaveText('Route: /renewals/tiers');
+    await expect(nav.getByRole('link', { name: /Tier upgrades/ })).toHaveAttribute('aria-current', 'page');
+    await expect(nav.getByRole('link', { name: 'Pipeline' })).not.toHaveAttribute('aria-current', 'page');
+    /* Same list as today's Tabs: scrolls sideways in 320px. */
+    const list = nav.locator('.aura-tabs__list');
+    expect(await list.evaluate((l) => [getComputedStyle(l).overflowX, l.scrollWidth > l.clientWidth])).toEqual([
+      'auto',
+      true,
+    ]);
+  });
+
+  test('47: six toasts in a row — all six, in order, three at a time', async ({ page }) => {
+    await story(page, 'aura-new-in-4-19--toast-queue', 'light');
+    await page.getByRole('button', { name: 'Send 6 reminders' }).click();
+    const titles = () =>
+      page.locator('.aura-toast').evaluateAll((l) => l.map((e) => e.textContent!.match(/Result \d/)![0]));
+    await expect.poll(titles).toEqual(['Result 1', 'Result 2', 'Result 3']);
+    await page.locator('.aura-toast').first().getByRole('button').click();
+    await expect.poll(titles).toEqual(['Result 2', 'Result 3', 'Result 4']);
+    await page.locator('.aura-toast').first().getByRole('button').click();
+    await expect.poll(titles).toEqual(['Result 3', 'Result 4', 'Result 5']);
+    await expect(page.getByRole('alert').filter({ hasText: 'Result 5' })).toHaveCount(1);
+    await page.locator('.aura-toast').first().getByRole('button').click();
+    await expect.poll(titles).toEqual(['Result 4', 'Result 5', 'Result 6']);
+  });
+});

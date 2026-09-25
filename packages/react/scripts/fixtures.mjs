@@ -136,7 +136,15 @@ export function fixtures(A, React) {
       h(A.DatePicker, { label: 'Datum', defaultValue: '2026-09-18' }),
       h(A.Breadcrumb, { items: [{ label: 'Hem', href: '/' }, { label: 'Order' }] }),
     ),
-    StackTable: h(A.DataTable, { label: 'Stack', stackBelow: 640, rows: [{ id: 'A-1', status: 'Paid' }], columns: [{ key: 'id', label: 'ID', width: 96 }, { key: 'status', label: 'STATUS', pill: true }] }),
+    StackTable: h(A.DataTable, {
+      label: 'Stack',
+      stackBelow: 640,
+      rows: [{ id: 'A-1', status: 'Paid' }],
+      columns: [
+        { key: 'id', label: 'ID', width: 96 },
+        { key: 'status', label: 'STATUS', pill: true },
+      ],
+    }),
     RailSideNav: h(A.SideNav, {
       collapsed: true,
       collapsible: true,
@@ -208,6 +216,63 @@ export function fixtures(A, React) {
       columns: [
         { key: 'id', label: 'ID', width: 96, sortable: true },
         { key: 'owner', label: 'AMOUNT', align: 'end' },
+      ],
+    }),
+    /* 4.19 */
+    ActionBar: h(A.ActionBar, { status: 'Total 107,000.00 THB' }, h(A.Button, null, 'Save')),
+    ActionBarBulk: h(
+      A.ActionBar,
+      { selected: 2, onClearSelection: noop },
+      h(A.Button, { variant: 'secondary' }, 'Export'),
+    ),
+    BottomNav: h(A.BottomNav, {
+      value: 'home',
+      items: [
+        { id: 'home', label: 'Home', icon: 'house', href: '/' },
+        { id: 'inbox', label: 'Inbox', icon: 'bell', href: '/inbox', count: 3 },
+        { id: 'me', label: 'Me', icon: 'user', badge: true, badgeLabel: 'new' },
+      ],
+    }),
+    AppShellBottomNav: h(
+      A.AppShell,
+      {
+        bottomNav: h(A.BottomNav, {
+          value: 'a',
+          items: [
+            { id: 'a', label: 'A', icon: 'house', href: '/a' },
+            { id: 'b', label: 'B', icon: 'user', href: '/b' },
+          ],
+        }),
+      },
+      'Body',
+    ),
+    TabsLinks: h(A.Tabs, {
+      label: 'Renewals',
+      value: 'p',
+      tabs: [
+        { id: 'p', label: 'Pipeline', href: '/renewals' },
+        { id: 'r', label: 'Pending review', href: '/renewals/review' },
+      ],
+    }),
+    TableTotals: h(A.DataTable, {
+      label: 'Invoices',
+      rows,
+      stackBelow: 640,
+      stickyFooter: true,
+      footer: { id: 'Total', owner: '2' },
+      columns: [
+        { key: 'id', label: 'ID', width: 96 },
+        { key: 'owner', label: 'AMOUNT', align: 'end' },
+      ],
+    }),
+    DropdownMenuKinds: h(A.DropdownMenu, {
+      label: 'More',
+      trigger: h(A.IconButton, { icon: 'ellipsis', label: 'More' }),
+      items: [
+        { label: 'Open', href: '/x' },
+        { label: 'Grid', type: 'radio', group: 'View', checked: true },
+        { label: 'List', type: 'radio', group: 'View' },
+        { label: 'Delete', tone: 'danger' },
       ],
     }),
   };

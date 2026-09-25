@@ -117,6 +117,11 @@ export interface DataTableProps {
 	onSelectionChange?: ((keys: Array<string | number>) => void) | undefined;
 	/** Shown when rows is empty. */
 	empty?: DataTableEmpty | undefined;
+	/** A totals row under the body (4.19): content per column key, e.g. `{ id: 'Total', vat: '7,000.00', total: '107,000.00' }`.
+	 * Cells share the body's widths and alignment, so right-aligned money lines up. Stacked cards get a Totals card. */
+	footer?: Record<string, React$1.ReactNode> | undefined;
+	/** Keep the totals row visible while a `height` table scrolls. (4.19) */
+	stickyFooter?: boolean | undefined;
 	/** Rows per page; omit for no pagination. */
 	pageSize?: number | undefined;
 	/** Controlled page (1-based); pair with onPageChange. */
@@ -201,6 +206,8 @@ export interface AuraProviderProps {
 	calendar?: "buddhist" | "gregory" | undefined;
 	/** Override individual strings. */
 	strings?: Partial<Record<string, string | ((...args: any[]) => string)>> | undefined;
+	/** IANA time zone for "today" in DatePicker, DateRangePicker and Calendar, e.g. `Asia/Bangkok` (4.19). Default: the browser's. */
+	timeZone?: string | undefined;
 	/** `compact`: 36px fields and buttons, 40px table rows — dense admin screens. Touch screens keep 44px. Default: comfortable (or an ancestor's `data-density`). */
 	density?: "comfortable" | "compact" | undefined;
 	/** Your router's link (e.g. `Link` from `next/link`), used by every AURA component that renders a link: Button with `href`, SideNav, Breadcrumb, Stat, Pagination, DataTable row links. It gets `href`, `className`, `aria-current`, the children and the ref. A component's own `linkComponent` wins. */
@@ -256,6 +263,16 @@ export interface MenuItem {
 	/** A divider instead of an item. */
 	separator?: boolean | undefined;
 	onSelect?: (() => void) | undefined;
+	/** A link item (4.19): rendered through your router's link (`linkComponent`), e.g. a download or "Open in new tab". */
+	href?: string | undefined;
+	/** Link target, e.g. `_blank`, with `href`. */
+	target?: string | undefined;
+	/** `danger` for destructive items (Void, Delete): danger colour, put them last after a separator. (4.19) */
+	tone?: "danger" | undefined;
+	/** `radio` makes a single-choice item (menuitemradio); `checked` marks the chosen one. (4.19) */
+	type?: "radio" | undefined;
+	/** Radio items with the same `group` form one labelled group (the name is read out). (4.19) */
+	group?: string | undefined;
 }
 /** Popover list anchored to an element, rendered in a portal. */
 export interface MenuProps {
@@ -268,6 +285,8 @@ export interface MenuProps {
 	onClose: (restoreFocus: boolean) => void;
 	/** Focus the first item on open. Default true; turn off only for static demos. */
 	autoFocus?: boolean | undefined;
+	/** Router link for items with `href`; defaults to AuraProvider's `linkComponent`, then `<a>`. (4.19) */
+	linkComponent?: React$1.ElementType | undefined;
 }
 export interface FieldProps {
 	/** Visible label; also the accessible name. */
@@ -516,14 +535,20 @@ export interface TabItem {
 	count?: number | undefined;
 	disabled?: boolean | undefined;
 	content?: React$1.ReactNode | undefined;
+	/** A route (4.19). When every tab has one, Tabs renders a `nav` of links (section tabs that are pages), with
+	 * `aria-current="page"` on the current one and no panels. */
+	href?: string | undefined;
 }
 export interface TabsProps {
 	tabs: TabItem[];
-	/** Accessible name for the tab list. */
+	/** Accessible name for the tab list (or the nav, for link tabs). */
 	label: string;
+	/** The current tab's id. For link tabs, the current route's tab. */
 	value?: string | undefined;
 	defaultValue?: string | undefined;
 	onChange?: ((id: string) => void) | undefined;
+	/** Router link for tabs with `href`; defaults to AuraProvider's `linkComponent`, then `<a>`. (4.19) */
+	linkComponent?: React$1.ElementType | undefined;
 	className?: string | undefined;
 }
 export interface NavItem {
@@ -592,6 +617,8 @@ export interface DropdownMenuProps {
 	items: MenuItem[];
 	/** Accessible name for the menu. */
 	label?: string | undefined;
+	/** Router link for items with `href`. (4.19) */
+	linkComponent?: React$1.ElementType | undefined;
 }
 export interface ComboboxOption {
 	value: string;
@@ -726,11 +753,17 @@ export interface CalendarProps extends DateDisplayOptions {
 	end?: ISODate | null | undefined;
 	focus?: ISODate | null | undefined;
 	range?: boolean | undefined;
-	min?: ISODate | undefined;
-	max?: ISODate | undefined;
+	/** Earliest / latest day; `'today'` means today in `timeZone` (4.19). */
+	min?: ISODate | "today" | undefined;
+	max?: ISODate | "today" | undefined;
 	isDateDisabled?: ((iso: ISODate) => boolean) | undefined;
 	/** 0 = Sunday (Thai default), 1 = Monday. */
 	weekStartsOn?: 0 | 1 | undefined;
+	/** IANA time zone that decides which day is "today" (the marker, `min`/`max="today"`, the Today button), e.g.
+	 * `Asia/Bangkok`. Default: the provider's `timeZone`, else the browser's. (4.19) */
+	timeZone?: string | undefined;
+	/** Today, given outright (ISO). Wins over `timeZone`; handy in tests and server-rendered pages. (4.19) */
+	today?: ISODate | undefined;
 	onSelect?: ((iso: ISODate | null) => void) | undefined;
 	/** Adds a Clear link to the footer. */
 	onClear?: (() => void) | undefined;
@@ -746,10 +779,16 @@ export interface DateFieldProps extends FieldProps, DateDisplayOptions {
 	disabled?: boolean | undefined;
 	/** Clear button while there is a value. Default true. */
 	clearable?: boolean | undefined;
-	min?: ISODate | undefined;
-	max?: ISODate | undefined;
+	/** Earliest / latest day; `'today'` means today in `timeZone` (4.19). */
+	min?: ISODate | "today" | undefined;
+	max?: ISODate | "today" | undefined;
 	isDateDisabled?: ((iso: ISODate) => boolean) | undefined;
 	weekStartsOn?: 0 | 1 | undefined;
+	/** IANA time zone that decides which day is "today" (the marker, `min`/`max="today"`, the Today button), e.g.
+	 * `Asia/Bangkok`. Default: the provider's `timeZone`, else the browser's. (4.19) */
+	timeZone?: string | undefined;
+	/** Today, given outright (ISO). Wins over `timeZone`; handy in tests and server-rendered pages. (4.19) */
+	today?: ISODate | undefined;
 	className?: string | undefined;
 }
 export interface DatePickerProps extends DateFieldProps {
@@ -822,6 +861,56 @@ export interface AppShellProps {
 	menuLabel?: string | undefined;
 	/** id of `<main>`, for a skip link. Default `main`. */
 	mainId?: string | undefined;
+	/** A BottomNav for phones (4.19). Shown below its `hideFrom` breakpoint; the content keeps room for it, and a
+	 * viewport ActionBar sits on top of it. With a `bottomNav` and no `nav`, there is no menu button. */
+	bottomNav?: React$1.ReactElement | undefined;
+	className?: string | undefined;
+}
+export interface ActionBarProps {
+	/** Buttons, right-aligned (the primary one last). */
+	children?: React$1.ReactNode | undefined;
+	/** A short line such as "Total 107,000.00 THB · due Oct 22, 2026" or "Unsaved changes". It sits in a polite live
+	 * region that is always in the page, so a change is announced. */
+	status?: React$1.ReactNode | undefined;
+	/** `viewport` (default): sticks to the bottom of the screen, padded for the home indicator, above a BottomNav.
+	 * `container`: sticks to the bottom of the scrolling card or panel it's in. Both stay in the flow at the end of their
+	 * parent, so they never cover the last field. Make it the last child of the form or card it belongs to: like any
+	 * `position: sticky` element it sticks only while that parent is on screen. */
+	position?: "viewport" | "container" | undefined;
+	/** Bulk actions: the number of selected rows. Shows "N selected" in the status; at 0 the bar hides (its live region
+	 * stays, so the next selection is announced) and its actions leave the tab order. */
+	selected?: number | undefined;
+	/** Adds a "Clear" button next to the count. */
+	onClearSelection?: (() => void) | undefined;
+	/** Name of the region. Default "Actions". */
+	label?: string | undefined;
+	className?: string | undefined;
+}
+export interface BottomNavItem {
+	id: string;
+	/** Short: five items share 320px. */
+	label: string;
+	icon: IconInput;
+	href?: string | undefined;
+	/** A number on the icon (99+ above 99); 0 hides it. Part of the item's accessible name. */
+	count?: number | undefined;
+	/** A dot on the icon, e.g. "new". Give it words with `badgeLabel`. */
+	badge?: boolean | undefined;
+	/** Read after the label when `badge` is set, e.g. "new". */
+	badgeLabel?: string | undefined;
+}
+export interface BottomNavProps {
+	/** 2–5 items. */
+	items: BottomNavItem[];
+	value?: string | undefined;
+	defaultValue?: string | undefined;
+	onChange?: ((id: string) => void) | undefined;
+	/** Default "Main". */
+	label?: string | undefined;
+	/** Router link for items with `href`; defaults to the AuraProvider's `linkComponent`, then `<a>`. */
+	linkComponent?: React$1.ElementType | undefined;
+	/** Hidden from this breakpoint up, in CSS (so the server's HTML is right). Default `lg` (1024px); `false` never hides. */
+	hideFrom?: "md" | "lg" | "xl" | false | undefined;
 	className?: string | undefined;
 }
 export interface StatChange {
@@ -1105,6 +1194,8 @@ export type FormatDateOptions = DateDisplayOptions & {
 export declare function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string;
 /** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
 export declare function parseDate(text: string | null | undefined): ISODate | null;
+/** Today as an ISO date in an IANA time zone (e.g. `Asia/Bangkok`), or in the runtime's own zone without one. (4.19) */
+export declare function todayIn(timeZone?: string | null): ISODate;
 /** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
  * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
 export declare function useFormatDate(): (iso: ISODate | null | undefined, opts?: FormatDateOptions) => string;
@@ -1163,6 +1254,13 @@ export declare const Container: React$1.ForwardRefExoticComponent<ContainerProps
  * Which one shows is decided in CSS (4.16), so the server's HTML is already right on a phone and nothing shifts on
  * hydration; JavaScript only opens and closes the drawer. */
 export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps & React$1.RefAttributes<HTMLDivElement>>;
+/** ActionBar — a bar stuck to the bottom of the screen or of a card: a status line and the form's or selection's
+ * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field. */
+export declare const ActionBar: React$1.ForwardRefExoticComponent<ActionBarProps & React$1.RefAttributes<HTMLDivElement>>;
+/** BottomNav — a phone tab bar: icon over a short label, a count or dot, the current page marked. Fixed to the bottom,
+ * padded for the home indicator, with a spacer of the same height in the flow so nothing sits under it. Which
+ * breakpoints show it is decided in CSS, so the server's HTML is already right and nothing shifts on hydration. */
+export declare const BottomNav: React$1.ForwardRefExoticComponent<BottomNavProps & React$1.RefAttributes<HTMLElement>>;
 /** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
 export declare const breakpoints: {
 	sm: 640;
@@ -1227,6 +1325,7 @@ export interface AuraStrings {
 	prevPage: string;
 	nextPage: string;
 	rowCount: (c: number) => string;
+	totals: string;
 	actions: string;
 	optional: string;
 	timePlaceholder: string;
@@ -1267,6 +1366,8 @@ export interface AuraLocaleValue {
 	linkComponent?: React$1.ElementType | null | undefined;
 	/** The density set on the nearest AuraProvider that sets one (null: none, i.e. comfortable unless an ancestor's data-density says otherwise). */
 	density?: "comfortable" | "compact" | null | undefined;
+	/** The time zone set on the nearest AuraProvider that sets one (4.19). */
+	timeZone?: string | null | undefined;
 }
 /** Sets the language of built-in labels (and the default date locale) for everything inside. */
 export declare function AuraProvider(props: AuraProviderProps): React$1.ReactElement;

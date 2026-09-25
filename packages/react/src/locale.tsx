@@ -15,6 +15,8 @@ export interface AuraLocaleValue {
   linkComponent?: React.ElementType | null | undefined;
   /** The density set on the nearest AuraProvider that sets one (null: none, i.e. comfortable unless an ancestor's data-density says otherwise). */
   density?: 'comfortable' | 'compact' | null | undefined;
+  /** The time zone set on the nearest AuraProvider that sets one (4.19). */
+  timeZone?: string | null | undefined;
 }
 const LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 
@@ -22,6 +24,7 @@ const LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 export function AuraProvider(props: AuraProviderProps): React.ReactElement {
   const outer = React.useContext(LocaleContext);
   const density = props.density || (outer && outer.density) || null;
+  const timeZone = props.timeZone || (outer && outer.timeZone) || null;
   const value = React.useMemo(
     function (): AuraLocaleValue {
       const base = (props.locale && STRINGS[props.locale]) || STRINGS.en;
@@ -31,9 +34,10 @@ export function AuraProvider(props: AuraProviderProps): React.ReactElement {
         strings: props.strings ? (Object.assign({}, base, props.strings) as AuraStrings) : base,
         linkComponent: props.linkComponent || null,
         density: density,
+        timeZone: timeZone,
       };
     },
-    [props.locale, props.calendar, props.strings, props.linkComponent, density],
+    [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone],
   );
   /* density adds one wrapper (display: contents, so layout is unchanged) carrying data-density for the CSS;
    * Dialog, Drawer, Popover and Command read the context and set it on their portal layer too. */

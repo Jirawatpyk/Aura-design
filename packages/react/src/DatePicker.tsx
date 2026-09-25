@@ -28,6 +28,7 @@ import {
   parseDate,
   same,
   toISO,
+  todayIn,
 } from './dates.js';
 import type { FormatDateOptions } from './dates.js';
 export type { FormatDateOptions } from './dates.js';
@@ -60,10 +61,11 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
     calendar = props.calendar || ctx.calendar || defaultCalendar(locale),
     tag = localeTag(locale, calendar);
   const weekStart = props.weekStartsOn == null ? (locale === 'sv' ? 1 : 0) : props.weekStartsOn;
-  let today = new Date();
-  today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const min = fromISO(props.min),
-    max = fromISO(props.max);
+  /* Today in the given time zone (prop, else the provider's, else the browser's), or as given (4.19). */
+  const todayISO = props.today || todayIn(props.timeZone || ctx.timeZone);
+  const today = fromISO(todayISO) as Date;
+  const min = fromISO(props.min === 'today' ? todayISO : props.min),
+    max = fromISO(props.max === 'today' ? todayISO : props.max);
   const start = fromISO(props.start),
     end = fromISO(props.end);
   const focusState = React.useState(fromISO(props.focus) || start || today);
@@ -539,6 +541,8 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
               weekStartsOn={props.weekStartsOn}
               min={props.min}
               max={props.max}
+              timeZone={props.timeZone}
+              today={props.today}
               isDateDisabled={props.isDateDisabled}
               start={st[0]}
               focus={st[0]}
@@ -668,6 +672,8 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
                 weekStartsOn={props.weekStartsOn}
                 min={props.min}
                 max={props.max}
+                timeZone={props.timeZone}
+                today={props.today}
                 isDateDisabled={props.isDateDisabled}
                 start={draft[0] || v.start}
                 end={draft[0] ? null : v.end}

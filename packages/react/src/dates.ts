@@ -184,3 +184,16 @@ export function parseDate(text: string | null | undefined): ISODate | null {
 }
 
 /* ---------- Calendar ---------- */
+
+/** Today as an ISO date in an IANA time zone (e.g. `Asia/Bangkok`), or in the runtime's own zone without one. (4.19) */
+export function todayIn(timeZone?: string | null): ISODate {
+  const now = new Date();
+  if (!timeZone) return toISO(now) as ISODate;
+  /* en-CA formats as YYYY-MM-DD. */
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}

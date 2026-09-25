@@ -17,7 +17,7 @@ export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOpt
   if (!o.locale) o.locale = 'en';
   return formatDateThaiDefault(iso, o);
 }
-export { parseDate, toISO, fromISO } from './dates.js';
+export { parseDate, toISO, fromISO, todayIn } from './dates.js';
 export { parseTime, formatBytes } from './text.js';
 export { statusTone } from './status.js';
 export { STRINGS } from './strings.js';

@@ -193,6 +193,7 @@ module.exports = {
   "zIndex": {
     "aura-menu": "var(--aura-z-menu)",
     "aura-dialog": "var(--aura-z-dialog)",
+    "aura-bar": "var(--aura-z-bar)",
     "aura-toast": "var(--aura-z-toast)",
     "aura-tooltip": "var(--aura-z-tooltip)"
   },

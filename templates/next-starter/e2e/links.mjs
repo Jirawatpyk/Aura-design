@@ -43,6 +43,19 @@ await step(
   () => page.getByRole('link', { name: /3/ }).filter({ hasText: '3' }).first().click(),
   '/members?page=3',
 );
+await step(
+  'Tabs link',
+  () => page.getByRole('navigation', { name: 'มุมมองสมาชิก' }).getByRole('link', { name: 'รอต่ออายุ' }).click(),
+  '/members?view=renewals',
+);
+if ((await page.getByRole('link', { name: 'รอต่ออายุ' }).getAttribute('aria-current')) !== 'page')
+  fails.push('Tabs link: aria-current not on the current tab');
+await step('Tabs link back', () => page.getByRole('link', { name: 'ทั้งหมด' }).click(), '/members');
+await step(
+  'Pagination page 3 again',
+  () => page.getByRole('link', { name: /3/ }).filter({ hasText: '3' }).first().click(),
+  '/members?page=3',
+);
 await step('Pagination next', () => page.locator('a[rel="next"]').click(), '/members?page=4');
 await step('Pagination previous', () => page.locator('a[rel="prev"]').click(), '/members?page=3');
 await step(
@@ -56,8 +69,16 @@ await step(
   '/',
 );
 await step('Stat href', () => page.locator('a.aura-stat').first().click(), '/members');
-await step('SideNav item', () => page.getByRole('navigation', { name: 'ส่วนงาน' }).getByRole('link', { name: 'คำสั่งซื้อ' }).click(), '/');
-await step('DataTable row link', () => page.locator('.aura-table__row-link').first().click(), '/members?order=ORD-1042');
+await step(
+  'SideNav item',
+  () => page.getByRole('navigation', { name: 'ส่วนงาน' }).getByRole('link', { name: 'คำสั่งซื้อ' }).click(),
+  '/',
+);
+await step(
+  'DataTable row link',
+  () => page.locator('.aura-table__row-link').first().click(),
+  '/members?order=ORD-1042',
+);
 await step(
   'DataTable row (a cell elsewhere in the row)',
   async () => {
@@ -74,6 +95,6 @@ if (fails.length) {
   process.exit(1);
 }
 console.log(
-  'Client-side links OK — Button, Pagination (pages, previous, next), Breadcrumb, Stat, SideNav and DataTable rows navigate through next/link with no full page load.',
+  'Client-side links OK — Button, Pagination (pages, previous, next), link Tabs, Breadcrumb, Stat, SideNav and DataTable rows navigate through next/link with no full page load.',
 );
 process.exit(0);

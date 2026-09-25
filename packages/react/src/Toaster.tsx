@@ -12,11 +12,25 @@ import type { FeedbackTone, ToastOptions, ToastShorthandOptions } from './types.
 /** A toast on screen: its options with the id and tone filled in; `rev` changes when the same id is shown again. */
 type ToastEntry = ToastOptions & { id: string; tone: FeedbackTone; rev: number; loading?: boolean | undefined };
 
-const toastState: { list: ToastEntry[]; subs: Array<(list: ToastEntry[]) => void>; n: number } = {
+/* At most three on screen; the rest wait in `queue`, in order, and move up as slots free (4.19). Nothing is dropped. */
+const MAX_VISIBLE = 3;
+const toastState: {
+  list: ToastEntry[];
+  queue: ToastEntry[];
+  subs: Array<(list: ToastEntry[]) => void>;
+  n: number;
+} = {
   list: [],
+  queue: [],
   subs: [],
   n: 0,
 };
+function promote() {
+  while (toastState.list.length < MAX_VISIBLE && toastState.queue.length) {
+    toastState.list = toastState.list.concat([toastState.queue[0]]);
+    toastState.queue = toastState.queue.slice(1);
+  }
+}
 
 function emitToasts() {
   toastState.subs.forEach(function (f) {
@@ -26,19 +40,26 @@ function emitToasts() {
 
 function show(opts: ToastOptions & { loading?: boolean | undefined }): string {
   const id = opts.id || 't' + ++toastState.n;
-  const at = toastState.list.findIndex(function (t) {
+  const byId = function (t: ToastEntry) {
     return t.id === id;
-  });
+  };
+  const at = toastState.list.findIndex(byId),
+    queued = toastState.queue.findIndex(byId);
+  const prev = at >= 0 ? toastState.list[at] : queued >= 0 ? toastState.queue[queued] : null;
   const entry = Object.assign({ tone: 'info' as FeedbackTone }, opts, {
     id: id,
     loading: !!opts.loading,
-    rev: at >= 0 ? toastState.list[at].rev + 1 : 0,
+    rev: prev ? prev.rev + 1 : 0,
   }) as ToastEntry;
   if (at >= 0) {
     /* Same id: replace in place, so a loading toast turns into its result without moving or stacking. */
     toastState.list = toastState.list.slice();
     toastState.list[at] = entry;
-  } else toastState.list = toastState.list.concat([entry]).slice(-3);
+  } else if (queued >= 0) {
+    toastState.queue = toastState.queue.slice();
+    toastState.queue[queued] = entry;
+  } else if (toastState.list.length < MAX_VISIBLE) toastState.list = toastState.list.concat([entry]);
+  else toastState.queue = toastState.queue.concat([entry]);
   emitToasts();
   return id;
 }
@@ -64,9 +85,12 @@ toast.loading = function (title: string, opts?: ToastShorthandOptions): string {
   );
 };
 toast.dismiss = function (id: string) {
-  toastState.list = toastState.list.filter(function (t) {
+  const keep = function (t: ToastEntry) {
     return t.id !== id;
-  });
+  };
+  toastState.list = toastState.list.filter(keep);
+  toastState.queue = toastState.queue.filter(keep);
+  promote();
   emitToasts();
 };
 

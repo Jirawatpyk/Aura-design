@@ -1,6 +1,6 @@
 # AURA Design System
 
-Enterprise Standard, Human Creative — one design system for every project: tokens, 43 React components, per-project brand themes, Storybook and tests.
+Enterprise Standard, Human Creative — one design system for every project: tokens, 51 React components, per-project brand themes, Storybook and tests.
 
 | Package | What it is |
 |---|---|

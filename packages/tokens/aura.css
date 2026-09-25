@@ -312,6 +312,7 @@
   --aura-dialog-lg: 720px;
   --aura-sidenav-width: 240px;
   --aura-sidenav-rail-width: 64px;
+  --aura-bottomnav-height: 56px;
   --aura-tooltip-max: 240px;
   --aura-drawer-sm: 360px;
   --aura-drawer-md: 480px;
@@ -331,6 +332,7 @@
   --aura-disabled-opacity: 0.5;
   --aura-z-menu: 1000;
   --aura-z-dialog: 900;
+  --aura-z-bar: 800;
   --aura-z-toast: 1200;
   --aura-z-tooltip: 1300;
   --aura-ease: cubic-bezier(0.16, 1, 0.3, 1);

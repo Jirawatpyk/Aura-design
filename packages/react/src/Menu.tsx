@@ -2,6 +2,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { cx, useIsoLayoutEffect, useMounted, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
+import { useLinkComponent } from './locale.js';
 import type { MenuItem, MenuProps } from './types.js';
 
 /** Popover list anchored to an element, rendered in a portal. */
@@ -13,6 +14,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     setPos = posState[1];
   const items = props.items || [];
   const mounted = useMounted();
+  const Link = useLinkComponent(props.linkComponent);
   useIsoLayoutEffect(
     function () {
       const a = props.anchor,
@@ -80,6 +82,80 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     }
     e.stopPropagation();
   }
+  /* Consecutive radio items that share a `group` go in one labelled role="group" (4.19). */
+  function groupItems(list: MenuItem[]) {
+    const out: Array<{ group: string | null; items: Array<{ it: MenuItem; i: number }> }> = [];
+    list.forEach(function (it: MenuItem, i: number) {
+      const g = it.type === 'radio' && it.group ? it.group : null;
+      const last = out[out.length - 1];
+      if (last && last.group === g && g !== null) last.items.push({ it: it, i: i });
+      else out.push({ group: g, items: [{ it: it, i: i }] });
+    });
+    return out;
+  }
+  function renderItem(it: MenuItem, i: number) {
+    if (it.separator) return <div key={'s' + i} role="separator" className="aura-menu__sep" />;
+    const isRadio = it.type === 'radio';
+    const isCheck = !isRadio && it.checked !== undefined;
+    const lead = isRadio ? (
+      <span className={cx('aura-menu__radio', it.checked && 'is-on')} />
+    ) : isCheck ? (
+      <span className={cx('aura-menu__check', it.checked && 'is-on')}>
+        {it.checked ? <Icon name="check" size={12} strokeWidth={3} /> : null}
+      </span>
+    ) : it.icon ? (
+      <Icon name={it.icon} />
+    ) : (
+      <span className="aura-menu__blank" />
+    );
+    const body = [
+      <React.Fragment key="l">{lead}</React.Fragment>,
+      <span key="t" className="aura-menu__label">
+        {it.label}
+      </span>,
+      it.hint ? (
+        <span key="h" className="aura-menu__hint">
+          {it.hint}
+        </span>
+      ) : null,
+    ];
+    const cls = cx('aura-menu__item', it.tone === 'danger' && 'aura-menu__item--danger');
+    if (it.href && !it.disabled)
+      return (
+        <Link
+          key={i}
+          href={it.href}
+          target={it.target}
+          rel={it.target === '_blank' ? 'noreferrer' : undefined}
+          tabIndex={-1}
+          role="menuitem"
+          className={cls}
+          onClick={function () {
+            if (it.onSelect) it.onSelect();
+            props.onClose(false);
+          }}
+        >
+          {body}
+        </Link>
+      );
+    return (
+      <button
+        key={i}
+        type="button"
+        tabIndex={-1}
+        disabled={it.disabled}
+        role={isRadio ? 'menuitemradio' : isCheck ? 'menuitemcheckbox' : 'menuitem'}
+        aria-checked={isRadio || isCheck ? !!it.checked : undefined}
+        className={cls}
+        onClick={function () {
+          if (it.onSelect) it.onSelect();
+          if (!it.keepOpen) props.onClose(true);
+        }}
+      >
+        {body}
+      </button>
+    );
+  }
   const el = (
     <div
       ref={merged}
@@ -89,35 +165,16 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       onKeyDown={onKeyDown}
       style={{ top: pos ? pos.top : -9999, left: pos ? pos.left : -9999 }}
     >
-      {items.map(function (it: MenuItem, i: number) {
-        if (it.separator) return <div key={'s' + i} role="separator" className="aura-menu__sep" />;
-        const isCheck = it.checked !== undefined;
-        return (
-          <button
-            key={i}
-            type="button"
-            tabIndex={-1}
-            disabled={it.disabled}
-            role={isCheck ? 'menuitemcheckbox' : 'menuitem'}
-            aria-checked={isCheck ? !!it.checked : undefined}
-            className="aura-menu__item"
-            onClick={function () {
-              it.onSelect!();
-              if (!it.keepOpen) props.onClose(true);
-            }}
-          >
-            {isCheck ? (
-              <span className={cx('aura-menu__check', it.checked && 'is-on')}>
-                {it.checked ? <Icon name="check" size={12} strokeWidth={3} /> : null}
-              </span>
-            ) : it.icon ? (
-              <Icon name={it.icon} />
-            ) : (
-              <span className="aura-menu__blank" />
-            )}
-            <span className="aura-menu__label">{it.label}</span>
-            {it.hint ? <span className="aura-menu__hint">{it.hint}</span> : null}
-          </button>
+      {groupItems(items).map(function (block, bi) {
+        const rendered = block.items.map(function (x) {
+          return renderItem(x.it, x.i);
+        });
+        return block.group ? (
+          <div key={'g' + bi} role="group" aria-label={block.group} className="aura-menu__group">
+            {rendered}
+          </div>
+        ) : (
+          <React.Fragment key={'f' + bi}>{rendered}</React.Fragment>
         );
       })}
     </div>

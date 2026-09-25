@@ -59,6 +59,7 @@ export interface AuraStrings {
   prevPage: string;
   nextPage: string;
   rowCount: (c: number) => string;
+  totals: string;
   actions: string;
   optional: string;
   timePlaceholder: string;
@@ -156,6 +157,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     },
     prevPage: 'Previous page',
     nextPage: 'Next page',
+    totals: 'Totals',
     rowCount: function (c) {
       return n(c) + ' rows';
     },
@@ -269,6 +271,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     },
     prevPage: 'หน้าก่อนหน้า',
     nextPage: 'หน้าถัดไป',
+    totals: 'รวม',
     rowCount: function (c) {
       return n(c) + ' แถว';
     },
@@ -382,6 +385,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     },
     prevPage: 'Föregående sida',
     nextPage: 'Nästa sida',
+    totals: 'Summa',
     rowCount: function (c) {
       return nsv(c) + ' rader';
     },

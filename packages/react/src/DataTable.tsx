@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { useStrings, useAuraLocale, useLinkComponent } from './locale.js';
 import { cx, omit, useMaybeControlled, compare, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
@@ -165,6 +166,36 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   /* Row height comes from CSS (--aura-table-row-height: 48, 40 in compact density, 48 again on touch), so the
    * virtual window always matches what the browser draws. Server render assumes 48. */
+  /* Full text of a truncated cell (4.19): shown on hover or keyboard focus when the text is cut off by the ellipsis.
+   * aria-hidden — screen readers already read the whole cell. */
+  const tipState = React.useState<{ text: string; left: number; top: number } | null>(null),
+    tip = tipState[0],
+    setTip = tipState[1];
+  function showFull(e: React.SyntheticEvent<HTMLElement>) {
+    const el = (e.target as HTMLElement).closest
+      ? ((e.target as HTMLElement).closest('.aura-table__td, .aura-table__card-fields dd') as HTMLElement | null)
+      : null;
+    if (!el || el.scrollWidth <= el.clientWidth + 1 || el.querySelector('button, input, .aura-pill'))
+      return setTip(null);
+    const r = el.getBoundingClientRect();
+    setTip({ text: (el.textContent || '').trim(), left: r.left, top: r.top });
+  }
+  function hideFull() {
+    setTip(null);
+  }
+  const tipEl =
+    tip && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="aura-tooltip aura-tooltip--above"
+            aria-hidden="true"
+            style={{ left: tip.left, top: tip.top - 6 }}
+          >
+            {tip.text}
+          </div>,
+          document.body,
+        )
+      : null;
   const rowH = React.useState(ROW_H_DEFAULT);
   const ROW_H = rowH[0];
   useIsoLayoutEffect(function () {
@@ -1199,7 +1230,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
                       return (
                         <div key={c.key}>
                           <dt>{c.label}</dt>
-                          <dd className={c.mono ? 'aura-table__mono' : undefined}>{cellVal(c, r)}</dd>
+                          <dd className={cx(c.mono && 'aura-table__mono', c.align === 'end' && 'is-end')}>
+                            {cellVal(c, r)}
+                          </dd>
                         </div>
                       );
                     })}
@@ -1216,6 +1249,10 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         ref={wrapRefArg}
         data-density={props.density}
         className={cx('aura-table aura-table--stacked', refreshing && 'is-refreshing', props.className)}
+        onMouseOver={showFull}
+        onMouseLeave={hideFull}
+        onFocus={showFull}
+        onBlur={hideFull}
         role="region"
         aria-label={props.label}
         aria-busy={busy || undefined}
@@ -1233,12 +1270,71 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           </div>
         ) : null}
         {cardBody}
+        {props.footer && rows.length && !loading ? (
+          <div className="aura-table__card aura-table__card--total" role="group" aria-label={t.totals}>
+            <dl className="aura-table__card-fields">
+              {vis
+                .filter(function (c: Col) {
+                  return props.footer![c.key] != null;
+                })
+                .map(function (c: Col) {
+                  return (
+                    <div key={c.key}>
+                      <dt>{c.label || t.totals}</dt>
+                      <dd className={cx(c.mono && 'aura-table__mono', c.align === 'end' && 'is-end')}>
+                        {props.footer![c.key]}
+                      </dd>
+                    </div>
+                  );
+                })}
+            </dl>
+          </div>
+        ) : null}
         {foot}
+        {tipEl}
       </div>
     );
   }
   if (stacked) return renderStacked(wrapMerged);
 
+  /* Totals row (4.19): the body's widths and alignment, after the last row; sticky with stickyFooter. */
+  const totalRow =
+    props.footer && rows.length && !loading ? (
+      <div
+        role="row"
+        aria-rowindex={shownTotal + 2}
+        aria-label={t.totals}
+        className={cx('aura-table__row aura-table__total', props.stickyFooter && 'is-sticky')}
+        style={rowStyle}
+      >
+        <span className="aura-table__gutter" aria-hidden={true} />
+        {selectable ? <span className={cx('aura-table__sel', nPinned && 'is-pinned')} aria-hidden={true} /> : null}
+        {vis.map(function (c: Col, j: number) {
+          const pin = isPinned(c);
+          return (
+            <span
+              key={c.key}
+              role="gridcell"
+              aria-colindex={j + (selectable ? 2 : 1)}
+              className={cx(
+                'aura-table__td',
+                c.mono && 'aura-table__mono',
+                c.align === 'end' && 'is-end',
+                pin && 'is-pinned',
+                pin && j === nPinned - 1 && 'is-pin-edge',
+              )}
+              style={cellStyle(c, j)}
+            >
+              {props.footer![c.key]}
+            </span>
+          );
+        })}
+        <span
+          className={cx('aura-table__gutter aura-table__gutter--end', controls && 'has-picker')}
+          aria-hidden={true}
+        />
+      </div>
+    ) : null;
   const scrollStyle: React.CSSProperties = {
     scrollPaddingLeft: 'calc(var(--aura-space-6)' + selW + ' + ' + acc + 'px)',
     scrollPaddingTop: ROW_H + 'px',
@@ -1258,11 +1354,15 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           gridRef.current = el;
         }}
         className="aura-table__scroll"
+        onMouseOver={showFull}
+        onMouseLeave={hideFull}
+        onFocus={showFull}
+        onBlur={hideFull}
         style={scrollStyle}
         role="grid"
         aria-label={props.label}
         aria-busy={busy || undefined}
-        aria-rowcount={loading ? -1 : shownTotal + 1}
+        aria-rowcount={loading ? -1 : shownTotal + 1 + (totalRow ? 1 : 0)}
         aria-colcount={nCols}
         aria-multiselectable={selectable || undefined}
         onKeyDown={onGridKey}
@@ -1279,6 +1379,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           {head}
         </div>
         {body}
+        {totalRow}
       </div>
       {busy ? (
         <span className="aura-sr-only" role="status">
@@ -1306,6 +1407,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           items={menu.kind === 'picker' ? pickerItems() : byKey[menu.key!] ? columnMenuItems(byKey[menu.key!]) : []}
         />
       ) : null}
+      {tipEl}
     </div>
   );
   if (!dual) return gridEl;

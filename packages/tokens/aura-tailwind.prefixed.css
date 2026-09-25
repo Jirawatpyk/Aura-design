@@ -161,5 +161,6 @@
 @utility duration-aura-tooltip { transition-duration: var(--aura-duration-tooltip); }
 @utility z-aura-menu { z-index: var(--aura-z-menu); }
 @utility z-aura-dialog { z-index: var(--aura-z-dialog); }
+@utility z-aura-bar { z-index: var(--aura-z-bar); }
 @utility z-aura-toast { z-index: var(--aura-z-toast); }
 @utility z-aura-tooltip { z-index: var(--aura-z-tooltip); }
