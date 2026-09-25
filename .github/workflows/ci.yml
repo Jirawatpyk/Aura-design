@@ -22,7 +22,7 @@ jobs:
         with: { node-version: 22, cache: npm }
       - name: Install (React ${{ matrix.react }})
         run: |
-          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mjs ${{ matrix.react }} && npm install --no-audit --no-fund; fi
+          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mts ${{ matrix.react }} && npm install --no-audit --no-fund; fi
           node -p "'react ' + require('react/package.json').version"
       - name: Generated token files are committed
         if: matrix.react == '18'
@@ -35,7 +35,7 @@ jobs:
         if: matrix.react == '18'
         run: |
           set -o pipefail; npm run check:fonts -w packages/tokens 2>&1 | tee -a ci.log
-      - name: Contrast, token lint, SSR, types
+      - name: Contrast, token lint, SSR, types (library, examples, stories, scripts)
         run: |
           set -o pipefail; npm test 2>&1 | tee -a ci.log
       - name: Source is formatted (Prettier)
@@ -76,20 +76,19 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with: { node-version: 22, cache: npm }
-      - uses: actions/setup-python@v6
-        with: { python-version: '3.12' }
       - name: Install (React ${{ matrix.react }})
         run: |
-          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mjs ${{ matrix.react }} && npm install --no-audit --no-fund; fi
+          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mts ${{ matrix.react }} && npm install --no-audit --no-fund; fi
           node -p "'react ' + require('react/package.json').version"
-      - run: pip install 'playwright==1.56.*' && python -m playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium
+        working-directory: packages/react
       - name: Pilot tests
         run: |
           set -o pipefail; npm run test:pilots 2>&1 | tee ci.log
       - name: Failure summary
         if: failure()
         run: |
-          { echo '### Failing checks'; echo '```'; grep -E 'FAIL|passed|Error|Traceback' ci.log | head -60; echo '```'; echo '### Last 60 lines'; echo '```'; tail -60 ci.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo '### Failing checks'; echo '```'; grep -E '✘|passed|failed|flaky|Error' ci.log | head -60; echo '```'; echo '### Last 60 lines'; echo '```'; tail -60 ci.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   storybook:
     name: React ${{ matrix.react }} · Storybook (axe on every story × 2 themes, behaviour tests)
@@ -103,7 +102,7 @@ jobs:
         with: { node-version: 22, cache: npm }
       - name: Install (React ${{ matrix.react }})
         run: |
-          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mjs ${{ matrix.react }} && npm install --no-audit --no-fund; fi
+          if [ "${{ matrix.react }}" = "18" ]; then npm ci; else node scripts/use-react.mts ${{ matrix.react }} && npm install --no-audit --no-fund; fi
           node -p "'react ' + require('react/package.json').version"
       - run: npx playwright install --with-deps chromium
         working-directory: apps/storybook

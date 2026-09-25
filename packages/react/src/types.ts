@@ -51,6 +51,9 @@ export interface DataTableState {
   sort: DataTableSort | null;
   page: number;
 }
+/** A callback that gets one row. Written with your own row type (`(r: Order) => …`) it still fits (5.4):
+ * the row is checked the way method parameters are, so no cast from `Record<string, any>` is needed. */
+export type RowCallback<R> = { bivarianceHack(row: Record<string, any>): R }['bivarianceHack'];
 export interface DataTableColumn {
   /** Key into each row object. */
   key: string;
@@ -67,9 +70,9 @@ export interface DataTableColumn {
   /** Header becomes a button cycling asc → desc → unsorted. */
   sortable?: boolean | undefined;
   /** Value to sort by, when not the cell value (dates, amounts). */
-  sortValue?: ((row: Record<string, any>) => string | number | null) | undefined;
+  sortValue?: RowCallback<string | number | null> | undefined;
   /** Custom cell content. */
-  render?: ((row: Record<string, any>) => React.ReactNode) | undefined;
+  render?: RowCallback<React.ReactNode> | undefined;
   /** Set false to keep a sized column fixed when the table is `resizable`. */
   resizable?: boolean | undefined;
   /** Resize limits in px. Defaults 64 / 480. For the flexible column, minWidth defaults to 160. */
@@ -103,7 +106,9 @@ export interface DataTableEmpty {
 export interface DataTableProps {
   /** Defaults to ID · NAME · STATUS · OWNER (96 / 160 / 112 / auto px). */
   columns?: DataTableColumn[] | undefined;
-  rows: Array<Record<string, React.ReactNode>>;
+  /** Row objects. Any typed interface works (5.4: before, `interface Order {…}` rows needed a cast); cells show
+   * the value at each column's key unless the column has `render`. */
+  rows: ReadonlyArray<Record<string, any>>;
   /** Column key giving each row a unique React key. Default: the first column's key. */
   rowKey?: string | undefined;
   /** Accessible name for the table. */
@@ -150,7 +155,7 @@ export interface DataTableProps {
   totalRows?: number | undefined;
   /** Makes each row a link: the first column's content renders as the provider's linkComponent (or `<a>`), and a click
    * or Enter anywhere on the row follows it. Ctrl/⌘-click opens a new tab as usual. */
-  getRowHref?: ((row: Record<string, any>) => string) | undefined;
+  getRowHref?: RowCallback<string> | undefined;
   /** Pager arrows become links to these URLs (search-param paging). Without onPageChange the link navigates. */
   getPageHref?: ((page: number) => string) | undefined;
   /** Router link for getRowHref / getPageHref. Default: AuraProvider's linkComponent, else `<a>`. */
@@ -158,7 +163,7 @@ export interface DataTableProps {
   /** Skeleton row count when there is no pageSize. Default 5. */
   skeletonRows?: number | undefined;
   /** Called on row click or Enter. */
-  onRowActivate?: ((row: Record<string, any>) => void) | undefined;
+  onRowActivate?: RowCallback<void> | undefined;
   /** Fixed height in px: sticky header, and only the rows in view are rendered. */
   height?: number | undefined;
   /** Column menu on every header, drag-to-reorder, and the show/hide columns button. */
@@ -408,9 +413,12 @@ export interface FormErrorItem {
   message: React.ReactNode;
 }
 /** The list of problems at the top of a form after a failed submit; each links to its field (GOV.UK pattern). */
+/** react-hook-form's `formState.errors` (FieldErrors) or any object shaped like it: a `message` at any depth. */
+export type FormErrorTree = { readonly [field: string]: object | undefined };
 export interface FormErrorSummaryProps {
-  /** A list, or react-hook-form's `formState.errors` as is (`{ name: { message } }`). Empty → renders nothing. */
-  errors: FormErrorItem[] | Record<string, { message?: React.ReactNode | undefined } | undefined>;
+  /** A list, or react-hook-form's `formState.errors` as is: `{ name: { message } }`, nested for `address.street`
+   * and field arrays (`items.0.name`). Empty → renders nothing. */
+  errors: FormErrorItem[] | FormErrorTree;
   /** Default "Fix N fields to continue" in the provider's language. */
   title?: React.ReactNode | undefined;
   /** Called with the field when a link is followed, e.g. react-hook-form's `setFocus`. Default: focus the element whose id (or name) is the field. */
@@ -500,7 +508,11 @@ export interface TextareaProps
 export type SelectOption = string | { value: string; label: string; disabled?: boolean | undefined };
 /** 5.3: opens AURA's own list (light and dark alike) over a real `<select>`, which keeps `name`, `required`, the ref,
  * `onChange`, react-hook-form `register` and form posts. `multiple` or `size > 1` keeps the native list box. */
-export interface SelectProps extends FieldProps, Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'required'> {
+export interface SelectProps
+  extends Omit<FieldProps, 'label'>, Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'required'> {
+  /** Visible label; also the accessible name. Omit only with `aria-label` or `aria-labelledby` (a toolbar, a table
+   * cell); development builds warn when the field has no name at all. */
+  label?: string | undefined;
   /** The choices; or pass `<option>` / `<optgroup>` children instead (5.3: optional). */
   options?: SelectOption[] | undefined;
   /** Shown in fg-tertiary on the closed field until something is chosen; not listed as a choice. */

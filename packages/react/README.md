@@ -41,7 +41,7 @@ npm i @jirawatpyk/aura-react @jirawatpyk/aura-tokens   # React 18 or 19; import 
 npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-tokens
 ```
 
-React 18.3 and 19 are both tested: the dev dependencies pin 18, and CI switches the whole workspace to 19 (`node scripts/use-react.mjs 19 && npm install`) and runs every suite again — contrast, token lint, SSR, types, build, hydration with 0 warnings, layout before hydration, the three pilot pages and Storybook (axe + behaviour).
+React 18.3 and 19 are both tested: the dev dependencies pin 18, and CI switches the whole workspace to 19 (`node scripts/use-react.mts 19 && npm install`) and runs every suite again — contrast, token lint, SSR, types, build, hydration with 0 warnings, layout before hydration, the three pilot pages and Storybook (axe + behaviour).
 
 Public on npmjs; internal projects can use GitHub Packages instead ([repository README](https://github.com/Jirawatpyk/Aura-design#use-it-in-a-project)).
 
@@ -186,6 +186,13 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.4 — types, and TypeScript across the repo
+
+- **DataTable** takes rows of your own interface (`rows={orders}` with `interface Order {…}`; readonly arrays too), and `render`, `sortValue`, `getRowHref` and `onRowActivate` can be written with it: `render: (r: Order) => baht(r.amount)` — no cast from `Record<string, any>`.
+- **FormErrorSummary** `errors` accepts a nested object written by hand (`{ address: { street: { message } } }`, arrays for field arrays), not only react-hook-form's `formState.errors`. New type `FormErrorTree`.
+- **Select** `label` is optional when `aria-label` or `aria-labelledby` names the field (a toolbar, a table cell); development builds warn when it has no name at all. Every other field still requires `label`.
+- The example pages (`examples/*`) are TypeScript and type-checked in CI, as are the stories and the repo's scripts; the pilot checks run on Playwright Test instead of Python.
+
 ## 5.3 — Select opens AURA's own list
 
 - **Select** no longer hands its list to the operating system (a white list in dark mode on Windows, a different look on every OS). The field is a button that opens an AURA list like Combobox: tokens in light and dark, a check on the chosen item, `optgroup` headings, disabled options skipped, type to jump (Thai too), Home/End/PageUp/PageDown, Escape closes the list before a dialog. The same list is used on phones (as in shadcn), not the native picker.
@@ -311,10 +318,12 @@ Every optional prop takes `undefined` (4.16), so apps on `exactOptionalPropertyT
 ```bash
 npm run build        # dist/ (ESM, CJS, IIFE, CSS, types)
 npm run test:ssr     # server-render every component
-npm run typecheck    # tsc --strict over src/, then types-test/usage.tsx against the public API
+npm run typecheck    # tsc --strict over src/, types-test/ against the published API, and the example pages
 npm run size         # gzip size of what projects import, against size-budgets.json
-npm run test:pilots  # builds the pilots + 4 brand themes, then 37 behaviour/axe checks at 1440/820/390px (Playwright for Python, axe-core)
+npm run test:pilots  # builds the pilots + 4 brand themes, then 44 behaviour/axe checks at 1440/820/390px (Playwright, axe-core)
 ```
+
+From the repository root, `npm run typecheck` also checks the Storybook stories (strict) and every build, test and release script. The scripts are TypeScript that Node runs as is (type stripping), so working on the repo needs **Node 22.18 or later**; the published packages still run on Node 18+ (their CLI and checkers stay JavaScript, type-checked through `// @ts-check`).
 
 ## Source
 

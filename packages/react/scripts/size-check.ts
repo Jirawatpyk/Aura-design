@@ -10,15 +10,15 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const esm = path.join(root, 'dist/esm/index.js');
-const budgets = JSON.parse(fs.readFileSync(path.join(root, 'size-budgets.json'), 'utf8'));
-const gz = (buf) => zlib.gzipSync(buf, { level: 9 }).length;
+const budgets: Record<string, number> = JSON.parse(fs.readFileSync(path.join(root, 'size-budgets.json'), 'utf8'));
+const gz = (buf: Uint8Array | Buffer) => zlib.gzipSync(buf, { level: 9 }).length;
 
-async function js(code) {
+async function js(code: string): Promise<number> {
   const r = await build({ stdin: { contents: code, resolveDir: root, loader: 'js' }, bundle: true, minify: true, write: false,
     format: 'esm', target: 'es2019', external: ['react', 'react-dom', 'react/jsx-runtime'], logLevel: 'error' });
-  return gz(r.outputFiles[0].contents);
+  return gz(r.outputFiles![0]!.contents);
 }
-const entries = {
+const entries: Record<string, () => Promise<number>> = {
   'everything (import *)': () => js(`import * as A from ${JSON.stringify(esm)}; export default A;`),
   'Button only': () => js(`export { Button } from ${JSON.stringify(esm)};`),
   'DataTable only': () => js(`export { DataTable } from ${JSON.stringify(esm)};`),
@@ -31,14 +31,14 @@ const entries = {
   'aura.css (tokens)': async () => gz(fs.readFileSync(path.join(root, '../tokens/aura.css'))),
   'aura.bundle.js (window.Aura, minified)': async () => {
     const r = await build({ entryPoints: [path.join(root, 'dist/aura.bundle.js')], minify: true, write: false, logLevel: 'error' });
-    return gz(r.outputFiles[0].contents);
+    return gz(r.outputFiles![0]!.contents);
   },
 };
 
-const kb = (n) => (n / 1024).toFixed(1) + ' kB';
-const rows = [];
+const kb = (n: number) => (n / 1024).toFixed(1) + ' kB';
+const rows: string[] = [];
 let over = 0;
-const sizes = {};
+const sizes: Record<string, number> = {};
 for (const [name, measure] of Object.entries(entries)) sizes[name] = await measure();
 if (process.argv.includes('--update')) {
   for (const [name, size] of Object.entries(sizes)) budgets[name] = Math.ceil((size * 1.1) / 512) * 512;

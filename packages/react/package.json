@@ -44,20 +44,20 @@
     "./dist/aura.bundle.js"
   ],
   "scripts": {
-    "build": "node scripts/build.mjs && node scripts/sync-bundle.mjs",
-    "test:ssr": "node scripts/ssr-test.mjs && node --conditions=react-server scripts/server-entry-test.mjs",
-    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json && tsc -p tsconfig.exact.json",
-    "examples": "node examples/build.mjs",
-    "themes": "node scripts/test-themes.mjs",
-    "test:pilots": "npm run examples && npm run themes && python3 tests/pilot_test.py && python3 tests/pilots_test.py",
+    "build": "node scripts/build.ts && node scripts/sync-bundle.ts",
+    "test:ssr": "node scripts/ssr-test.ts && node --conditions=react-server scripts/server-entry-test.ts",
+    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json && tsc -p tsconfig.exact.json && tsc -p examples/tsconfig.json",
+    "examples": "node examples/build.ts",
+    "themes": "node scripts/test-themes.ts",
+    "test:pilots": "npm run examples && npm run themes && playwright test -c tests/playwright.config.ts",
     "theme": "node scripts/aura-theme.mjs",
     "prepack": "npm run build",
-    "pretest:ssr": "node scripts/build.mjs",
-    "prethemes": "node scripts/build.mjs",
-    "test:hydrate": "node scripts/hydrate-test.mjs",
-    "size": "node scripts/size-check.mjs",
-    "preexamples": "node scripts/build.mjs",
-    "test:layout": "node scripts/layout-test.mjs"
+    "pretest:ssr": "node scripts/build.ts",
+    "prethemes": "node scripts/build.ts",
+    "test:hydrate": "node scripts/hydrate-test.ts",
+    "size": "node scripts/size-check.ts",
+    "preexamples": "node scripts/build.ts",
+    "test:layout": "node scripts/layout-test.ts"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -72,7 +72,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
-    "typescript": "^5.6.0",
+    "typescript": "^5.8.0",
     "@playwright/test": "^1.45.0"
   },
   "bin": {

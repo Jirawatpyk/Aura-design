@@ -1,0 +1,35 @@
+{
+  /* Build, test and release scripts: TypeScript that Node runs as is (type stripping, Node >= 22.18), so only
+   * erasable syntax and explicit .ts/.mts import paths. The scripts published in the packages (aura-theme,
+   * a11y-check, lint-tokens, the ESLint plugin) stay JavaScript for Node 18+ users; a // @ts-check line at their
+   * top has them checked here too. */
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "es2022",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "scripts/*.mts",
+    "packages/react/scripts/*.ts",
+    "packages/react/scripts/aura-theme.mjs",
+    "packages/react/examples/build.ts",
+    "packages/react/tests/*.ts",
+    "packages/tokens/scripts/*.mts",
+    "packages/tokens/scripts/*.js",
+    "packages/tokens/eslint-plugin-aura.js",
+    "apps/storybook/scripts/telemetry.mts",
+    "templates/next-starter/e2e/*.mjs"
+  ]
+}

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { FIELD_KEYS, Field, describedBy } from './Field.js';
 import { Icon } from './Icon.js';
 import { useDensity } from './locale.js';
-import { cx, omit, uid, useIsoLayoutEffect, useMergedRef, useMounted } from './internal.js';
+import { cx, devWarnOnce, omit, uid, useIsoLayoutEffect, useMergedRef, useMounted } from './internal.js';
 import type { SelectOption, SelectProps } from './types.js';
 
 const h = React.createElement;
@@ -100,6 +100,15 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
    * the button and AURA's list take over once React runs. */
   const live = !native && mounted;
   const density = useDensity();
+  /* Dev only, after mount: a label elsewhere pointing at the id, or a title, names it too. */
+  React.useEffect(function () {
+    if (props.label || props['aria-label'] || props['aria-labelledby'] || props.title) return;
+    if (document.querySelector('label[for="' + id.replace(/["\\]/g, '\\$&') + '"]')) return;
+    devWarnOnce(
+      'select-name',
+      'Select needs a label, aria-label or aria-labelledby: screen readers announce it with no name.',
+    );
+  }, []);
 
   const selRef = React.useRef<HTMLSelectElement | null>(null),
     trigRef = React.useRef<HTMLButtonElement | null>(null),

@@ -81,13 +81,15 @@ Every component forwards `ref` to its real element, so react-hook-form works as 
 
 ```bash
 npm ci
-npm test                 # contrast (94 pairs), token lint, server rendering, tsc --strict over the TypeScript sources
+npm test                 # contrast, token lint, server rendering, tsc --strict over the library, examples, stories and scripts
 npm run build            # tokens + React (ESM, CJS, window.Aura bundle, types)
 npm run storybook        # http://localhost:6006
 npm run test:storybook   # axe on every story in both themes + behaviour tests
 npm run size -w packages/react   # gzip size of what projects import; CI fails over packages/react/size-budgets.json
-npm run test:pilots      # the three pilot pages at 390/820/1440px, 4 brand themes (needs Python + playwright)
+npm run test:pilots      # the three pilot pages at 390/820/1440px, 4 brand themes (Playwright Test)
 ```
+
+Working on the repo needs Node 22.18 or later (`.nvmrc`): the build, test and release scripts are TypeScript that Node runs as is. The published packages still run on Node 18+.
 
 Visual regression: [Chromatic](https://www.chromatic.com) snapshots every story in light and dark on pull requests (`.github/workflows/chromatic.yml`; set the `CHROMATIC_PROJECT_TOKEN` secret and the `CHROMATIC_ENABLED=true` variable to turn it on).
 

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import { createRequire } from 'node:module';
-import { fixtures } from './fixtures.mjs';
+import { fixtures } from './fixtures.ts';
 const require = createRequire(import.meta.url);
 let fail = 0;
 const origError = console.error;
@@ -14,13 +14,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
   if (missing.length) { console.log(label, 'no fixture:', missing.join(', ')); fail++; }
   for (const [name, el] of Object.entries(fx)) {
     try { const html = renderToString(el); if (!html && !['Toaster', 'Dialog', 'Drawer', 'Menu', 'Command'].includes(name)) throw new Error('empty output'); }
-    catch (e) { console.log(label, name, 'FAILED:', e.message); fail++; }
+    catch (e) { console.log(label, name, 'FAILED:', (e as Error).message); fail++; }
   }
   console.log(`${label}: ${Object.keys(fx).length} components server-rendered`);
   /* 5.0 (Chamber-OS item 51): the root formatDate() is the /server one — English and Gregorian by default, no warning. */
   const S = label === 'esm' ? await import('../dist/server/index.js') : require('../dist/server/index.cjs');
-  const warns = [], origWarn = console.warn;
-  console.warn = (m) => warns.push(String(m));
+  const warns: string[] = [], origWarn = console.warn;
+  console.warn = (m: unknown) => warns.push(String(m));
   const root = A.formatDate('2026-09-24'), server = S.formatDate('2026-09-24');
   console.warn = origWarn;
   if (root !== server || root !== '24 Sept 2026') { console.log(label, 'formatDate: root', root, 'vs /server', server); fail++; }
@@ -37,13 +37,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
   try {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(A.todayIn('Asia/Bangkk'))) throw new Error('todayIn gave ' + A.todayIn('Asia/Bangkk'));
     renderToString(React.createElement(A.Calendar, { timeZone: 'Asia/Bangkk', today: 'soon', onSelect: () => {} }));
-  } catch (e) { console.log(label, 'bad time zone:', e.message); fail++; }
+  } catch (e) { console.log(label, 'bad time zone:', (e as Error).message); fail++; }
   const tabsHtml = renderToString(React.createElement(A.Tabs, { label: 'T', value: 'sub', tabs: [{ id: 'a', label: 'A', href: '/a' }, { id: 'b', label: 'B', href: '/b' }] }));
   if (/aria-current/.test(tabsHtml)) { console.log(label, 'link Tabs marked a tab for an unmatched value'); fail++; }
   /* 5.1: Checkbox label without children warns once (6.0 shows it); hideLabel is quiet and keeps a description. */
   {
-    const w = [], ow = console.warn;
-    console.warn = (m) => w.push(String(m));
+    const w: string[] = [], ow = console.warn;
+    console.warn = (m: unknown) => w.push(String(m));
     renderToString(React.createElement(A.Checkbox, { label: 'Row 1', hideLabel: true, id: 'c1', description: 'Owner: Tao' }));
     const quiet = w.length;
     renderToString(React.createElement(A.Checkbox, { label: 'Row 2' }));
@@ -55,15 +55,15 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
   }
   /* 5.1.1: tenant data can't break out of ThemeStyle's <style>; a bad colour or selector renders nothing, no crash. */
   {
-    const w = [], ow = console.warn;
-    console.warn = (m) => w.push(String(m));
+    const w: string[] = [], ow = console.warn;
+    console.warn = (m: unknown) => w.push(String(m));
     let html = '';
     try {
       html =
         renderToString(React.createElement(A.ThemeStyle, { brand: '#0ea5e9', name: 'Acme</style><script>alert(1)</script>*/ body{display:none} /*' })) +
         renderToString(React.createElement(A.ThemeStyle, { brand: '#0ea5e9', selector: '.t</style><script>x</script>' })) +
         renderToString(React.createElement(A.ThemeStyle, { brand: 'rgb(1,2,3)' }));
-    } catch (e) { console.log(label, 'ThemeStyle threw:', e.message); fail++; }
+    } catch (e) { console.log(label, 'ThemeStyle threw:', (e as Error).message); fail++; }
     console.warn = ow;
     const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [])[1] || '';
     const comment = css.slice(0, css.indexOf('*/') + 2);

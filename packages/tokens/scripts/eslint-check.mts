@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Runs eslint-plugin-aura under ESLint 9 (flat config, the plugin's documented setup) on a fixture: every "bad" line
  * must be flagged and no "good" line. Also lint-tokens.js on the same fixture as CSS and JS.
- * Usage: node scripts/eslint-check.mjs   (installs eslint@9 into a temp folder) */
+ * Usage: node scripts/eslint-check.mts   (installs eslint@9 into a temp folder) */
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -65,7 +65,8 @@ try {
   fails.push('ESLint did not run with the recommended flat config: ' + (r.stderr || r.stdout).slice(0, 400));
 }
 if (report) {
-  const hit = new Set(report[0].messages.map((m) => m.line));
+  type Msg = { line: number };
+  const hit = new Set(report[0].messages.map((m: Msg) => m.line));
   BAD.forEach((b, i) => {
     if (!hit.has(i + 2)) fails.push('not flagged: ' + b);
   });
@@ -73,7 +74,7 @@ if (report) {
     if (hit.has(BAD.length + i + 2)) fails.push('flagged but fine: ' + g);
   });
   const s = BAD.length + GOOD.length + 2;
-  if (report[0].messages.filter((m) => m.line === s).length !== 2)
+  if (report[0].messages.filter((m: Msg) => m.line === s).length !== 2)
     fails.push("JSX style={{ color: 'white' }} and text-black: expected 2 reports");
   if (hit.has(s + 1)) fails.push('an href / id anchor was flagged as a colour');
 }

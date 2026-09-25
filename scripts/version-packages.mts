@@ -5,8 +5,8 @@
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
 
-const read = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
-const write = (f, o) => fs.writeFileSync(f, JSON.stringify(o, null, 2) + '\n');
+const read = (f: string) => JSON.parse(fs.readFileSync(f, 'utf8'));
+const write = (f: string, o: unknown) => fs.writeFileSync(f, JSON.stringify(o, null, 2) + '\n');
 const V = read('packages/react/package.json').version;
 const tokensV = read('packages/tokens/package.json').version;
 if (V !== tokensV) throw new Error(`aura-react is ${V} but aura-tokens is ${tokensV}; they are released together`);
@@ -27,7 +27,7 @@ const pkgLog = fs.readFileSync('packages/react/CHANGELOG.md', 'utf8');
 const m = pkgLog.match(new RegExp('^## ' + V.replace(/\./g, '\\.') + '\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))', 'm'));
 const root = fs.readFileSync('CHANGELOG.md', 'utf8');
 if (m && !root.includes('\n## ' + V + ' ')) {
-  const body = m[1].replace(/^### (Major|Minor|Patch) Changes/gm, (_, k) => '### ' + k + ' changes').trim();
+  const body = m[1].replace(/^### (Major|Minor|Patch) Changes/gm, (_: string, k: string) => '### ' + k + ' changes').trim();
   const date = new Date().toISOString().slice(0, 10);
   fs.writeFileSync('CHANGELOG.md', root.replace(/^# Changelog\n/, `# Changelog\n\n## ${V} — ${date}\n\n${body}\n`));
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 /* Token lint — fails when source files hard-code colours instead of AURA tokens, or (CSS) motion:
  * a transition/animation must take its duration and easing from --aura-duration-* / --aura-ease / --aura-spring
  * (`linear` is allowed: it's for spinners and progress, not a feel).
@@ -24,16 +25,19 @@ const NAMED = 'white|black|red|green|blue|yellow|orange|purple|pink|gray|grey|si
 const CSS_NAMED = new RegExp('(?:^|[;{\\s])(?:color|background(?:-color)?|border(?:-[a-z]+)?-color|fill|stroke|outline-color)\\s*:\\s*[^;]*(?<![\\w-])(?:' + NAMED + ')(?![\\w-])');
 /* Colour functions count only with a literal colour inside (a hex or three numbers), as in eslint-plugin-aura. */
 const FN_CALL = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\(([^()]*)(\)|$)/gi;
+/** @param {string} v */
 function fnHit(v) {
   FN_CALL.lastIndex = 0;
   let m;
   while ((m = FN_CALL.exec(v))) if (!m[2] || /#[0-9a-f]{3}/i.test(m[1]) || (m[1].match(/-?\d*\.?\d+/g) || []).length >= 3) return m[0];
   return null;
 }
-const stripRefs = (v) => v.replace(/var\([^()]*(?:\([^()]*\)[^()]*)*\)/g, ' ').replace(/url\([^)]*\)/g, ' ');
+const stripRefs = (/** @type {string} */ v) => v.replace(/var\([^()]*(?:\([^()]*\)[^()]*)*\)/g, ' ').replace(/url\([^)]*\)/g, ' ');
 const MOTION_PROP = /\b(?:transition|animation)(?:-duration|-timing-function|-delay)?\s*:/i;
 const MOTION_RAW = /(?:^|[\s,:(])(?:\d*\.?\d+m?s)\b|cubic-bezier\(|\bease(?:-in-out|-in|-out)?\b/gi;
+/** @type {string[]} */
 const violations = [];
+/** @param {string} d */
 function scan(d) {
   if (!fs.existsSync(d)) return;
   for (const f of fs.readdirSync(d)) {
@@ -46,8 +50,9 @@ function scan(d) {
     if (/aura-lint:\s*allow-colours/.test(text.slice(0, 600))) continue;
     text.split('\n').forEach((line, i) => {
       const plain = stripRefs(line);
-      const m = plain.match(COLOUR) || (fnHit(plain) ? [fnHit(plain)] : null);
-      if (m) violations.push(`${path.relative(process.cwd(), full)}:${i + 1}  ${m.map((s) => s.trim().replace(/^[:"'`!]/, '')).join(', ')}`);
+      const fn = fnHit(plain);
+      const m = plain.match(COLOUR) || (fn ? [fn] : null);
+      if (m) violations.push(`${path.relative(process.cwd(), full)}:${i + 1}  ${m.map((/** @type {string} */ s) => s.trim().replace(/^[:"'`!]/, '')).join(', ')}`);
       if (/\.s?css$/.test(f) && !/^\s*--/.test(line)) {
         const n = CSS_NAMED.exec(stripRefs(line.replace(/\/\*.*?\*\//g, '')));
         if (n) violations.push(`${path.relative(process.cwd(), full)}:${i + 1}  named colour: ${n[0].trim()}`);

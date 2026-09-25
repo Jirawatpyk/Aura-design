@@ -1,3 +1,4 @@
+// @ts-check
 /* Every AURA link in the starter navigates client-side through next/link (no full page load).
  * Run after `next build`: node e2e/links.mjs  (starts `next start` itself; CHROMIUM=/path/to/chrome optional). */
 import { spawn } from 'node:child_process';
@@ -8,7 +9,7 @@ const PORT = 3217;
 const server = spawn('npx', ['next', 'start', '-p', String(PORT)], { stdio: 'ignore', detached: true });
 const stop = () => {
   try {
-    process.kill(-server.pid);
+    if (server.pid) process.kill(-server.pid);
   } catch {}
 };
 const base = 'http://127.0.0.1:' + PORT;
@@ -20,20 +21,26 @@ for (let i = 0; i < 60; i++) {
 }
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+/** @type {string[]} */
 const fails = [];
 await page.goto(base + '/');
 await page.evaluate(() => {
-  window.__noReload = true;
+  /** @type {any} */ (window).__noReload = true;
 });
+/**
+ * @param {string} name
+ * @param {() => Promise<unknown>} click
+ * @param {string} url
+ */
 async function step(name, click, url) {
   await click();
   await page
     .waitForURL(base + url, { timeout: 10000 })
     .catch(() => fails.push(`${name}: did not reach ${url} (at ${page.url()})`));
-  if (!(await page.evaluate(() => window.__noReload === true))) {
+  if (!(await page.evaluate(() => /** @type {any} */ (window).__noReload === true))) {
     fails.push(`${name}: full page load`);
     await page.evaluate(() => {
-      window.__noReload = true;
+      /** @type {any} */ (window).__noReload = true;
     });
   }
 }

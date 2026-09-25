@@ -55,14 +55,14 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "node scripts/build-tokens.js",
+    "build": "node scripts/build-tokens.mts",
     "a11y": "node scripts/a11y-check.js",
-    "check:tailwind4": "node scripts/tailwind4-check.mjs",
+    "check:tailwind4": "node scripts/tailwind4-check.mts",
     "lint:tokens": "node scripts/lint-tokens.js ../react/src && node scripts/lint-tokens.js ../react/styles",
-    "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css aura-fonts.local.css tailwind.tokens.cjs aura-tailwind.css aura-tailwind.prefixed.css figma-variables.csv",
+    "check:generated": "node scripts/build-tokens.mts && git diff --exit-code -- aura.css aura-fonts.css aura-fonts.local.css tailwind.tokens.cjs aura-tailwind.css aura-tailwind.prefixed.css figma-variables.csv",
     "prepack": "npm run build",
-    "check:fonts": "node scripts/fonts-check.mjs",
-    "check:eslint": "node scripts/eslint-check.mjs"
+    "check:fonts": "node scripts/fonts-check.mts",
+    "check:eslint": "node scripts/eslint-check.mts"
   },
   "keywords": [
     "design-system",

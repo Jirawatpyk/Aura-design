@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fixtures } from './fixtures.mjs';
+import { fixtures } from './fixtures.ts';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const A = await import('../dist/esm/index.js');
@@ -22,7 +22,7 @@ fs.writeFileSync(path.join(dir, 'entry.mjs'), `
 import * as React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import * as A from ${JSON.stringify(path.join(root, 'dist/esm/index.js'))};
-import { fixtures } from ${JSON.stringify(path.join(root, 'scripts/fixtures.mjs'))};
+import { fixtures } from ${JSON.stringify(path.join(root, 'scripts/fixtures.ts'))};
 const fx = fixtures(A, React);
 document.querySelectorAll('[data-fx]').forEach((d) => hydrateRoot(d, fx[d.dataset.fx], {
   onRecoverableError: (e) => console.error('recoverable error in ' + d.dataset.fx + ': ' + (e && e.message)),
@@ -35,11 +35,12 @@ fs.writeFileSync(path.join(dir, 'index.html'), `<!doctype html><html lang="en"><
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const page = await browser.newPage();
-const problems = [];
+const problems: string[] = [];
+
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') problems.push(`${m.type()}: ${m.text().slice(0, 400)}`); });
 page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
 await page.goto('file://' + path.join(dir, 'index.html'));
-await page.waitForFunction(() => window.__hydrated > 0, null, { timeout: 15000 });
+await page.waitForFunction(() => Number(window.__hydrated || 0) > 0, null, { timeout: 15000 });
 const n = await page.evaluate(() => window.__hydrated);
 await browser.close();
 console.log(`React ${React.version}: ${n} fixtures hydrated, ${problems.length} console problem(s)`);

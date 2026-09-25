@@ -9,6 +9,7 @@ import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import { build } from 'esbuild';
 import { chromium } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -62,8 +63,8 @@ const A = await import('../dist/esm/index.js');
 const css = ['../tokens/aura.css', 'styles/components.css']
   .map((f) => fs.readFileSync(path.join(root, f), 'utf8'))
   .join('\n');
-const serverHtml = {};
-async function makePage(name, source) {
+const serverHtml: Record<string, string> = {};
+async function makePage(name: string, source: string) {
   fs.writeFileSync(path.join(dir, name + '.mjs'), source);
   const { App } = await import(path.join(dir, name + '.mjs'));
   const html = renderToString(App(A, React));
@@ -101,20 +102,20 @@ await makePage('virtual', APP3);
 await makePage('pinned', APP4);
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
-const fails = [];
-const shows = (p, sel) =>
+const fails: string[] = [];
+const shows = (p: Page, sel: string) =>
   p.evaluate((s) => [...document.querySelectorAll(s)].some((e) => e.getClientRects().length > 0), sel);
 /* Cards or grid: a body row wraps its cells in the card layout. */
-const layoutOf = (p) =>
+const layoutOf = (p: Page) =>
   p.evaluate(() => {
     const r = document.querySelector('.aura-table__scroll > .aura-table__row:not(.aura-table__head)');
     if (!r) return document.querySelector('.aura-table__card') ? 'cards' : 'none';
     return r && getComputedStyle(r).flexWrap === 'wrap' ? 'cards' : 'grid';
   });
-async function open(name, width, height, js) {
+async function open(name: string, width: number, height: number, js: boolean) {
   const ctx = await browser.newContext({ viewport: { width, height }, javaScriptEnabled: js });
   const p = await ctx.newPage();
-  const problems = [];
+  const problems: string[] = [];
   p.on('console', (m) => {
     if (m.type() === 'error' || m.type() === 'warning') problems.push(m.text().slice(0, 300));
   });
@@ -122,16 +123,16 @@ async function open(name, width, height, js) {
   if (js) await p.waitForFunction(() => window.__hydrated, null, { timeout: 15000 });
   return { ctx, p, problems };
 }
-async function afterHydration(p, problems, where) {
-  const cls = await p.evaluate(() => window.__cls);
+async function afterHydration(p: Page, problems: string[], where: string) {
+  const cls = await p.evaluate(() => window.__cls || 0);
   if (cls > 0) fails.push(`${where}: cumulative layout shift ${cls.toFixed(4)}, expected 0`);
   for (const m of problems) fails.push(`${where}: console: ${m}`);
 }
-async function check(width, height, js) {
+async function check(width: number, height: number, js: boolean) {
   const { ctx, p, problems } = await open('shell', width, height, js);
   const phone = width < 1024;
   const where = `${width}px, JavaScript ${js ? 'on' : 'off'}`;
-  const expect = async (sel, visible, what) => {
+  const expect = async (sel: string, visible: boolean, what: string) => {
     if ((await shows(p, sel)) !== visible) fails.push(`${where}: ${what} should be ${visible ? 'visible' : 'hidden'}`);
   };
   await expect('.aura-shell__nav', !phone, 'the sidebar');
@@ -143,10 +144,10 @@ async function check(width, height, js) {
    * bottom nav and below the last field. */
   const bn = await p.evaluate(() => {
     window.scrollTo(0, document.documentElement.scrollHeight);
-    const r = (s) => document.querySelector(s).getBoundingClientRect();
+    const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
     const items = [...document.querySelectorAll('.aura-bottomnav__item')].map((e) => {
       const b = e.getBoundingClientRect(),
-        l = e.querySelector('.aura-bottomnav__label');
+        l = e.querySelector('.aura-bottomnav__label')!;
       return { w: b.width, h: b.height, clipped: l.scrollWidth > l.clientWidth };
     });
     return {
@@ -173,18 +174,18 @@ async function check(width, height, js) {
   await ctx.close();
 }
 /* Page 2: stackBelow={700}, MEMBER hideBelow={900}. */
-async function checkTable(width, js) {
+async function checkTable(width: number, js: boolean) {
   const { ctx, p, problems } = await open('table', width, 800, js);
   const where = `table at ${width}px, JavaScript ${js ? 'on' : 'off'}`;
   const want = width < 700 ? 'cards' : 'grid';
   const lay = await layoutOf(p);
   if (lay !== want) fails.push(`${where}: ${lay}, expected ${want}`);
   const m = await p.evaluate(() => {
-    const vis = (el) => !!el && el.getClientRects().length > 0;
-    const head = [...document.querySelectorAll('.aura-table__th')].find((e) => /MEMBER/.test(e.textContent));
+    const vis = (el: Element | undefined) => !!el && el.getClientRects().length > 0;
+    const head = [...document.querySelectorAll('.aura-table__th')].find((e) => /MEMBER/.test(e.textContent || ''));
     const cell = [...document.querySelectorAll('.aura-table__td')].find((e) => e.textContent === 'Acme AB');
     const sc = document.querySelector('.aura-table__scroll');
-    const table = document.querySelector('.aura-table').getBoundingClientRect();
+    const table = document.querySelector('.aura-table')!.getBoundingClientRect();
     return {
       member: vis(cell),
       header: vis(head),
@@ -204,7 +205,7 @@ async function checkTable(width, js) {
   if (js) await afterHydration(p, problems, where);
   await ctx.close();
 }
-async function checkVirtual(js) {
+async function checkVirtual(js: boolean) {
   const { ctx, p, problems } = await open('virtual', 390, 800, js);
   const where = `virtual table at 390px, JavaScript ${js ? 'on' : 'off'}`;
   const m = await p.evaluate(() => ({
@@ -219,23 +220,23 @@ async function checkVirtual(js) {
   if (js) for (const x of problems) fails.push(`${where}: console: ${x}`);
   await ctx.close();
 }
-async function checkPinned(js) {
+async function checkPinned(js: boolean) {
   const { ctx, p, problems } = await open('pinned', 800, 600, js);
   const where = `pinned columns at 800px, JavaScript ${js ? 'on' : 'off'}`;
   const m = await p.evaluate(() => {
     const cell = [...document.querySelectorAll('.aura-table__td')].find((e) => e.textContent === 'H-1');
     const status = [...document.querySelectorAll('.aura-table__td')].find((e) => e.textContent === 'Ready');
-    return { id: cell.getBoundingClientRect(), status: status.getBoundingClientRect() };
+    return { id: cell!.getBoundingClientRect(), status: status!.getBoundingClientRect() };
   });
   if (m.id.right > m.status.left + 1) fails.push(`${where}: the pinned ID cell (${m.id.left}–${m.id.right}) overlaps STATUS (${m.status.left})`);
   pinnedLeft[js ? 'on' : 'off'] = m.id.left;
   if (js) await afterHydration(p, problems, where);
   await ctx.close();
 }
-const pinnedLeft = {};
+const pinnedLeft: { on?: number; off?: number } = {};
 /* One markup: each row is in the server's HTML once. */
 for (const id of ['INV-2001', 'INV-2006']) {
-  const n = serverHtml.table.split(id).length - 1;
+  const n = serverHtml.table!.split(id).length - 1;
   if (n !== 1) fails.push(`server HTML has ${id} ${n} times, expected once`);
 }
 for (const js of [false, true]) {
@@ -246,7 +247,7 @@ for (const js of [false, true]) {
   await checkVirtual(js);
   await checkPinned(js);
 }
-if (Math.abs(pinnedLeft.on - pinnedLeft.off) > 1) fails.push(`pinned ID cell moves on hydration: ${pinnedLeft.off} → ${pinnedLeft.on}`);
+if (Math.abs((pinnedLeft.on ?? 0) - (pinnedLeft.off ?? 0)) > 1) fails.push(`pinned ID cell moves on hydration: ${pinnedLeft.off} → ${pinnedLeft.on}`);
 await browser.close();
 if (fails.length) {
   console.error(`Layout before hydration FAIL (React ${React.version}):\n  ` + fails.join('\n  '));

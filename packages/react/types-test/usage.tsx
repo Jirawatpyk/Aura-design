@@ -396,3 +396,55 @@ export function V415() {
     </>
   );
 }
+
+/* 5.4: react-hook-form's formState.errors as is, nested objects and field arrays included; a Select named by
+ * aria-labelledby (no visible label). */
+import { useForm } from 'react-hook-form';
+import { FormErrorSummary as RhfSummary, Select as RhfSelect, DataTable as RowsTable } from '../src/index';
+export function RhfErrors53() {
+  const f = useForm<{ province: string; address: { street: string }; items: { name: string }[] }>();
+  return (
+    <>
+      <RhfSummary
+        errors={f.formState.errors}
+        focusKey={f.formState.submitCount}
+        onSelect={(n) => f.setFocus(n as 'province')}
+      />
+      <RhfSummary errors={[{ field: 'province', message: 'Choose a province' }]} />
+      <RhfSummary
+        errors={{ address: { street: { message: 'Enter a street' } }, items: [{ name: { message: 'Name item 1' } }] }}
+      />
+      <span id="ext">Province</span>
+      <RhfSelect aria-labelledby="ext" {...f.register('province')} options={['BKK']} />
+      <RhfSelect label="Province" options={['BKK']} />
+    </>
+  );
+}
+
+/* 5.4: rows of your own interface, and row callbacks written with it; a string leaf is not an error tree. */
+interface Invoice54 {
+  id: string;
+  amount: number;
+}
+export function TypedRows54({ rows, open }: { rows: readonly Invoice54[]; open: (r: Invoice54) => void }) {
+  return (
+    <>
+      <RowsTable
+        label="Invoices"
+        rows={rows}
+        onRowActivate={open}
+        getRowHref={(r: Invoice54) => '/invoices/' + r.id}
+        columns={[
+          {
+            key: 'amount',
+            label: 'AMOUNT',
+            render: (r: Invoice54) => r.amount.toFixed(2),
+            sortValue: (r: Invoice54) => r.amount,
+          },
+        ]}
+      />
+      {/* @ts-expect-error a message must sit in an object: { email: { message } } */}
+      <RhfSummary errors={{ email: 'Enter an email' }} />
+    </>
+  );
+}

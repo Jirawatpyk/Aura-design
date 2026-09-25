@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
-import { App as OrdersPage } from '../../../packages/react/examples/orders/App.jsx';
+import { App as OrdersPage } from '../../../packages/react/examples/orders/App.js';
 import '../../../packages/react/examples/orders/pilot.css';
 
 const meta: Meta = { title: 'AURA/Responsive' };

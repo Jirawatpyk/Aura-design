@@ -1,3 +1,4 @@
+// @ts-check
 // eslint-plugin-aura.js — AURA 5.2
 // Flags hard-coded colours in JS/TS: hex (#rgb, #rgba, #rrggbb, #rrggbbaa), colour functions (rgb/hsl/hwb/lab/lch/
 // oklab/oklch/color-mix), CSS named colours in a style value, Tailwind palette classes (bg-red-500, text-white) and
@@ -17,6 +18,7 @@ const HEX = /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![\w-])/i;
  * call a template literal continues (`rgb(${r}, …)`). Token-based ones pass: rgb(var(--brand-rgb) / .5),
  * color-mix(in srgb, var(--aura-accent) 20%, transparent). var() and url() are removed before any check. */
 const FN_CALL = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\(([^()]*)(\)|$)/gi;
+/** @param {string} v */
 function fnHit(v) {
   FN_CALL.lastIndex = 0;
   let m;
@@ -26,7 +28,7 @@ function fnHit(v) {
   }
   return null;
 }
-const stripRefs = (v) => v.replace(/var\([^()]*(?:\([^()]*\)[^()]*)*\)/g, ' ').replace(/url\([^)]*\)/g, ' ');
+const stripRefs = (/** @type {string} */ v) => v.replace(/var\([^()]*(?:\([^()]*\)[^()]*)*\)/g, ' ').replace(/url\([^)]*\)/g, ' ');
 const TW_ARB = new RegExp('(?:^|[\\s:"\'`])(?:' + UTIL + ')-\\[(?:#|rgb|hsl|oklch|color)', 'i');
 const TW_PAL = new RegExp(
   '(?:^|[\\s:"\'`!])(?:' + UTIL + ')-(?:(?:' + PALETTE + ')-\\d{2,3}|white|black)(?:\\/\\d+)?(?![\\w-])',
@@ -49,6 +51,10 @@ const COLOUR_KEY =
 const NOT_COLOUR_ATTR =
   /^(?:href|to|id|htmlFor|for|src|action|formAction|xlinkHref|xlink:href|aria-[a-z]+|data-[\w-]+|name|key)$/;
 
+/**
+ * @param {unknown} raw
+ * @param {boolean} colourKey
+ */
 function hitIn(raw, colourKey) {
   if (typeof raw !== 'string') return null;
   const value = stripRefs(raw);
@@ -59,6 +65,8 @@ function hitIn(raw, colourKey) {
   if (colourKey && NAMED_WHOLE.test(value)) return value.trim();
   return null;
 }
+/** An ESTree / JSX AST node, loosely (the plugin runs on whatever parser the project uses). @typedef {any} Node */
+/** @param {Node} node */
 function skip(node) {
   let p = node.parent;
   if (!p) return false;
@@ -80,11 +88,17 @@ function skip(node) {
     return true;
   return false;
 }
+/** @param {Node} node */
 function colourKeyOf(node) {
   const p = node.parent;
   if (p && p.type === 'Property' && p.value === node && p.key) return COLOUR_KEY.test(p.key.name || p.key.value || '');
   return false;
 }
+/**
+ * @param {{ report(d: { node: Node, message: string }): void }} context
+ * @param {Node} node
+ * @param {string} hit
+ */
 function report(context, node, hit) {
   context.report({
     node,
@@ -101,14 +115,14 @@ const plugin = {
         docs: { description: 'ห้ามใช้สี hardcode ให้ใช้ token — use AURA semantic tokens, never raw colours' },
         schema: [],
       },
-      create(context) {
+      create(/** @type {any} */ context) {
         return {
-          Literal(node) {
+          Literal(/** @type {Node} */ node) {
             if (skip(node)) return;
             const hit = hitIn(node.value, colourKeyOf(node));
             if (hit) report(context, node, hit);
           },
-          TemplateElement(node) {
+          TemplateElement(/** @type {Node} */ node) {
             if (skip(node)) return;
             const hit = hitIn(node.value && node.value.raw, false);
             if (hit) report(context, node, hit);
@@ -117,6 +131,7 @@ const plugin = {
       },
     },
   },
+  /** @type {Record<string, { plugins: unknown, rules: Record<string, string> }>} */
   configs: {},
 };
 /* Flat config (ESLint 9, the default): the plugin object itself, not a name. */

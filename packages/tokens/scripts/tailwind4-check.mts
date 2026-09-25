@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Compiles aura-tailwind.css with Tailwind v4 and checks that every class the README promises is generated,
  * points at an --aura-* variable, and that dark: follows .dark / data-theme="dark".
- * Usage: node scripts/tailwind4-check.mjs   (installs tailwindcss@4 + @tailwindcss/cli@4 into a temp folder) */
+ * Usage: node scripts/tailwind4-check.mts   (installs tailwindcss@4 + @tailwindcss/cli@4 into a temp folder) */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -62,7 +62,7 @@ const pages = {
   unlayered: `@import "tailwindcss";\n@import "@jirawatpyk/aura-tokens/aura.css";\n@import "@jirawatpyk/aura-tokens/tailwind.prefixed.css";\n@import "@jirawatpyk/aura-react/styles.css";\n${SHADCN}`,
 };
 fs.writeFileSync(path.join(dir, 'page.html'), HTML);
-const compiled = {};
+const compiled: Record<string, string> = {};
 for (const [name, input] of Object.entries(pages)) {
   fs.writeFileSync(path.join(dir, name + '.in.css'), input);
   execFileSync(path.join(dir, 'node_modules', '.bin', 'tailwindcss'), ['-i', name + '.in.css', '-o', name + '.css', '--cwd', dir], { cwd: dir, stdio: 'pipe' });
@@ -73,37 +73,38 @@ if (/@custom-variant|@import/.test(prefixed.replace(/\/\*[\s\S]*?\*\//g, ''))) f
 const { chromium } = await import('playwright');
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const PROPS = ['color', 'background-color', 'border-top-color', 'border-top-width', 'font-family', 'padding-top', 'border-top-left-radius'];
-async function styles(name) {
+type Styles = Record<string, Record<string, string>>;
+async function styles(name: string): Promise<Styles> {
   const p = await browser.newPage();
   await p.setContent(`<!doctype html><html><head><style>${compiled[name]}</style></head>${HTML}</html>`);
   const out = await p.evaluate((props) => {
-    const pick = (sel) => { const cs = getComputedStyle(document.querySelector(sel)); return Object.fromEntries(props.map((k) => [k, cs.getPropertyValue(k)])); };
+    const pick = (sel: string) => { const cs = getComputedStyle(document.querySelector(sel)!); return Object.fromEntries(props.map((k) => [k, cs.getPropertyValue(k)])); };
     return { body: pick('body'), s1: pick('#s1'), s2: pick('#s2'), s3: pick('#s3'), a1: pick('#a1'), a2: pick('#a2'), a5: pick('#a5') };
   }, PROPS);
   await p.close();
   return out;
 }
 /* 4.18: on a phone the sheet drops its max-width; a utility on it must still win (it lost to !important in 4.17). */
-async function sheetWidth(name) {
+async function sheetWidth(name: string): Promise<string> {
   const p = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await p.setContent(`<!doctype html><html><head><style>${compiled[name]}</style></head><body><div id="d" class="aura-dialog aura-dialog--md max-w-[200px]">sheet</div></body></html>`);
-  const w = await p.evaluate(() => getComputedStyle(document.getElementById('d')).maxWidth);
+  const w = await p.evaluate(() => getComputedStyle(document.getElementById('d')!).maxWidth);
   await p.close();
   return w;
 }
 const sheet = await sheetWidth('both');
 if (sheet !== '200px') fails.push(`a max-w utility should override the phone sheet inside @layer aura (got ${sheet})`);
 const alone = await styles('alone'), both = await styles('both'), after = await styles('after'), unlayered = await styles('unlayered');
-for (const [order, got] of [['AURA first', both], ['AURA after the app theme', after]])
+for (const [order, got] of [['AURA first', both], ['AURA after the app theme', after]] as [string, Styles][])
   for (const el of ['body', 's1', 's2', 's3']) for (const k of PROPS)
-    if (alone[el][k] !== got[el][k]) fails.push(`next to shadcn (${order}): #${el} ${k} changed: "${alone[el][k]}" → "${got[el][k]}"`);
-if (both.a1['border-top-left-radius'] !== '0px') fails.push(`@layer aura: rounded-none should override .aura-btn (got ${both.a1['border-top-left-radius']})`);
-if (unlayered.a1['border-top-left-radius'] === '0px') fails.push('control: unlayered styles.css should beat the utility — the layer check is not testing anything');
+    if (alone[el]![k] !== got[el]![k]) fails.push(`next to shadcn (${order}): #${el} ${k} changed: "${alone[el]![k]}" → "${got[el]![k]}"`);
+if (both.a1!['border-top-left-radius'] !== '0px') fails.push(`@layer aura: rounded-none should override .aura-btn (got ${both.a1!['border-top-left-radius']})`);
+if (unlayered.a1!['border-top-left-radius'] === '0px') fails.push('control: unlayered styles.css should beat the utility — the layer check is not testing anything');
 /* 4.18: nothing in the layer may use !important (it would beat utilities); a utility recolours the Combobox check. */
 if (/!important/.test(fs.readFileSync(path.join(root, '..', 'react', 'dist', 'styles.layer.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''))) fails.push('styles.layer.css contains !important');
-if (both.a5.color !== alone.s1['background-color']) fails.push(`text-chart-1 should recolour .aura-combo__check inside an option (got ${both.a5.color}, want ${alone.s1['background-color']})`);
-if (!/Inter/.test(both.a2['font-family'])) fails.push('font-aura-sans should be the Inter stack, got ' + both.a2['font-family']);
-if (both.a2['background-color'] !== 'rgb(255, 255, 255)') fails.push('bg-aura-bg-surface should resolve to the AURA surface, got ' + both.a2['background-color']);
+if (both.a5!.color !== alone.s1!['background-color']) fails.push(`text-chart-1 should recolour .aura-combo__check inside an option (got ${both.a5!.color}, want ${alone.s1!['background-color']})`);
+if (!/Inter/.test(both.a2!['font-family']!)) fails.push('font-aura-sans should be the Inter stack, got ' + both.a2!['font-family']);
+if (both.a2!['background-color'] !== 'rgb(255, 255, 255)') fails.push('bg-aura-bg-surface should resolve to the AURA surface, got ' + both.a2!['background-color']);
 await browser.close();
 
 for (const [cls, value] of Object.entries(CLASSES)) {
@@ -115,7 +116,8 @@ for (const [cls, value] of Object.entries(CLASSES)) {
  * don't; a dark island inside that light island does; data-theme="system" follows the OS with no script. */
 {
   const p = await (await import('playwright')).chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
-  const probe = async (scheme) => {
+  type Scheme = 'light' | 'dark';
+  const probe = async (scheme: Scheme): Promise<Record<string, boolean>> => {
     const pg = await p.newPage({ colorScheme: scheme });
     await pg.setContent(`<!doctype html><html><head><style>${css}</style></head><body>
       <div class="dark"><i id="d1" class="dark:bg-bg-canvas"></i><div data-theme="light"><i id="d2" class="dark:bg-bg-canvas"></i></div></div>
@@ -125,15 +127,15 @@ for (const [cls, value] of Object.entries(CLASSES)) {
       <div class="dark"><div data-theme="light"><div data-theme="dark"><i id="d7" class="dark:bg-bg-canvas"></i></div></div></div>
       <div data-theme="light"><div data-theme="dark"><div data-theme="light"><i id="d8" class="dark:bg-bg-canvas"></i></div></div></div></body></html>`);
     const ids = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8'];
-    const on = await pg.evaluate((ids) => Object.fromEntries(ids.map((id) => [id, getComputedStyle(document.getElementById(id)).backgroundColor !== 'rgba(0, 0, 0, 0)'])), ids);
+    const on = await pg.evaluate((ids) => Object.fromEntries(ids.map((id) => [id, getComputedStyle(document.getElementById(id)!).backgroundColor !== 'rgba(0, 0, 0, 0)'])), ids);
     await pg.close();
     return on;
   };
-  const want = {
+  const want: Record<Scheme, Record<string, boolean>> = {
     light: { d1: true, d2: false, d3: true, d4: false, d5: false, d6: false, d7: true, d8: false },
     dark: { d1: true, d2: false, d3: true, d4: false, d5: true, d6: false, d7: true, d8: false },
   };
-  for (const scheme of ['light', 'dark']) {
+  for (const scheme of ['light', 'dark'] as Scheme[]) {
     const got = await probe(scheme);
     for (const id of Object.keys(got)) if (got[id] !== want[scheme][id]) fails.push(`dark: variant (${scheme} OS): #${id} ${got[id] ? 'on' : 'off'}`);
   }

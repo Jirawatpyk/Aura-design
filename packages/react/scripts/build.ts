@@ -2,6 +2,7 @@
  * dist/aura.bundle.js (IIFE → window.Aura, for the design-system artifact and <script> use) and dist/index.d.ts
  * (generated from the sources by tsc, bundled into one file). Types are checked by `npm run typecheck`, not here. */
 import { build } from 'esbuild';
+import type { BuildOptions, Format, Plugin } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -16,20 +17,20 @@ const entries = fs.readdirSync(src).filter((f) => /\.tsx?$/.test(f) && f !== 'ty
 const banner = { js: "'use client';" };
 const external = ['react', 'react-dom', 'react/jsx-runtime'];
 /* Classic JSX (React.createElement): every module already imports React, and the window.Aura bundle needs no jsx-runtime global. */
-const jsx = { tsconfig: path.join(root, 'tsconfig.src.json'), jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment' };
+const jsx: BuildOptions = { tsconfig: path.join(root, 'tsconfig.src.json'), jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment' };
 
 await build({ entryPoints: entries, outdir: path.join(dist, 'esm'), format: 'esm', target: 'es2019', banner, logLevel: 'error', ...jsx });
 await build({ entryPoints: [path.join(src, 'index.ts')], outfile: path.join(dist, 'cjs/index.cjs'), bundle: true, format: 'cjs', platform: 'neutral', target: 'es2019', external, banner, logLevel: 'error', ...jsx });
 /* @jirawatpyk/aura-react/server (4.17): the pure helpers bundled on their own, with no 'use client' and no React, so
  * Server Components can call them. The build fails if React sneaks into it. */
-for (const [format, file] of [['esm', 'index.js'], ['cjs', 'index.cjs']]) {
+for (const [format, file] of [['esm', 'index.js'], ['cjs', 'index.cjs']] as [Format, string][]) {
   const r = await build({ entryPoints: [path.join(src, 'server.ts')], outfile: path.join(dist, 'server', file), bundle: true, format, platform: 'neutral', target: 'es2019', logLevel: 'error', metafile: true, ...jsx });
-  const inputs = Object.keys(r.metafile.inputs);
+  const inputs = Object.keys(r.metafile!.inputs);
   if (inputs.some((f) => /node_modules[\\/]react/.test(f) || /\.tsx$/.test(f))) throw new Error('server entry pulls in React or a component: ' + inputs.join(', '));
 }
 
 /* IIFE: react / react-dom come from window globals. */
-const globals = {
+const globals: Plugin = {
   name: 'globals',
   setup(b) {
     b.onResolve({ filter: /^react(-dom)?$/ }, (a) => ({ path: a.path, namespace: 'g' }));
@@ -37,11 +38,11 @@ const globals = {
   },
 };
 const iife = await build({ entryPoints: [path.join(src, 'index.ts')], bundle: true, format: 'iife', globalName: 'Aura', target: 'es2019', plugins: [globals], write: false, logLevel: 'error', ...jsx });
-let code = iife.outputFiles[0].text;
+let code = iife.outputFiles![0]!.text;
 if (/<\/script/i.test(code)) throw new Error('bundle contains </script');
 /* Components listed in the design-system header: every PascalCase export except internals. */
 const names = (fs.readFileSync(path.join(src, 'index.ts'), 'utf8').match(/export \{([^}]+)\}/g) || [])
-  .flatMap((l) => l.replace(/export \{|\}/g, '').split(',').map((s) => s.trim().split(/\s+as\s+/).pop()))
+  .flatMap((l) => l.replace(/export \{|\}/g, '').split(',').map((s) => s.trim().split(/\s+as\s+/).pop() || ''))
   .filter((n) => /^[A-Z][a-z]/.test(n) && n !== 'ICONS' && n !== 'Field' && n !== 'AuraProvider' && n !== 'ThemeStyle');
 const header = `/* @ds-bundle: ${JSON.stringify({ format: 4, namespace: 'Aura', components: names.map((name) => ({ name })) })} */\n`;
 code = header + code.replace(/^var Aura = /m, 'window.Aura = ').replace(/^"use strict";\n/, '');

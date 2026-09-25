@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 /* aura-theme — write a project theme CSS file from a brand colour.
  *   npx aura-theme --brand "#0ea5e9" [--signal "#facc15"] [--primary brand] [--name acme] [--selector .tenant-acme] [--out src/aura-theme.css]
  * Prints every contrast check; exits 1 if any fails. */
@@ -7,39 +8,50 @@ import { createTheme } from '../dist/esm/theme.js';
 
 const USAGE = 'Usage: aura-theme --brand "#0ea5e9" [--signal "#facc15"] [--primary ink|brand] [--name acme] [--selector .tenant] [--out theme.css]';
 const KNOWN = ['brand', 'signal', 'primary', 'name', 'selector', 'out', 'help'];
+/**
+ * @param {string} msg
+ * @returns {never}
+ */
 function fail(msg) {
   console.error('aura-theme: ' + msg + '\n' + USAGE);
   process.exit(2);
 }
 /* --key value and --key=value (5.2); a value-taking option with no value is an error, not `true`. */
+/** @type {Record<string, string>} */
 const args = {};
+let help = false;
 for (let i = 2; i < process.argv.length; i++) {
-  const a = process.argv[i];
+  const a = process.argv[i] || '';
   if (!a.startsWith('--')) fail('unexpected "' + a + '"');
   const eq = a.indexOf('=');
   const k = eq > 0 ? a.slice(2, eq) : a.slice(2);
   if (KNOWN.indexOf(k) < 0) fail('unknown option --' + k);
-  if (k === 'help') { args.help = true; continue; }
-  const v = eq > 0 ? a.slice(eq + 1) : process.argv[i + 1] !== undefined && !process.argv[i + 1].startsWith('--') ? process.argv[++i] : undefined;
+  if (k === 'help') { help = true; continue; }
+  const next = process.argv[i + 1];
+  const v = eq > 0 ? a.slice(eq + 1) : next !== undefined && !next.startsWith('--') ? process.argv[++i] : undefined;
   if (v === undefined || v === '') fail('--' + k + ' needs a value');
   args[k] = v;
 }
-if (args.help) {
+if (help) {
   console.log(USAGE);
   process.exit(0);
 }
 if (!args.brand) fail('--brand is required');
 for (const k of ['brand', 'signal']) {
-  if (args[k] !== undefined && /^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(args[k])) args[k] = '#' + args[k]; /* a shell ate the # */
-  if (args[k] !== undefined && !/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(args[k])) fail('--' + k + ' must be a #rgb or #rrggbb colour (got "' + args[k] + '"; quote it in the shell: --' + k + ' "#0ea5e9")');
+  const c = args[k];
+  if (c !== undefined && /^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(c)) args[k] = '#' + c; /* a shell ate the # */
+  const hex = args[k];
+  if (hex !== undefined && !/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) fail('--' + k + ' must be a #rgb or #rrggbb colour (got "' + args[k] + '"; quote it in the shell: --' + k + ' "#0ea5e9")');
 }
 if (args.primary !== undefined && args.primary !== 'ink' && args.primary !== 'brand') fail('--primary is ink or brand');
-let t, css;
+/** @type {ReturnType<typeof createTheme>} */
+let t;
+let css = '';
 try {
   t = createTheme({ brand: args.brand, signal: args.signal, primary: args.primary, name: args.name });
   css = t.css(args.selector);
 } catch (e) {
-  fail(e.message);
+  fail(e instanceof Error ? e.message : String(e));
 }
 if (args.out) fs.writeFileSync(args.out, css); else process.stdout.write(css);
 const log = args.out ? console.log : console.error;

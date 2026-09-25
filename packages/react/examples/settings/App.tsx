@@ -7,15 +7,17 @@ import {
   EmptyState, Pagination, TextField, Textarea, Select, RadioGroup, Checkbox, Switch, Combobox, TimePicker, FileUpload,
   Dialog, Alert, Toaster, toast, Skeleton, AuraProvider, ColorSchemeToggle, NumberField, Stepper,
 } from '@aura/react';
+import type { UploadItem } from '@aura/react';
 
+interface Member { name: string; role: string }
 const TIMEZONES = ['Asia/Bangkok', 'Asia/Singapore', 'Asia/Tokyo', 'Europe/London', 'America/New_York'].map((z) => ({ value: z, label: z.replace('_', ' ') }));
 const AUDIT = Array.from({ length: 46 }, (_, i) => ({ id: i, who: ['Tao', 'Mai', 'Anna', 'Somchai'][i % 4], what: ['changed the time zone', 'invited a member', 'rotated an API key', 'updated billing email'][i % 4], when: `${(i % 23) + 1}h ago` }));
 
 function Profile() {
-  const { register, control, handleSubmit, reset, formState: { errors, isDirty, isSubmitting } } = useForm({
-    defaultValues: { name: 'Tao P', email: 'tao@example.com', role: 'Project Manager', bio: '', timezone: 'Asia/Bangkok', avatar: [], quietFrom: '22:00', quietTo: '07:00', hours: 40 },
-  });
-  async function save(v) { await new Promise((r) => setTimeout(r, 300)); reset(v); toast({ title: 'Profile saved', tone: 'success' }); }
+  const defaults = { name: 'Tao P', email: 'tao@example.com', role: 'Project Manager', bio: '', timezone: 'Asia/Bangkok' as string | null, avatar: [] as UploadItem[], quietFrom: '22:00' as string | null, quietTo: '07:00' as string | null, hours: 40 as number | null };
+  const { register, control, handleSubmit, reset, formState: { errors, isDirty, isSubmitting } } = useForm({ defaultValues: defaults });
+  type ProfileForm = typeof defaults;
+  async function save(v: ProfileForm) { await new Promise((r) => setTimeout(r, 300)); reset(v); toast({ title: 'Profile saved', tone: 'success' }); }
   return (
     <form onSubmit={handleSubmit(save)} noValidate>
       <Stack gap={6}>
@@ -76,8 +78,8 @@ function Notifications() {
 function Team() {
   const [domains, setDomains] = React.useState(['example.com', 'example.co.th']);
   const [draft, setDraft] = React.useState('');
-  const [removing, setRemoving] = React.useState(null);
-  const [members, setMembers] = React.useState([{ name: 'Tao P', role: 'Owner' }, { name: 'Mai K', role: 'Admin' }, { name: 'Anna S', role: 'Member' }]);
+  const [removing, setRemoving] = React.useState<Member | null>(null);
+  const [members, setMembers] = React.useState<Member[]>([{ name: 'Tao P', role: 'Owner' }, { name: 'Mai K', role: 'Admin' }, { name: 'Anna S', role: 'Member' }]);
   return (
     <Stack gap={6}>
       <Card headingLevel={2} title="Members" actions={<Badge tone="accent">{members.length} of 5 seats</Badge>}>
@@ -103,7 +105,7 @@ function Team() {
       </Card>
       <Dialog open={!!removing} onClose={() => setRemoving(null)} role="alertdialog" size="sm" title={removing ? `Remove ${removing.name}?` : ''}
         description="They lose access straight away. Their tasks stay and become unassigned."
-        footer={<><Button variant="secondary" onClick={() => setRemoving(null)}>Cancel</Button><Button onClick={() => { setMembers(members.filter((m) => m !== removing)); toast({ title: `${removing.name} removed`, tone: 'warning' }); setRemoving(null); }}>Remove Member</Button></>} />
+        footer={<><Button variant="secondary" onClick={() => setRemoving(null)}>Cancel</Button><Button onClick={() => { setMembers(members.filter((m) => m !== removing)); if (removing) toast({ title: `${removing.name} removed`, tone: 'warning' }); setRemoving(null); }}>Remove Member</Button></>} />
     </Stack>
   );
 }

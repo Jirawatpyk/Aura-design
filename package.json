@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "build": "npm run build -w packages/tokens && npm run build -w packages/react",
-    "test": "npm run a11y -w packages/tokens && npm run lint:tokens -w packages/tokens && npm run test:ssr -w packages/react && npm run typecheck -w packages/react",
+    "test": "npm run a11y -w packages/tokens && npm run lint:tokens -w packages/tokens && npm run test:ssr -w packages/react && npm run typecheck",
+    "typecheck": "npm run typecheck -w packages/react && npm run typecheck -w apps/storybook && tsc -p tsconfig.scripts.json",
     "test:pilots": "npm run test:pilots -w packages/react",
     "storybook": "npm run storybook -w apps/storybook",
     "test:storybook": "npm test -w apps/storybook",
@@ -18,14 +19,16 @@
     "format": "prettier --write \"packages/react/src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/react/src/**/*.{ts,tsx}\"",
     "changeset": "changeset",
-    "version-packages": "changeset version && node scripts/version-packages.mjs"
+    "version-packages": "changeset version && node scripts/version-packages.mts"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   },
   "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
-    "prettier": "^3.9.8"
+    "@types/node": "^22.20.4",
+    "prettier": "^3.9.8",
+    "typescript": "^5.9.3"
   }
 }

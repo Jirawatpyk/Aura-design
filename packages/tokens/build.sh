@@ -3,7 +3,7 @@ set -e
 cd "$(dirname "$0")"
 VERSION=$(node -p "require('./package.json').version")
 echo "Building @jirawatpyk/aura-tokens v$VERSION"
-node scripts/build-tokens.js
+node scripts/build-tokens.mts
 node scripts/a11y-check.js
 rm -rf dist && mkdir -p dist/components
 cp tokens.json aura.css aura-fonts.css aura-fonts.local.css aura-tailwind.css aura-tailwind.prefixed.css tailwind.config.ts tailwind.tokens.cjs figma-variables.csv eslint-plugin-aura.js dist/

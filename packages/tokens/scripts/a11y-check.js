@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 /* AURA contrast check — resolves tokens.json and tests every documented text/ground pair in BOTH themes.
  * Text needs 4.5:1, control edges and focus rings 3:1 (WCAG 2.1 AA). Writes a11y-report.json; exits 1 on any failure. */
 const fs = require('fs');
@@ -6,6 +7,11 @@ const path = require('path');
 const TOKENS = path.join(__dirname, '..', 'tokens.json');
 const T = JSON.parse(fs.readFileSync(TOKENS, 'utf8'));
 
+/**
+ * @param {unknown} value
+ * @param {string} theme
+ * @returns {string}
+ */
 function resolve(value, theme, depth = 0) {
   if (depth > 16) throw new Error('alias loop at ' + value);
   const m = /^\{(primitive|semantic|component)\.([a-z0-9-]+)(?:\.([a-z0-9]+))?\}$/.exec(String(value).trim());
@@ -16,24 +22,38 @@ function resolve(value, theme, depth = 0) {
   if (v === undefined) throw new Error(`missing ${tier}.${a} (${theme})`);
   return resolve(v, theme, depth + 1);
 }
-const tok = (name, theme) => resolve(T.semantic[theme][name] ?? T.component[theme][name], theme);
+const tok = (/** @type {string} */ name, /** @type {string} */ theme) => resolve(T.semantic[theme][name] ?? T.component[theme][name], theme);
 
+/**
+ * @param {string} c
+ * @param {string} [ground]
+ * @returns {number[]}
+ */
 function rgb(c, ground) {
   let m = /^#([0-9a-f]{6})$/i.exec(c);
-  if (m) return [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16));
+  const hex = m && m[1];
+  if (hex) return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
   m = /^#([0-9a-f]{3})$/i.exec(c);
   if (m) return m[1].split('').map((x) => parseInt(x + x, 16));
   m = /^rgba?\(([^)]+)\)$/i.exec(c);
   if (m) {
     const [r, g, b, a = 1] = m[1].split(',').map(Number);
+    if ([r, g, b, a].some((x) => x === undefined || Number.isNaN(x))) throw new Error('unsupported colour ' + c);
     if (a >= 1 || !ground) return [r, g, b];
     const G = rgb(ground);
-    return [r, g, b].map((v, i) => Math.round(a * v + (1 - a) * G[i]));
+    /** @type {(v: number, i: number) => number} */
+    const mix = (v, i) => Math.round(a * v + (1 - a) * (G[i] || 0));
+    return [r || 0, g || 0, b || 0].map(mix);
   }
   throw new Error('unsupported colour ' + c);
 }
-const lum = (c) => rgb(c).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-  .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+const W = [0.2126, 0.7152, 0.0722];
+const lum = (/** @type {string} */ c) => rgb(c).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+  .reduce((s, v, i) => s + v * (W[i] || 0), 0);
+/**
+ * @param {string} fg
+ * @param {string} bg
+ */
 function ratio(fg, bg) {
   const B = '#' + rgb(bg).map((v) => v.toString(16).padStart(2, '0')).join('');
   const F = '#' + rgb(fg, B).map((v) => v.toString(16).padStart(2, '0')).join('');
@@ -43,6 +63,7 @@ function ratio(fg, bg) {
 
 const TEXT = 4.5, UI = 3;
 const grounds = ['bg-surface', 'bg-canvas', 'bg-surface-hover'];
+/** @type {[string, string, number][]} */
 const pairs = [];
 for (const fg of ['fg-primary', 'fg-secondary', 'fg-tertiary', 'fg-accent', 'fg-danger', 'fg-positive']) for (const bg of grounds) pairs.push([fg, bg, TEXT]);
 pairs.push(['fg-primary', 'bg-selected', TEXT], ['fg-secondary', 'bg-selected', TEXT]);

@@ -7,17 +7,26 @@ import {
   DataTable, StatusPill, Drawer, Dialog, Alert, Toaster, toast, formatDate as formatDateAny, useBreakpoint, ColorSchemeToggle,
   NumberField, SegmentedControl,
 } from '@aura/react';
+import type { DataTableColumn, DateRange, ISODate, MenuItem, UploadItem } from '@aura/react';
 import { STAFF, CATEGORIES, PRIORITIES, STATUSES, TONE, statusLabel, priorityLabel, makeOrders } from './data.js';
+import type { Order } from './data.js';
 /* A Thai page outside any component that could read the provider: say the locale (5.0 defaults to English). */
-const formatDate = (iso, opts) => formatDateAny(iso, { locale: 'th', ...opts });
+const formatDate = (iso: ISODate, opts?: Parameters<typeof formatDateAny>[1]) => formatDateAny(iso, { locale: 'th', ...opts });
 
-const baht = (n) => '฿' + n.toLocaleString('th-TH');
-const ownerName = (v) => (STAFF.find((m) => m.value === v) || {}).label || '—';
+const baht = (n: number) => '฿' + n.toLocaleString('th-TH');
+const ownerName = (v: string | null) => STAFF.find((m) => m.value === v)?.label || '—';
 const TODAY = '2026-09-18';
 const WEEK_END = '2026-09-24';
 
-function Filters({ value, onChange, idPrefix }) {
-  const set = (k) => (v) => onChange({ ...value, [k]: v });
+interface OrderFilters {
+  q: string;
+  owner: string | null;
+  categories: string[];
+  range: DateRange;
+  status: string;
+}
+function Filters({ value, onChange, idPrefix }: { value: OrderFilters; onChange: (f: OrderFilters) => void; idPrefix: string }) {
+  const set = <K extends keyof OrderFilters>(k: K) => (v: OrderFilters[K]) => onChange({ ...value, [k]: v });
   return (
     <>
       <TextField id={idPrefix + '-q'} label="ค้นหา" icon="search" placeholder="ชื่อลูกค้า หรือ ORD-…" value={value.q} onChange={(e) => set('q')(e.target.value)} />
@@ -30,10 +39,25 @@ function Filters({ value, onChange, idPrefix }) {
   );
 }
 
-const EMPTY_FILTERS = { q: '', owner: null, categories: [], range: { start: null, end: null }, status: '' };
+const EMPTY_FILTERS: OrderFilters = { q: '', owner: null, categories: [], range: { start: null, end: null }, status: '' };
 
-function NewOrderDialog({ open, onClose, onCreate }) {
-  const EMPTY = { customer: '', owner: null, amount: null, date: null, time: null, category: CATEGORIES[0], priority: 'normal', notes: '', notify: true, files: [] };
+interface NewOrder {
+  customer: string;
+  owner: string | null;
+  amount: number | null;
+  date: ISODate | null;
+  time: string | null;
+  category: string;
+  priority: string;
+  notes: string;
+  notify: boolean;
+  files: UploadItem[];
+}
+/** What the dialog hands over once every required field is filled. */
+type ValidOrder = NewOrder & { owner: string; amount: number; date: ISODate; time: string };
+
+function NewOrderDialog({ open, onClose, onCreate }: { open: boolean; onClose: () => void; onCreate: (f: ValidOrder) => void }) {
+  const EMPTY: NewOrder = { customer: '', owner: null, amount: null, date: null, time: null, category: CATEGORIES[0], priority: 'normal', notes: '', notify: true, files: [] };
   const [f, setF] = React.useState(EMPTY);
   const [tried, setTried] = React.useState(false);
   const errors = {
@@ -45,12 +69,12 @@ function NewOrderDialog({ open, onClose, onCreate }) {
     amount: f.amount == null ? 'ใส่ยอดเงิน' : f.amount <= 0 && 'ยอดต้องมากกว่า 0',
   };
   const ok = !errors.customer && !errors.owner && !errors.amount && !errors.date && !errors.time && !errors.files;
-  const set = (k) => (v) => setF({ ...f, [k]: v });
-  function submit(e) {
+  const set = <K extends keyof NewOrder>(k: K) => (v: NewOrder[K]) => setF({ ...f, [k]: v });
+  function submit(e: React.FormEvent) {
     e.preventDefault();
     setTried(true);
-    if (!ok) { const first = document.querySelector('.aura-dialog [aria-invalid="true"]'); if (first) first.focus(); return; }
-    onCreate(f);
+    if (!ok) { const first = document.querySelector<HTMLElement>('.aura-dialog [aria-invalid="true"]'); if (first) first.focus(); return; }
+    onCreate(f as ValidOrder);
     setTried(false);
     setF(EMPTY);
   }
@@ -83,8 +107,8 @@ function NewOrderDialog({ open, onClose, onCreate }) {
   );
 }
 
-function Detail({ row, onClose, onCancel }) {
-  const rows = row ? [
+function Detail({ row, onClose, onCancel }: { row: Order | null; onClose: () => void; onCancel: (r: Order) => void }) {
+  const rows: [string, React.ReactNode][] = row ? [
     ['สถานะ', <StatusPill tone={TONE[row.status]}>{row.status}</StatusPill>],
     ['ลูกค้า', row.customer], ['สาขา', row.branch],
     ['วันที่', formatDate(row.date, { format: 'long' }) + ' · ' + row.time],
@@ -93,7 +117,7 @@ function Detail({ row, onClose, onCancel }) {
   return (
     <Drawer open={!!row} onClose={onClose} title={row ? row.id : ''} description={row ? row.customer : ''}
       footer={<>
-        <Button variant="secondary" icon="ban" onClick={() => onCancel(row)} disabled={row && row.status === 'ยกเลิก'}>ยกเลิกคำสั่งซื้อ</Button>
+        <Button variant="secondary" icon="ban" onClick={() => row && onCancel(row)} disabled={!row || row.status === 'ยกเลิก'}>ยกเลิกคำสั่งซื้อ</Button>
         <Button icon="pencil" onClick={() => toast({ title: 'ยังไม่มีหน้าแก้ไขในตัวอย่างนี้', tone: 'info' })}>แก้ไข</Button>
       </>}>
       <dl className="pilot-dl">
@@ -112,10 +136,10 @@ export function App() {
   const [scope, setScope] = React.useState('all');
   const [draft, setDraft] = React.useState(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
-  const [detail, setDetail] = React.useState(null);
+  const [detail, setDetail] = React.useState<Order | null>(null);
   const [creating, setCreating] = React.useState(false);
-  const [confirm, setConfirm] = React.useState(null);
-  const [selected, setSelected] = React.useState([]);
+  const [confirm, setConfirm] = React.useState<Order | null>(null);
+  const [selected, setSelected] = React.useState<(string | number)[]>([]);
   const [loading, setLoading] = React.useState(true);
   React.useEffect(() => { const t = setTimeout(() => setLoading(false), 600); return () => clearTimeout(t); }, []);
 
@@ -131,35 +155,35 @@ export function App() {
     if (filters.range.end && r.date > filters.range.end) return false;
     return true;
   });
-  const activeFilters = ['q', 'owner', 'status'].filter((k) => filters[k]).length + (filters.range.start ? 1 : 0) + (filters.categories.length ? 1 : 0);
+  const activeFilters = (['q', 'owner', 'status'] as const).filter((k) => filters[k]).length + (filters.range.start ? 1 : 0) + (filters.categories.length ? 1 : 0);
   const today = rows.filter((r) => r.date === TODAY);
 
-  function create(f) {
+  function create(f: ValidOrder) {
     const id = 'ORD-' + (1040 + rows.length);
     setRows([{ id, customer: f.customer, branch: 'ออนไลน์', date: f.date, time: f.time, category: f.category, priority: f.priority, owner: f.owner, status: 'รอยืนยัน', amount: f.amount }, ...rows]);
     setCreating(false);
     toast({ title: 'บันทึก ' + id + ' แล้ว', description: formatDate(f.date) + ' ' + f.time + ' · ' + ownerName(f.owner) + (f.files.length ? ' · ไฟล์ ' + f.files.length : ''), tone: 'success' });
   }
-  function cancel(row) {
+  function cancel(row: Order) {
     const before = rows;
     setRows(rows.map((r) => (r.id === row.id ? { ...r, status: 'ยกเลิก' } : r)));
     setConfirm(null); setDetail(null);
     toast({ title: 'ยกเลิก ' + row.id + ' แล้ว', tone: 'warning', action: { label: 'เลิกทำ', onClick: () => setRows(before) } });
   }
-  const rowActions = (r) => [
+  const rowActions = (r: Order): MenuItem[] => [
     { label: 'ดูรายละเอียด', icon: 'eye', onSelect: () => setDetail(r) },
     { label: 'คัดลอกรหัส', icon: 'copy', onSelect: () => { navigator.clipboard && navigator.clipboard.writeText(r.id).catch(() => {}); toast({ title: 'คัดลอก ' + r.id }); } },
     { separator: true },
     { label: 'ยกเลิกคำสั่งซื้อ', icon: 'ban', disabled: r.status === 'ยกเลิก', onSelect: () => setConfirm(r) },
   ];
-  const columns = [
+  const columns: DataTableColumn[] = [
     { key: 'id', label: 'รหัส', width: 104, mono: true, sortable: true, pinned: true },
     { key: 'customer', label: 'ลูกค้า', width: 180, sortable: true },
-    { key: 'date', label: 'วันที่', width: 150, sortable: true, render: (r) => formatDate(r.date) + ' ' + r.time },
-    { key: 'owner', label: 'ผู้ดูแล', width: 140, hideBelow: 860, render: (r) => ownerName(r.owner), sortValue: (r) => ownerName(r.owner) },
+    { key: 'date', label: 'วันที่', width: 150, sortable: true, render: (r: Order) => formatDate(r.date) + ' ' + r.time },
+    { key: 'owner', label: 'ผู้ดูแล', width: 140, hideBelow: 860, render: (r: Order) => ownerName(r.owner), sortValue: (r: Order) => ownerName(r.owner) },
     { key: 'status', label: 'สถานะ', width: 120, pill: true, tones: TONE, sortable: true },
-    { key: 'amount', label: 'ยอด', width: 96, hideBelow: 800, sortable: true, render: (r) => baht(r.amount) },
-    { key: 'actions', label: '', actions: true, width: 56, resizable: false, render: (r) => (
+    { key: 'amount', label: 'ยอด', width: 96, hideBelow: 800, sortable: true, render: (r: Order) => baht(r.amount) },
+    { key: 'actions', label: '', actions: true, width: 56, resizable: false, render: (r: Order) => (
       <DropdownMenu label={'จัดการ ' + r.id} items={rowActions(r)} trigger={<IconButton icon="ellipsis" label={'จัดการ ' + r.id} />} />
     ) },
   ];
@@ -227,7 +251,7 @@ export function App() {
           <DataTable label="คำสั่งซื้อ" columns={columns} rows={shown} rowKey="id" loading={loading}
             selectable selected={selected} onSelectionChange={setSelected}
             pageSize={10} resizable stackBelow={640} defaultSort={{ key: 'date', dir: 'asc' }}
-            onRowActivate={setDetail}
+            onRowActivate={(r: Order) => setDetail(r)}
             empty={{ icon: 'search', title: 'ไม่พบคำสั่งซื้อ', description: 'ลองล้างตัวกรองหรือเปลี่ยนช่วงวันที่',
               action: <Button variant="secondary" onClick={() => setFilters(EMPTY_FILTERS)}>ล้างตัวกรอง</Button> }} />
         </Stack>
@@ -248,7 +272,7 @@ export function App() {
         description="ลูกค้าและผู้ดูแลจะได้รับแจ้ง คุณเลิกทำได้จากข้อความแจ้งเตือน"
         footer={<>
           <Button variant="secondary" onClick={() => setConfirm(null)}>ไม่ยกเลิก</Button>
-          <Button onClick={() => cancel(confirm)} data-autofocus="">ยกเลิกคำสั่งซื้อ</Button>
+          <Button onClick={() => confirm && cancel(confirm)} data-autofocus="">ยกเลิกคำสั่งซื้อ</Button>
         </>} />
       <Toaster />
     </AppShell>

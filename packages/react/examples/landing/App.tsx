@@ -5,17 +5,18 @@ import {
   Surface, Container, Stack, Grid, Card, Button, Badge, Tag, Stat, Accordion, TextField, Checkbox, Alert,
   Icon, AuraProvider, ThemeStyle, Toaster, toast, ColorSchemeToggle,
 } from '@aura/react';
+import type { IconName } from '@aura/react';
 
-const BRANDS = [{ id: 'aura', label: 'AURA', brand: null }, { id: 'sky', label: 'Sky', brand: '#0ea5e9' }, { id: 'rose', label: 'Rose', brand: '#e11d48' }, { id: 'emerald', label: 'Emerald', brand: '#059669' }];
+const BRANDS: { id: string; label: string; brand: string | null }[] = [{ id: 'aura', label: 'AURA', brand: null }, { id: 'sky', label: 'Sky', brand: '#0ea5e9' }, { id: 'rose', label: 'Rose', brand: '#e11d48' }, { id: 'emerald', label: 'Emerald', brand: '#059669' }];
 
 export function App() {
   const [brand, setBrand] = React.useState('aura');
   const [email, setEmail] = React.useState('');
   const [agree, setAgree] = React.useState(false);
-  const [err, setErr] = React.useState(null);
+  const [err, setErr] = React.useState<string | null>(null);
   const [done, setDone] = React.useState(false);
-  const b = BRANDS.find((x) => x.id === brand);
-  function join(e) {
+  const b = BRANDS.find((x) => x.id === brand) ?? BRANDS[0]!;
+  function join(e: React.FormEvent) {
     e.preventDefault();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setErr('ใส่อีเมลแบบ name@company.com'); return; }
     setErr(null); setDone(true); toast({ title: 'ลงชื่อแล้ว', description: 'เราจะส่งลิงก์ทดลองใช้ไปที่ ' + email, tone: 'success' });
@@ -45,7 +46,7 @@ export function App() {
               <h1 id="hero-title" className="lp-display">ระบบหลังบ้านที่ทีมเล็ก<br />ทำงานได้เท่าทีมใหญ่</h1>
               <p className="lp-lead">คำสั่งซื้อ ลูกค้า ทีม ใบเสร็จ และตัวเลขทั้งหมดอยู่ในหน้าเดียว ใช้ได้กับธุรกิจทุกขนาด</p>
               <Stack direction={{ base: 'column', sm: 'row' }} gap={3} align={{ base: 'stretch', sm: 'center' }}>
-                <Button variant="creative" iconRight="arrow-right" onClick={() => document.getElementById('join-email').focus()}>ทดลองใช้ฟรี 14 วัน</Button>
+                <Button variant="creative" iconRight="arrow-right" onClick={() => document.getElementById('join-email')?.focus()}>ทดลองใช้ฟรี 14 วัน</Button>
                 <Button variant="secondary" icon="calendar">นัดดูเดโม</Button>
               </Stack>
             </Stack>
@@ -67,12 +68,12 @@ export function App() {
           <Container>
             <h2 id="features-title" className="lp-h2">ทุกอย่างที่ต้องใช้ ไม่มีที่เกิน</h2>
             <Grid minItemWidth={240} gap={6}>
-              {[
+              {([
                 ['file-text', 'คำสั่งซื้อในที่เดียว', 'รวมทุกช่องทาง ทั้งหน้าร้าน ออนไลน์ และแชต'],
                 ['users', 'มอบหมายงานอัตโนมัติ', 'ส่งงานให้คนที่ว่าง ตามทีมและสาขา'],
                 ['mail', 'ใบเสร็จและใบกำกับ', 'ออกเป็น PDF ส่งทางอีเมลหรือ LINE'],
                 ['chart-column', 'ตัวเลขที่อ่านรู้เรื่อง', 'รายได้ งานค้าง และสิ่งที่ต้องทำวันนี้'],
-              ].map(([icon, t, d]) => (
+              ] as [IconName, string, string][]).map(([icon, t, d]) => (
                 <Card key={t} variant="creative" headingLevel={3} title={<span className="lp-card-title"><Icon name={icon} size="md" />{t}</span>}>{d}</Card>
               ))}
             </Grid>

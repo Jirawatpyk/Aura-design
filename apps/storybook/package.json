@@ -10,7 +10,8 @@
     "lint:tokens": "node ../../packages/tokens/scripts/lint-tokens.js stories",
     "a11y": "node ../../packages/tokens/scripts/a11y-check.js",
     "a11y:ci": "playwright test --config=playwright.a11y.config.ts",
-    "telemetry": "node scripts/telemetry.js",
+    "telemetry": "node scripts/telemetry.mts",
+    "typecheck": "tsc -p tsconfig.json",
     "test:components": "playwright test --config=playwright.components.config.ts",
     "test": "npm run build-storybook && npm run a11y:ci && npm run test:components"
   },

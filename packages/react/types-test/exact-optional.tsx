@@ -56,3 +56,52 @@ export function ChamberCallSites() {
     </>
   );
 }
+
+/* 5.4: react-hook-form's formState.errors as is, nested objects and field arrays included; a Select named by
+ * aria-labelledby (no visible label). */
+import { useForm } from 'react-hook-form';
+import { FormErrorSummary as RhfSummary, Select as RhfSelect } from '../dist/index';
+export function RhfErrors53() {
+  const f = useForm<{ province: string; address: { street: string }; items: { name: string }[] }>();
+  return (
+    <>
+      <RhfSummary
+        errors={f.formState.errors}
+        focusKey={f.formState.submitCount}
+        onSelect={(n) => f.setFocus(n as 'province')}
+      />
+      <RhfSummary errors={[{ field: 'province', message: 'Choose a province' }]} />
+      <RhfSummary
+        errors={{ address: { street: { message: 'Enter a street' } }, items: [{ name: { message: 'Name item 1' } }] }}
+      />
+      <span id="ext">Province</span>
+      <RhfSelect aria-labelledby="ext" {...f.register('province')} options={['BKK']} />
+      <RhfSelect label="Province" options={['BKK']} />
+    </>
+  );
+}
+
+/* 5.4: rows of your own interface, and row callbacks written with it. */
+import { DataTable as RowsTable } from '../dist/index';
+interface Invoice53 {
+  id: string;
+  amount: number;
+}
+export function TypedRows53({ rows, open }: { rows: readonly Invoice53[]; open: (r: Invoice53) => void }) {
+  return (
+    <RowsTable
+      label="Invoices"
+      rows={rows}
+      onRowActivate={open}
+      getRowHref={(r: Invoice53) => '/invoices/' + r.id}
+      columns={[
+        {
+          key: 'amount',
+          label: 'AMOUNT',
+          render: (r: Invoice53) => r.amount.toFixed(2),
+          sortValue: (r: Invoice53) => r.amount,
+        },
+      ]}
+    />
+  );
+}

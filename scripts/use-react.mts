@@ -1,8 +1,8 @@
-/* Switch the whole workspace to another React major for testing: `node scripts/use-react.mjs 19 && npm install`.
+/* Switch the whole workspace to another React major for testing: `node scripts/use-react.mts 19 && npm install`.
  * Rewrites the react / react-dom / @types devDependencies in every workspace package.json (CI only — never commit the result). */
 import fs from 'node:fs';
 const major = process.argv[2];
-if (!/^\d+$/.test(major || '')) { console.error('usage: node scripts/use-react.mjs <major>'); process.exit(1); }
+if (!/^\d+$/.test(major || '')) { console.error('usage: node scripts/use-react.mts <major>'); process.exit(1); }
 const files = ['package.json', 'packages/react/package.json', 'packages/tokens/package.json', 'apps/storybook/package.json'];
 const names = { react: `^${major}`, 'react-dom': `^${major}`, '@types/react': `^${major}`, '@types/react-dom': `^${major}` };
 for (const f of files) {

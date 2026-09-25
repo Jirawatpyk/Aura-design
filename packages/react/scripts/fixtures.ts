@@ -1,5 +1,8 @@
 /* One representative element per component — shared by the SSR test and the hydration test. */
-export function fixtures(A, React) {
+import type * as ReactNS from 'react';
+/** The built package (ESM or CJS), loosely: fixtures pass deliberately odd props to test the edges. */
+export type AuraModule = Record<string, any>;
+export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, ReactNS.ReactElement> {
   const h = React.createElement;
   const rows = [
     { id: 'ORD-1042', name: 'คุณสมชาย ใจดี', status: 'Ready', owner: 'Tao' },
@@ -211,8 +214,8 @@ export function fixtures(A, React) {
       page: 3,
       sort: { key: 'id', dir: 'desc' },
       loading: true,
-      getRowHref: (r) => '/orders/' + r.id,
-      getPageHref: (p) => '?page=' + p,
+      getRowHref: (r: { id: string }) => '/orders/' + r.id,
+      getPageHref: (p: number) => '?page=' + p,
       columns: [
         { key: 'id', label: 'ID', width: 96, sortable: true },
         { key: 'owner', label: 'AMOUNT', align: 'end' },

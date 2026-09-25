@@ -2,8 +2,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
-import { App as SettingsPage } from '../../../packages/react/examples/settings/App.jsx';
-import { App as LandingPage } from '../../../packages/react/examples/landing/App.jsx';
+import { App as SettingsPage } from '../../../packages/react/examples/settings/App.js';
+import { App as LandingPage } from '../../../packages/react/examples/landing/App.js';
 import '../../../packages/react/examples/settings/pilot.css';
 
 const meta: Meta = { title: 'AURA/New in 4.4' };

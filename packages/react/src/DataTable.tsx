@@ -66,7 +66,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   columns.forEach(function (c: Col) {
     byKey[c.key] = c;
   });
-  const rows: Row[] = props.rows || [];
+  const rows: readonly Row[] = props.rows || [];
   const rowKey =
     props.rowKey || (columns[0] ? columns[0].key : 'id'); /* columns={[]} rendered nothing but crashed (5.1.1) */
   const manual = !!props.manual;

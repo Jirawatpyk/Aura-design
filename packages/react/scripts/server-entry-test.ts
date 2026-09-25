@@ -1,6 +1,6 @@
 /* @jirawatpyk/aura-react/server: no 'use client', no React, and the helpers work where React Server Components run
  * (Node's `react-server` condition, where React has no createContext or hooks). Run after `npm run build`:
- * node --conditions=react-server scripts/server-entry-test.mjs */
+ * node --conditions=react-server scripts/server-entry-test.ts */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -32,7 +32,7 @@ for (const [name, A] of [
   if (A.statusTone('Ready') !== 'ready') fails.push(`${name}: statusTone('Ready')`);
   if (A.STRINGS.th.close == null) fails.push(`${name}: STRINGS.th`);
   const theme = A.createTheme({ brand: '#0ea5e9' });
-  if (!/--aura-/.test(theme.css()) || !theme.checks.every((c) => c.pass)) fails.push(`${name}: createTheme`);
+  if (!/--aura-/.test(theme.css()) || !theme.checks.every((c: { pass: boolean }) => c.pass)) fails.push(`${name}: createTheme`);
   if (!/data-theme/.test(A.colorSchemeScript())) fails.push(`${name}: colorSchemeScript`);
   if (A.breakpoints.lg !== 1024) fails.push(`${name}: breakpoints`);
 }

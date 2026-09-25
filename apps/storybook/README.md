@@ -10,7 +10,7 @@
 | `scripts/a11y.spec.ts` + `playwright.a11y.config.ts` | axe-core (WCAG 2.1 AA) over **every** story, in light and dark, against a static Storybook build. |
 | `scripts/components.spec.ts` + `playwright.components.config.ts` | 16 behaviour tests: dialog focus trap, toast, tooltip, tabs, switch/radio keys, form errors, DataTable virtual scroll, sort, selection, cell keys, column menu, paging, loading/empty. |
 | `scripts/lint-tokens.js [dir]` | Fails on hard-coded colours: hex, rgb()/hsl(), Tailwind `bg-[#…]`. |
-| `scripts/telemetry.js` | Adoption: token uses vs hard-coded colours under `src/`. |
+| `scripts/telemetry.mts` | Adoption: token uses vs hard-coded colours in `stories/` (or a folder given as an argument). |
 | `.github/workflows/a11y.yml` | On every PR: regenerate tokens (and fail if the generated files weren't committed), contrast check, token lint, axe over Storybook. |
 | `.github/workflows/chromatic.yml` | Visual regression of every story on Chromatic (needs `CHROMATIC_PROJECT_TOKEN`). |
 

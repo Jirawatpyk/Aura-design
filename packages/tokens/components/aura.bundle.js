@@ -1286,6 +1286,14 @@ window.Aura = (() => {
     const mounted = useMounted();
     const live = !native && mounted;
     const density = useDensity();
+    React13.useEffect(function() {
+      if (props.label || props["aria-label"] || props["aria-labelledby"] || props.title) return;
+      if (document.querySelector('label[for="' + id.replace(/["\\]/g, "\\$&") + '"]')) return;
+      devWarnOnce(
+        "select-name",
+        "Select needs a label, aria-label or aria-labelledby: screen readers announce it with no name."
+      );
+    }, []);
     const selRef = React13.useRef(null), trigRef = React13.useRef(null), listRef = React13.useRef(null);
     const shown = React13.useState(function() {
       return initialLabel(props);
