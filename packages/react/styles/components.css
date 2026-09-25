@@ -693,7 +693,8 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-combo__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .aura-combo__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-combo__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
-.aura-combo__check { color: var(--aura-fg-accent) !important; }
+/* Same specificity as `.aura-combo__option > .aura-icon` above and later in the file, so it wins by order (4.18). */
+.aura-combo__option > .aura-combo__check { color: var(--aura-fg-accent); }
 .aura-combo__note { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-3) var(--aura-space-2); font-size: 13px; color: var(--aura-fg-secondary); }
 
 /* ---------- DatePicker / Calendar ---------- */
@@ -1174,7 +1175,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-stepper--horizontal .aura-stepper__item:not(:last-child)::after { right: 8px; }
   .aura-stepper--horizontal .aura-stepper__compact { display: block; }
   .aura-dialog-layer:not(.aura-drawer-layer) { align-items: flex-end; padding: 0; }
-  .aura-dialog { max-width: none !important; max-height: 92vh; max-height: 92dvh; border-radius: var(--aura-radius-2xl) var(--aura-radius-2xl) 0 0; border-bottom: 0;
+  /* The size classes set max-width; naming them here outranks them by specificity (4.18). */
+  .aura-dialog.aura-dialog--sm, .aura-dialog.aura-dialog--md, .aura-dialog.aura-dialog--lg { max-width: none; }
+  .aura-dialog { max-height: 92vh; max-height: 92dvh; border-radius: var(--aura-radius-2xl) var(--aura-radius-2xl) 0 0; border-bottom: 0;
     padding-bottom: calc(var(--aura-space-6) + env(safe-area-inset-bottom)); animation-name: aura-sheet-in; }
   .aura-dialog__foot { flex-direction: column-reverse; }
   .aura-dialog__foot > * { width: 100%; }

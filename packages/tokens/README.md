@@ -29,20 +29,12 @@ npm install @aura/tokens@npm:@jirawatpyk/aura-tokens @aura/react@npm:@jirawatpyk
 
 ```tsx
 // app/layout.tsx
-import '@aura/tokens/aura-fonts.css'; // Google Fonts (or use the <link> tags below instead)
+import '@aura/tokens/aura-fonts.local.css'; // fonts, self-hosted from the package: works under a font-src 'self' CSP
 import '@aura/tokens/aura.css'; // tokens
 import '@aura/react/styles.css'; // component styles (with @aura/react)
 ```
 
-```html
-<!-- Preferred: load the fonts from <head> instead of aura-fonts.css — faster, and a blocked host fails quietly -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap"
-/>
-```
+Next.js can load the same families with `next/font` instead, and a site with no CSP can use Google Fonts (`aura-fonts.css` or `<link>` tags). Both are under Fonts below.
 
 ### Fonts
 
@@ -52,7 +44,17 @@ Pick one of three ways to load Fraunces, Inter, JetBrains Mono and Noto Sans Tha
 | ------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Self-hosted (4.16) | Your CSP allows only `font-src 'self'`, or you want no third-party requests | `import '@jirawatpyk/aura-tokens/aura-fonts.local.css'` — woff2 files ship in the package (`fonts/`, OFL-1.1), split by unicode range so a page downloads only what it uses |
 | `next/font`        | Next.js apps that want preloading and zero layout shift                     | Load the families with `next/font` and point the AURA font variables at them (below)                                                                                        |
-| Google Fonts       | Anything else                                                               | The `<link>` tags below, or `aura-fonts.css`                                                                                                                                |
+| Google Fonts       | No CSP, or one that allows `fonts.googleapis.com` and `fonts.gstatic.com`   | `aura-fonts.css`, or the `<link>` tags below (faster; a blocked host fails quietly)                                                                                         |
+
+```html
+<!-- Google Fonts from <head> (only without a strict CSP) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500;600&display=swap"
+/>
+```
 
 ```tsx
 // app/layout.tsx — next/font (downloads at build time and self-hosts, so font-src 'self' is enough)

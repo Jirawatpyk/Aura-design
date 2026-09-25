@@ -53,7 +53,7 @@ const SHADCN = `@custom-variant dark (&:is(.dark *));
 @theme inline { --color-background: #ffffff; --color-foreground: #0a0a0a; --color-border: #e4e4e7; --color-chart-1: #e76e50; --color-chart-2: #2a9d90; --color-chart-3: #274754; --color-chart-4: #e8c468; --color-chart-5: #f4a462; --font-sans: "Geist", ui-sans-serif, sans-serif; --font-mono: "Geist Mono", monospace; --radius-lg: 10px; }`;
 const HTML = `<body class="bg-background text-foreground"><div id="s1" class="border border-border bg-chart-1 font-sans rounded-lg p-4">shadcn card</div>
 <code id="s2" class="font-mono text-chart-3">code</code><div class="dark"><p id="s3" class="text-chart-2 dark:text-chart-5 bg-chart-4">dark text</p></div>
-<button id="a1" class="aura-btn aura-btn--primary rounded-none">AURA</button><span id="a2" class="bg-aura-bg-surface text-aura-fg-primary font-aura-sans border border-aura-border-strong">prefixed</span></body>`;
+<button id="a1" class="aura-btn aura-btn--primary rounded-none">AURA</button><svg id="a3" class="aura-icon aura-combo__check text-chart-1"></svg><div hidden class="max-w-[200px]"></div><div id="a4" class="aura-combo__option"><svg id="a5" class="aura-icon aura-combo__check text-chart-1"></svg></div><span id="a2" class="bg-aura-bg-surface text-aura-fg-primary font-aura-sans border border-aura-border-strong">prefixed</span></body>`;
 const pages = {
   alone: `@import "tailwindcss";\n${SHADCN}`,
   both: `@layer aura-tokens, theme, base, aura, components, utilities;\n@import "tailwindcss";\n@import "@jirawatpyk/aura-tokens/aura.css" layer(aura-tokens);\n@import "@jirawatpyk/aura-tokens/tailwind.prefixed.css";\n@import "@jirawatpyk/aura-react/styles.layer.css";\n${SHADCN}`,
@@ -78,17 +78,30 @@ async function styles(name) {
   await p.setContent(`<!doctype html><html><head><style>${compiled[name]}</style></head>${HTML}</html>`);
   const out = await p.evaluate((props) => {
     const pick = (sel) => { const cs = getComputedStyle(document.querySelector(sel)); return Object.fromEntries(props.map((k) => [k, cs.getPropertyValue(k)])); };
-    return { body: pick('body'), s1: pick('#s1'), s2: pick('#s2'), s3: pick('#s3'), a1: pick('#a1'), a2: pick('#a2') };
+    return { body: pick('body'), s1: pick('#s1'), s2: pick('#s2'), s3: pick('#s3'), a1: pick('#a1'), a2: pick('#a2'), a5: pick('#a5') };
   }, PROPS);
   await p.close();
   return out;
 }
+/* 4.18: on a phone the sheet drops its max-width; a utility on it must still win (it lost to !important in 4.17). */
+async function sheetWidth(name) {
+  const p = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await p.setContent(`<!doctype html><html><head><style>${compiled[name]}</style></head><body><div id="d" class="aura-dialog aura-dialog--md max-w-[200px]">sheet</div></body></html>`);
+  const w = await p.evaluate(() => getComputedStyle(document.getElementById('d')).maxWidth);
+  await p.close();
+  return w;
+}
+const sheet = await sheetWidth('both');
+if (sheet !== '200px') fails.push(`a max-w utility should override the phone sheet inside @layer aura (got ${sheet})`);
 const alone = await styles('alone'), both = await styles('both'), after = await styles('after'), unlayered = await styles('unlayered');
 for (const [order, got] of [['AURA first', both], ['AURA after the app theme', after]])
   for (const el of ['body', 's1', 's2', 's3']) for (const k of PROPS)
     if (alone[el][k] !== got[el][k]) fails.push(`next to shadcn (${order}): #${el} ${k} changed: "${alone[el][k]}" → "${got[el][k]}"`);
 if (both.a1['border-top-left-radius'] !== '0px') fails.push(`@layer aura: rounded-none should override .aura-btn (got ${both.a1['border-top-left-radius']})`);
 if (unlayered.a1['border-top-left-radius'] === '0px') fails.push('control: unlayered styles.css should beat the utility — the layer check is not testing anything');
+/* 4.18: nothing in the layer may use !important (it would beat utilities); a utility recolours the Combobox check. */
+if (/!important/.test(fs.readFileSync(path.join(root, '..', 'react', 'dist', 'styles.layer.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''))) fails.push('styles.layer.css contains !important');
+if (both.a5.color !== alone.s1['background-color']) fails.push(`text-chart-1 should recolour .aura-combo__check inside an option (got ${both.a5.color}, want ${alone.s1['background-color']})`);
 if (!/Inter/.test(both.a2['font-family'])) fails.push('font-aura-sans should be the Inter stack, got ' + both.a2['font-family']);
 if (both.a2['background-color'] !== 'rgb(255, 255, 255)') fails.push('bg-aura-bg-surface should resolve to the AURA surface, got ' + both.a2['background-color']);
 await browser.close();

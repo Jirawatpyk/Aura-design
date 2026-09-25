@@ -49,6 +49,9 @@ fs.writeFileSync(path.join(dist, 'aura.bundle.js'), code);
 fs.copyFileSync(path.join(root, 'styles/components.css'), path.join(dist, 'styles.css'));
 /* The same styles inside `@layer aura` (4.17): a Tailwind utility on an AURA component then wins without !important.
  * Order it with `@layer theme, base, aura, components, utilities;`. */
+/* Inside a cascade layer !important reverses layer order and beats every utility and inline style (4.18). */
+if (/!important/.test(fs.readFileSync(path.join(root, 'styles/components.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')))
+  throw new Error('styles/components.css contains !important — it would beat every utility in styles.layer.css');
 fs.writeFileSync(
   path.join(dist, 'styles.layer.css'),
   "/* AURA components in a cascade layer. Declare the order first: @layer theme, base, aura, components, utilities; */\n@layer aura {\n" +

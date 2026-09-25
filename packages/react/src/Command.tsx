@@ -174,8 +174,8 @@ export function Command(props: CommandProps): React.ReactElement | null {
             data-autofocus=""
             type="text"
             role="combobox"
-            aria-expanded={true}
-            aria-controls={listId}
+            aria-expanded={flat.length > 0}
+            aria-controls={flat.length ? listId : undefined}
             aria-autocomplete="list"
             aria-activedescendant={active >= 0 ? optId(active) : undefined}
             aria-label={props.label || t.commandMenu}
@@ -192,78 +192,91 @@ export function Command(props: CommandProps): React.ReactElement | null {
           />
           <kbd className="aura-command__kbd">Esc</kbd>
         </div>
-        <div
-          className="aura-command__list"
-          id={listId}
-          role="listbox"
-          aria-label={props.label || t.commandMenu}
-          aria-busy={props.loading || undefined}
-        >
+        {/* The listbox exists only while there are options: an empty listbox fails axe (aria-required-children), so the
+         * loading row and the empty state sit beside it and the live region below announces them (4.18). */}
+        <div className="aura-command__list" aria-busy={props.loading || undefined}>
           {props.loading ? (
-            <div className="aura-command__loading" role="presentation">
+            <div className="aura-command__loading">
               <Icon name="loader-circle" className="aura-spin" />
               {t.searching}
             </div>
           ) : null}
           {!flat.length ? (
             props.loading ? null : (
-              <div className="aura-command__empty" role="presentation">
+              <div className="aura-command__empty">
                 {props.empty != null ? props.empty : props.emptyText || t.noMatches}
               </div>
             )
           ) : (
-            groups.map(function (g, gi) {
-              const gid = id + '-g' + gi;
-              return (
-                <div
-                  key={g.name || gi}
-                  role="group"
-                  aria-labelledby={g.name ? gid : undefined}
-                  className="aura-command__group"
-                >
-                  {g.name ? (
-                    <div className="aura-command__heading" id={gid} role="presentation">
-                      {g.name}
-                    </div>
-                  ) : null}
-                  {g.items.map(function (it: CommandItem) {
-                    i++;
-                    const n = i;
-                    return (
-                      <div
-                        key={it.id}
-                        id={optId(n)}
-                        role="option"
-                        aria-selected={n === active}
-                        aria-disabled={it.disabled || undefined}
-                        className={cx('aura-command__item', n === active && 'is-active', it.disabled && 'is-disabled')}
-                        onPointerDown={function (e: React.PointerEvent) {
-                          e.preventDefault();
-                        }}
-                        onPointerMove={function () {
-                          if (!it.disabled && act[0] !== it.id) act[1](it.id);
-                        }}
-                        onClick={function () {
-                          run(it);
-                        }}
-                      >
-                        {it.icon ? <Icon name={it.icon} /> : null}
-                        <span className="aura-command__text">
-                          <span className="aura-command__label">{it.label}</span>
-                          {it.description ? <span className="aura-command__desc">{it.description}</span> : null}
-                        </span>
-                        {it.shortcut ? <kbd className="aura-command__kbd">{it.shortcut}</kbd> : null}
+            <div
+              id={listId}
+              role="listbox"
+              aria-label={props.label || t.commandMenu}
+              aria-busy={props.loading || undefined}
+            >
+              {groups.map(function (g, gi) {
+                const gid = id + '-g' + gi;
+                return (
+                  <div
+                    key={g.name || gi}
+                    role="group"
+                    aria-labelledby={g.name ? gid : undefined}
+                    className="aura-command__group"
+                  >
+                    {g.name ? (
+                      <div className="aura-command__heading" id={gid} role="presentation">
+                        {g.name}
                       </div>
-                    );
-                  })}
-                </div>
-              );
-            })
+                    ) : null}
+                    {g.items.map(function (it: CommandItem) {
+                      i++;
+                      const n = i;
+                      return (
+                        <div
+                          key={it.id}
+                          id={optId(n)}
+                          role="option"
+                          aria-selected={n === active}
+                          aria-disabled={it.disabled || undefined}
+                          className={cx(
+                            'aura-command__item',
+                            n === active && 'is-active',
+                            it.disabled && 'is-disabled',
+                          )}
+                          onPointerDown={function (e: React.PointerEvent) {
+                            e.preventDefault();
+                          }}
+                          onPointerMove={function () {
+                            if (!it.disabled && act[0] !== it.id) act[1](it.id);
+                          }}
+                          onClick={function () {
+                            run(it);
+                          }}
+                        >
+                          {it.icon ? <Icon name={it.icon} /> : null}
+                          <span className="aura-command__text">
+                            <span className="aura-command__label">{it.label}</span>
+                            {it.description ? <span className="aura-command__desc">{it.description}</span> : null}
+                          </span>
+                          {it.shortcut ? <kbd className="aura-command__kbd">{it.shortcut}</kbd> : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
-        {/* Polite status for async search: "Searching…", then the result count. */}
+        {/* Polite status: "Searching…", then the result count (async search), or "No matches". */}
         <span className="aura-sr-only" role="status">
-          {props.loading ? t.searching : props.loading === false && query ? t.results(flat.length) : ''}
+          {props.loading
+            ? t.searching
+            : query && !flat.length
+              ? t.noMatches
+              : props.loading === false && query
+                ? t.results(flat.length)
+                : ''}
         </span>
         <div className="aura-command__foot" aria-hidden={true}>
           {t.commandHint}

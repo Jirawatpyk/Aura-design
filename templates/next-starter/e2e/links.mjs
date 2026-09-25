@@ -56,6 +56,17 @@ await step(
   '/',
 );
 await step('Stat href', () => page.locator('a.aura-stat').first().click(), '/members');
+await step('SideNav item', () => page.getByRole('navigation', { name: 'ส่วนงาน' }).getByRole('link', { name: 'คำสั่งซื้อ' }).click(), '/');
+await step('DataTable row link', () => page.locator('.aura-table__row-link').first().click(), '/members?order=ORD-1042');
+await step(
+  'DataTable row (a cell elsewhere in the row)',
+  async () => {
+    await page.goBack();
+    await page.waitForURL(base + '/');
+    await page.locator('.aura-table__row').nth(1).locator('[role="gridcell"]').nth(2).click();
+  },
+  '/members?order=ORD-1043',
+);
 await browser.close();
 stop();
 if (fails.length) {
@@ -63,6 +74,6 @@ if (fails.length) {
   process.exit(1);
 }
 console.log(
-  'Client-side links OK — Button, Pagination (pages, previous, next), Breadcrumb and Stat navigate through next/link with no full page load.',
+  'Client-side links OK — Button, Pagination (pages, previous, next), Breadcrumb, Stat, SideNav and DataTable rows navigate through next/link with no full page load.',
 );
 process.exit(0);

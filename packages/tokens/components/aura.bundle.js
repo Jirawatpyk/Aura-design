@@ -2901,8 +2901,8 @@ window.Aura = (() => {
               "data-autofocus": "",
               type: "text",
               role: "combobox",
-              "aria-expanded": true,
-              "aria-controls": listId,
+              "aria-expanded": flat.length > 0,
+              "aria-controls": flat.length ? listId : void 0,
               "aria-autocomplete": "list",
               "aria-activedescendant": active >= 0 ? optId(active) : void 0,
               "aria-label": props.label || t.commandMenu,
@@ -2918,17 +2918,15 @@ window.Aura = (() => {
               onKeyDown: onKey
             }
           ), /* @__PURE__ */ React25.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
-          /* @__PURE__ */ React25.createElement(
+          /* @__PURE__ */ React25.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React25.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React25.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), t.searching) : null, !flat.length ? props.loading ? null : /* @__PURE__ */ React25.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React25.createElement(
             "div",
             {
-              className: "aura-command__list",
               id: listId,
               role: "listbox",
               "aria-label": props.label || t.commandMenu,
               "aria-busy": props.loading || void 0
             },
-            props.loading ? /* @__PURE__ */ React25.createElement("div", { className: "aura-command__loading", role: "presentation" }, /* @__PURE__ */ React25.createElement(Icon, { name: "loader-circle", className: "aura-spin" }), t.searching) : null,
-            !flat.length ? props.loading ? null : /* @__PURE__ */ React25.createElement("div", { className: "aura-command__empty", role: "presentation" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : groups.map(function(g, gi) {
+            groups.map(function(g, gi) {
               const gid = id + "-g" + gi;
               return /* @__PURE__ */ React25.createElement(
                 "div",
@@ -2950,7 +2948,11 @@ window.Aura = (() => {
                       role: "option",
                       "aria-selected": n2 === active,
                       "aria-disabled": it.disabled || void 0,
-                      className: cx("aura-command__item", n2 === active && "is-active", it.disabled && "is-disabled"),
+                      className: cx(
+                        "aura-command__item",
+                        n2 === active && "is-active",
+                        it.disabled && "is-disabled"
+                      ),
                       onPointerDown: function(e) {
                         e.preventDefault();
                       },
@@ -2968,8 +2970,8 @@ window.Aura = (() => {
                 })
               );
             })
-          ),
-          /* @__PURE__ */ React25.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : props.loading === false && query ? t.results(flat.length) : ""),
+          )),
+          /* @__PURE__ */ React25.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat.length ? t.noMatches : props.loading === false && query ? t.results(flat.length) : ""),
           /* @__PURE__ */ React25.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React25.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
         )
       ),

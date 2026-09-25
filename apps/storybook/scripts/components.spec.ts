@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 /* Behaviour tests for AURA components, run against the static Storybook (npm run build-storybook). */
 const story = async (page: Page, id: string, theme = 'light') => {
@@ -1162,7 +1163,7 @@ test.describe('4.17: Command with server search', () => {
     await expect(input).toBeFocused();
     await expect(page.getByText('Type a name to search members.')).toBeVisible();
     await input.pressSequentially('acme');
-    const list = page.getByRole('listbox');
+    const list = page.locator('.aura-command__list'); // aria-busy sits on the container (the listbox exists only with options)
     await expect(list).toHaveAttribute('aria-busy', 'true');
     await expect(page.getByText('Searching…').first()).toBeVisible();
     await expect(page.getByRole('option')).toHaveCount(3);
@@ -1227,4 +1228,43 @@ test.describe('4.17: DataTable server state in one callback', () => {
     await expect(page.getByRole('columnheader', { name: /INVOICE/ })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: /MEMBER/ })).toHaveCount(0);
   });
+});
+
+test.describe('4.18: the open Command palette passes axe', () => {
+  const axePalette = async (page: Page) => {
+    await page.waitForFunction(() =>
+      document
+        .getAnimations()
+        .every((a) => !(a instanceof CSSTransition || a instanceof CSSAnimation) || a.playState === 'finished'),
+    );
+    const { violations } = await new AxeBuilder({ page })
+      .include('.aura-command-layer')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
+  };
+  for (const theme of ['light', 'dark']) {
+    test(`0, 1 and many results, ${theme}`, async ({ page }) => {
+      await story(page, 'aura-new-in-4-17--async-command', theme);
+      await page.getByRole('button', { name: 'Find a member' }).click();
+      const input = page.getByRole('combobox');
+      await expect(page.getByText('Type a name to search members.')).toBeVisible();
+      expect(await axePalette(page), 'empty, before typing').toEqual([]);
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+      await expect(input).toHaveAttribute('aria-expanded', 'false');
+      await input.pressSequentially('zzz');
+      await expect(page.getByRole('button', { name: 'Create member' })).toBeVisible();
+      await expect(page.getByRole('status').filter({ hasText: 'No matches' })).toHaveCount(1);
+      expect(await axePalette(page), 'no results').toEqual([]);
+      await input.fill('acme n');
+      await expect(page.getByRole('option')).toHaveCount(1);
+      await expect(input).toHaveAttribute('aria-expanded', 'true');
+      expect(await axePalette(page), 'one result').toEqual([]);
+      await page.keyboard.press('Escape');
+      await story(page, 'aura-new-in-4-13--command-palette', theme);
+      await page.getByRole('button', { name: 'Open command menu' }).first().click();
+      await expect(page.getByRole('option').nth(3)).toBeVisible();
+      expect(await axePalette(page), 'many results').toEqual([]);
+    });
+  }
 });

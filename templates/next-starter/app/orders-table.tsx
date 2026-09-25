@@ -19,5 +19,6 @@ const columns = (fmt: ReturnType<typeof useFormatDate>): DataTableColumn[] => [
 export function OrdersTable({ orders }: { orders: Order[] }) {
   const fmt = useFormatDate();
   const cols = React.useMemo(() => columns(fmt), [fmt]);
-  return <DataTable label="คำสั่งซื้อ" columns={cols} rows={orders} stackBelow={640} />;
+  /* Row links go through the provider's next/link (app/providers.tsx): client-side, open in a new tab with ⌘/Ctrl. */
+  return <DataTable label="คำสั่งซื้อ" columns={cols} rows={orders} stackBelow={640} getRowHref={(r) => '/members?order=' + r.id} />;
 }

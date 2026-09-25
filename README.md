@@ -59,7 +59,7 @@ import { AuraProvider, AppShell, Button } from '@aura/react';
 <AuraProvider locale="th">…</AuraProvider>   // Thai built-in labels; dates are พ.ศ. by default
 ```
 
-Fonts: add the Google Fonts `<link>` tags from `packages/tokens/aura-fonts.css` to your `<head>` (or import that file).
+Fonts: `import '@jirawatpyk/aura-tokens/aura-fonts.local.css'` (self-hosted, works under a `font-src 'self'` CSP); `next/font` or Google Fonts are alternatives — see `packages/tokens/README.md`.
 
 ### A brand per project
 
