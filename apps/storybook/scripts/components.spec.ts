@@ -1687,3 +1687,69 @@ test.describe('5.0.1: review fixes', () => {
     expect(toastBottom).toBeLessThanOrEqual(navTop);
   });
 });
+
+test.describe('5.1: DxT Monitor fixes', () => {
+  for (const theme of ['light', 'dark']) {
+    test(`warning tone, visible Checkbox label, new icons; axe (${theme})`, async ({ page }) => {
+      await story(page, 'aura-new-in-5-1--monitor-kit', theme);
+      const problem = page.locator('.aura-pill', { hasText: 'Problem' });
+      await expect(problem).toHaveClass(/aura-pill--warning/);
+      await expect(page.locator('.aura-pill', { hasText: 'Disk 91%' })).toHaveClass(/aura-pill--warning/);
+      await expect(page.locator('.aura-pill', { hasText: 'Ready' })).toHaveClass(/aura-pill--ready/);
+      /* Children show beside the box and name it; label + hideLabel is a bare box named by label. */
+      await expect(page.getByText('Alert me by phone')).toBeVisible();
+      await page.getByText('Alert me by phone').click();
+      await expect(page.getByRole('checkbox', { name: 'Alert me by phone' })).toBeChecked();
+      await expect(page.getByRole('checkbox', { name: 'Bare box, named only' })).toBeAttached();
+      await expect(page.getByText('Bare box, named only')).toHaveCount(0);
+      for (const n of ['server', 'globe', 'activity', 'shield-alert', 'phone', 'wrench'])
+        expect(
+          await page.getByRole('img', { name: n }).evaluate((s) => s.querySelectorAll('path,rect,circle,line').length),
+          n,
+        ).toBeGreaterThan(0);
+      expect(await axeScan(page, '#storybook-root'), theme).toEqual([]);
+    });
+  }
+
+  test('Dialog and Drawer focus the first field, not the close button', async ({ page }) => {
+    await story(page, 'aura-new-in-5-1--overlay-focus', 'light');
+    await page.getByRole('button', { name: 'Edit server' }).click();
+    await expect(page.getByRole('textbox', { name: 'Hostname' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await expect(page.getByRole('textbox', { name: 'Search hosts' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    /* Roving tabs: focus goes to the selected tab (the one in the Tab order), not the first. */
+    await page.getByRole('button', { name: 'Server tabs' }).click();
+    await expect(page.getByRole('tab', { name: 'Logs' })).toBeFocused();
+  });
+
+  test('SideNav without a header: the first item clears the top; bordered={false} has no edge', async ({ page }) => {
+    await story(page, 'aura-new-in-5-1--nav-no-header', 'light');
+    const gap = await page
+      .getByTestId('plain')
+      .evaluate(
+        (w) =>
+          w.querySelector('.aura-nav__item')!.getBoundingClientRect().top -
+          w.querySelector('.aura-nav')!.getBoundingClientRect().top,
+      );
+    expect(gap).toBeGreaterThanOrEqual(12);
+    expect(
+      await page
+        .getByTestId('borderless')
+        .locator('.aura-nav')
+        .evaluate((n) => getComputedStyle(n).borderRightWidth),
+    ).toBe('0px');
+    expect(
+      await page
+        .getByTestId('plain')
+        .locator('.aura-nav')
+        .evaluate((n) => getComputedStyle(n).borderRightWidth),
+    ).toBe('1px');
+  });
+
+  test('DataTable row boxes stay bare (hideLabel)', async ({ page }) => {
+    await story(page, 'aura-responsive--stacked-table');
+    await expect(page.locator('.aura-table__sel .aura-check__label')).toHaveCount(0);
+  });
+});

@@ -861,6 +861,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       >
         {nRows ? (
           <Checkbox
+            hideLabel
             checked={all}
             indeterminate={nSel > 0 && !all}
             tabIndex={-1}
@@ -1027,6 +1028,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           }}
         >
           <Checkbox
+            hideLabel
             checked={isSel}
             tabIndex={-1}
             label={t.selectRow(k)}

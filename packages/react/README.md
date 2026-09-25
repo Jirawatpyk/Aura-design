@@ -186,6 +186,14 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.1 — from DxT Monitor
+
+- **StatusPill `tone="warning"`**: solid amber (amber-600 light, amber-500 dark, ink label) with `triangle-alert`, for states that need attention but still work — lighter than Blocked and darker than Ready, so it doesn't rely on hue. The words Warning, Problem, Degraded and At risk pick it by themselves. New tokens `--aura-status-warning-bg` / `-fg` (6.3:1 light, 9.3:1 dark). DataTable pill columns sort it between Ready and Blocked.
+- **Checkbox `label`** is still only the accessible name in 5.x (visible text goes in children). In development a `label` without children warns once: **6.0 will show `label` beside the box**, like Switch and TextField. Mark bare boxes (table rows) with `hideLabel` now and they stay bare; DataTable's own boxes already do.
+- **Dialog and Drawer focus the first field on open** (then the first footer button), not the close button; controls out of the Tab order (`tabindex="-1"`, e.g. unselected tabs) and hidden ones are skipped.
+- **SideNav** without a `header` keeps its first item off the top edge; `bordered={false}` drops its own right edge when your layout draws the divider.
+- **Icons**: `server`, `globe`, `activity`, `shield-alert`, `phone`, `wrench` (70 in all).
+
 ## Upgrading to 5.0
 
 One breaking change: **`formatDate()` from the package root defaults to English and the Gregorian calendar** (`'2026-09-24'` → `24 Sept 2026`), like `@jirawatpyk/aura-react/server` and `useFormatDate()` without a provider — it is now the same function. Before 5.0 it defaulted to Thai with Buddhist-era years (`24 ก.ย. 2569`), and 4.20 warned in development for every call without a `locale`.

@@ -7,6 +7,7 @@ const TONE_ICON: Record<StatusTone, IconName> = {
   neutral: 'circle',
   progress: 'circle-dot-dashed',
   ready: 'circle-check',
+  warning: 'triangle-alert',
   blocked: 'ban',
 };
 import { toneFor } from './status.js';

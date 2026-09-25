@@ -33,5 +33,18 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
   } catch (e) { console.log(label, 'bad time zone:', e.message); fail++; }
   const tabsHtml = renderToString(React.createElement(A.Tabs, { label: 'T', value: 'sub', tabs: [{ id: 'a', label: 'A', href: '/a' }, { id: 'b', label: 'B', href: '/b' }] }));
   if (/aria-current/.test(tabsHtml)) { console.log(label, 'link Tabs marked a tab for an unmatched value'); fail++; }
+  /* 5.1: Checkbox label without children warns once (6.0 shows it); hideLabel is quiet and keeps a description. */
+  {
+    const w = [], ow = console.warn;
+    console.warn = (m) => w.push(String(m));
+    renderToString(React.createElement(A.Checkbox, { label: 'Row 1', hideLabel: true, id: 'c1', description: 'Owner: Tao' }));
+    const quiet = w.length;
+    renderToString(React.createElement(A.Checkbox, { label: 'Row 2' }));
+    renderToString(React.createElement(A.Checkbox, { label: 'Row 3' }));
+    console.warn = ow;
+    if (quiet || w.length !== 1 || !/6\.0/.test(w[0])) { console.log(label, 'Checkbox label notice:', w); fail++; }
+    const html = renderToString(React.createElement(A.Checkbox, { label: 'Row 1', hideLabel: true, id: 'c1', description: 'Owner: Tao' }));
+    if (!/id="c1-desc"/.test(html)) { console.log(label, 'hideLabel dropped the description target'); fail++; }
+  }
 }
 process.exit(fail ? 1 : 0);

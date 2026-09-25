@@ -52,6 +52,8 @@ module.exports = {
         "50": "var(--aura-amber-50)",
         "200": "var(--aura-amber-200)",
         "300": "var(--aura-amber-300)",
+        "500": "var(--aura-amber-500)",
+        "600": "var(--aura-amber-600)",
         "800": "var(--aura-amber-800)"
       },
       "ink": "var(--aura-ink)",
@@ -101,7 +103,9 @@ module.exports = {
       "ready-bg": "var(--aura-status-ready-bg)",
       "ready-fg": "var(--aura-status-ready-fg)",
       "blocked-bg": "var(--aura-status-blocked-bg)",
-      "blocked-fg": "var(--aura-status-blocked-fg)"
+      "blocked-fg": "var(--aura-status-blocked-fg)",
+      "warning-bg": "var(--aura-status-warning-bg)",
+      "warning-fg": "var(--aura-status-warning-fg)"
     },
     "chart": {
       "1": "var(--aura-chart-1)",

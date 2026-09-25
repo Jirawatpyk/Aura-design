@@ -334,6 +334,7 @@ a.aura-icon-btn { text-decoration: none; }
 }
 .aura-pill--progress { background: var(--aura-status-progress-bg); color: var(--aura-status-progress-fg); }
 .aura-pill--ready { background: var(--aura-status-ready-bg); color: var(--aura-status-ready-fg); }
+.aura-pill--warning { background: var(--aura-status-warning-bg); color: var(--aura-status-warning-fg); }
 .aura-pill--blocked { background: var(--aura-status-blocked-bg); color: var(--aura-status-blocked-fg); }
 
 /* Icon — Lucide, 24-grid, stroke in currentColor */
@@ -596,6 +597,9 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-nav__header { padding: var(--aura-space-5) var(--aura-space-4) var(--aura-space-4); }
 .aura-nav__scroll { flex: 1; overflow-y: auto; padding: 0 var(--aura-space-3); }
+/* No header: keep the first item off the top edge (5.0.2). */
+.aura-nav > .aura-nav__scroll:first-child { padding-top: var(--aura-space-3); }
+.aura-nav--borderless { border-right: 0; }
 .aura-nav__section + .aura-nav__section { margin-top: var(--aura-space-5); }
 .aura-nav__title { margin: 0 0 var(--aura-space-1); padding: 0 var(--aura-space-3); font-family: var(--font-mono); font-size: 11px; line-height: 20px; color: var(--aura-fg-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
 .aura-nav__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }

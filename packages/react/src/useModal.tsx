@@ -27,12 +27,24 @@ export function useModal(
         overflow = body.style.overflow;
       body.style.overflow = 'hidden';
       const el = ref.current;
+      /* The first control in the Tab order inside a part. FOCUSABLE is a selector list, so every part is scoped
+       * (5.1: before, `button` alone matched the header's close button). Skip tabindex=-1 (roving tabs, segments)
+       * and anything hidden. */
+      const firstIn = function (scope: string | undefined): HTMLElement | null {
+        if (!scope || !el) return null;
+        const sel = FOCUSABLE.split(',')
+          .map(function (s: string) {
+            return scope + ' ' + s;
+          })
+          .join(',');
+        const list = el.querySelectorAll<HTMLElement>(sel);
+        for (let i = 0; i < list.length; i++)
+          if (list[i].tabIndex >= 0 && list[i].getClientRects().length > 0) return list[i];
+        return null;
+      };
       const target =
         el &&
-        (el.querySelector<HTMLElement>('[data-autofocus]') ||
-          el.querySelector<HTMLElement>(o.bodySelector + ' ' + FOCUSABLE) ||
-          el.querySelector<HTMLElement>(o.footSelector + ' ' + FOCUSABLE) ||
-          el);
+        (el.querySelector<HTMLElement>('[data-autofocus]') || firstIn(o.bodySelector) || firstIn(o.footSelector) || el);
       if (target && o.autoFocus !== false) target.focus();
       return function () {
         body.style.overflow = overflow;

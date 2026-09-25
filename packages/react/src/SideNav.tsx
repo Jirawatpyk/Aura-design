@@ -220,7 +220,12 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         if (typeof ref === 'function') ref(el);
         else if (ref) ref.current = el;
       }}
-      className={cx('aura-nav', collapsed && 'aura-nav--collapsed', props.className)}
+      className={cx(
+        'aura-nav',
+        collapsed && 'aura-nav--collapsed',
+        props.bordered === false && 'aura-nav--borderless',
+        props.className,
+      )}
       data-collapsed={collapsed ? '' : undefined}
       aria-label={props.label || t.mainNav}
       onKeyDown={onKeyDown}

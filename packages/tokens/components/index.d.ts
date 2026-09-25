@@ -177,7 +177,7 @@ export interface DataTableProps {
 }
 /** An AURA icon name, or any icon element (e.g. `<Building />` from lucide-react). AURA sizes it and hides it from screen readers. */
 export type IconInput = IconName | React$1.ReactElement;
-export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor" | "panel-left-close" | "panel-left-open";
+export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor" | "panel-left-close" | "panel-left-open" | "server" | "globe" | "activity" | "shield-alert" | "phone" | "wrench";
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
 	/** A name from the set, or an icon element of your own (sized and styled the same way). */
@@ -214,12 +214,13 @@ export interface AuraProviderProps {
 	linkComponent?: React$1.ElementType | undefined;
 	children?: React$1.ReactNode | undefined;
 }
-export type StatusTone = "neutral" | "progress" | "ready" | "blocked";
+/** `warning` (5.1): needs attention but still works — Warning, Problem, Degraded, At risk. */
+export type StatusTone = "neutral" | "progress" | "ready" | "warning" | "blocked";
 /** Status pill: tone fill + icon + the status word. Tone comes from the word unless given. */
 export interface StatusPillProps {
 	/** The status word shown, e.g. "In Progress". */
 	children: React$1.ReactNode;
-	/** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Blocked/Failed → blocked, anything else → neutral). */
+	/** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
 	tone?: StatusTone | undefined;
 	className?: string | undefined;
 }
@@ -229,9 +230,12 @@ export interface CheckboxProps extends Omit<React$1.InputHTMLAttributes<HTMLInpu
 	checked?: boolean | undefined;
 	defaultChecked?: boolean | undefined;
 	indeterminate?: boolean | undefined;
-	/** Accessible name for a bare box (tables). Not needed when children give a visible label. */
+	/** Accessible name. In 5.x it is shown only when given as children; **6.0 shows `label` beside the box** like
+	 * Switch and TextField. Without children and without `hideLabel` it warns once in development. */
 	label?: string | undefined;
-	/** Visible label beside the box (form use). */
+	/** A bare box named by `label`, e.g. in a table row: keeps it hidden in 6.0 and silences the 5.1 notice. */
+	hideLabel?: boolean | undefined;
+	/** The visible label beside the box. */
 	children?: React$1.ReactNode | undefined;
 	/** Second line under the visible label (needs an id to be linked). */
 	description?: React$1.ReactNode | undefined;
@@ -590,6 +594,9 @@ export interface SideNavProps {
 	onCollapsedChange?: ((collapsed: boolean) => void) | undefined;
 	/** Adds a collapse / expand button at the bottom. AppShell hides it in its phone drawer. */
 	collapsible?: boolean | undefined;
+	/** The 1px right edge that divides the nav from the page. Default true; `false` when your layout draws its own
+	 * divider. (5.1) */
+	bordered?: boolean | undefined;
 	className?: string | undefined;
 }
 export interface BreadcrumbProps {

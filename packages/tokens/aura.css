@@ -43,6 +43,8 @@
   --aura-amber-50: #fffbeb;
   --aura-amber-200: #fde68a;
   --aura-amber-300: #fcd34d;
+  --aura-amber-500: #f59e0b;
+  --aura-amber-600: #d97706;
   --aura-amber-800: #92400e;
   --aura-ink: #08080a;
   --aura-white: #ffffff;
@@ -76,6 +78,8 @@
   --aura-status-ready-fg: var(--aura-ink);
   --aura-status-blocked-bg: var(--aura-red-700);
   --aura-status-blocked-fg: var(--aura-white);
+  --aura-status-warning-bg: var(--aura-amber-600);
+  --aura-status-warning-fg: var(--aura-ink);
   --aura-bg-selected: var(--aura-violet-50);
   --aura-border-control: var(--aura-zinc-500);
   --aura-bg-skeleton: var(--aura-zinc-200);
@@ -154,6 +158,7 @@
   --aura-status-progress-fg: var(--aura-violet-300);
   --aura-status-ready-bg: #2b351f;
   --aura-status-ready-fg: var(--aura-lime-300);
+  --aura-status-warning-bg: var(--aura-amber-500);
   --aura-bg-selected: #2c283a;
   --aura-border-control: var(--aura-zinc-400);
   --aura-bg-skeleton: var(--aura-zinc-700);
@@ -223,6 +228,7 @@
     --aura-status-progress-fg: var(--aura-violet-300);
     --aura-status-ready-bg: #2b351f;
     --aura-status-ready-fg: var(--aura-lime-300);
+    --aura-status-warning-bg: var(--aura-amber-500);
     --aura-bg-selected: #2c283a;
     --aura-border-control: var(--aura-zinc-400);
     --aura-bg-skeleton: var(--aura-zinc-700);

@@ -247,7 +247,13 @@ export type IconName =
   | 'moon'
   | 'monitor'
   | 'panel-left-close'
-  | 'panel-left-open';
+  | 'panel-left-open'
+  | 'server'
+  | 'globe'
+  | 'activity'
+  | 'shield-alert'
+  | 'phone'
+  | 'wrench';
 
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
@@ -287,12 +293,13 @@ export interface AuraProviderProps {
   children?: React.ReactNode | undefined;
 }
 
-export type StatusTone = 'neutral' | 'progress' | 'ready' | 'blocked';
+/** `warning` (5.1): needs attention but still works — Warning, Problem, Degraded, At risk. */
+export type StatusTone = 'neutral' | 'progress' | 'ready' | 'warning' | 'blocked';
 /** Status pill: tone fill + icon + the status word. Tone comes from the word unless given. */
 export interface StatusPillProps {
   /** The status word shown, e.g. "In Progress". */
   children: React.ReactNode;
-  /** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Blocked/Failed → blocked, anything else → neutral). */
+  /** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
   tone?: StatusTone | undefined;
   className?: string | undefined;
 }
@@ -306,9 +313,12 @@ export interface CheckboxProps extends Omit<
   checked?: boolean | undefined;
   defaultChecked?: boolean | undefined;
   indeterminate?: boolean | undefined;
-  /** Accessible name for a bare box (tables). Not needed when children give a visible label. */
+  /** Accessible name. In 5.x it is shown only when given as children; **6.0 shows `label` beside the box** like
+   * Switch and TextField. Without children and without `hideLabel` it warns once in development. */
   label?: string | undefined;
-  /** Visible label beside the box (form use). */
+  /** A bare box named by `label`, e.g. in a table row: keeps it hidden in 6.0 and silences the 5.1 notice. */
+  hideLabel?: boolean | undefined;
+  /** The visible label beside the box. */
   children?: React.ReactNode | undefined;
   /** Second line under the visible label (needs an id to be linked). */
   description?: React.ReactNode | undefined;
@@ -659,6 +669,9 @@ export interface SideNavProps {
   onCollapsedChange?: ((collapsed: boolean) => void) | undefined;
   /** Adds a collapse / expand button at the bottom. AppShell hides it in its phone drawer. */
   collapsible?: boolean | undefined;
+  /** The 1px right edge that divides the nav from the page. Default true; `false` when your layout draws its own
+   * divider. (5.1) */
+  bordered?: boolean | undefined;
   className?: string | undefined;
 }
 export interface BreadcrumbProps {

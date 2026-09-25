@@ -60,9 +60,9 @@ export const Choices: StoryObj = {
         { value: 'enterprise', label: 'Enterprise', description: 'Product UI, tables, forms.' },
         { value: 'creative', label: 'Creative', description: 'Campaigns and onboarding moments.' }]} />
       <Aura.Switch label="Email me when a token changes" description="Never more than daily." defaultChecked />
-      <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-        <Aura.Checkbox checked label="Accept the terms" onChange={() => {}} /> Accept the terms
-      </label>
+      <Aura.Checkbox checked onChange={() => {}}>
+        Accept the terms
+      </Aura.Checkbox>
     </div>
   ),
 };

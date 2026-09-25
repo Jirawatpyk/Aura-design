@@ -50,6 +50,8 @@
   --color-aura-amber-50: var(--aura-amber-50);
   --color-aura-amber-200: var(--aura-amber-200);
   --color-aura-amber-300: var(--aura-amber-300);
+  --color-aura-amber-500: var(--aura-amber-500);
+  --color-aura-amber-600: var(--aura-amber-600);
   --color-aura-amber-800: var(--aura-amber-800);
   --color-aura-ink: var(--aura-ink);
   --color-aura-white: var(--aura-white);
@@ -89,6 +91,8 @@
   --color-status-ready-fg: var(--aura-status-ready-fg);
   --color-status-blocked-bg: var(--aura-status-blocked-bg);
   --color-status-blocked-fg: var(--aura-status-blocked-fg);
+  --color-status-warning-bg: var(--aura-status-warning-bg);
+  --color-status-warning-fg: var(--aura-status-warning-fg);
   --color-chart-1: var(--aura-chart-1);
   --color-chart-2: var(--aura-chart-2);
   --color-chart-3: var(--aura-chart-3);

@@ -48,7 +48,7 @@ for (const fg of ['fg-primary', 'fg-secondary', 'fg-tertiary', 'fg-accent', 'fg-
 pairs.push(['fg-primary', 'bg-selected', TEXT], ['fg-secondary', 'bg-selected', TEXT]);
 pairs.push(['fg-inverted', 'bg-surface-strong', TEXT], ['fg-inverted', 'bg-inverted', TEXT]);
 pairs.push(['button-primary-fg', 'button-primary-bg', TEXT], ['button-primary-fg', 'button-primary-bg-hover', TEXT]);
-for (const t of ['neutral', 'progress', 'ready', 'blocked']) pairs.push([`status-${t}-fg`, `status-${t}-bg`, TEXT]);
+for (const t of ['neutral', 'progress', 'ready', 'warning', 'blocked']) pairs.push([`status-${t}-fg`, `status-${t}-bg`, TEXT]);
 for (const t of ['info', 'success', 'warning', 'danger']) pairs.push([`alert-${t}-fg`, `alert-${t}-bg`, TEXT], ['fg-primary', `alert-${t}-bg`, TEXT]);
 pairs.push(['on-texture', 'mesh-from', TEXT], ['on-texture', 'mesh-to', TEXT]);
 for (const bg of ['bg-surface', 'bg-canvas', 'bg-input', 'bg-selected']) pairs.push(['border-control', bg, UI]);
@@ -67,6 +67,8 @@ for (const bg of ['bg-surface', 'bg-canvas']) {
   pairs.push(['chart-axis', bg, TEXT]);
 }
 for (let i = 1; i < 8; i++) pairs.push([`chart-${i}`, `chart-${i + 1}`, NEIGHBOUR]);
+/* Status fills that sit side by side in a column must also differ in lightness, not only hue (5.1: warning). */
+pairs.push(['status-warning-bg', 'status-ready-bg', NEIGHBOUR], ['status-warning-bg', 'status-blocked-bg', NEIGHBOUR]);
 /* Progress / upload tracks: the edge shows the empty part at 3:1; the bar colours also clear 3:1 on the track fill. */
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['progress-track-edge', bg, UI]);
 for (const fg of ['fg-accent', 'fg-positive', 'fg-danger', 'fg-secondary']) pairs.push([fg, 'progress-track', UI]);

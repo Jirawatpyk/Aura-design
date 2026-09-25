@@ -40,6 +40,8 @@ primitive/red/800,color,light,#991b1b,Primitive red 800. Danger button hover onl
 primitive/amber/50,color,light,#fffbeb,Primitive. Warning alert fill (light). ADDED.,
 primitive/amber/200,color,light,#fde68a,Primitive. Warning alert edge (light). ADDED.,
 primitive/amber/300,color,light,#fcd34d,"Primitive. Warning alert text (dark), 9.6:1. ADDED.",
+primitive/amber/500,color,light,#f59e0b,Primitive. Warning status pill fill (dark). ADDED 5.1.,
+primitive/amber/600,color,light,#d97706,Primitive. Warning status pill fill (light). ADDED 5.1.,
 primitive/amber/800,color,light,#92400e,"Primitive. Warning alert text (light), 6.8:1 on amber-50. ADDED.",
 primitive/ink,color,light,#08080a,Primitive ink (= zinc-950). Text on lime fills: the Ready status label (15:1 on aura-lime-200).,
 primitive/white,color,light,#ffffff,Primitive white. The Creative button fill in every theme.,
@@ -73,6 +75,8 @@ semantic/status-ready-bg,color,light,{primitive/lime/200},"Status pill fill for 
 semantic/status-ready-fg,color,light,{primitive/ink},"Label and icon on aura-status-ready-bg (light 15.2:1; dark lime-300, 9.9:1).",ALL_FILLS
 semantic/status-blocked-bg,color,light,{primitive/red/700},"Status pill fill for stopped / failed states (Blocked, Failed). Dark on purpose: 5.5:1 lighter-to-darker against the lime Ready fill, so Ready and Blocked differ by lightness, not only red vs green. ADDED.",ALL_FILLS
 semantic/status-blocked-fg,color,light,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
+semantic/status-warning-bg,color,light,{primitive/amber/600},"Status pill fill for states that need attention but still work (Warning, Problem, Degraded, At risk). A solid amber (amber-600 light, amber-500 dark) that differs from Ready and Blocked by lightness too, not only hue: 2.7:1 from lime-200 and 2.0:1 from red-700 in light; 6.0:1 from the dark Ready fill and 3.0:1 from red-700 in dark. Always with the word and the triangle-alert icon. ADDED 5.1.",ALL_FILLS
+semantic/status-warning-fg,color,light,{primitive/ink},"Label and icon on aura-status-warning-bg: ink, 6.3:1 light, 9.3:1 dark.",ALL_FILLS
 semantic/bg-selected,color,light,{primitive/violet/50},"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
 semantic/border-control,color,light,{primitive/zinc/500},"Outline of unchecked checkboxes and other small controls that must be seen: ≥4.4:1 on aura-bg-surface, -canvas and aura-bg-selected (the 3:1 a control boundary needs). ADDED.",STROKE_COLOR
 semantic/bg-skeleton,color,light,{primitive/zinc/200},zinc-200 light / zinc-700 dark so bars read on white and on zinc-900 surfaces. Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL
@@ -139,6 +143,8 @@ semantic/status-ready-bg,color,dark,#2b351f,"Status pill fill for finished / goo
 semantic/status-ready-fg,color,dark,{primitive/lime/300},"Label and icon on aura-status-ready-bg (light 15.2:1; dark lime-300, 9.9:1).",ALL_FILLS
 semantic/status-blocked-bg,color,dark,{primitive/red/700},"Status pill fill for stopped / failed states (Blocked, Failed). Dark on purpose: 5.5:1 lighter-to-darker against the lime Ready fill, so Ready and Blocked differ by lightness, not only red vs green. ADDED.",ALL_FILLS
 semantic/status-blocked-fg,color,dark,{primitive/white},Label and icon on aura-status-blocked-bg (6.5:1).,ALL_FILLS
+semantic/status-warning-bg,color,dark,{primitive/amber/500},"Status pill fill for states that need attention but still work (Warning, Problem, Degraded, At risk). A solid amber (amber-600 light, amber-500 dark) that differs from Ready and Blocked by lightness too, not only hue: 2.7:1 from lime-200 and 2.0:1 from red-700 in light; 6.0:1 from the dark Ready fill and 3.0:1 from red-700 in dark. Always with the word and the triangle-alert icon. ADDED 5.1.",ALL_FILLS
+semantic/status-warning-fg,color,dark,{primitive/ink},"Label and icon on aura-status-warning-bg: ink, 6.3:1 light, 9.3:1 dark.",ALL_FILLS
 semantic/bg-selected,color,dark,#2c283a,"Selected table rows and list items. Opaque so pinned columns can sit on it (dark = a 14% violet-400 wash over zinc-900, flattened). aura-fg-primary on it ≥14.2:1, aura-fg-secondary ≥5.5:1, focus ring ≥5.2:1 in both themes. ADDED.",FRAME_FILL
 semantic/border-control,color,dark,{primitive/zinc/400},"Outline of unchecked checkboxes and other small controls that must be seen: ≥4.4:1 on aura-bg-surface, -canvas and aura-bg-selected (the 3:1 a control boundary needs). ADDED.",STROKE_COLOR
 semantic/bg-skeleton,color,dark,{primitive/zinc/700},zinc-200 light / zinc-700 dark so bars read on white and on zinc-900 surfaces. Skeleton placeholder bars while a table or list loads. Decorative; the table carries aria-busy and a 'Loading rows' status for screen readers. ADDED.,FRAME_FILL

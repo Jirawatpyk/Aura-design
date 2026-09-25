@@ -43,6 +43,7 @@ Semver `MAJOR.MINOR.PATCH`:
 Made by the design-system owner in one pass, instead of separate Proposals. Each change is marked ADDED in its token note.
 
 - **Status palette adopted.** Four tones (neutral, progress, ready, blocked). `aura-red-700` is the only warm hue for state, chosen dark so Ready (lime-200) and Blocked differ by lightness (5.5:1), not only by hue.
+- **5.1: a fifth tone, warning** (from DxT Monitor: a monitored host with a problem that still works). Solid amber — amber-600 light, amber-500 dark, ink label — so it differs from Ready and Blocked by lightness as well as hue (light 2.7:1 and 2.0:1). Amber stays the warning hue only: the warning alert and this pill.
 - **Alert palette adopted.** Info (violet), success (lime), warning (amber), danger (red), each with its own fill, edge and text for light and dark. Amber is limited to warning.
 - **Lucide adopted** as the only icon set, 52 icons. New icons come from Lucide unchanged.
 - **Focus ring adopted**: 2px violet, 2px offset, on every interactive element.
