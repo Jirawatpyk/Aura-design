@@ -26,5 +26,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
   if (root !== server || root !== '24 Sept 2026') { console.log(label, 'formatDate: root', root, 'vs /server', server); fail++; }
   if (A.formatDate('2026-09-24', { locale: 'th' }) !== '24 ก.ย. 2569') { console.log(label, 'formatDate th:', A.formatDate('2026-09-24', { locale: 'th' })); fail++; }
   if (warns.length) { console.log(label, 'formatDate warned:', warns); fail++; }
+  /* 5.0.1: an unknown time zone or a malformed today doesn't crash; link Tabs mark no tab for a route without one. */
+  try {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(A.todayIn('Asia/Bangkk'))) throw new Error('todayIn gave ' + A.todayIn('Asia/Bangkk'));
+    renderToString(React.createElement(A.Calendar, { timeZone: 'Asia/Bangkk', today: 'soon', onSelect: () => {} }));
+  } catch (e) { console.log(label, 'bad time zone:', e.message); fail++; }
+  const tabsHtml = renderToString(React.createElement(A.Tabs, { label: 'T', value: 'sub', tabs: [{ id: 'a', label: 'A', href: '/a' }, { id: 'b', label: 'B', href: '/b' }] }));
+  if (/aria-current/.test(tabsHtml)) { console.log(label, 'link Tabs marked a tab for an unmatched value'); fail++; }
 }
 process.exit(fail ? 1 : 0);

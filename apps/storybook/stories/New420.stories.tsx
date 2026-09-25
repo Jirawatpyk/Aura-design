@@ -164,3 +164,30 @@ export const OneMarkupTable: StoryObj = {
     />
   ),
 };
+
+/* 5.0.1: the table keeps measuring itself when a column with a new hideBelow width comes or goes. */
+const many = Array.from({ length: 60 }, (_, i) => ({
+  id: 'INV-' + (4001 + i),
+  member: ['Acme AB', 'Nordic Rail', 'Siam Foods'][i % 3],
+  region: ['Bangkok', 'Chiang Mai', 'Phuket'][i % 3],
+  amount: (900 + i * 25).toLocaleString('en-US') + ' THB',
+}));
+export const ChangingColumns: StoryObj = {
+  render: () => {
+    const [region, setRegion] = React.useState(false);
+    const columns = [
+      { key: 'id', label: 'INVOICE', width: 140, mono: true },
+      { key: 'member', label: 'MEMBER', width: 200, hideBelow: 900 },
+      ...(region ? [{ key: 'region', label: 'REGION', width: 140, hideBelow: 1100 }] : []),
+      { key: 'amount', label: 'AMOUNT', align: 'end' as const },
+    ];
+    return (
+      <Aura.Stack gap={3}>
+        <Aura.Button variant="secondary" size="sm" onClick={() => setRegion(!region)}>
+          {region ? 'Remove REGION' : 'Add REGION'}
+        </Aura.Button>
+        <Aura.DataTable label="Changing columns" stackBelow={640} height={400} rows={many} columns={columns} />
+      </Aura.Stack>
+    );
+  },
+};

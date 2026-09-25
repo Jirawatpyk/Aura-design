@@ -49,7 +49,7 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
       };
       let top: number, left: number;
       if (side === 'top' || side === 'bottom') {
-        top = side === 'top' ? r.top - t.height - gap : r.bottom + gap;
+        top = clampY(side === 'top' ? r.top - t.height - gap : r.bottom + gap);
         left = clampX(r.left + r.width / 2 - t.width / 2);
       } else {
         left = side === 'left' ? r.left - t.width - gap : r.right + gap;

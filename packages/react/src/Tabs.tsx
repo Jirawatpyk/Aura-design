@@ -34,7 +34,8 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
       >
         <div className="aura-tabs__list">
           {items.map(function (t: TabItem) {
-            const on = current && t.id === current.id;
+            /* Only an exact match is the current page (5.0.1): a route with no tab of its own marks none. */
+            const on = t.id === st[0];
             const inner = [
               t.icon ? <Icon key="i" name={t.icon} /> : null,
               t.label,
@@ -54,7 +55,9 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
                 href={t.href}
                 className={cx('aura-tab', on && 'is-active')}
                 aria-current={on ? 'page' : undefined}
-                onClick={function () {
+                onClick={function (e: React.MouseEvent) {
+                  /* A new-tab click (modifier or middle button) leaves this page as it is. */
+                  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                   st[1](t.id);
                 }}
               >

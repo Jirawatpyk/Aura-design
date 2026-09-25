@@ -176,7 +176,7 @@ export interface DataTableProps {
   onPinnedColumnsChange?: ((keys: string[]) => void) | undefined;
   /** `compact` = 40px rows (48px on touch screens). Default: the surrounding density. */
   density?: 'comfortable' | 'compact' | undefined;
-  /** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. */
+  /** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. With `height` (virtual rows) the server can only send the first screenful; the rest of the cards arrive on hydration. */
   stackBelow?: number | undefined;
   className?: string | undefined;
 }

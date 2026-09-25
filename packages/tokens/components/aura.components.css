@@ -1365,6 +1365,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @media (max-width: 767.98px) { :root:has(.aura-bottomnav--below-md) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
 @media (max-width: 1023.98px) { :root:has(.aura-bottomnav--below-lg) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
 @media (max-width: 1279.98px) { :root:has(.aura-bottomnav--below-xl) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+/* Toasts clear a BottomNav wherever it shows (phones and tablets). */
+.aura-toaster:not(.is-top) { bottom: calc(var(--aura-space-6) + var(--aura-bottomnav-offset, 0px)); }
 @media (max-width: 639.98px) { .aura-toaster:not(.is-top) { bottom: calc(var(--aura-space-4) + var(--aura-bottomnav-offset, 0px)); } }
 
 /* ---------- 4.19: ActionBar ---------- */
@@ -1459,7 +1461,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     margin-bottom: var(--aura-space-1);
     padding: 0; line-height: normal;
   }
-  .aura-table__td[data-hide] { display: block; }
+  .aura-table__td[data-hide], .aura-table__head > .aura-table__th[data-hide] { display: block; }
+  .aura-table__spacer { display: none; }
   .aura-table__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start;

@@ -148,6 +148,15 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     columns.some(function (c: Col) {
       return c.hideBelow != null;
     });
+  /* The wrapper depth (width-query levels) decides which node is the table: re-measure when it changes (5.0.1). */
+  const levelShape =
+    (props.stackBelow ? 's' : '') +
+    Math.min(
+      MAX_HIDE_LEVELS,
+      columns.map(hidePx).filter(function (px: number | undefined, i: number, a: Array<number | undefined>) {
+        return px != null && a.indexOf(px) === i;
+      }).length,
+    );
   React.useEffect(
     function () {
       if (!measure || !wrapRef.current || typeof ResizeObserver === 'undefined') return;
@@ -161,14 +170,14 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         ro.disconnect();
       };
     },
-    [measure],
+    [measure, levelShape],
   );
   const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
   useIsoLayoutEffect(
     function () {
-      if (measure && boxWidth[0] == null && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
+      if (measure && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
     },
-    [measure],
+    [measure, levelShape],
   );
   /* Distinct hideBelow widths, widest first; the first MAX_HIDE_LEVELS also work before hydration (in CSS). */
   const hideLevels: number[] = [];
@@ -493,6 +502,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   function focusCell(r: number, c: number) {
     r = Math.max(0, Math.min(r, nRows));
     c = Math.max(0, Math.min(c, nCols - 1));
+    /* Cards: the header row is for screen readers only, except the select-all box. Keep focus on the cards. */
+    if (stacked && r === 0 && nRows > 0 && !(selectable && c === 0)) r = 1;
     activeState[1]({ r: r, c: c });
     pending.current = { r: r, c: c };
     if (virtual && r > 0) {
@@ -1120,7 +1131,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   } else {
     const bodyRows: React.ReactElement[] = (body = []);
     if (virtual && start > 0)
-      bodyRows.push(<div key="__top" style={{ height: start * ROW_H + 'px' }} aria-hidden={true} />);
+      bodyRows.push(
+        <div key="__top" className="aura-table__spacer" style={{ height: start * ROW_H + 'px' }} aria-hidden={true} />,
+      );
     for (let ri = start; ri < end; ri++) {
       (function (r: Row, i: number) {
         const k = r[rowKey],
@@ -1150,7 +1163,14 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       })(pageRows[ri], ri);
     }
     if (virtual && end < pageRows.length)
-      bodyRows.push(<div key="__bot" style={{ height: (pageRows.length - end) * ROW_H + 'px' }} aria-hidden={true} />);
+      bodyRows.push(
+        <div
+          key="__bot"
+          className="aura-table__spacer"
+          style={{ height: (pageRows.length - end) * ROW_H + 'px' }}
+          aria-hidden={true}
+        />,
+      );
   }
 
   /* footer */

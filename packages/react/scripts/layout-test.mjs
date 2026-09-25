@@ -40,6 +40,15 @@ export function App(A, React) {
       { key: 'id', label: 'INVOICE', width: 140, mono: true }, { key: 'member', label: 'MEMBER', width: 260, hideBelow: 900 },
       { key: 'status', label: 'STATUS', width: 120, pill: true }, { key: 'amount', label: 'AMOUNT', align: 'end' }] }));
 }`;
+/* 5.0.1: a virtual (`height`) table with stackBelow. Before hydration the server only knows the first window of rows;
+ * in cards the scroll box grows, so its spacers must not show as a blank gap. Hydrated, every row is a card. */
+const APP3 = `
+export function App(A, React) {
+  const h = React.createElement;
+  const rows = Array.from({ length: 60 }, (_, i) => ({ id: 'V-' + (3001 + i), member: ['Acme AB', 'Nordic Rail'][i % 2], amount: String(100 + i) }));
+  return h(A.DataTable, { label: 'Virtual', stackBelow: 700, height: 360, rows, columns: [
+    { key: 'id', label: 'ID', width: 120, mono: true }, { key: 'member', label: 'MEMBER', width: 200 }, { key: 'amount', label: 'AMOUNT', align: 'end' }] });
+}`;
 const A = await import('../dist/esm/index.js');
 const css = ['../tokens/aura.css', 'styles/components.css']
   .map((f) => fs.readFileSync(path.join(root, f), 'utf8'))
@@ -79,6 +88,7 @@ setTimeout(() => { window.__hydrated = true; }, 600);
 }
 await makePage('shell', APP);
 await makePage('table', APP2);
+await makePage('virtual', APP3);
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const fails = [];
@@ -184,6 +194,21 @@ async function checkTable(width, js) {
   if (js) await afterHydration(p, problems, where);
   await ctx.close();
 }
+async function checkVirtual(js) {
+  const { ctx, p, problems } = await open('virtual', 390, 800, js);
+  const where = `virtual table at 390px, JavaScript ${js ? 'on' : 'off'}`;
+  const m = await p.evaluate(() => ({
+    gap: [...document.querySelectorAll('.aura-table__scroll > div[aria-hidden]:not(.aura-table__row)')].reduce(
+      (s, e) => s + e.getBoundingClientRect().height,
+      0,
+    ),
+    rows: document.querySelectorAll('.aura-table__scroll > .aura-table__row:not(.aura-table__head)').length,
+  }));
+  if (m.gap > 0) fails.push(`${where}: ${m.gap}px of blank spacer in the card layout`);
+  if (js && m.rows !== 60) fails.push(`${where}: ${m.rows} cards, expected all 60`);
+  if (js) for (const x of problems) fails.push(`${where}: console: ${x}`);
+  await ctx.close();
+}
 /* One markup: each row is in the server's HTML once. */
 for (const id of ['INV-2001', 'INV-2006']) {
   const n = serverHtml.table.split(id).length - 1;
@@ -194,6 +219,7 @@ for (const js of [false, true]) {
   await check(390, 844, js);
   await check(1280, 800, js);
   for (const w of [390, 699, 700, 899, 900, 1100]) await checkTable(w, js);
+  await checkVirtual(js);
 }
 await browser.close();
 if (fails.length) {

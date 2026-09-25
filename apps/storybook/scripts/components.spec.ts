@@ -1636,3 +1636,54 @@ test.describe('4.20: Chamber-OS group E', () => {
     });
   }
 });
+
+test.describe('5.0.1: review fixes', () => {
+  const rows = (page: Page) => page.locator('.aura-table__scroll > .aura-table__row:not(.aura-table__head)');
+  test('a column with a new hideBelow width: the table keeps measuring (cards get every row; desktop stays a grid)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-4-20--changing-columns', 'light');
+    await page.getByRole('button', { name: 'Add REGION' }).click();
+    await page.setViewportSize({ width: 390, height: 900 });
+    await expect(rows(page)).toHaveCount(60);
+    await expect(page.locator('.aura-table--stacked')).toHaveCount(1);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.getByRole('button', { name: 'Remove REGION' }).click();
+    await expect(page.locator('.aura-table--stacked')).toHaveCount(0);
+    await expect.poll(() => rows(page).count()).toBeLessThan(60);
+  });
+
+  test('cards: ArrowUp stays on the cards (no hidden header cell), headers still name every field', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-4-20--one-markup-table', 'light');
+    const member = page.getByRole('gridcell', { name: 'Acme AB' }).first();
+    await member.click();
+    await expect(member).toBeFocused();
+    await page.keyboard.press('ArrowUp');
+    const role = await page.evaluate(() => document.activeElement && document.activeElement.getAttribute('role'));
+    expect(role).toBe('gridcell');
+    await page.keyboard.press('Control+Home');
+    expect(await page.evaluate(() => document.activeElement!.getAttribute('role'))).not.toBe('columnheader');
+    /* MEMBER (hideBelow 900) keeps its column header for screen readers in the card layout. */
+    await expect(page.getByRole('columnheader', { name: /MEMBER/ })).toBeAttached();
+    expect(await page.locator('.aura-table__th[data-hide]').evaluate((e) => getComputedStyle(e).display)).not.toBe(
+      'none',
+    );
+  });
+
+  test('toasts clear the BottomNav on a tablet too', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 900 });
+    await story(page, 'aura-new-in-4-19--bottom-tabs', 'light');
+    const [toastBottom, navTop] = await page.evaluate(() => {
+      const t = document.createElement('div');
+      t.className = 'aura-toaster';
+      t.style.height = '40px';
+      document.body.appendChild(t);
+      return [t.getBoundingClientRect().bottom, document.querySelector('.aura-bottomnav')!.getBoundingClientRect().top];
+    });
+    expect(toastBottom).toBeLessThanOrEqual(navTop);
+  });
+});

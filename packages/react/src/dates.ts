@@ -191,11 +191,15 @@ export function parseDate(text: string | null | undefined): ISODate | null {
 export function todayIn(timeZone?: string | null): ISODate {
   const now = new Date();
   if (!timeZone) return toISO(now) as ISODate;
-  /* en-CA formats as YYYY-MM-DD. */
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(now);
+  /* en-CA formats as YYYY-MM-DD. An unknown zone throws in Intl: fall back to the runtime's own date (5.0.1). */
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now);
+  } catch (e) {
+    return toISO(now) as ISODate;
+  }
 }

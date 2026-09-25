@@ -62,7 +62,9 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
     tag = localeTag(locale, calendar);
   const weekStart = props.weekStartsOn == null ? (locale === 'sv' ? 1 : 0) : props.weekStartsOn;
   /* Today in the given time zone (prop, else the provider's, else the browser's), or as given (4.19). */
-  const todayISO = props.today || todayIn(props.timeZone || ctx.timeZone);
+  /* A malformed `today` is ignored rather than crashing the calendar (5.0.1). */
+  const todayISO =
+    (props.today && fromISO(props.today) ? props.today : null) || todayIn(props.timeZone || ctx.timeZone);
   const today = fromISO(todayISO) as Date;
   const min = fromISO(props.min === 'today' ? todayISO : props.min),
     max = fromISO(props.max === 'today' ? todayISO : props.max);

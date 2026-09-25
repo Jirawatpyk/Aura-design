@@ -1757,12 +1757,16 @@ window.Aura = (() => {
   function todayIn(timeZone) {
     const now = /* @__PURE__ */ new Date();
     if (!timeZone) return toISO(now);
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }).format(now);
+    try {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(now);
+    } catch (e) {
+      return toISO(now);
+    }
   }
 
   // src/DatePicker.tsx
@@ -1785,7 +1789,7 @@ window.Aura = (() => {
   var Calendar = React17.forwardRef(function Calendar2(props, ref) {
     const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), tag = localeTag(locale, calendar);
     const weekStart = props.weekStartsOn == null ? locale === "sv" ? 1 : 0 : props.weekStartsOn;
-    const todayISO = props.today || todayIn(props.timeZone || ctx.timeZone);
+    const todayISO = (props.today && fromISO(props.today) ? props.today : null) || todayIn(props.timeZone || ctx.timeZone);
     const today = fromISO(todayISO);
     const min = fromISO(props.min === "today" ? todayISO : props.min), max = fromISO(props.max === "today" ? todayISO : props.max);
     const start = fromISO(props.start), end = fromISO(props.end);
@@ -3106,7 +3110,7 @@ window.Aura = (() => {
         };
         let top, left;
         if (side === "top" || side === "bottom") {
-          top = side === "top" ? r.top - t.height - gap : r.bottom + gap;
+          top = clampY(side === "top" ? r.top - t.height - gap : r.bottom + gap);
           left = clampX(r.left + r.width / 2 - t.width / 2);
         } else {
           left = side === "left" ? r.left - t.width - gap : r.right + gap;
@@ -3333,6 +3337,12 @@ window.Aura = (() => {
     const measure = !!props.stackBelow || columns.some(function(c) {
       return c.hideBelow != null;
     });
+    const levelShape = (props.stackBelow ? "s" : "") + Math.min(
+      MAX_HIDE_LEVELS,
+      columns.map(hidePx).filter(function(px, i, a) {
+        return px != null && a.indexOf(px) === i;
+      }).length
+    );
     React28.useEffect(
       function() {
         if (!measure || !wrapRef.current || typeof ResizeObserver === "undefined") return;
@@ -3345,14 +3355,14 @@ window.Aura = (() => {
           ro.disconnect();
         };
       },
-      [measure]
+      [measure, levelShape]
     );
     const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
     useIsoLayoutEffect(
       function() {
-        if (measure && boxWidth[0] == null && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
+        if (measure && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
       },
-      [measure]
+      [measure, levelShape]
     );
     const hideLevels = [];
     columns.forEach(function(c) {
@@ -3613,6 +3623,7 @@ window.Aura = (() => {
     function focusCell(r, c) {
       r = Math.max(0, Math.min(r, nRows));
       c = Math.max(0, Math.min(c, nCols - 1));
+      if (stacked && r === 0 && nRows > 0 && !(selectable && c === 0)) r = 1;
       activeState[1]({ r, c });
       pending.current = { r, c };
       if (virtual && r > 0) {
@@ -4172,7 +4183,9 @@ window.Aura = (() => {
     } else {
       const bodyRows = body = [];
       if (virtual && start > 0)
-        bodyRows.push(/* @__PURE__ */ React28.createElement("div", { key: "__top", style: { height: start * ROW_H + "px" }, "aria-hidden": true }));
+        bodyRows.push(
+          /* @__PURE__ */ React28.createElement("div", { key: "__top", className: "aura-table__spacer", style: { height: start * ROW_H + "px" }, "aria-hidden": true })
+        );
       for (let ri = start; ri < end; ri++) {
         (function(r, i) {
           const k = r[rowKey], isSel = !!selSet[k];
@@ -4203,7 +4216,17 @@ window.Aura = (() => {
         })(pageRows[ri], ri);
       }
       if (virtual && end < pageRows.length)
-        bodyRows.push(/* @__PURE__ */ React28.createElement("div", { key: "__bot", style: { height: (pageRows.length - end) * ROW_H + "px" }, "aria-hidden": true }));
+        bodyRows.push(
+          /* @__PURE__ */ React28.createElement(
+            "div",
+            {
+              key: "__bot",
+              className: "aura-table__spacer",
+              style: { height: (pageRows.length - end) * ROW_H + "px" },
+              "aria-hidden": true
+            }
+          )
+        );
     }
     let foot = null;
     function pagerButton(dir) {
@@ -4438,7 +4461,7 @@ window.Aura = (() => {
           className: cx("aura-tabs aura-tabs--links", props.className)
         },
         /* @__PURE__ */ React30.createElement("div", { className: "aura-tabs__list" }, items2.map(function(t) {
-          const on = current2 && t.id === current2.id;
+          const on = t.id === st[0];
           const inner = [
             t.icon ? /* @__PURE__ */ React30.createElement(Icon, { key: "i", name: t.icon }) : null,
             t.label,
@@ -4451,7 +4474,8 @@ window.Aura = (() => {
               href: t.href,
               className: cx("aura-tab", on && "is-active"),
               "aria-current": on ? "page" : void 0,
-              onClick: function() {
+              onClick: function(e) {
+                if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 st[1](t.id);
               }
             },
