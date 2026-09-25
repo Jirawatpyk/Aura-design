@@ -17,14 +17,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     catch (e) { console.log(label, name, 'FAILED:', e.message); fail++; }
   }
   console.log(`${label}: ${Object.keys(fx).length} components server-rendered`);
-  /* 4.20: the root formatDate() warns once, in development, when called without a locale (its default changes in 5.0). */
+  /* 5.0 (Chamber-OS item 51): the root formatDate() is the /server one — English and Gregorian by default, no warning. */
+  const S = label === 'esm' ? await import('../dist/server/index.js') : require('../dist/server/index.cjs');
   const warns = [], origWarn = console.warn;
   console.warn = (m) => warns.push(String(m));
-  A.formatDate('2026-09-24', { locale: 'th' });
-  const noLocale = A.formatDate('2026-09-24');
-  A.formatDate('2026-09-24');
+  const root = A.formatDate('2026-09-24'), server = S.formatDate('2026-09-24');
   console.warn = origWarn;
-  if (warns.length !== 1 || !/5\.0/.test(warns[0])) { console.log(label, 'formatDate warning: expected one, got', warns); fail++; }
-  if (noLocale !== A.formatDate('2026-09-24', { locale: 'th' })) { console.log(label, 'formatDate default changed before 5.0:', noLocale); fail++; }
+  if (root !== server || root !== '24 Sept 2026') { console.log(label, 'formatDate: root', root, 'vs /server', server); fail++; }
+  if (A.formatDate('2026-09-24', { locale: 'th' }) !== '24 ก.ย. 2569') { console.log(label, 'formatDate th:', A.formatDate('2026-09-24', { locale: 'th' })); fail++; }
+  if (warns.length) { console.log(label, 'formatDate warned:', warns); fail++; }
 }
 process.exit(fail ? 1 : 0);

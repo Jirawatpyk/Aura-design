@@ -128,14 +128,16 @@ export function fmt(tag: string, opts: Intl.DateTimeFormatOptions, d: Date): str
   if (!fmtCache[k]) fmtCache[k] = new Intl.DateTimeFormat(tag, opts);
   return fmtCache[k].format(d);
 }
-/** Format an ISO date for display, e.g. "18 ก.ย. 2569" (th, Buddhist) or "18 Sept 2026" (en, Gregorian). */
+/** Format an ISO date for display: "18 Sept 2026" by default (English, Gregorian — 5.0); `{ locale: 'th' }` gives
+ * "18 ก.ย. 2569" (Buddhist era), `{ locale: 'sv' }` "18 sep. 2026". The same function from the package root and from
+ * `/server`. In components, `useFormatDate()` follows the AuraProvider's locale instead. */
 export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string {
   const o: FormatDateOptions = opts || {},
     d = fromISO(iso);
   if (!d) return '';
   const f = typeof o.format === 'object' ? o.format : PRESETS[o.format || 'short'];
-  /* A plain function has no provider to read: it keeps AURA's Thai default. Pass `locale` for English or Swedish. */
-  const loc = o.locale || 'th';
+  /* A plain function has no provider to read: English unless `locale` says otherwise (5.0; Thai before). */
+  const loc = o.locale || 'en';
   return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, '');
 }
 export let MONTHS: Record<string, number> | null = null;

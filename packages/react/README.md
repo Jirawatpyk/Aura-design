@@ -9,11 +9,11 @@ AURA Design System components as a real React package — ES modules, TypeScript
 One HTML file, no install — the packages are on npmjs, so jsDelivr serves them:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-tokens@4/aura.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/styles.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-tokens@5/aura.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@5/dist/styles.css" />
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@4/dist/aura.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jirawatpyk/aura-react@5/dist/aura.bundle.js"></script>
 
 <div id="root"></div>
 <script>
@@ -100,7 +100,7 @@ export function Providers({ children, locale }: { children: React.ReactNode; loc
 // app/layout.tsx (a Server Component): <body><Providers locale="th">{children}</Providers></body>
 ```
 
-`linkComponent` is used by Button `href`, Breadcrumb, Tabs and Menu items with `href`, BottomNav, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` from the package root has no provider to read and stays Thai unless you pass `locale` (until 5.0); the one in `@jirawatpyk/aura-react/server` defaults to English and Gregorian. Values are always Gregorian ISO dates.
+`linkComponent` is used by Button `href`, Breadcrumb, Tabs and Menu items with `href`, BottomNav, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` has no provider to read: since 5.0 it is English and Gregorian unless you pass `locale`, the same function from the package root and from `@jirawatpyk/aura-react/server`. Values are always Gregorian ISO dates.
 
 ## Compact density
 
@@ -186,6 +186,14 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## Upgrading to 5.0
+
+One breaking change: **`formatDate()` from the package root defaults to English and the Gregorian calendar** (`'2026-09-24'` → `24 Sept 2026`), like `@jirawatpyk/aura-react/server` and `useFormatDate()` without a provider — it is now the same function. Before 5.0 it defaulted to Thai with Buddhist-era years (`24 ก.ย. 2569`), and 4.20 warned in development for every call without a `locale`.
+
+- Thai output: pass the locale, `formatDate(iso, { locale: 'th' })`, or in components use `useFormatDate()`, which follows `<AuraProvider locale="th">`.
+- Find the calls to change: search for `formatDate(` without `locale` (`git grep -n "formatDate(" | grep -v locale`), or run 4.20 first and read the warning.
+- Components, pickers and `/server` are unchanged. The CDN path is `@5`.
+
 ## Static tables, separators, tooltips, phone tables before hydration (4.20)
 
 ```tsx
@@ -201,7 +209,6 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Table** is plain `<table>` markup with DataTable's look: mono header band, hairlines, wrapping text, `numeric` cells right-aligned in tabular figures, a `TFoot` for totals. No sorting, paging or virtual rows — use DataTable for data. If it has to scroll sideways on a phone, its box becomes a focusable region named by the caption.
 - **Tooltip** `side` also takes `left` and `right`; every side flips when clipped and stays inside the window.
 - **DataTable on phones before hydration**: `stackBelow` cards and `hideBelow` columns are decided in CSS from the first paint, at any width (up to three distinct `hideBelow` widths per table), and each row is in the HTML once — the cards are the grid's own rows, laid out by a container query. The table sits in a few wrapper `div`s for this; `className` and `ref` go on the outermost. The `.aura-table__card*` classes are gone.
-- **`formatDate()` from the package root** warns once in development when called without a `locale`: in 5.0 it becomes English and Gregorian like `/server`. Pass `{ locale: 'th' }` or use `useFormatDate()`.
 
 ## Phones and touch
 

@@ -4,10 +4,12 @@ import * as React from 'react';
 import {
   AppShell, SideNav, Container, Stack, Grid, Stat, Button, IconButton, DropdownMenu, Avatar, Breadcrumb,
   Combobox, DateRangePicker, DatePicker, TimePicker, FileUpload, Select, TextField, Textarea, RadioGroup, Switch,
-  DataTable, StatusPill, Drawer, Dialog, Alert, Toaster, toast, formatDate, useBreakpoint, ColorSchemeToggle,
+  DataTable, StatusPill, Drawer, Dialog, Alert, Toaster, toast, formatDate as formatDateAny, useBreakpoint, ColorSchemeToggle,
   NumberField, SegmentedControl,
 } from '@aura/react';
 import { STAFF, CATEGORIES, PRIORITIES, STATUSES, TONE, statusLabel, priorityLabel, makeOrders } from './data.js';
+/* A Thai page outside any component that could read the provider: say the locale (5.0 defaults to English). */
+const formatDate = (iso, opts) => formatDateAny(iso, { locale: 'th', ...opts });
 
 const baht = (n) => '฿' + n.toLocaleString('th-TH');
 const ownerName = (v) => (STAFF.find((m) => m.value === v) || {}).label || '—';

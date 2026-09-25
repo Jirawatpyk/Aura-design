@@ -32,31 +32,7 @@ import {
 } from './dates.js';
 import type { FormatDateOptions } from './dates.js';
 export type { FormatDateOptions } from './dates.js';
-export { parseDate } from './dates.js';
-
-/* The root formatDate() defaults to Thai with Buddhist-era years; /server and useFormatDate() default to English. 5.0
- * makes this one English too (Chamber-OS item 51). Until then, a call without `locale` warns once in development. */
-declare const process: { env: { NODE_ENV?: string } };
-let warnedNoLocale = false;
-function isDev(): boolean {
-  try {
-    return process.env.NODE_ENV !== 'production';
-  } catch (e) {
-    return false;
-  }
-}
-/** Format an ISO date for display. Without a `locale` it is Thai with Buddhist-era years **until 5.0, which makes it
- * English and Gregorian** like `@jirawatpyk/aura-react/server` and `useFormatDate()`. Pass `{ locale }` (or use
- * `useFormatDate()` in components) so the switch changes nothing for you; a call without one warns once in development. */
-export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string {
-  if (!warnedNoLocale && !(opts && opts.locale) && isDev()) {
-    warnedNoLocale = true;
-    console.warn(
-      "[AURA] formatDate() was called without a locale. It shows Thai with Buddhist-era years today; in 5.0 it will show English with Gregorian years, like '@jirawatpyk/aura-react/server'. Pass { locale: 'th' } to keep Thai, or use useFormatDate() in components.",
-    );
-  }
-  return formatDateBase(iso, opts);
-}
+export { formatDate, parseDate } from './dates.js';
 
 /** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
  * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */

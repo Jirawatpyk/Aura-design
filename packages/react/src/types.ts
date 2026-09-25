@@ -821,7 +821,7 @@ export interface SegmentedControlProps {
 /** ISO date string, `YYYY-MM-DD` (Gregorian — the era is display only). */
 export type ISODate = string;
 export interface DateDisplayOptions {
-  /** Components: the AuraProvider's locale, else `en`. `formatDate()` (no provider to read): `th` unless given. */
+  /** Components: the AuraProvider's locale, else `en`. `formatDate()` (no provider to read): `en` unless given (5.0; `th` before). */
   locale?: 'th' | 'en' | 'sv' | undefined;
   /** `buddhist` (พ.ศ.; default for th) or `gregory` (ค.ศ.; default for en and sv). */
   calendar?: 'buddhist' | 'gregory' | undefined;

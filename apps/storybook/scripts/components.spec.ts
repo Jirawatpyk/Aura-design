@@ -7,6 +7,22 @@ const story = async (page: Page, id: string, theme = 'light') => {
   await page.waitForSelector('#storybook-root > *');
 };
 
+/* axe on part of the page. Storybook's a11y addon can be mid-run in the preview; wait and retry instead of failing. */
+const axeScan = async (page: Page, sel: string): Promise<string[]> => {
+  for (let i = 0; ; i++) {
+    try {
+      const { violations } = await new AxeBuilder({ page })
+        .include(sel)
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+      return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
+    } catch (e) {
+      if (i >= 4 || !/already running/.test(String(e))) throw e;
+      await page.waitForTimeout(300);
+    }
+  }
+};
+
 test.describe('Button', () => {
   test('loading keeps label, sets aria-busy and swallows clicks', async ({ page }) => {
     await story(page, 'aura-actions-button--loading');
@@ -1291,13 +1307,7 @@ test.describe('4.18: the open Command palette passes axe', () => {
 });
 
 test.describe('4.19: Chamber-OS group D', () => {
-  const axeOn = async (page: Page, sel: string) => {
-    const { violations } = await new AxeBuilder({ page })
-      .include(sel)
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
-    return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
-  };
+  const axeOn = (page: Page, sel: string) => axeScan(page, sel);
 
   test('41: totals row lines up with the body; sticky footer stays in view; stacked gets a Totals card', async ({
     page,
@@ -1528,13 +1538,7 @@ test.describe('4.19: Chamber-OS group D', () => {
 });
 
 test.describe('4.20: Chamber-OS group E', () => {
-  const axeOn = async (page: Page, sel: string) => {
-    const { violations } = await new AxeBuilder({ page })
-      .include(sel)
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
-    return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
-  };
+  const axeOn = (page: Page, sel: string) => axeScan(page, sel);
   const inViewport = (page: Page, sel: string) =>
     page.locator(sel).evaluate((e) => {
       const r = e.getBoundingClientRect();

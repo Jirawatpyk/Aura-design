@@ -36,8 +36,8 @@ npm i @aura/react@npm:@jirawatpyk/aura-react @aura/tokens@npm:@jirawatpyk/aura-t
 ```jsonc
 // package.json — install under the short names so imports stay `@aura/...`
 "dependencies": {
-  "@aura/tokens": "npm:@jirawatpyk/aura-tokens@^4.5.0",
-  "@aura/react": "npm:@jirawatpyk/aura-react@^4.5.0"
+  "@aura/tokens": "npm:@jirawatpyk/aura-tokens@^5.0.0",
+  "@aura/react": "npm:@jirawatpyk/aura-react@^5.0.0"
 }
 ```
 

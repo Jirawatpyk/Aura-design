@@ -124,7 +124,7 @@ window.Aura = (() => {
     contrast: () => contrast,
     createTheme: () => createTheme,
     formatBytes: () => formatBytes,
-    formatDate: () => formatDate2,
+    formatDate: () => formatDate,
     iconNames: () => iconNames,
     parseDate: () => parseDate,
     parseTime: () => parseTime,
@@ -1714,7 +1714,7 @@ window.Aura = (() => {
     const o = opts || {}, d = fromISO(iso);
     if (!d) return "";
     const f = typeof o.format === "object" ? o.format : PRESETS[o.format || "short"];
-    const loc = o.locale || "th";
+    const loc = o.locale || "en";
     return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, "");
   }
   var MONTHS = null;
@@ -1766,23 +1766,6 @@ window.Aura = (() => {
   }
 
   // src/DatePicker.tsx
-  var warnedNoLocale = false;
-  function isDev() {
-    try {
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-  function formatDate2(iso, opts) {
-    if (!warnedNoLocale && !(opts && opts.locale) && isDev()) {
-      warnedNoLocale = true;
-      console.warn(
-        "[AURA] formatDate() was called without a locale. It shows Thai with Buddhist-era years today; in 5.0 it will show English with Gregorian years, like '@jirawatpyk/aura-react/server'. Pass { locale: 'th' } to keep Thai, or use useFormatDate() in components."
-      );
-    }
-    return formatDate(iso, opts);
-  }
   function useFormatDate() {
     const ctx = useAuraLocale(), locale = ctx.locale || "en", calendar = ctx.calendar;
     return React17.useCallback(

@@ -745,7 +745,7 @@ export interface SegmentedControlProps {
 /** ISO date string, `YYYY-MM-DD` (Gregorian — the era is display only). */
 export type ISODate = string;
 export interface DateDisplayOptions {
-	/** Components: the AuraProvider's locale, else `en`. `formatDate()` (no provider to read): `th` unless given. */
+	/** Components: the AuraProvider's locale, else `en`. `formatDate()` (no provider to read): `en` unless given (5.0; `th` before). */
 	locale?: "th" | "en" | "sv" | undefined;
 	/** `buddhist` (พ.ศ.; default for th) or `gregory` (ค.ศ.; default for en and sv). */
 	calendar?: "buddhist" | "gregory" | undefined;
@@ -1227,14 +1227,14 @@ export declare const Combobox: ComboboxComponent;
 export type FormatDateOptions = DateDisplayOptions & {
 	format?: "short" | "long" | "numeric" | Intl.DateTimeFormatOptions | undefined;
 };
+/** Format an ISO date for display: "18 Sept 2026" by default (English, Gregorian — 5.0); `{ locale: 'th' }` gives
+ * "18 ก.ย. 2569" (Buddhist era), `{ locale: 'sv' }` "18 sep. 2026". The same function from the package root and from
+ * `/server`. In components, `useFormatDate()` follows the AuraProvider's locale instead. */
+export declare function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string;
 /** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
 export declare function parseDate(text: string | null | undefined): ISODate | null;
 /** Today as an ISO date in an IANA time zone (e.g. `Asia/Bangkok`), or in the runtime's own zone without one. (4.19) */
 export declare function todayIn(timeZone?: string | null): ISODate;
-/** Format an ISO date for display. Without a `locale` it is Thai with Buddhist-era years **until 5.0, which makes it
- * English and Gregorian** like `@jirawatpyk/aura-react/server` and `useFormatDate()`. Pass `{ locale }` (or use
- * `useFormatDate()` in components) so the switch changes nothing for you; a call without one warns once in development. */
-export declare function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string;
 /** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
  * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
 export declare function useFormatDate(): (iso: ISODate | null | undefined, opts?: FormatDateOptions) => string;
