@@ -13,9 +13,25 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
     props.onChange as ((value: string | undefined) => void) | undefined,
   );
   const name = props.name || id;
+  /* 5.1.1: the ref is still the fieldset, but its focus() moves to the checked radio (else the first enabled one),
+   * so react-hook-form's setFocus and focus-on-error land on the group. */
+  const setRef = React.useCallback(
+    function (el: HTMLFieldSetElement | null) {
+      if (el)
+        el.focus = function (opts?: FocusOptions) {
+          const r =
+            el.querySelector<HTMLInputElement>('input[type="radio"]:checked') ||
+            el.querySelector<HTMLInputElement>('input[type="radio"]:not(:disabled)');
+          if (r) r.focus(opts);
+        };
+      if (typeof ref === 'function') ref(el);
+      else if (ref) (ref as React.MutableRefObject<HTMLFieldSetElement | null>).current = el;
+    },
+    [ref],
+  );
   return (
     <fieldset
-      ref={ref}
+      ref={setRef}
       className={cx('aura-field aura-radio-group', props.error && 'is-invalid', props.className)}
       aria-describedby={describedBy(id, props)}
       aria-invalid={props.error ? true : undefined}
@@ -42,6 +58,7 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
                 name={name}
                 value={v.value}
                 disabled={v.disabled}
+                required={props.required || undefined}
                 checked={st[0] === v.value}
                 onChange={function () {
                   st[1](v.value);

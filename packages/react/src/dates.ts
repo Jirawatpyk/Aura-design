@@ -60,6 +60,8 @@ export type DateText = {
   clearDates: string;
   chooseStart: string;
   chooseEnd: string;
+  /** Typed date outside min/max or disabled (5.1.1). */
+  dateUnavailable: string;
 };
 export const DATE_TEXT: Record<string, DateText> = {
   th: {
@@ -78,6 +80,7 @@ export const DATE_TEXT: Record<string, DateText> = {
     clearDates: 'ล้างช่วงวันที่',
     chooseStart: 'เลือกวันเริ่มต้น',
     chooseEnd: 'เลือกวันสิ้นสุด',
+    dateUnavailable: 'เลือกวันที่นี้ไม่ได้ ลองเปิดปฏิทินดูวันที่เลือกได้',
   },
   en: {
     prevYears: 'Previous years',
@@ -95,6 +98,7 @@ export const DATE_TEXT: Record<string, DateText> = {
     clearDates: 'Clear dates',
     chooseStart: 'Choose the start date',
     chooseEnd: 'Choose the end date',
+    dateUnavailable: "That date can't be chosen. Open the calendar to see the dates you can pick.",
   },
   sv: {
     prevYears: 'Tidigare år',
@@ -112,6 +116,7 @@ export const DATE_TEXT: Record<string, DateText> = {
     clearDates: 'Rensa datumen',
     chooseStart: 'Välj startdatum',
     chooseEnd: 'Välj slutdatum',
+    dateUnavailable: 'Det datumet går inte att välja. Öppna kalendern för att se vilka datum som går.',
   },
 };
 export function dateText(locale: string | null | undefined): DateText {

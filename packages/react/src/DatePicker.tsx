@@ -55,6 +55,25 @@ export function useFormatDate(): (iso: ISODate | null | undefined, opts?: Format
     [locale, calendar],
   );
 }
+/* Whether a date may be chosen: inside min/max ('today' resolved in the time zone) and not disabled. Shared by
+ * the calendar grid and typed input (5.1.1: typed dates skipped these checks). */
+function allowedDate(
+  iso: ISODate,
+  o: {
+    min?: string | null | undefined;
+    max?: string | null | undefined;
+    today?: string | null | undefined;
+    timeZone?: string | null | undefined;
+    isDateDisabled?: ((iso: ISODate) => boolean) | undefined;
+  },
+): boolean {
+  const t = o.min === 'today' || o.max === 'today' ? (o.today && fromISO(o.today) ? o.today : todayIn(o.timeZone)) : '';
+  const lo = o.min === 'today' ? t : o.min,
+    hi = o.max === 'today' ? t : o.max;
+  if (lo && fromISO(lo) && iso < lo) return false;
+  if (hi && fromISO(hi) && iso > hi) return false;
+  return !(o.isDateDisabled && o.isDateDisabled(iso));
+}
 export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function Calendar(props, ref) {
   const ctx = useAuraLocale(),
     locale = props.locale || ctx.locale || 'en',
@@ -63,14 +82,40 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
   const weekStart = props.weekStartsOn == null ? (locale === 'sv' ? 1 : 0) : props.weekStartsOn;
   /* Today in the given time zone (prop, else the provider's, else the browser's), or as given (4.19). */
   /* A malformed `today` is ignored rather than crashing the calendar (5.0.1). */
-  const todayISO =
-    (props.today && fromISO(props.today) ? props.today : null) || todayIn(props.timeZone || ctx.timeZone);
+  const given = props.today && fromISO(props.today) ? props.today : null,
+    zone = props.timeZone || ctx.timeZone;
+  const todayISO = given || todayIn(zone);
   const today = fromISO(todayISO) as Date;
+  /* 5.1.1: a server-rendered calendar without `today` may have been drawn on the server's date (another time zone).
+   * Hydration keeps those attributes, so the grid is rebuilt once after hydration from the browser's date. Calendars
+   * created in the browser (every DatePicker popover) are mounted from the start and never rebuilt. */
+  const mounted = useMounted(),
+    gridKey = given || mounted ? 'client' : 'server';
   const min = fromISO(props.min === 'today' ? todayISO : props.min),
     max = fromISO(props.max === 'today' ? todayISO : props.max);
   const start = fromISO(props.start),
     end = fromISO(props.end);
-  const focusState = React.useState(fromISO(props.focus) || start || today);
+  function disabledAt(d: Date): boolean {
+    return !!(
+      (min && d < min) ||
+      (max && d > max) ||
+      (props.isDateDisabled && props.isDateDisabled(toISO(d) as ISODate))
+    );
+  }
+  function select(iso: ISODate | null) {
+    if (props.onSelect) props.onSelect(iso);
+  }
+  /* Open on the value, else today — moved to the nearest day that can be chosen, so the grid always has a
+   * reachable tab stop (5.1.1). */
+  const focusState = React.useState(function () {
+    const d0 = fromISO(props.focus) || start || today;
+    if (!disabledAt(d0)) return d0;
+    for (let i = 1; i <= 366; i++) {
+      if (!disabledAt(addDays(d0, i))) return addDays(d0, i);
+      if (!disabledAt(addDays(d0, -i))) return addDays(d0, -i);
+    }
+    return d0;
+  });
   const focusDate = focusState[0],
     setFocus = focusState[1];
   const viewState = React.useState<'days' | 'years'>('days'),
@@ -84,11 +129,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
   const dt = dateText(locale);
 
   function disabled(d: Date): boolean {
-    return !!(
-      (min && d < min) ||
-      (max && d > max) ||
-      (props.isDateDisabled && props.isDateDisabled(toISO(d) as ISODate))
-    );
+    return disabledAt(d);
   }
   React.useEffect(function () {
     if (!moved.current) return;
@@ -96,11 +137,14 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
     const el = gridRef.current && gridRef.current.querySelector<HTMLElement>('[data-date="' + toISO(focusDate) + '"]');
     if (el) el.focus();
   });
-  React.useEffect(function () {
-    if (props.autoFocus === false) return;
-    const el = gridRef.current && gridRef.current.querySelector<HTMLElement>('[tabindex="0"]');
-    if (el) el.focus();
-  }, []);
+  React.useEffect(
+    function () {
+      if (props.autoFocus === false) return;
+      const el = gridRef.current && gridRef.current.querySelector<HTMLElement>('[tabindex="0"]');
+      if (el) el.focus();
+    },
+    [gridKey],
+  );
   function move(d: Date) {
     moved.current = true;
     setFocus(d);
@@ -128,7 +172,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
     else if (k === 'PageDown') n = addMonths(d, e.shiftKey ? 12 : 1);
     else if (k === 'Enter' || k === ' ') {
       e.preventDefault();
-      if (!disabled(d)) props.onSelect!(toISO(d));
+      if (!disabled(d)) select(toISO(d));
       return;
     }
     if (n) {
@@ -155,7 +199,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
     const years: number[] = [];
     for (let y = base; y < base + 12; y++) years.push(y);
     return (
-      <div className="aura-cal" ref={gridMerged}>
+      <div className="aura-cal" ref={gridMerged} key={gridKey}>
         <div className="aura-cal__head">
           <IconButton
             icon="chevron-left"
@@ -208,7 +252,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
   }
 
   return (
-    <div className="aura-cal" ref={gridMerged}>
+    <div className="aura-cal" ref={gridMerged} key={gridKey}>
       <div className="aura-cal__head">
         <IconButton
           icon="chevron-left"
@@ -278,7 +322,9 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
                         type="button"
                         data-date={iso}
                         tabIndex={same(d, focusDate) ? 0 : -1}
-                        disabled={dis}
+                        /* aria-disabled, not disabled: a day that can't be chosen stays focusable, so arrow keys
+                         * move through it and the grid never loses its tab stop (5.1.1, APG date grid). */
+                        aria-disabled={dis || undefined}
                         aria-label={fmt(tag, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, d)}
                         /* Server and browser ICU can punctuate long dates differently ("Sunday, 30 August" vs "Sunday 30 August"). */
                         suppressHydrationWarning
@@ -292,7 +338,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
                         )}
                         onClick={function () {
                           setFocus(d);
-                          props.onSelect!(iso);
+                          if (!dis) select(iso);
                         }}
                         onKeyDown={function (e: React.KeyboardEvent) {
                           onKey(e, d);
@@ -319,7 +365,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
             disabled={disabled(today)}
             onClick={function () {
               move(today);
-              props.onSelect!(toISO(today));
+              select(toISO(today));
             }}
           >
             {dt.today}
@@ -507,13 +553,32 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
     inputRef = React.useRef<HTMLInputElement | null>(null),
     inputMerged = useMergedRef(ref, inputRef);
   const pop = useCalendarPopover(boxRef);
+  const limits = {
+    min: props.min,
+    max: props.max,
+    today: props.today,
+    timeZone: props.timeZone || ctx.timeZone,
+    isDateDisabled: props.isDateDisabled,
+  };
+  /* A typed date outside min/max (or disabled) isn't taken; the field says why, like TimePicker (5.1.1). */
+  const bad = React.useState<string | null>(null);
+  /* A new value from anywhere (a pick, the app, a form reset) retires the message about the refused text. */
+  React.useEffect(
+    function () {
+      bad[1](null);
+    },
+    [st[0]],
+  );
   function commit(text: string) {
+    bad[1](null);
     if (!text.trim()) {
       st[1](null);
       return;
     }
     const iso = parseDate(text);
-    if (iso) st[1](iso);
+    if (!iso) return;
+    if (allowedDate(iso, limits)) st[1](iso);
+    else bad[1](dt.dateUnavailable);
   }
   function close() {
     pop.setOpen(false);
@@ -549,6 +614,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
               start={st[0]}
               focus={st[0]}
               onSelect={function (iso: ISODate | null) {
+                bad[1](null);
                 st[1](iso);
                 close();
               }}
@@ -564,7 +630,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
         dialogId={dialogId}
         label={props.label}
         hint={props.hint}
-        error={props.error}
+        error={bad[0] || props.error}
         required={props.required}
         optional={props.optional}
         disabled={props.disabled}
@@ -578,6 +644,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
         hasValue={st[0] != null}
         clearable={props.clearable}
         onClear={function () {
+          bad[1](null);
           st[1](null);
           inputRef.current && inputRef.current.focus();
         }}
@@ -615,13 +682,28 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
       inputRef = React.useRef<HTMLInputElement | null>(null),
       inputMerged = useMergedRef(ref, inputRef);
     const pop = useCalendarPopover(boxRef);
+    const limits = {
+      min: props.min,
+      max: props.max,
+      today: props.today,
+      timeZone: props.timeZone || ctx.timeZone,
+      isDateDisabled: props.isDateDisabled,
+    };
     const o = { locale: locale, calendar: calendar };
     function show(r: DateRange): string {
       if (!r.start) return '';
       if (!r.end) return formatDateBase(r.start, o) + ' –';
       return formatDateBase(r.start, o) + ' – ' + formatDateBase(r.end, o);
     }
+    const bad = React.useState<string | null>(null);
+    React.useEffect(
+      function () {
+        bad[1](null);
+      },
+      [v.start, v.end],
+    );
     function commit(text: string) {
+      bad[1](null);
       const parts = String(text).split(/\s[–-]\s|\s*–\s*/);
       if (!text.trim()) {
         st[1]({ start: null, end: null });
@@ -629,7 +711,8 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
       }
       const a = parseDate(parts[0]),
         b = parseDate(parts[1] || '');
-      if (a && b) st[1](a <= b ? { start: a, end: b } : { start: b, end: a });
+      if (a && b && !(allowedDate(a, limits) && allowedDate(b, limits))) bad[1](dt.dateUnavailable);
+      else if (a && b) st[1](a <= b ? { start: a, end: b } : { start: b, end: a });
     }
     function close() {
       pop.setOpen(false);
@@ -643,6 +726,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
       }
       const a = draft[0],
         b = iso as ISODate;
+      bad[1](null);
       st[1](a <= b ? { start: a, end: b } : { start: b, end: a });
       close();
     }
@@ -693,7 +777,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
           dialogId={dialogId}
           label={props.label}
           hint={props.hint}
-          error={props.error}
+          error={bad[0] || props.error}
           required={props.required}
           optional={props.optional}
           disabled={props.disabled}
@@ -707,6 +791,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
           hasValue={v.start != null}
           clearable={props.clearable}
           onClear={function () {
+            bad[1](null);
             st[1]({ start: null, end: null });
             inputRef.current && inputRef.current.focus();
           }}

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx, useMaybeControlled } from './internal.js';
+import { cx, plainClick, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { BottomNavItem, BottomNavProps } from './types.js';
 
@@ -34,6 +34,7 @@ export const BottomNav = React.forwardRef<HTMLElement, BottomNavProps>(function 
               'aria-current': on ? ('page' as const) : undefined,
               onClick: function (e: React.MouseEvent) {
                 if (!it.href) e.preventDefault();
+                else if (!plainClick(e)) return; /* opening in a new tab doesn't change this page (5.1.1) */
                 st[1](it.id);
               },
             };

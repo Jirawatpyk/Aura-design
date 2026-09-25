@@ -62,4 +62,8 @@ fs.writeFileSync(
 const dtsBin = createRequire(import.meta.url).resolve('dts-bundle-generator/dist/bin/dts-bundle-generator.js');
 execFileSync(process.execPath, [dtsBin, '--silent', '--no-banner', '--project', path.join(root, 'tsconfig.build.json'), '-o', path.join(dist, 'index.d.ts'), path.join(src, 'index.ts')], { stdio: 'inherit' });
 execFileSync(process.execPath, [dtsBin, '--silent', '--no-banner', '--project', path.join(root, 'tsconfig.build.json'), '-o', path.join(dist, 'server/index.d.ts'), path.join(src, 'server.ts')], { stdio: 'inherit' });
+/* 5.1.1: CommonJS consumers get .d.cts copies. Under "type": "module" TypeScript reads index.d.ts as ESM, so
+ * `require()` from a .cts file (module node16) failed with TS1471 although the runtime require worked. */
+fs.copyFileSync(path.join(dist, 'index.d.ts'), path.join(dist, 'index.d.cts'));
+fs.copyFileSync(path.join(dist, 'server/index.d.ts'), path.join(dist, 'server/index.d.cts'));
 console.log(`@aura/react built: ${entries.length} ESM modules, CJS, IIFE (${(code.length / 1024).toFixed(0)} KB, ${names.length} components).`);

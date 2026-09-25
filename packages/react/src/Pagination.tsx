@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
-import { cx, useMaybeControlled } from './internal.js';
+import { cx, plainClick, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { PaginationProps } from './types.js';
 
@@ -51,7 +51,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
       <Link
         href={link(p)}
         onClick={function (e: React.MouseEvent) {
-          if (props.onChange) {
+          if (props.onChange && plainClick(e)) {
             e.preventDefault();
             go(p);
           }
@@ -94,7 +94,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
         aria-label={label}
         title={label}
         onClick={function (e: React.MouseEvent) {
-          if (props.onChange) {
+          if (props.onChange && plainClick(e)) {
             e.preventDefault();
             go(p);
           }

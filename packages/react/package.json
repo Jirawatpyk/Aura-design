@@ -9,14 +9,24 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
     },
     "./server": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js",
-      "require": "./dist/server/index.cjs"
+      "import": {
+        "types": "./dist/server/index.d.ts",
+        "default": "./dist/server/index.js"
+      },
+      "require": {
+        "types": "./dist/server/index.d.cts",
+        "default": "./dist/server/index.cjs"
+      }
     },
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css",
@@ -30,7 +40,8 @@
     "LICENSE"
   ],
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./dist/aura.bundle.js"
   ],
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/sync-bundle.mjs",

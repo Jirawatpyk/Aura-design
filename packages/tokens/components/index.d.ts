@@ -1454,7 +1454,7 @@ export interface ThemeStyleProps extends ThemeOptions {
 	/** Scope the theme to this selector instead of the whole page (multi-tenant). */
 	selector?: string | undefined;
 }
-export declare function ThemeStyle(props: ThemeStyleProps): React$1.ReactElement;
+export declare function ThemeStyle(props: ThemeStyleProps): React$1.ReactElement | null;
 /** `system` follows the operating system and changes with it. */
 export type ColorScheme = "light" | "dark" | "system";
 export interface ColorSchemeOptions {

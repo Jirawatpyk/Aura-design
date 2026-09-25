@@ -47,6 +47,9 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     popMerged = useMergedRef(ref, pop);
   const pos = React.useState<{ top: number; left: number; side: string } | null>(null),
     mounted = useMounted();
+  /* Set by a pointerdown anywhere in the panel's React tree — including lists that Combobox, DropdownMenu and
+   * DatePicker portal into <body> — so those don't count as outside clicks (5.1.1). */
+  const inTree = React.useRef(false);
   function trigger(): HTMLElement | null {
     return (
       wrap.current &&
@@ -86,13 +89,20 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
           pop.current.querySelector<HTMLElement>(FOCUSABLE);
         (f || pop.current).focus();
       }
+      let timer: ReturnType<typeof setTimeout> | undefined;
       function outside(e: Event) {
         if (pop.current && pop.current.contains(e.target as Node)) return;
         if (wrap.current && wrap.current.contains(e.target as Node)) return;
-        close(false);
+        /* React's own handlers for this event run after this document listener; decide once they have. */
+        inTree.current = false;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          if (!inTree.current) close(false);
+        }, 0);
       }
       document.addEventListener('pointerdown', outside, true);
       return function () {
+        clearTimeout(timer);
         document.removeEventListener('pointerdown', outside, true);
       };
     },
@@ -111,6 +121,9 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
             aria-label={props.title ? undefined : props.label}
             aria-labelledby={props.title ? id + '-title' : undefined}
             tabIndex={-1}
+            onPointerDownCapture={function () {
+              inTree.current = true;
+            }}
             className={cx('aura-popover', pos[0] && 'is-' + pos[0].side, props.className)}
             style={Object.assign(
               { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 },

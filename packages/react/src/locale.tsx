@@ -25,19 +25,23 @@ export function AuraProvider(props: AuraProviderProps): React.ReactElement {
   const outer = React.useContext(LocaleContext);
   const density = props.density || (outer && outer.density) || null;
   const timeZone = props.timeZone || (outer && outer.timeZone) || null;
+  /* 5.1.1: a nested provider (say, one that only sets density) inherits what it doesn't set — locale, calendar,
+   * strings and the router link — instead of resetting them to English. A new locale brings its own strings and
+   * calendar. */
   const value = React.useMemo(
     function (): AuraLocaleValue {
-      const base = (props.locale && STRINGS[props.locale]) || STRINGS.en;
+      const own = !!props.locale || !outer || !outer.locale;
+      const base = own ? (props.locale && STRINGS[props.locale]) || STRINGS.en : (outer as AuraLocaleValue).strings;
       return {
-        locale: props.locale || 'en',
-        calendar: props.calendar || null,
+        locale: props.locale || (outer && outer.locale) || 'en',
+        calendar: props.calendar || (own ? null : (outer as AuraLocaleValue).calendar),
         strings: props.strings ? (Object.assign({}, base, props.strings) as AuraStrings) : base,
-        linkComponent: props.linkComponent || null,
+        linkComponent: props.linkComponent || (outer && outer.linkComponent) || null,
         density: density,
         timeZone: timeZone,
       };
     },
-    [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone],
+    [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone, outer],
   );
   /* density adds one wrapper (display: contents, so layout is unchanged) carrying data-density for the CSS;
    * Dialog, Drawer, Popover and Command read the context and set it on their portal layer too. */

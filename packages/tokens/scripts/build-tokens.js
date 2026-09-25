@@ -35,7 +35,11 @@ L.push('  color-scheme: light;', '}', '');
  * and for data-theme="system", which follows the operating system with no script (no flash on first paint). */
 const darkLines = (pad) => {
   const out = [];
-  for (const tier of ['semantic', 'component']) for (const [k, v] of Object.entries(T[tier].dark)) if (v !== T[tier].light[k]) out.push(`${pad}--aura-${k}: ${cssRef(v)};`);
+  /* A token that points at another semantic/component token is re-declared even when its text is the same: var() resolves
+   * where it is declared, so a nested dark section (or data-theme="system" below <html>) otherwise kept the light result
+   * (5.1.1: --aura-progress-track stayed light). */
+  const ref = (v) => /^\{(semantic|component)\./.test(String(v));
+  for (const tier of ['semantic', 'component']) for (const [k, v] of Object.entries(T[tier].dark)) if (v !== T[tier].light[k] || ref(v)) out.push(`${pad}--aura-${k}: ${cssRef(v)};`);
   for (const [k, v] of Object.entries(T.shadow.dark)) if (v !== T.shadow.light[k]) out.push(`${pad}--aura-${k}: ${v};`);
   out.push(`${pad}color-scheme: dark;`);
   return out;

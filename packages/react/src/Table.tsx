@@ -33,8 +33,10 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
       className="aura-tbl-wrap"
       data-density={density}
       tabIndex={scrolls ? 0 : undefined}
-      role={scrolls ? 'region' : undefined}
+      /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
+      role={scrolls && (caption != null || rest['aria-label']) ? 'region' : undefined}
       aria-labelledby={scrolls && caption != null ? capId : undefined}
+      aria-label={scrolls && caption == null ? rest['aria-label'] : undefined}
     >
       <table ref={ref} className={cx('aura-tbl', className)} {...rest}>
         {caption != null ? (

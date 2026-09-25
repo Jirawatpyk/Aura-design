@@ -13,21 +13,33 @@ export function omit<T extends object, K extends string>(src: T, keys: readonly 
   return out as Omit<T, K>;
 }
 
-/* Controlled-or-not state: use the prop when given, else keep it here. */
+/* Controlled-or-not state: use the prop when given, else keep it here.
+ * 5.1.1: the setter is stable and always calls the latest onChange, so effects that keep it (outside-click handlers)
+ * don't call a stale callback. */
 export function useMaybeControlled<T>(
   value: T | undefined,
   initial: T,
   onChange?: ((next: T) => void) | null,
 ): [T, (next: T) => void] {
   const s = React.useState<T>(initial);
+  /* Controlled → undefined (a form reset() with no defaultValues): start again from the default, uncontrolled, so the
+   * box shows the default and later clicks still work (a Popover that was forced open, then released). Only the
+   * defined-ness is tracked, so a new array each render can't loop. */
+  const wasSet = React.useState(value !== undefined);
+  if (value !== undefined && !wasSet[0]) wasSet[1](true);
+  else if (value === undefined && wasSet[0]) {
+    wasSet[1](false);
+    s[1](initial);
+  }
   const controlled = value !== undefined;
-  return [
-    controlled ? (value as T) : s[0],
-    function (next: T) {
-      if (!controlled) s[1](next);
-      if (onChange) onChange(next);
-    },
-  ];
+  const latest = React.useRef({ controlled: controlled, onChange: onChange, set: s[1] });
+  latest.current = { controlled: controlled, onChange: onChange, set: s[1] };
+  const set = React.useCallback(function (next: T) {
+    const l = latest.current;
+    if (!l.controlled) l.set(next);
+    if (l.onChange) l.onChange(next);
+  }, []);
+  return [controlled ? (value as T) : s[0], set];
 }
 
 export const collator =
@@ -115,6 +127,10 @@ export function tone(t: Tone | undefined): string {
  * script) the lookup throws and nothing is printed. */
 declare const process: { env: { NODE_ENV?: string } };
 const warned: Record<string, boolean> = {};
+/* A plain left click: not Ctrl/⌘/Shift/Alt (open in a new tab or window) and not already handled (5.1.1). */
+export function plainClick(e: React.MouseEvent): boolean {
+  return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+}
 export function devWarnOnce(key: string, message: string): void {
   if (warned[key]) return;
   let dev = false;

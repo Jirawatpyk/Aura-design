@@ -141,6 +141,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
       e.preventDefault();
       move('last');
     } else if (e.key === 'Enter') {
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return; /* IME confirm, not a pick (5.1.1) */
       e.preventDefault();
       if (active >= 0) run(flat[active]);
     }

@@ -11,6 +11,34 @@ export interface ModalOptions {
   autoFocus?: boolean | undefined;
   onEscape?: (() => void) | undefined;
 }
+/* 5.1.1: one page-scroll lock shared by every open modal. Each modal used to save and restore body overflow on its
+ * own, so two dialogs closing out of order left the page locked. */
+let locks = 0,
+  savedOverflow = '';
+function lockScroll(): () => void {
+  const body = document.body;
+  if (locks === 0) savedOverflow = body.style.overflow;
+  locks++;
+  body.style.overflow = 'hidden';
+  let done = false;
+  return function () {
+    if (done) return;
+    done = true;
+    locks--;
+    if (locks === 0) body.style.overflow = savedOverflow;
+  };
+}
+/* The controls Tab can actually reach: not tabindex=-1 (roving tabs, closed groups' children) and not hidden. */
+function tabbable(el: HTMLElement): HTMLElement[] {
+  const all = Array.prototype.filter.call(el.querySelectorAll<HTMLElement>(FOCUSABLE), function (c: HTMLElement) {
+    return c.tabIndex >= 0;
+  }) as HTMLElement[];
+  const shown = all.filter(function (c: HTMLElement) {
+    return c.getClientRects().length > 0;
+  });
+  /* No layout at all (jsdom in unit tests): don't treat every control as hidden. */
+  return shown.length ? shown : all;
+}
 export function useModal(
   open: boolean | undefined,
   ref: React.RefObject<HTMLElement | null>,
@@ -23,9 +51,7 @@ export function useModal(
     function () {
       if (!open || !mounted) return;
       prev.current = document.activeElement as HTMLElement | null;
-      const body = document.body,
-        overflow = body.style.overflow;
-      body.style.overflow = 'hidden';
+      const unlock = lockScroll();
       const el = ref.current;
       /* The first control in the Tab order inside a part. FOCUSABLE is a selector list, so every part is scoped
        * (5.1: before, `button` alone matched the header's close button). Skip tabindex=-1 (roving tabs, segments)
@@ -47,7 +73,7 @@ export function useModal(
         (el.querySelector<HTMLElement>('[data-autofocus]') || firstIn(o.bodySelector) || firstIn(o.footSelector) || el);
       if (target && o.autoFocus !== false) target.focus();
       return function () {
-        body.style.overflow = overflow;
+        unlock();
         if (prev.current && prev.current.focus) prev.current.focus();
       };
     },
@@ -59,18 +85,25 @@ export function useModal(
       if (o.onEscape) o.onEscape();
       return;
     }
-    if (e.key !== 'Tab' || !ref.current) return;
-    const list: HTMLElement[] = Array.prototype.slice.call(ref.current.querySelectorAll(FOCUSABLE));
+    if (e.key !== 'Tab' || !ref.current || e.defaultPrevented) return;
+    /* A panel portaled out of the dialog (Popover, a date picker's calendar) keeps its own Tab order; its key presses
+     * still bubble here through React. */
+    if (!ref.current.contains(e.target as Node)) return;
+    /* 5.1.1: wrap between the first and last *reachable* controls; the raw list ended on a tabindex=-1 or hidden
+     * control, so Tab from the real last one left the dialog. */
+    const list = tabbable(ref.current);
     if (!list.length) {
       e.preventDefault();
       return;
     }
     const first = list[0],
-      last = list[list.length - 1];
-    if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+      last = list[list.length - 1],
+      active = document.activeElement as HTMLElement | null,
+      stray = active === ref.current;
+    if (e.shiftKey && (active === first || stray)) {
       e.preventDefault();
       last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
+    } else if (!e.shiftKey && (active === last || stray)) {
       e.preventDefault();
       first.focus();
     }

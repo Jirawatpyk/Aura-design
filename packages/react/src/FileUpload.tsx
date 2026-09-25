@@ -63,6 +63,24 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
       });
     };
   }, []);
+  /* 5.1.1: with a `name`, the real input carries the accepted files, so a native form post or a server action
+   * receives them (the input was emptied after each pick, so the form sent an empty file and skipped `required`). */
+  React.useEffect(
+    function () {
+      const el = inputRef.current;
+      if (!el || !props.name || typeof DataTransfer === 'undefined') return;
+      try {
+        const dt = new DataTransfer();
+        items.forEach(function (i: UploadItem) {
+          if (i.file && !i.error) dt.items.add(i.file);
+        });
+        el.files = dt.files;
+      } catch (e) {
+        /* Older browsers can't set files; the app's onChange still has them. */
+      }
+    },
+    [items, props.name],
+  );
   function thumb(it: UploadItem): string | null {
     if (!it.file || !/^image\//.test(it.type || '') || typeof URL === 'undefined' || !URL.createObjectURL) return null;
     if (!urls.current[it.id]) urls.current[it.id] = URL.createObjectURL(it.file);

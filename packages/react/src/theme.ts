@@ -316,6 +316,10 @@ export function createTheme(opts: ThemeOptions): Theme {
   if (s) check('light', 'ink', 'accent-lime (signal)', 4.5, INK, s[200]);
 
   function css(selector?: string): string {
+    /* 5.1.1: the selector and name go into a <style> element, often rendered on the server from tenant data, so
+     * nothing may close the comment, the rule or the element. */
+    if (selector !== undefined && /[<{};@\r\n]|\/\*|\*\//.test(selector))
+      throw new Error('createTheme: "' + selector + '" is not a plain CSS selector');
     const light = selector ? selector : ':root, [data-theme="light"]';
     const dark = selector
       ? selector + '.dark, .dark ' + selector + ', ' + selector + '[data-theme="dark"], [data-theme="dark"] ' + selector
@@ -338,7 +342,7 @@ export function createTheme(opts: ThemeOptions): Theme {
     }
     return (
       '/* AURA theme' +
-      (o.name ? ' "' + o.name + '"' : '') +
+      (o.name ? ' "' + String(o.name).replace(/[*/<>\\]/g, '') + '"' : '') +
       ': brand ' +
       o.brand +
       (o.signal ? ', signal ' + o.signal : '') +

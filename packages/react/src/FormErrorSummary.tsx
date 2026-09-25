@@ -6,19 +6,38 @@ import type { FormErrorItem, FormErrorSummaryProps } from './types.js';
 
 function items(errors: FormErrorSummaryProps['errors']): FormErrorItem[] {
   if (Array.isArray(errors)) return errors;
+  /* 5.1.1: react-hook-form nests errors for `address.street` and field arrays (`items.0.name`); walk them and use the
+   * dotted name, which is what register() put on the input. */
   const out: FormErrorItem[] = [];
-  for (const k in errors || {}) {
-    const e = errors[k];
-    if (e && e.message) out.push({ field: k, message: e.message });
+  function walk(e: unknown, path: string, depth: number) {
+    if (!e || typeof e !== 'object' || depth > 8) return;
+    const o = e as Record<string, unknown>;
+    if (o.message) out.push({ field: path, message: o.message as React.ReactNode });
+    for (const k in o) {
+      if (k === 'ref' || k === 'type' || k === 'types' || k === 'message') continue;
+      walk(o[k], path ? path + '.' + k : k, depth + 1);
+    }
   }
+  walk(errors, '', 0);
   return out;
 }
 function fieldElement(field: string): HTMLElement | null {
   if (typeof document === 'undefined') return null;
-  return (
-    document.getElementById(field) ||
-    (document.querySelector('[name="' + field.replace(/"/g, '\\"') + '"]') as HTMLElement | null)
-  );
+  const byId = document.getElementById(field);
+  if (byId) return byId;
+  const named = document.querySelector<HTMLElement>('[name="' + field.replace(/"/g, '\\"') + '"]');
+  /* A hidden input carries the value for a control that can't (Combobox, 5.1.1): focus the visible control beside it. */
+  if (named && named.getAttribute('type') === 'hidden') {
+    const box = named.closest('.aura-field') || named.parentElement;
+    return (
+      (box &&
+        box.querySelector<HTMLElement>(
+          'input:not([type="hidden"]), [role="combobox"], select, textarea, button:not([tabindex="-1"])',
+        )) ||
+      named
+    );
+  }
+  return named;
 }
 
 /* FormErrorSummary — after a failed submit, a danger panel at the top of the form lists every problem as a link

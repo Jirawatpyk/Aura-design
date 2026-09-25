@@ -13,7 +13,7 @@ function initials(name: string): string {
 
 export const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(function Avatar(props, ref) {
   const size = props.size || 'md',
-    errState = React.useState(false);
+    errState = React.useState<string | null>(null);
   let hash = 0;
   String(props.name || '')
     .split('')
@@ -28,12 +28,13 @@ export const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(function Av
       role="img"
       aria-label={props.name + (props.status ? ', ' + props.status : '')}
     >
-      {props.src && !errState[0] ? (
+      {props.src && errState[0] !== props.src ? (
         <img
+          key={props.src /* a new src gets a fresh try (5.1.1) */}
           src={props.src}
           alt=""
           onError={function () {
-            errState[1](true);
+            errState[1](props.src || null);
           }}
         />
       ) : (

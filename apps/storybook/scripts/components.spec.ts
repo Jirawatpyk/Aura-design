@@ -1753,3 +1753,193 @@ test.describe('5.1: DxT Monitor fixes', () => {
     await expect(page.locator('.aura-table__sel .aura-check__label')).toHaveCount(0);
   });
 });
+
+test.describe('5.1.1: full-review fixes', () => {
+  test('overlays: Tab wraps past unreachable controls; dialogs closed out of order unlock the page; Combobox in a Popover takes clicks', async ({
+    page,
+  }) => {
+    await story(page, 'aura-fixed-in-5-1-1--overlays');
+    await page.getByRole('button', { name: 'Trap' }).click();
+    await page.getByRole('button', { name: 'Last reachable' }).focus();
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => !!document.activeElement!.closest('.aura-dialog'))).toBe(true);
+    await expect(page.getByRole('textbox', { name: 'First' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.getByRole('button', { name: 'Last reachable' })).toBeFocused();
+    /* A Popover and a calendar portaled out of the dialog keep their own Tab order (review of 5.1.1). */
+    await page.getByRole('button', { name: 'Options' }).click();
+    await page.getByRole('button', { name: 'One' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Two' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Open calendar' }).click();
+    await page.locator('.aura-cal__popover [data-date="2026-09-25"]').focus();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.aura-cal__popover').getByRole('button', { name: 'Today' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape'); // not dismissible: stays
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await page.reload();
+    await page.waitForSelector('#storybook-root > *');
+    await page.getByRole('button', { name: 'Delete host' }).click();
+    await page.getByRole('button', { name: 'Delete…' }).click();
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+    await page.getByRole('button', { name: 'Confirm' }).click();
+    await expect(page.locator('.aura-dialog')).toHaveCount(0);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+    await page.getByRole('button', { name: 'Filter' }).click();
+    await page.getByRole('combobox', { name: 'Province' }).click();
+    await page.getByRole('option', { name: 'เชียงใหม่' }).click();
+    await expect(page.getByTestId('prov')).toHaveText('Province: 50');
+    await expect(page.getByRole('dialog', { name: 'Filter' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    /* open={forced || undefined}: forced, released, then the trigger still works. */
+    await page.getByText('Force pinned open').click();
+    await expect(page.getByRole('dialog', { name: 'Pinned' })).toBeVisible();
+    await page.getByText('Force pinned open').click();
+    await expect(page.getByRole('dialog', { name: 'Pinned' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Pinned' }).click();
+    await expect(page.getByRole('dialog', { name: 'Pinned' })).toBeVisible();
+  });
+
+  test('dates: typed dates obey min/max; a disabled day keeps the grid reachable; arrows cross weekends; bare Calendar', async ({
+    page,
+  }) => {
+    await story(page, 'aura-fixed-in-5-1-1--dates');
+    const field = page.getByRole('textbox', { name: 'Maintenance day' });
+    await field.fill('01/01/2020');
+    await field.press('Enter');
+    await expect(page.getByTestId('day')).toHaveText('Day: 2026-09-25');
+    await expect(page.getByText("That date can't be chosen.")).toBeVisible();
+    await expect(field).toHaveAttribute('aria-invalid', 'true');
+    await field.fill('20/09/2026');
+    await field.press('Enter');
+    await expect(page.getByTestId('day')).toHaveText('Day: 2026-09-20');
+    await expect(page.getByText("That date can't be chosen.")).toHaveCount(0);
+    /* Refused again, then picked from the calendar: the message goes. */
+    await field.fill('01/01/2020');
+    await field.press('Enter');
+    await expect(page.getByText("That date can't be chosen.")).toBeVisible();
+    await page.getByRole('button', { name: 'Open calendar' }).first().click();
+    await page.locator('.aura-cal__popover [data-date="2026-09-22"]').click();
+    await expect(page.getByTestId('day')).toHaveText('Day: 2026-09-22');
+    await expect(page.getByText("That date can't be chosen.")).toHaveCount(0);
+    await expect(field).not.toHaveAttribute('aria-invalid', 'true');
+    /* Opens on Saturday 26 (today, disabled): focus lands on a day in the grid. */
+    await page.getByRole('button', { name: 'Open calendar' }).nth(1).click();
+    const focused = () => page.evaluate(() => document.activeElement!.getAttribute('data-date'));
+    expect(await focused()).toMatch(/^2026-09-2[5-9]$|^2026-09-2[0-9]$/);
+    await page.getByRole('dialog', { name: 'Weekday visit' }).locator('[data-date="2026-09-25"]').focus();
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
+    expect(await focused()).toBe('2026-09-28');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Enter'); // Sunday: not chosen
+    await expect(page.getByTestId('weekday')).toHaveText('Visit: —');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('weekday')).toHaveText('Visit: 2026-09-28');
+    const errs: string[] = [];
+    page.on('pageerror', (e) => errs.push(String(e)));
+    await page.getByTestId('bare-cal').locator('[data-date="2026-09-24"]').click();
+    await page.getByTestId('bare-cal').getByRole('button', { name: 'Today' }).click();
+    expect(errs).toEqual([]);
+  });
+
+  test('forms: native submit gets the option value and the file; 1,5 is 1.5; reset to undefined; nested errors', async ({
+    page,
+  }) => {
+    await story(page, 'aura-fixed-in-5-1-1--native-form');
+    await page
+      .getByLabel('Document')
+      .setInputFiles({ name: 'rack.txt', mimeType: 'text/plain', buffer: Buffer.from('rack A') });
+    await page.getByRole('button', { name: 'Send' }).click();
+    await expect(page.getByTestId('sent')).toHaveText('province=50; doc=rack.txt:6');
+    const num = page.getByRole('spinbutton', { name: 'Load average' });
+    await num.fill('1,5');
+    await num.blur();
+    await expect(page.getByTestId('num')).toHaveText('Number: 1.5');
+    await num.fill('12,500');
+    await num.blur();
+    await expect(page.getByTestId('num')).toHaveText('Number: 12500');
+    const box = page.getByRole('checkbox', { name: 'Notify on-call' });
+    await box.check();
+    await expect(box).toBeChecked();
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(box).not.toBeChecked();
+    await expect(page.getByRole('link', { name: 'Enter a street' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Name item 1' })).toBeVisible();
+    await page.getByRole('link', { name: 'Choose a province' }).click();
+    await expect(page.getByRole('combobox', { name: 'Province' })).toBeFocused();
+    await page.getByRole('combobox', { name: 'Province' }).fill('zzz');
+    await expect(page.getByText('No matches')).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Province' })).toHaveAttribute('aria-expanded', 'false');
+    expect(await axeScan(page, '.aura-field:has([role="combobox"])')).toEqual([]);
+  });
+
+  test('a toast from a page mount effect shows with <Toaster/> after the page', async ({ page }) => {
+    await story(page, 'aura-fixed-in-5-1-1--toast-on-mount');
+    await expect(page.locator('.aura-toast', { hasText: 'Welcome back' })).toBeVisible();
+  });
+
+  test('a stackBelow table centred in a flex column keeps its width', async ({ page }) => {
+    await page.setViewportSize({ width: 1000, height: 700 });
+    await story(page, 'aura-fixed-in-5-1-1--centred-table');
+    const w = await page
+      .getByTestId('centred')
+      .locator('.aura-table-box')
+      .evaluate((e) => e.getBoundingClientRect().width);
+    expect(w).toBeGreaterThan(900);
+    await expect(page.getByText('srv-02.dxt.local')).toBeVisible();
+  });
+
+  test('server paging past the end keeps the pager; the total is unknown to screen readers', async ({ page }) => {
+    await story(page, 'aura-fixed-in-5-1-1--server-past-end');
+    await expect(page.getByRole('grid')).toHaveAttribute('aria-rowcount', '-1');
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect(page.getByRole('button', { name: 'Previous page' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Previous page' }).click();
+    await expect(page.getByText('host-10')).toBeVisible();
+  });
+
+  test('tabs start on the first enabled tab; a nested provider keeps Thai', async ({ page }) => {
+    await story(page, 'aura-fixed-in-5-1-1--tabs-and-locale');
+    await expect(page.getByRole('tab', { name: 'Logs' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tab', { name: 'Logs' })).toHaveAttribute('tabindex', '0');
+    await expect(page.getByText('Log panel')).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'วันที่' })).toHaveValue('18 ก.ย. 2569');
+  });
+
+  test('the pointer can move onto a tooltip; Space opens a menu link and focus returns to the trigger', async ({
+    page,
+  }) => {
+    await story(page, 'aura-fixed-in-5-1-1--hover-and-menu');
+    await page.getByRole('button', { name: 'Restart' }).hover();
+    const tip = page.getByRole('tooltip');
+    await expect(tip).toBeVisible();
+    await tip.hover();
+    await page.waitForTimeout(300);
+    await expect(tip).toBeVisible();
+    await page.mouse.move(5, 5);
+    await expect(tip).toHaveCount(0);
+    /* Only the Tooltip component's tips take the pointer; SideNav rail labels and cell tips stay click-through. */
+    expect(
+      await page.evaluate(() => {
+        const d = document.createElement('div');
+        d.className = 'aura-tooltip aura-tooltip--right';
+        document.body.appendChild(d);
+        const v = getComputedStyle(d).pointerEvents;
+        d.remove();
+        return v;
+      }),
+    ).toBe('none');
+    await page.getByRole('button', { name: 'Host actions' }).focus();
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByRole('menuitem', { name: 'Remove host' })).toBeFocused();
+    await page.keyboard.press('Home');
+    await page.keyboard.press(' ');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Host actions' })).toBeFocused();
+    expect(await page.evaluate(() => location.hash)).toBe('#dashboard');
+  });
+});

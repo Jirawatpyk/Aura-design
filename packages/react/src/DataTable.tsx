@@ -67,7 +67,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     byKey[c.key] = c;
   });
   const rows: Row[] = props.rows || [];
-  const rowKey = props.rowKey || columns[0].key;
+  const rowKey =
+    props.rowKey || (columns[0] ? columns[0].key : 'id'); /* columns={[]} rendered nothing but crashed (5.1.1) */
   const manual = !!props.manual;
   const Link = useLinkComponent(props.linkComponent);
   /* busy: a load is under way. manual + rows already shown → keep them (refreshing); otherwise skeleton rows (loading). */
@@ -349,7 +350,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     return s as React.CSSProperties;
   }
 
-  /* sort (memoised: thousands of rows) */
+  /* sort (memoised: thousands of rows). 5.1.1: also re-sorts when the sort column's sortValue / pill / tones change. */
+  const sortCol = sort && sort.key ? byKey[sort.key] : undefined;
   const view = React.useMemo(
     function () {
       if (manual || !sort || !sort.key || !byKey[sort.key]) return rows;
@@ -375,7 +377,16 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           return p[0];
         });
     },
-    [rows, manual, sort && sort.key, sort && sort.dir],
+    [
+      rows,
+      manual,
+      sort && sort.key,
+      sort && sort.dir,
+      !!sortCol,
+      sortCol && sortCol.sortValue,
+      sortCol && sortCol.pill,
+      sortCol && sortCol.tones,
+    ],
   );
   function nextSort(key: string): DataTableSort | null {
     if (!sort || sort.key !== key) return { key: key, dir: 'asc' };
@@ -391,7 +402,11 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       ? props.totalRows
       : (Math.max(1, pageState[0] || 1) - 1) * pageSize + rows.length + (pageSize && rows.length >= pageSize ? 1 : 0)
     : view.length;
-  const pageCount = pageSize ? Math.max(1, Math.ceil(total / pageSize)) : 1;
+  /* Without totalRows the requested page is never clamped: an empty page past the end stays that page, with the
+   * pager to go back (5.1.1). */
+  const pageCount = pageSize
+    ? Math.max(1, Math.ceil(total / pageSize), manual && props.totalRows == null ? pageState[0] || 1 : 1)
+    : 1;
   const page = Math.min(Math.max(1, pageState[0] || 1), pageCount);
   const first = pageSize ? (page - 1) * pageSize : 0;
   const pageRows = pageSize && !manual ? view.slice(first, first + pageSize) : view;
@@ -400,7 +415,18 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   /* Pager links (getPageHref) with no onPageChange: the URL is the page state, so keyboard paging follows the link. */
   const linkPaging = !!props.getPageHref && !props.onPageChange && !oneCallback;
   const prevLink = React.useRef<HTMLElement | null>(null),
-    nextLink = React.useRef<HTMLElement | null>(null);
+    nextLink = React.useRef<HTMLElement | null>(null),
+    jumpLink = React.useRef<HTMLElement | null>(null);
+  /* A page that isn't next to this one (sorting from page 3 back to 1): render its link, then follow it (5.1.1). */
+  const jumpState = React.useState<number | null>(null);
+  React.useEffect(
+    function () {
+      if (jumpState[0] == null) return;
+      if (jumpLink.current) jumpLink.current.click();
+      jumpState[1](null);
+    },
+    [jumpState[0]],
+  );
   function emit(s: DataTableSort | null, p: number) {
     if (props.onStateChange) props.onStateChange({ sort: s, page: p });
   }
@@ -411,6 +437,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     if (linkPaging) {
       const a = next === page - 1 ? prevLink.current : next === page + 1 ? nextLink.current : null;
       if (a) a.click();
+      else jumpState[1](next);
       return false;
     }
     if (focus) pending.current = focus;
@@ -458,7 +485,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   const height = props.height || 0;
   /* Cards have their own heights, so a stacked table renders every row of the page. */
   const virtual = !!height && !loading && pageRows.length > 0 && !stacked;
-  const bodyH = Math.max(ROW_H, height - ROW_H);
+  /* A sticky totals row covers the bottom of the scroll area: keep focused rows above it (5.1.1). */
+  const stickyTotal = !!(props.footer && props.stickyFooter && rows.length && !loading);
+  const bodyH = Math.max(ROW_H, height - ROW_H - (stickyTotal ? ROW_H : 0));
   let start = 0,
     end = pageRows.length;
   if (virtual) {
@@ -493,6 +522,12 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       });
       c = at >= 0 ? at + (selectable ? 1 : 0) : Math.min(p.c || 0, nCols - 1);
     }
+    /* 5.1.1: only if focus is still in the table (or nowhere): the person may have moved on while a page loaded. */
+    const ae = document.activeElement;
+    if (ae && ae !== document.body && !gridRef.current.contains(ae)) {
+      pending.current = null;
+      return;
+    }
     const el = gridRef.current.querySelector<HTMLElement>('[data-rc="' + p.r + ':' + c + '"]');
     if (el) {
       pending.current = null;
@@ -526,10 +561,10 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   });
   const selSet: Record<string, boolean> = {};
   selected.forEach(function (k: RowKey) {
-    selSet[k] = true;
+    selSet[String(k)] = true;
   });
   const nSel = pageKeys.filter(function (k: RowKey) {
-    return selSet[k];
+    return selSet[String(k)];
   }).length;
   const all = nSel > 0 && nSel === pageKeys.length;
   function toggle(k: RowKey, on: boolean) {
@@ -537,7 +572,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       on
         ? selected.concat([k])
         : selected.filter(function (x: RowKey) {
-            return x !== k;
+            return String(x) !== String(k); /* '1' from a URL and 1 from the data are the same row (5.1.1) */
           }),
     );
   }
@@ -545,11 +580,13 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     setSelected(
       all
         ? selected.filter(function (k: RowKey) {
-            return pageKeys.indexOf(k) < 0;
+            return !pageKeys.some(function (p: RowKey) {
+              return String(p) === String(k);
+            });
           })
         : selected.concat(
             pageKeys.filter(function (k: RowKey) {
-              return !selSet[k];
+              return !selSet[String(k)];
             }),
           ),
     );
@@ -1211,7 +1248,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       />
     );
   }
-  if (pageSize && (rows.length || busy)) {
+  /* 5.1.1: an empty later page (a server page past the end) keeps the pager, so there is a way back. */
+  if (pageSize && (rows.length || busy || page > 1)) {
     const from = rows.length ? first + 1 : 0,
       to = manual ? first + rows.length : Math.min(first + pageSize, view.length);
     foot = (
@@ -1278,6 +1316,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   const scrollStyle: React.CSSProperties = {
     scrollPaddingLeft: 'calc(var(--aura-space-6)' + selW + ' + ' + acc + 'px)',
     scrollPaddingTop: ROW_H + 'px',
+    scrollPaddingBottom: stickyTotal ? ROW_H + 'px' : undefined,
   };
   if (height) (scrollStyle as Record<string, string>)['--aura-table-h'] = height + 'px';
 
@@ -1313,7 +1352,11 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         role="grid"
         aria-label={props.label}
         aria-busy={busy || undefined}
-        aria-rowcount={loading ? -1 : shownTotal + 1 + (totalRow ? 1 : 0)}
+        aria-rowcount={
+          loading || (manual && props.totalRows == null && pageSize && rows.length >= pageSize)
+            ? -1 /* total unknown (5.1.1) */
+            : shownTotal + 1 + (totalRow ? 1 : 0)
+        }
         aria-colcount={nCols}
         aria-multiselectable={selectable || undefined}
         onKeyDown={onGridKey}
@@ -1364,6 +1407,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         />
       ) : null}
       {tipEl}
+      {jumpState[0] != null && props.getPageHref ? (
+        <Link ref={jumpLink} href={props.getPageHref(jumpState[0])} hidden={true} tabIndex={-1} aria-hidden={true} />
+      ) : null}
     </div>
   );
   if (!levels.length) return gridEl;

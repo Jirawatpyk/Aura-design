@@ -26,7 +26,9 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
         disabled={props.disabled}
         aria-labelledby={props.label ? id + '-label' : undefined}
         aria-label={props.label ? undefined : props['aria-label']}
-        aria-describedby={props.description ? id + '-desc' : undefined}
+        aria-describedby={
+          props.description ? id + '-desc' : undefined /* rendered below with or without a label (5.1.1) */
+        }
         className={cx('aura-switch', on && 'is-on')}
         onClick={function () {
           st[1](!on);
@@ -44,6 +46,10 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
               {props.description}
             </span>
           ) : null}
+        </span>
+      ) : props.description ? (
+        <span className="aura-sr-only" id={id + '-desc'}>
+          {props.description}
         </span>
       ) : null}
     </div>

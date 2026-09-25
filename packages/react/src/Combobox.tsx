@@ -135,7 +135,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
       function () {
         if (open) place();
       },
-      [open, shown.length],
+      [open, shown.length, values.length],
     );
     React.useEffect(
       function () {
@@ -168,6 +168,8 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
       [activeIdx, open],
     );
 
+    /* While a search is loading the old matches are hidden, so nothing in them can be chosen (5.1.1). */
+    const live = props.loading ? [] : shown;
     function openList() {
       if (!open && !props.disabled && !props.readOnly) {
         setOpen(true);
@@ -204,7 +206,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
       if (k === 'ArrowDown') {
         e.preventDefault();
         if (!open) openList();
-        else setActive(Math.min(activeIdx + 1, shown.length - 1));
+        else setActive(Math.max(0, Math.min(activeIdx + 1, live.length - 1)));
       } else if (k === 'ArrowUp') {
         e.preventDefault();
         if (!open) openList();
@@ -214,21 +216,23 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         setActive(0);
       } else if (k === 'End' && open) {
         e.preventDefault();
-        setActive(shown.length - 1);
+        setActive(Math.max(0, live.length - 1));
       } else if (k === 'Enter') {
-        if (open && shown[activeIdx]) {
+        /* Enter that confirms an IME composition isn't a pick. */
+        if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+        if (open && live[activeIdx]) {
           e.preventDefault();
-          choose(shown[activeIdx]);
+          choose(live[activeIdx]);
         }
       } else if (k === 'Escape') {
         if (open) {
           e.preventDefault();
           e.stopPropagation();
           close();
-        } else if (!multi && props.clearable !== false && value != null && query == null) {
+        } else if (!multi && !props.readOnly && props.clearable !== false && value != null && query == null) {
           setValue(null);
         }
-      } else if (k === 'Backspace' && multi && !text && values.length) {
+      } else if (k === 'Backspace' && multi && !props.readOnly && !text && values.length) {
         /* Backspace in an empty field removes the last pick. */
         setValues(values.slice(0, -1));
       } else if (k === 'Tab') {
@@ -244,24 +248,17 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
       open && mounted && posState[0]
         ? createPortal(
             <div ref={listRef} className="aura-combo__popover" style={posState[0]}>
-              <ul
-                id={listId}
-                role="listbox"
-                aria-label={props.label}
-                aria-multiselectable={multi || undefined}
-                className="aura-combo__list"
-              >
-                {props.loading ? (
-                  <li className="aura-combo__note" role="presentation">
-                    <Icon name="loader-circle" className="aura-spin" />
-                    {props.loadingText || t.searching}
-                  </li>
-                ) : !shown.length ? (
-                  <li className="aura-combo__note" role="presentation">
-                    {props.emptyText || t.noMatches}
-                  </li>
-                ) : (
-                  shown.map(function (o: ComboboxOption, i: number) {
+              {/* 5.1.1: the listbox exists only while it has options (an empty one fails axe, aria-required-children);
+               * "Searching…", "No matches" and "keep typing" sit beside it as a status line. */}
+              {live.length ? (
+                <ul
+                  id={listId}
+                  role="listbox"
+                  aria-label={props.label}
+                  aria-multiselectable={multi || undefined}
+                  className="aura-combo__list"
+                >
+                  {live.map(function (o: ComboboxOption, i: number) {
                     const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
                     const blocked = o.disabled || (multi && full && !isSel);
                     return (
@@ -296,14 +293,23 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                         {isSel ? <Icon name="check" className="aura-combo__check" /> : null}
                       </li>
                     );
-                  })
-                )}
-                {more && !props.loading ? (
-                  <li className="aura-combo__note" role="presentation">
-                    {t.keepTyping((props.options || []).length)}
-                  </li>
-                ) : null}
-              </ul>
+                  })}
+                </ul>
+              ) : null}
+              {props.loading || !live.length || more ? (
+                <div className="aura-combo__list" role="status">
+                  {props.loading ? (
+                    <div className="aura-combo__note">
+                      <Icon name="loader-circle" className="aura-spin" />
+                      {props.loadingText || t.searching}
+                    </div>
+                  ) : !live.length ? (
+                    <div className="aura-combo__note">{props.emptyText || t.noMatches}</div>
+                  ) : (
+                    <div className="aura-combo__note">{t.keepTyping((props.options || []).length)}</div>
+                  )}
+                </div>
+              ) : null}
             </div>,
             document.body,
           )
@@ -367,11 +373,16 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                 : ''}
             </span>
           ) : null}
-          {multi && props.name
-            ? values.map(function (v: string) {
+          {/* The form gets the option values, not the visible labels (5.1.1: single mode submitted the label). */}
+          {props.name ? (
+            multi ? (
+              values.map(function (v: string) {
                 return <input key={v} type="hidden" name={props.name} value={v} />;
               })
-            : null}
+            ) : (
+              <input type="hidden" name={props.name} value={value == null ? '' : value} />
+            )
+          ) : null}
           <input
             ref={inputMerged}
             id={id}
@@ -379,10 +390,10 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
             role="combobox"
             className="aura-input__control"
             autoComplete="off"
-            aria-expanded={open}
-            aria-controls={listId}
+            aria-expanded={open && live.length > 0}
+            aria-controls={open && live.length ? listId : undefined}
             aria-autocomplete="list"
-            aria-activedescendant={open && shown[activeIdx] ? optId(activeIdx) : undefined}
+            aria-activedescendant={open && live[activeIdx] ? optId(activeIdx) : undefined}
             aria-invalid={props.error ? true : undefined}
             aria-describedby={
               [props.error ? id + '-error' : props.hint ? id + '-hint' : '', multi && picked.length ? summaryId : '']
@@ -393,7 +404,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
             disabled={props.disabled}
             readOnly={props.readOnly}
             required={props.required && (!multi || !values.length)}
-            name={multi ? undefined : props.name}
+
             value={text}
             onChange={function (e: React.ChangeEvent<HTMLInputElement>) {
               setQuery(e.target.value);
@@ -411,7 +422,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
               }, 0);
             }}
           />
-          {props.clearable !== false && values.length && !props.disabled ? (
+          {props.clearable !== false && values.length && !props.disabled && !props.readOnly ? (
             <button
               type="button"
               className="aura-combo__clear"

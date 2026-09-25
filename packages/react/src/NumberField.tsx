@@ -12,7 +12,11 @@ function decimalsOf(n: number): number {
 }
 /** "12,500.5" / "฿ 1 200" / "-3" → a number; anything that isn't a number → NaN. */
 function parse(text: string): number {
-  const s = text.replace(/[,\s ]/g, '');
+  let t = text.trim();
+  /* 5.1.1: a lone comma that can't be a thousands separator ("1,5", "0,25" — a Swedish-typed decimal) is the
+   * decimal point, not dropped (which turned 1,5 into 15). "12,500" stays twelve thousand five hundred. */
+  if (t.indexOf('.') < 0 && /^-?\d+,\d+$/.test(t.replace(/[\s ]/g, '')) && !/,\d{3}$/.test(t)) t = t.replace(',', '.');
+  const s = t.replace(/[,\s ]/g, '');
   if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
   return Number(s);
 }

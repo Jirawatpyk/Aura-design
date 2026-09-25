@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cx, devWarnOnce, omit, useMergedRef, useMaybeControlled } from './internal.js';
+import { cx, devWarnOnce, omit, uid, useMergedRef, useMaybeControlled } from './internal.js';
 import { Icon } from './Icon.js';
 import type { CheckboxProps } from './types.js';
 
@@ -11,6 +11,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
     merged = useMergedRef(ref, own);
   const st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
   const on = !!st[0];
+  const auto = uid();
   React.useEffect(function () {
     if (own.current) own.current.indeterminate = !!props.indeterminate;
   });
@@ -36,7 +37,8 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
       'checkbox-label',
       'Checkbox `label` is only the accessible name: it is not shown. In 6.0 it will be shown beside the box, like Switch and TextField. For visible text now pass it as children; for a bare box (a table row) add `hideLabel`.',
     );
-  const descId = props.description && props.id ? props.id + '-desc' : undefined;
+  /* 5.1.1: linked even without an id (a bare hideLabel box lost its description). */
+  const descId = props.description ? (props.id || auto) + '-desc' : undefined;
   return (
     <label
       className={cx('aura-check', labelled && 'aura-check--labelled', props.disabled && 'is-disabled', props.className)}

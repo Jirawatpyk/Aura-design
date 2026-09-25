@@ -186,6 +186,9 @@ export function Toaster(props: ToasterProps): React.ReactElement | null {
   const s = React.useState<ToastEntry[]>(toastState.list);
   React.useEffect(function () {
     toastState.subs.push(s[1]);
+    /* 5.1.1: toasts sent between this component's first render and this effect (a page's own mount effect runs
+     * first when <Toaster/> comes after it) reached no subscriber; pick them up now. */
+    s[1](toastState.list.slice());
     return function () {
       toastState.subs = toastState.subs.filter(function (f) {
         return f !== s[1];

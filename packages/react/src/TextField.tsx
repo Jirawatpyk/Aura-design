@@ -29,8 +29,11 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
           className="aura-input__control"
           placeholder={props.placeholder}
           required={props.required}
-          aria-invalid={props.error ? true : undefined}
-          aria-describedby={describedBy(id, props)}
+          aria-invalid={props.error ? true : (rest as Record<string, any>)['aria-invalid']}
+          aria-describedby={
+            [describedBy(id, props), (rest as Record<string, any>)['aria-describedby']].filter(Boolean).join(' ') ||
+            undefined
+          }
         />
         {props.suffix ? <span className="aura-input__suffix">{props.suffix}</span> : null}
       </div>

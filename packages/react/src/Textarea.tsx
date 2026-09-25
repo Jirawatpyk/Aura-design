@@ -26,8 +26,11 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
         className="aura-input aura-textarea"
         placeholder={props.placeholder}
         required={props.required}
-        aria-invalid={props.error ? true : undefined}
-        aria-describedby={describedBy(id, props)}
+        aria-invalid={props.error ? true : (rest as Record<string, any>)['aria-invalid']}
+        aria-describedby={
+          [describedBy(id, props), (rest as Record<string, any>)['aria-describedby']].filter(Boolean).join(' ') ||
+          undefined
+        }
       />
     </Field>
   );

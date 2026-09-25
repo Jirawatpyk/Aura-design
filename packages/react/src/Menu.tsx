@@ -9,7 +9,7 @@ import type { MenuItem, MenuProps } from './types.js';
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(props, ref) {
   const own = React.useRef<HTMLDivElement | null>(null),
     merged = useMergedRef(ref, own);
-  const posState = React.useState<{ top: number; left: number } | null>(null);
+  const posState = React.useState<{ top: number; left: number; maxHeight?: number } | null>(null);
   const pos = posState[0],
     setPos = posState[1];
   const items = props.items || [];
@@ -21,12 +21,22 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
         m = own.current;
       if (!a || !m) return;
       const r = a.getBoundingClientRect(),
-        mh = m.offsetHeight,
-        mw = m.offsetWidth;
-      let top = r.bottom + 4;
-      if (top + mh > window.innerHeight - 8 && r.top - mh - 4 > 8) top = r.top - mh - 4;
+        mh = m.scrollHeight,
+        mw = m.offsetWidth,
+        below = window.innerHeight - r.bottom - 12,
+        above = r.top - 12;
+      /* Below if it fits, else above if it fits, else the roomier side, scrolling (5.1.1: it ran off-screen). */
+      let top = r.bottom + 4,
+        maxHeight: number | undefined;
+      if (mh > below) {
+        if (mh <= above) top = r.top - mh - 4;
+        else if (above > below) {
+          maxHeight = above;
+          top = r.top - above - 4;
+        } else maxHeight = below;
+      }
       const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
-      setPos({ top: top, left: left });
+      setPos({ top: top, left: left, maxHeight: maxHeight });
     },
     [props.anchor, mounted],
   );
@@ -74,6 +84,10 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     } else if (e.key === 'End') {
       e.preventDefault();
       list[list.length - 1].focus();
+    } else if (e.key === ' ' && document.activeElement && document.activeElement.tagName === 'A') {
+      /* Space on a link item activates it like the other items (it scrolled the page, closing the menu). */
+      e.preventDefault();
+      (document.activeElement as HTMLElement).click();
     } else if (e.key === 'Escape') {
       e.preventDefault();
       props.onClose(true);
@@ -130,9 +144,10 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
           tabIndex={-1}
           role="menuitem"
           className={cls}
-          onClick={function () {
+          onClick={function (e: React.MouseEvent) {
             if (it.onSelect) it.onSelect();
-            props.onClose(false);
+            /* From the keyboard (detail 0) focus goes back to the trigger, not to <body> (5.1.1). */
+            props.onClose(e.detail === 0);
           }}
         >
           {body}
@@ -163,7 +178,11 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       aria-label={props.label}
       className="aura-menu"
       onKeyDown={onKeyDown}
-      style={{ top: pos ? pos.top : -9999, left: pos ? pos.left : -9999 }}
+      style={{
+        top: pos ? pos.top : -9999,
+        left: pos ? pos.left : -9999,
+        maxHeight: pos && pos.maxHeight ? pos.maxHeight : undefined,
+      }}
     >
       {groupItems(items).map(function (block, bi) {
         const rendered = block.items.map(function (x) {

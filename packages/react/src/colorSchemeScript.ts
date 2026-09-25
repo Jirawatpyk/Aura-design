@@ -19,8 +19,9 @@ export function valid(v: unknown): v is ColorScheme {
 
 /** The script ColorSchemeScript renders, as a string — for frameworks that want it in a raw <head> template. */
 export function colorSchemeScript(options?: ColorSchemeOptions): string {
-  const key = JSON.stringify((options && options.storageKey) || DEFAULT_KEY);
-  const fallback = JSON.stringify((options && options.defaultScheme) || 'system');
+  /* `<` escaped so a key can't close the inline <script> (5.1.1). */
+  const key = JSON.stringify((options && options.storageKey) || DEFAULT_KEY).replace(/</g, '\\u003c');
+  const fallback = JSON.stringify((options && options.defaultScheme) || 'system').replace(/</g, '\\u003c');
   return (
     '(function(){try{var s=localStorage.getItem(' +
     key +
@@ -29,7 +30,12 @@ export function colorSchemeScript(options?: ColorSchemeOptions): string {
     fallback +
     ';' +
     'var d=document.documentElement;d.setAttribute("data-theme",s);' +
-    "var dark=s==='dark'||(s==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);" +
-    'd.classList.toggle("dark",dark);}catch(e){}})();'
+    "var m=window.matchMedia('(prefers-color-scheme: dark)');" +
+    "d.classList.toggle('dark',s==='dark'||(s==='system'&&m.matches));" +
+    /* 5.1.1: keep the Tailwind .dark class following the OS while the scheme is system, even on pages without
+     * ColorSchemeToggle or useColorScheme (the class used to stick at its first-paint value). */
+    "if(m.addEventListener)m.addEventListener('change',function(e){" +
+    "if(d.getAttribute('data-theme')==='system')d.classList.toggle('dark',e.matches)});" +
+    '}catch(e){}})();'
   );
 }

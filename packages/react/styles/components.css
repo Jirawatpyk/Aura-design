@@ -212,7 +212,7 @@ a.aura-btn { text-decoration: none; }
 
 /* Menu — popover list for column options and the column picker */
 .aura-menu {
-  position: fixed; z-index: var(--aura-z-menu); min-width: 200px; padding: var(--aura-space-1);
+  position: fixed; z-index: var(--aura-z-menu); min-width: 200px; padding: var(--aura-space-1); overflow-y: auto; overscroll-behavior: contain;
   background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-md);
   box-shadow: var(--aura-shadow-enterprise);
@@ -520,6 +520,8 @@ a.aura-icon-btn { text-decoration: none; }
   font-family: var(--font-sans); font-size: 12px; line-height: 1.5; pointer-events: none;
   animation: aura-fade-in var(--aura-duration-fast) var(--aura-ease);
 }
+/* The Tooltip component's own tips can be hovered (WCAG 1.4.13, 5.1.1); rail labels and cell tips stay click-through. */
+.aura-tooltip--hoverable { pointer-events: auto; }
 @keyframes aura-fade-in { from { opacity: 0; } }
 
 /* ---------- Dialog ---------- */
@@ -746,7 +748,7 @@ a.aura-tab { text-decoration: none; }
 .aura-cal__day.is-outside { color: var(--aura-fg-tertiary); }
 .aura-cal__day.is-today { box-shadow: inset 0 0 0 1px var(--aura-border-control); font-weight: 600; }
 .aura-cal__day.is-selected { background: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); box-shadow: none; }
-.aura-cal__day:disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; background: transparent; text-decoration: line-through; }
+.aura-cal__day:disabled, .aura-cal__day[aria-disabled='true'] { opacity: var(--aura-disabled-opacity); cursor: not-allowed; background: transparent; text-decoration: line-through; }
 .aura-cal__day:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; }
 .aura-cal__grid td.is-in-range { background: var(--aura-bg-selected); }
 .aura-cal__grid td.is-range-start { background: linear-gradient(to right, transparent 50%, var(--aura-bg-selected) 50%); }
@@ -1423,7 +1425,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 /* ---------- 4.20: DataTable width queries and cards, one markup ---------- */
 /* Each .aura-table-q is the table's width × 10000 / its threshold (DataTable.tsx, Q), so `(width < 9999.5px)` is true
  * exactly when the table is narrower than stackBelow or a hideBelow width — before hydration, at any width. */
-.aura-table-box { overflow-x: clip; }
+.aura-table-box { overflow-x: clip; width: 100%; } /* 5.1.1: container-type boxes have no content width; without this a table in a centred flex column collapsed to 0 */
 .aura-table-q { width: calc(100% * var(--aura-q-scale)); container-type: inline-size; }
 .aura-table-q--stack { container-name: aura-stack; }
 .aura-table-q--h1 { container-name: aura-h1; }
@@ -1484,4 +1486,18 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__total > .is-blank { display: none; }
   .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); background: var(--aura-bg-surface); }
   .aura-table__empty { background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); }
+}
+
+/* ---------- 5.1.1: Windows High Contrast / forced colours ---------- */
+/* Backgrounds are replaced in forced colours, so controls that show state only by fill get borders and system colours. */
+@media (forced-colors: active) {
+  .aura-switch { border: 1px solid CanvasText; }
+  .aura-switch__thumb { background: CanvasText; forced-color-adjust: none; }
+  .aura-switch.is-on { background: Highlight; forced-color-adjust: none; }
+  .aura-switch.is-on .aura-switch__thumb { background: HighlightText; }
+  .aura-progress__track, .aura-upload__bar { border: 1px solid CanvasText; }
+  .aura-progress__bar, .aura-upload__bar > span { background: Highlight; forced-color-adjust: none; }
+  .aura-segmented__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
+  .aura-tab { border-bottom-color: Canvas; }
+  .aura-tab.is-active { border-bottom-color: Highlight; }
 }

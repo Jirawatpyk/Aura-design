@@ -147,7 +147,9 @@ def d_past_date(pg):
     dlg = pg.get_by_role('dialog', name='สร้างคำสั่งซื้อ')
     f = dlg.get_by_role('textbox', name=re.compile('^วันที่ส่ง')); f.fill('2026-09-01'); f.press('Tab')
     pg.get_by_role('button', name='บันทึกคำสั่งซื้อ').click()
-    expect(dlg.get_by_text('เลือกวันนี้หรือหลังจากนี้')).to_be_visible()
+    # 5.1.1: DatePicker refuses a typed date before min itself and says so (the app's own check stays as a backstop)
+    expect(dlg.get_by_text('เลือกวันที่นี้ไม่ได้')).to_be_visible()
+    expect(f).to_have_value('')
     pg.keyboard.press('Escape')
 def d_cancel_undo(pg):
     row = pg.locator('.aura-table__row').filter(has_not=pg.locator('.aura-pill', has_text='ยกเลิก')).nth(1)

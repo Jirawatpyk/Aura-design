@@ -7,24 +7,32 @@ import type { TabItem, TabsProps } from './types.js';
 export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(props, ref) {
   const items = props.tabs || [],
     base = uid();
-  const st = useMaybeControlled<string | undefined>(
-    props.value,
-    props.defaultValue || (items[0] && items[0].id),
-    props.onChange as ((id: string | undefined) => void) | undefined,
-  );
-  const refs = React.useRef<Record<string, HTMLButtonElement | null>>({});
-  const current =
-    items.filter(function (t: TabItem) {
-      return t.id === st[0];
-    })[0] || items[0];
-  const Link = useLinkComponent(props.linkComponent);
-  /* Section tabs that are routes (4.19): links in a nav, the current one marked as the page, no panels. Links are
-   * reached with Tab (not arrows) — they're navigation, not a tab widget. */
   const asLinks =
     items.length > 0 &&
     items.every(function (t: TabItem) {
       return !!t.href;
     });
+  /* 5.1.1: tabs start on the first enabled one (a disabled first tab left the list with no tab stop). Route tabs
+   * have no fallback, and value={undefined} there means "no tab is this page". */
+  const firstOn = items.filter(function (t: TabItem) {
+    return !t.disabled;
+  })[0];
+  const st = useMaybeControlled<string | undefined>(
+    props.value,
+    props.defaultValue || (asLinks ? undefined : firstOn && firstOn.id),
+    props.onChange as ((id: string | undefined) => void) | undefined,
+  );
+  const cur = asLinks && 'value' in props ? props.value : st[0];
+  const refs = React.useRef<Record<string, HTMLButtonElement | null>>({});
+  const current =
+    items.filter(function (t: TabItem) {
+      return t.id === cur;
+    })[0] ||
+    firstOn ||
+    items[0];
+  const Link = useLinkComponent(props.linkComponent);
+  /* Section tabs that are routes (4.19): links in a nav, the current one marked as the page, no panels. Links are
+   * reached with Tab (not arrows) — they're navigation, not a tab widget. */
   if (asLinks)
     return (
       <nav
@@ -35,7 +43,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
         <div className="aura-tabs__list">
           {items.map(function (t: TabItem) {
             /* Only an exact match is the current page (5.0.1): a route with no tab of its own marks none. */
-            const on = t.id === st[0];
+            const on = t.id === cur;
             const inner = [
               t.icon ? <Icon key="i" name={t.icon} /> : null,
               t.label,

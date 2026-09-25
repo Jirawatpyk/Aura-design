@@ -63,16 +63,21 @@ export function useColorScheme(options?: ColorSchemeOptions): ColorSchemeState {
         if (readScheme(fallback) === 'system') apply('system');
         cb();
       }
+      /* A choice made in another tab arrives as a storage event: apply it here too (5.1.1: tabs didn't sync). */
+      function onStorage(e: StorageEvent) {
+        if (e.key === key) apply(valid(e.newValue) ? e.newValue : fallback);
+        cb();
+      }
       if (mq) mq.addEventListener('change', onSystem);
       window.addEventListener(EVENT, cb);
-      window.addEventListener('storage', cb);
+      window.addEventListener('storage', onStorage);
       return function () {
         if (mq) mq.removeEventListener('change', onSystem);
         window.removeEventListener(EVENT, cb);
-        window.removeEventListener('storage', cb);
+        window.removeEventListener('storage', onStorage);
       };
     },
-    [fallback],
+    [fallback, key],
   );
   /* One string snapshot so React can compare it: "scheme|resolved". */
   const snapshot = React.useSyncExternalStore(
