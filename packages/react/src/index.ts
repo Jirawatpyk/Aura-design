@@ -34,6 +34,8 @@ export { Grid } from './Grid.js';
 export { Container } from './Container.js';
 export { AppShell } from './AppShell.js';
 export { ActionBar } from './ActionBar.js';
+export { Separator } from './Separator.js';
+export { Table, THead, TBody, TFoot, Tr, Th, Td } from './Table.js';
 export { BottomNav } from './BottomNav.js';
 export { useBreakpoint, useResponsive, breakpoints } from './responsive.js';
 export { Surface } from './Surface.js';

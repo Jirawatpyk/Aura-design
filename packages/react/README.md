@@ -74,9 +74,9 @@ export default function Root() {
 | `dist/styles.css`     | Component CSS (no font import).                                                                                                                                                                            |
 | `dist/index.d.ts`     | Types for every component and helper, generated from the TypeScript sources (one file).                                                                                                                    |
 
-## Components (51)
+## Components (59)
 
-Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu (link, danger and radio items), ActionBar, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, FilterBar, Stat · Navigation: Command (⌘K palette), BottomNav · Layout: AppShell, Container, Stack, Grid, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
+Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu (link, danger and radio items), ActionBar, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Table (+ THead, TBody, TFoot, Tr, Th, Td — static tables), FilterBar, Stat · Navigation: Command (⌘K palette), BottomNav · Layout: AppShell, Container, Stack, Grid, Separator, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
 
 ## Router links, Swedish, motion
 
@@ -185,6 +185,23 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Menu items**: `href` (through `linkComponent`), `tone: 'danger'`, and `type: 'radio'` with `group` / `checked` (menuitemradio in a labelled group).
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
+
+## Static tables, separators, tooltips, phone tables before hydration (4.20)
+
+```tsx
+<Table caption="Invoice INV-2026-0141 — line items">
+  <THead><Tr><Th>DESCRIPTION</Th><Th numeric>AMOUNT (THB)</Th></Tr></THead>
+  <TBody><Tr><Td><div lang="th">ค่าบำรุงสมาชิกรายปี</div><div>Annual membership fee</div></Td><Td numeric>85,000.00</Td></Tr></TBody>
+  <TFoot><Tr><Th scope="row">Total</Th><Td numeric>107,000.00</Td></Tr></TFoot>
+</Table>
+<Separator />                              {/* decorative; decorative={false} → role="separator" */}
+<Tooltip content="Download PDF" side="left">…</Tooltip>
+```
+
+- **Table** is plain `<table>` markup with DataTable's look: mono header band, hairlines, wrapping text, `numeric` cells right-aligned in tabular figures, a `TFoot` for totals. No sorting, paging or virtual rows — use DataTable for data. If it has to scroll sideways on a phone, its box becomes a focusable region named by the caption.
+- **Tooltip** `side` also takes `left` and `right`; every side flips when clipped and stays inside the window.
+- **DataTable on phones before hydration**: `stackBelow` cards and `hideBelow` columns are decided in CSS from the first paint, at any width (up to three distinct `hideBelow` widths per table), and each row is in the HTML once — the cards are the grid's own rows, laid out by a container query. The table sits in a few wrapper `div`s for this; `className` and `ref` go on the outermost. The `.aura-table__card*` classes are gone.
+- **`formatDate()` from the package root** warns once in development when called without a `locale`: in 5.0 it becomes English and Gregorian like `/server`. Pass `{ locale: 'th' }` or use `useFormatDate()`.
 
 ## Phones and touch
 

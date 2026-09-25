@@ -79,7 +79,7 @@ export interface DataTableColumn {
   pinned?: boolean | undefined;
   /** Start hidden (show it from the columns button). */
   hidden?: boolean | undefined;
-  /** Hide this column when the table is narrower than this (px, or a breakpoint name). For tablets: keep ID, name, date and status; drop the rest below `lg`. Not applied to stacked cards. */
+  /** Hide this column when the table is narrower than this (px, or a breakpoint name). For tablets: keep ID, name, date and status; drop the rest below `lg`. Not applied to stacked cards. Decided in CSS from the first paint (4.20) for up to three distinct widths per table; more than that apply once JavaScript runs. */
   hideBelow?: number | 'sm' | 'md' | 'lg' | 'xl' | undefined;
   /** Row actions (a DropdownMenu or IconButton). In stacked cards it sits top-right instead of in the field list. Give it an empty label. */
   actions?: boolean | undefined;
@@ -176,7 +176,7 @@ export interface DataTableProps {
   onPinnedColumnsChange?: ((keys: string[]) => void) | undefined;
   /** `compact` = 40px rows (48px on touch screens). Default: the surrounding density. */
   density?: 'comfortable' | 'compact' | undefined;
-  /** Container width in px below which rows render as stacked cards (phones). Try 640. Measured with ResizeObserver, so it follows the container, not the window. */
+  /** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. */
   stackBelow?: number | undefined;
   className?: string | undefined;
 }
@@ -549,7 +549,9 @@ export interface TooltipProps {
   content: React.ReactNode;
   /** One focusable element. */
   children: React.ReactElement;
-  side?: 'top' | 'bottom' | undefined;
+  /** Preferred side. Default `top`. `left` / `right` (4.20) for icon buttons at the right edge of a table or in a
+   * collapsed rail. Flips to the opposite side when clipped, and always stays inside the viewport. */
+  side?: 'top' | 'bottom' | 'left' | 'right' | undefined;
   /** Hover delay in ms. Default 400. */
   delay?: number | undefined;
   /** Force open (demos, tests). */
@@ -942,6 +944,44 @@ export interface AppShellProps {
   /** A BottomNav for phones (4.19). Shown below its `hideFrom` breakpoint; the content keeps room for it, and a
    * viewport ActionBar sits on top of it. With a `bottomNav` and no `nav`, there is no menu button. */
   bottomNav?: React.ReactElement | undefined;
+  className?: string | undefined;
+}
+
+/* ---------- 4.20: Separator, Table ---------- */
+
+export interface SeparatorProps {
+  /** Default `horizontal` (full width). `vertical` fills the height of a flex row, e.g. between toolbar groups. */
+  orientation?: 'horizontal' | 'vertical' | undefined;
+  /** Default true: hidden from screen readers. `false` renders `role="separator"`, announced as a boundary. */
+  decorative?: boolean | undefined;
+  /** Space on both sides, as an `aura-space-*` step (e.g. 4 = 16px). Default 0. */
+  spacing?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | undefined;
+  className?: string | undefined;
+}
+export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'className'> {
+  /** The table's name (a `<caption>`). Give every table one; `captionHidden` keeps it for screen readers only. */
+  caption?: React.ReactNode | undefined;
+  captionHidden?: boolean | undefined;
+  /** `compact` tightens the cell padding. Default follows the page. */
+  density?: 'comfortable' | 'compact' | undefined;
+  className?: string | undefined;
+  children?: React.ReactNode | undefined;
+}
+export interface TableSectionProps extends React.HTMLAttributes<HTMLTableSectionElement> {
+  className?: string | undefined;
+}
+export interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  className?: string | undefined;
+}
+export interface TableCellProps extends Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'align' | 'scope'> {
+  /** Text alignment. `numeric` implies `end`. */
+  align?: 'start' | 'center' | 'end' | undefined;
+  /** Money and counts: right-aligned, tabular figures. */
+  numeric?: boolean | undefined;
+  /** IDs and codes in the mono face. */
+  mono?: boolean | undefined;
+  /** Th only. Default `col`. */
+  scope?: 'col' | 'row' | 'colgroup' | 'rowgroup' | undefined;
   className?: string | undefined;
 }
 

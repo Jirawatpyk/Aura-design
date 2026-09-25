@@ -332,10 +332,30 @@ test.describe('Responsive', () => {
   test('DataTable stacks into cards below stackBelow', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await story(page, 'aura-responsive--stacked-table');
-    await expect(page.locator('.aura-table__card')).toHaveCount(5);
-    await expect(page.getByRole('grid')).toHaveCount(0);
+    /* 4.20: one markup — the same grid rows, laid out as cards by a container query. */
+    const rows = page.locator('.aura-table__scroll > .aura-table__row:not(.aura-table__head)');
+    await expect(rows).toHaveCount(5);
+    const wrap = () => rows.first().evaluate((r) => getComputedStyle(r).flexWrap);
+    expect(await wrap()).toBe('wrap');
+    await expect(page.getByRole('grid')).toHaveCount(1);
+    await expect(page.getByRole('columnheader', { name: /NAME/ })).toBeAttached();
+    /* Field labels are generated content with empty alt text: seen, not read twice. */
+    const label = await rows
+      .first()
+      .locator('[data-label]')
+      .first()
+      .evaluate((c) => getComputedStyle(c, '::before').content);
+    expect(label).toContain('NAME');
+    const { violations } = await new AxeBuilder({ page })
+      .include('.aura-table')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    expect(violations.map((v) => v.id)).toEqual([]);
+    await page.getByRole('checkbox', { name: /ORD-1041/ }).check();
+    await expect(page.getByText('1 selected')).toBeVisible();
     await page.setViewportSize({ width: 1000, height: 800 });
     await expect(page.getByRole('grid')).toBeVisible();
+    await expect.poll(wrap).toBe('nowrap');
   });
 });
 
@@ -1217,9 +1237,10 @@ test.describe('4.17: DataTable server state in one callback', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await s(page);
     await expect(page.locator('.aura-table--stacked')).toHaveCount(1);
-    await expect(page.locator('.aura-table__card').first()).toContainText('INV-1021');
+    const firstCard = page.locator('.aura-table__scroll > .aura-table__row:not(.aura-table__head)').first();
+    await expect(firstCard).toContainText('INV-1021');
     await page.getByRole('button', { name: 'Next page' }).click();
-    await expect(page.locator('.aura-table__card').first()).toContainText('INV-1031');
+    await expect(firstCard).toContainText('INV-1031');
     await expect(page.getByTestId('calls')).toHaveText('{"sort":null,"page":4}');
   });
   test('server mode drops hideBelow columns on a tablet', async ({ page }) => {
@@ -1307,8 +1328,9 @@ test.describe('4.19: Chamber-OS group D', () => {
     ]);
     expect(Math.abs(boxBottom - rowBottom)).toBeLessThanOrEqual(2);
     /* Stacked: a Totals card with the amounts right-aligned. */
-    const card = page.getByTestId('stacked-totals').getByRole('group', { name: 'Totals' });
+    const card = page.getByTestId('stacked-totals').getByRole('row', { name: 'Totals' });
     await expect(card).toContainText('149,479.00');
+    expect(await card.evaluate((r) => getComputedStyle(r).flexWrap)).toBe('wrap');
     expect(await axeOn(page, '#storybook-root')).toEqual([]);
   });
 
@@ -1503,4 +1525,110 @@ test.describe('4.19: Chamber-OS group D', () => {
     await page.locator('.aura-toast').first().getByRole('button').click();
     await expect.poll(titles).toEqual(['Result 4', 'Result 5', 'Result 6']);
   });
+});
+
+test.describe('4.20: Chamber-OS group E', () => {
+  const axeOn = async (page: Page, sel: string) => {
+    const { violations } = await new AxeBuilder({ page })
+      .include(sel)
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
+  };
+  const inViewport = (page: Page, sel: string) =>
+    page.locator(sel).evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      return r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight;
+    });
+
+  for (const theme of ['light', 'dark']) {
+    test(`48: invoice line items — a real table, right-aligned money, totals foot, axe (${theme})`, async ({
+      page,
+    }) => {
+      await story(page, 'aura-new-in-4-20--invoice-line-items', theme);
+      const table = page.getByRole('table', { name: /line items/ });
+      await expect(table.getByRole('columnheader')).toHaveCount(5);
+      await expect(table.getByRole('rowheader', { name: 'Total', exact: true })).toBeVisible();
+      /* Right edges of the money cells line up with their header. */
+      const rights = await table.evaluate((t) =>
+        [...t.querySelectorAll('tr')].map((tr) => Math.round(tr.lastElementChild!.getBoundingClientRect().right)),
+      );
+      expect(new Set(rights).size).toBe(1);
+      await expect(table.getByRole('cell', { name: '107,000.00' })).toHaveCSS('text-align', 'right');
+      /* Thai over English in one cell: two lines, both wrap inside the column. */
+      const cell = table.getByRole('cell', { name: /ค่าบำรุงสมาชิก/ });
+      await expect(cell).toContainText('Annual membership fee');
+      expect(await axeOn(page, '#storybook-root'), theme).toEqual([]);
+      await expect(page.getByRole('separator')).toHaveCount(1);
+    });
+  }
+
+  test('48: at 390px the description wraps; if the table still scrolls, its box is a focusable region', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-4-20--invoice-line-items', 'light');
+    const lines = await page
+      .getByRole('cell', { name: /ค่าลงทะเบียน/ })
+      .evaluate((c) => Math.round(c.getBoundingClientRect().height / 20));
+    expect(lines).toBeGreaterThan(2);
+    const box = page.locator('.aura-tbl-wrap');
+    const [sw, cw] = await box.evaluate((w) => [w.scrollWidth, w.clientWidth]);
+    if (sw > cw + 1) {
+      await expect(box).toHaveAttribute('tabindex', '0');
+      await expect(page.getByRole('region', { name: /line items/ })).toBeVisible();
+    }
+    expect(await axeOn(page, '#storybook-root')).toEqual([]);
+    await page.setViewportSize({ width: 1000, height: 900 });
+    await expect(box).not.toHaveAttribute('tabindex', '0');
+  });
+
+  test('49: a tooltip on the last column and on the collapsed rail stays inside the viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 1000, height: 700 });
+    await story(page, 'aura-new-in-4-20--tooltip-sides', 'light');
+    const btn = page.getByRole('button', { name: 'Download INV-2026-0143' });
+    await btn.focus();
+    const tip = page.getByRole('tooltip');
+    await expect(tip).toHaveText('Download INV-2026-0143 as PDF');
+    expect(await inViewport(page, '[role="tooltip"]')).toBe(true);
+    /* side="right" had no room at the right edge: it flipped to the left of the button. */
+    const [tipRight, btnLeft] = await Promise.all([
+      tip.evaluate((e) => e.getBoundingClientRect().right),
+      btn.evaluate((e) => e.getBoundingClientRect().left),
+    ]);
+    expect(tipRight).toBeLessThanOrEqual(btnLeft);
+    await page.keyboard.press('Escape');
+    /* side="left" at the left edge flips right. */
+    await page.getByRole('button', { name: /side="left"/ }).focus();
+    await expect(page.getByRole('tooltip')).toHaveText('Opens on the left');
+    expect(await inViewport(page, '[role="tooltip"]')).toBe(true);
+    /* The collapsed rail's last item, near the bottom of the window. */
+    await page.setViewportSize({ width: 1000, height: 560 });
+    await page
+      .getByRole('navigation', { name: 'Rail' })
+      .getByRole('button', { name: /Members/ })
+      .hover();
+    await expect(page.locator('.aura-tooltip--right')).toBeVisible();
+    expect(await inViewport(page, '.aura-tooltip--right')).toBe(true);
+  });
+
+  for (const [w, layout, member] of [
+    [390, 'wrap', true],
+    [800, 'nowrap', false],
+    [1000, 'nowrap', true],
+  ] as const) {
+    test(`50: one markup at ${w}px — ${layout === 'wrap' ? 'cards' : member ? 'grid' : 'grid without MEMBER'}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 900 });
+      await story(page, 'aura-new-in-4-20--one-markup-table', 'light');
+      const rows = page.locator('.aura-table__scroll > .aura-table__row:not(.aura-table__head)');
+      await expect(rows).toHaveCount(6);
+      expect(await rows.first().evaluate((r) => getComputedStyle(r).flexWrap)).toBe(layout);
+      await expect(page.getByText('Acme AB').first()).toBeVisible({ visible: member });
+      /* Each row once: one cell holds INV-2001 (the rest are its checkbox's name). */
+      await expect(page.locator('.aura-table__td').filter({ hasText: /^INV-2001$/ })).toHaveCount(1);
+      expect(await axeOn(page, '.aura-table')).toEqual([]);
+    });
+  }
 });

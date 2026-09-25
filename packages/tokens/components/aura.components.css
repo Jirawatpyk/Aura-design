@@ -82,16 +82,17 @@ a.aura-btn { text-decoration: none; }
   background: var(--aura-bg-surface);
   color: var(--aura-fg-primary);
 }
-.aura-table__scroll { position: relative; overflow: auto; overscroll-behavior: contain; }
+.aura-table__scroll { position: relative; overflow: auto; overscroll-behavior: contain; height: var(--aura-table-h, auto); }
 .aura-table__head {
   position: sticky; top: 0; z-index: 3; box-sizing: border-box;   /* the hairline is inside the row height */
-  display: flex; height: var(--aura-table-row-height);
+  display: flex; height: var(--aura-table-row-height); min-width: var(--aura-row-min, 0);
   background: var(--aura-bg-canvas);
   border-bottom: 1px solid var(--aura-border-default);
   font-family: var(--font-mono); font-size: 12px; color: var(--aura-fg-secondary);
 }
 .aura-table__row {
   box-sizing: border-box; display: flex; height: var(--aura-table-row-height);   /* exactly the virtual row height */
+  min-width: var(--aura-row-min, 0);
   background: var(--aura-bg-surface);
   border-bottom: 1px solid var(--aura-border-default);
   font-size: 13px;
@@ -110,15 +111,14 @@ a.aura-btn { text-decoration: none; }
 .aura-table__row--skeleton .aura-table__td.is-end { justify-content: flex-end; }
 /* Row links (getRowHref): the first cell's text is the link; the whole row is the click target */
 .aura-table__row-link { color: inherit; text-decoration: none; }
-.aura-table__row-link:hover, .aura-table__row:hover .aura-table__row-link, .aura-table__card:hover .aura-table__row-link { text-decoration: underline; text-underline-offset: 2px; }
+.aura-table__row-link:hover, .aura-table__row:hover .aura-table__row-link { text-decoration: underline; text-underline-offset: 2px; }
 .aura-table__row-link:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
 /* Server mode refresh: the previous page stays, inactive, under a progress bar until the next one arrives */
-.aura-table.is-refreshing .aura-table__row, .aura-table.is-refreshing .aura-table__card { opacity: 0.6; pointer-events: none; }
+.aura-table.is-refreshing .aura-table__row { opacity: 0.6; pointer-events: none; }
 .aura-table__busy-bar {
   position: absolute; z-index: 6; top: calc(var(--aura-table-row-height) - 2px); left: 0; right: 0; height: 2px; overflow: hidden;
   border-radius: var(--aura-radius-full); pointer-events: none;
 }
-.aura-table--stacked .aura-table__busy-bar { top: 0; }
 .aura-table__busy-bar::after {
   content: ''; position: absolute; top: 0; bottom: 0; width: 35%; background: var(--aura-fg-accent);
   animation: aura-progress-slide var(--aura-duration-pulse) var(--aura-ease) infinite;
@@ -132,6 +132,9 @@ a.aura-btn { text-decoration: none; }
 }
 .aura-table__td .aura-pill, .aura-table__td .aura-dropdown, .aura-table__td > .aura-icon-btn, .aura-table__td > .aura-btn { vertical-align: middle; }
 .aura-table__th { position: relative; box-sizing: border-box; display: flex; align-items: center; padding-right: var(--aura-space-2); }
+/* Column sizes come from custom properties set per cell (4.20), so the card layout can override them. */
+.aura-table__th, .aura-table__td { flex: var(--aura-cell-flex, none); width: var(--aura-cell-w, auto); min-width: var(--aura-cell-min, 0); }
+.aura-table__break, .aura-table__sel-text { display: none; }
 .aura-table__th-inner { display: flex; align-items: center; gap: var(--aura-space-1); min-width: 0; width: 100%; }
 .aura-table__th-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-table__pin-icon { color: var(--aura-fg-secondary); }
@@ -153,7 +156,7 @@ a.aura-btn { text-decoration: none; }
 .aura-table__sel.is-pinned { position: sticky; left: var(--aura-space-6); z-index: 2; }
 
 /* Pinned columns */
-.aura-table__th.is-pinned, .aura-table__td.is-pinned { position: sticky; z-index: 2; background: inherit; }
+.aura-table__th.is-pinned, .aura-table__td.is-pinned { position: sticky; left: var(--aura-cell-left, auto); z-index: 2; background: inherit; }
 .aura-table.is-scrolled-x .is-pin-edge { box-shadow: inset -1px 0 0 var(--aura-border-default); }
 
 /* Cell focus — the grid's single tab stop moves cell by cell */
@@ -850,32 +853,11 @@ a.aura-tab { text-decoration: none; }
 /* The shell already pads its content: a Container directly inside only caps the width. */
 .aura-shell__content > .aura-container { padding-left: 0; padding-right: 0; }
 
-/* ---------- DataTable: stacked cards ---------- */
-.aura-table--stacked { background: transparent; border: 0; border-radius: 0; overflow: visible; }
-.aura-table__stack-bar { display: flex; align-items: center; gap: var(--aura-space-3); padding: 0 var(--aura-space-4) var(--aura-space-3); font-size: 13px; color: var(--aura-fg-secondary); }
-.aura-table__cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--aura-space-2); }
-.aura-table__card {
-  display: flex; flex-direction: column; gap: var(--aura-space-3); padding: var(--aura-space-4);
-  background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); font-size: 13px;
-}
-.aura-table__card.is-selected { background: var(--aura-bg-selected); }
-.aura-table__card.is-actionable { cursor: pointer; }
-.aura-table__card:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
-.aura-table__card-head { display: flex; align-items: center; gap: var(--aura-space-3); }
-.aura-table__card-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aura-table__card-actions { display: inline-flex; margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-2)) calc(-1 * var(--aura-space-1)) 0; }
-.aura-table__card-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--aura-space-2) var(--aura-space-4); margin: 0; }
-.aura-table__card-fields dt { font-family: var(--font-mono); font-size: 11px; color: var(--aura-fg-secondary); }
-.aura-table__card-fields dd { margin: 2px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aura-table__card-fields dd.is-end { text-align: right; font-variant-numeric: tabular-nums; }
-.aura-table__card--total { background: var(--aura-bg-canvas); font-weight: 600; }
 /* Totals row (4.19): under the body, a strong top edge; sticky at the bottom of a `height` table with stickyFooter. */
 .aura-table__total { background: var(--aura-bg-canvas); border-top: 1px solid var(--aura-border-strong); font-weight: 600; }
 .aura-table__total.is-sticky { position: sticky; bottom: 0; z-index: 3; }
 .aura-table__total .aura-table__td.is-end { font-variant-numeric: tabular-nums; }
 .aura-tooltip--above { transform: translateY(-100%); max-width: min(var(--aura-tooltip-max), 90vw); white-space: normal; }
-.aura-table--stacked .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); }
-.aura-table--stacked .aura-table__empty { background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); }
 
 /* ---------- Stat ---------- */
 .aura-stat {
@@ -1338,36 +1320,6 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-density { display: contents; }
 
 
-/* DataTable: cards before hydration (4.16). While a stackBelow table hasn't measured itself yet (server HTML, first
- * client render) it holds both layouts; these container queries show one, so a phone never sees the grid first. */
-.aura-table-dual { container-type: inline-size; }
-@container (min-width: 360px) { .aura-table-dual[data-stack-below='360'] > .aura-table--stacked { display: none; } }
-@container (max-width: 359.98px) { .aura-table-dual[data-stack-below='360'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 400px) { .aura-table-dual[data-stack-below='400'] > .aura-table--stacked { display: none; } }
-@container (max-width: 399.98px) { .aura-table-dual[data-stack-below='400'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 480px) { .aura-table-dual[data-stack-below='480'] > .aura-table--stacked { display: none; } }
-@container (max-width: 479.98px) { .aura-table-dual[data-stack-below='480'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 520px) { .aura-table-dual[data-stack-below='520'] > .aura-table--stacked { display: none; } }
-@container (max-width: 519.98px) { .aura-table-dual[data-stack-below='520'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 560px) { .aura-table-dual[data-stack-below='560'] > .aura-table--stacked { display: none; } }
-@container (max-width: 559.98px) { .aura-table-dual[data-stack-below='560'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 600px) { .aura-table-dual[data-stack-below='600'] > .aura-table--stacked { display: none; } }
-@container (max-width: 599.98px) { .aura-table-dual[data-stack-below='600'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 640px) { .aura-table-dual[data-stack-below='640'] > .aura-table--stacked { display: none; } }
-@container (max-width: 639.98px) { .aura-table-dual[data-stack-below='640'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 720px) { .aura-table-dual[data-stack-below='720'] > .aura-table--stacked { display: none; } }
-@container (max-width: 719.98px) { .aura-table-dual[data-stack-below='720'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 768px) { .aura-table-dual[data-stack-below='768'] > .aura-table--stacked { display: none; } }
-@container (max-width: 767.98px) { .aura-table-dual[data-stack-below='768'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 800px) { .aura-table-dual[data-stack-below='800'] > .aura-table--stacked { display: none; } }
-@container (max-width: 799.98px) { .aura-table-dual[data-stack-below='800'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 900px) { .aura-table-dual[data-stack-below='900'] > .aura-table--stacked { display: none; } }
-@container (max-width: 899.98px) { .aura-table-dual[data-stack-below='900'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 960px) { .aura-table-dual[data-stack-below='960'] > .aura-table--stacked { display: none; } }
-@container (max-width: 959.98px) { .aura-table-dual[data-stack-below='960'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-@container (min-width: 1024px) { .aura-table-dual[data-stack-below='1024'] > .aura-table--stacked { display: none; } }
-@container (max-width: 1023.98px) { .aura-table-dual[data-stack-below='1024'] > .aura-table:not(.aura-table--stacked) { display: none; } }
-
 /* ---------- 4.19: BottomNav ---------- */
 /* Fixed to the bottom and padded for the home indicator; the spacer before it holds the same height in the flow.
  * Shown below its breakpoint in CSS, so the server's HTML is right before hydration. */
@@ -1431,3 +1383,98 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 /* Bulk bar with nothing selected: out of sight and out of the tab order, its live region still in the page. */
 .aura-actionbar.is-idle { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; box-shadow: none; }
 .aura-actionbar--container > .aura-actionbar__inner { padding-left: 0; padding-right: 0; }
+
+/* ---------- 4.20: Separator ---------- */
+.aura-separator { flex: none; align-self: stretch; height: 1px; margin: var(--aura-separator-space, 0) 0; background: var(--aura-border-default); border: 0; }
+.aura-separator--vertical { width: 1px; height: auto; min-height: 1em; margin: 0 var(--aura-separator-space, 0); }
+
+/* ---------- 4.20: Table (static) ---------- */
+/* DataTable's grid look — mono header band, hairlines, 20px outer radius — on plain <table> markup, with wrapping text. */
+.aura-tbl-wrap {
+  overflow-x: auto; border: 1px solid var(--aura-border-default); border-radius: var(--aura-card-radius);
+  background: var(--aura-bg-surface); color: var(--aura-fg-primary); font-family: var(--font-sans);
+}
+.aura-tbl { width: 100%; border-collapse: collapse; border-spacing: 0; font-size: 13px; line-height: 20px; }
+.aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) 0; text-align: left; font-size: 14px; font-weight: 600; }
+.aura-tbl__th, .aura-tbl__td { padding: var(--aura-space-3) var(--aura-space-4); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.aura-tbl__th:first-child, .aura-tbl__td:first-child { padding-left: var(--aura-space-6); }
+.aura-tbl__th:last-child, .aura-tbl__td:last-child { padding-right: var(--aura-space-6); }
+.aura-tbl__head .aura-tbl__th {
+  background: var(--aura-bg-canvas); border-bottom: 1px solid var(--aura-border-default);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--aura-fg-secondary); white-space: nowrap;
+}
+.aura-tbl__body .aura-tbl__row + .aura-tbl__row > * { border-top: 1px solid var(--aura-border-default); }
+.aura-tbl__body .aura-tbl__th { font-weight: 500; }
+.aura-tbl__foot > .aura-tbl__row > * { background: var(--aura-bg-canvas); font-weight: 600; }
+.aura-tbl__foot > .aura-tbl__row:first-child > * { border-top: 1px solid var(--aura-border-strong); }
+.aura-tbl__foot > .aura-tbl__row + .aura-tbl__row > * { border-top: 1px solid var(--aura-border-default); }
+.aura-tbl .is-end { text-align: right; }
+.aura-tbl .is-center { text-align: center; }
+.aura-tbl .is-numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aura-tbl-wrap[data-density='compact'] .aura-tbl__th, .aura-tbl-wrap[data-density='compact'] .aura-tbl__td { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
+.aura-tbl-wrap:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
+
+/* ---------- 4.20: DataTable width queries and cards, one markup ---------- */
+/* Each .aura-table-q is the table's width × 10000 / its threshold (DataTable.tsx, Q), so `(width < 9999.5px)` is true
+ * exactly when the table is narrower than stackBelow or a hideBelow width — before hydration, at any width. */
+.aura-table-box { overflow-x: clip; }
+.aura-table-q { width: calc(100% * var(--aura-q-scale)); container-type: inline-size; }
+.aura-table-q--stack { container-name: aura-stack; }
+.aura-table-q--h1 { container-name: aura-h1; }
+.aura-table-q--h2 { container-name: aura-h2; }
+.aura-table-q--h3 { container-name: aura-h3; }
+.aura-table-q .aura-table { width: calc(100% * var(--aura-q-back)); box-sizing: border-box; }
+@container aura-h1 (width < 9999.5px) { .aura-table { --aura-h1-on: 0; } .aura-table [data-hide='1'] { display: none; } }
+@container aura-h2 (width < 9999.5px) { .aura-table { --aura-h2-on: 0; } .aura-table [data-hide='2'] { display: none; } }
+@container aura-h3 (width < 9999.5px) { .aura-table { --aura-h3-on: 0; } .aura-table [data-hide='3'] { display: none; } }
+
+/* Below stackBelow the same grid lays out as cards: the first column is the title, the first other pill column sits
+ * beside it, `actions` columns go top-right, the rest are label/value fields two to a line. Column headers stay for
+ * screen readers; the labels are generated content with empty alt text, so they aren't read twice. */
+@container aura-stack (width < 9999.5px) {
+  .aura-table { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+  .aura-table__scroll { overflow: visible; height: auto; }
+  .aura-table__busy-bar { top: 0; }
+  .aura-table__picker { display: none; }
+  .aura-table__head {
+    position: static; height: auto; min-width: 0; padding: 0 0 var(--aura-space-3); border: 0; background: none;
+    font-family: var(--font-sans); font-size: 13px;
+  }
+  .aura-table__head > .aura-table__th {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .aura-table__head:not(.has-select-all) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); }
+  .aura-table__head > .aura-table__sel { position: static; width: auto; gap: var(--aura-space-3); padding: 0 var(--aura-space-4); }
+  .aura-table__sel-text { display: inline; color: var(--aura-fg-secondary); }
+  .aura-table__gutter { display: none; }
+  .aura-table__row, .aura-table__row:last-child {
+    height: auto; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-4);
+    margin-bottom: var(--aura-space-2); padding: var(--aura-space-4);
+    border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg);
+  }
+  .aura-table__sel, .aura-table__th.is-pinned, .aura-table__td.is-pinned, .aura-table__total.is-sticky { position: static; box-shadow: none; }
+  .aura-table__row > .aura-table__sel { order: 0; width: auto; margin-right: calc(-1 * var(--aura-space-1)); }
+  .aura-table__td {
+    order: 5; flex: 0 0 calc(50% - var(--aura-space-4) / 2); align-self: flex-start; width: auto; min-width: 0; height: auto;
+    margin-bottom: var(--aura-space-1);
+    padding: 0; line-height: normal;
+  }
+  .aura-table__td[data-hide] { display: block; }
+  .aura-table__td[data-label]::before {
+    content: attr(data-label); content: attr(data-label) / '';
+    display: block; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start;
+    font-family: var(--font-mono); font-size: 11px; line-height: normal; font-weight: 400; color: var(--aura-fg-secondary);
+  }
+  .aura-table__td[data-card='title'], .aura-table__td[data-card='pill'], .aura-table__td[data-card='actions'] { align-self: center; margin-bottom: 0; }
+  .aura-table__td[data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
+  .aura-table__td[data-card='pill'] { order: 2; flex: none; }
+  .aura-table__td[data-card='actions'] { order: 3; flex: none; margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-2)) calc(-1 * var(--aura-space-1)) 0; }
+  /* Spacing: 12px under the title line, 8px between field lines (row gap 4 + the break's 4 + each field's 4 below). */
+  .aura-table__break { display: block; order: 4; flex: 0 0 100%; height: var(--aura-space-1); }
+  .aura-table__row:has(> .aura-table__break) { padding-bottom: calc(var(--aura-space-4) - var(--aura-space-1)); }
+  .aura-table__row--skeleton .aura-table__td { display: flex; }
+  .aura-table__total { background: var(--aura-bg-canvas); }
+  .aura-table__total > .is-blank { display: none; }
+  .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); background: var(--aura-bg-surface); }
+  .aura-table__empty { background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); }
+}

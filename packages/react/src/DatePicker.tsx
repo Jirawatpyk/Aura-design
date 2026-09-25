@@ -22,7 +22,7 @@ import {
   dateText,
   defaultCalendar,
   fmt,
-  formatDate,
+  formatDate as formatDateBase,
   fromISO,
   localeTag,
   parseDate,
@@ -32,7 +32,31 @@ import {
 } from './dates.js';
 import type { FormatDateOptions } from './dates.js';
 export type { FormatDateOptions } from './dates.js';
-export { formatDate, parseDate } from './dates.js';
+export { parseDate } from './dates.js';
+
+/* The root formatDate() defaults to Thai with Buddhist-era years; /server and useFormatDate() default to English. 5.0
+ * makes this one English too (Chamber-OS item 51). Until then, a call without `locale` warns once in development. */
+declare const process: { env: { NODE_ENV?: string } };
+let warnedNoLocale = false;
+function isDev(): boolean {
+  try {
+    return process.env.NODE_ENV !== 'production';
+  } catch (e) {
+    return false;
+  }
+}
+/** Format an ISO date for display. Without a `locale` it is Thai with Buddhist-era years **until 5.0, which makes it
+ * English and Gregorian** like `@jirawatpyk/aura-react/server` and `useFormatDate()`. Pass `{ locale }` (or use
+ * `useFormatDate()` in components) so the switch changes nothing for you; a call without one warns once in development. */
+export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string {
+  if (!warnedNoLocale && !(opts && opts.locale) && isDev()) {
+    warnedNoLocale = true;
+    console.warn(
+      "[AURA] formatDate() was called without a locale. It shows Thai with Buddhist-era years today; in 5.0 it will show English with Gregorian years, like '@jirawatpyk/aura-react/server'. Pass { locale: 'th' } to keep Thai, or use useFormatDate() in components.",
+    );
+  }
+  return formatDateBase(iso, opts);
+}
 
 /** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
  * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
@@ -44,7 +68,7 @@ export function useFormatDate(): (iso: ISODate | null | undefined, opts?: Format
     function (iso: ISODate | null | undefined, opts?: FormatDateOptions): string {
       const o: FormatDateOptions = opts || {},
         loc = o.locale || locale;
-      return formatDate(
+      return formatDateBase(
         iso,
         Object.assign({}, o, {
           locale: loc,
@@ -571,7 +595,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
         boxRef={boxRef}
         inputRef={inputMerged}
         open={pop.open}
-        display={formatDate(st[0], { locale: locale, calendar: calendar })}
+        display={formatDateBase(st[0], { locale: locale, calendar: calendar })}
         placeholder={props.placeholder || dt.datePlaceholder}
         hasValue={st[0] != null}
         clearable={props.clearable}
@@ -616,8 +640,8 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
     const o = { locale: locale, calendar: calendar };
     function show(r: DateRange): string {
       if (!r.start) return '';
-      if (!r.end) return formatDate(r.start, o) + ' –';
-      return formatDate(r.start, o) + ' – ' + formatDate(r.end, o);
+      if (!r.end) return formatDateBase(r.start, o) + ' –';
+      return formatDateBase(r.start, o) + ' – ' + formatDateBase(r.end, o);
     }
     function commit(text: string) {
       const parts = String(text).split(/\s[–-]\s|\s*–\s*/);

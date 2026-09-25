@@ -63,7 +63,7 @@ def compact(pg, label):
     pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); axe(pg, label + ' compact dark')
     pg.evaluate("document.documentElement.removeAttribute('data-theme'); document.documentElement.removeAttribute('data-density')")
 def ready(pg):
-    pg.goto(URL); pg.wait_for_selector('.aura-table:not([aria-busy]) .aura-table__row:not(.aura-table__row--skeleton), .aura-table--stacked:not([aria-busy]) .aura-table__card', timeout=5000)
+    pg.goto(URL); pg.wait_for_selector('.aura-table__scroll:not([aria-busy]) > .aura-table__row:not(.aura-table__row--skeleton)', timeout=5000)
 
 def count_text(pg): return pg.locator('.aura-table__foot [aria-live]').inner_text()
 
@@ -241,6 +241,8 @@ def p_nav_drawer(pg):
     nav = pg.get_by_role('dialog', name='เมนูหลัก'); expect(nav).to_be_visible()
     nav.get_by_role('button', name=re.compile('ทีม')).click() if nav.get_by_role('button', name=re.compile('ทีม')).count() else nav.get_by_role('link', name=re.compile('ทีม')).click()
     expect(nav).to_have_count(0)
+# 4.20: phone cards are the grid's own rows, laid out as cards by a container query.
+CARD = '.aura-table__scroll > .aura-table__row:not(.aura-table__head)'
 def p_filters(pg):
     pg.get_by_role('button', name='ตัวกรอง').click()
     dr = pg.get_by_role('dialog', name='ตัวกรอง'); expect(dr).to_be_visible()
@@ -248,15 +250,15 @@ def p_filters(pg):
     dr.get_by_label('สถานะ').select_option('เสร็จสิ้น')
     dr.get_by_role('button', name='ดูผลลัพธ์').click()
     expect(pg.get_by_role('button', name='ตัวกรอง (1)')).to_be_visible()
-    pills = pg.locator('.aura-table__card .aura-pill').all_inner_texts(); assert pills and set(pills) == {'เสร็จสิ้น'}, pills
+    pills = pg.locator(CARD + ' .aura-pill').all_inner_texts(); assert pills and set(pills) == {'เสร็จสิ้น'}, pills
     pg.get_by_role('button', name='ล้าง', exact=True).click()
 def p_card_detail(pg):
-    pg.locator('.aura-table__card').first.locator('.aura-table__card-fields').click()
+    pg.locator(CARD).first.locator('[data-card="field"]').first.click()
     dr = pg.get_by_role('dialog', name=re.compile('^ORD-')); expect(dr).to_be_visible()
     assert dr.bounding_box()['width'] >= 389
     pg.keyboard.press('Escape')
 def p_card_menu(pg):
-    pg.locator('.aura-table__card').first.get_by_role('button', name=re.compile('^จัดการ')).click()
+    pg.locator(CARD).first.get_by_role('button', name=re.compile('^จัดการ')).click()
     expect(pg.get_by_role('menu')).to_be_visible(); pg.keyboard.press('Escape')
     expect(pg.get_by_role('dialog')).to_have_count(0)  # opening the menu did not also open the detail drawer
 def p_bottom_sheet(pg):

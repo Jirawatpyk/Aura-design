@@ -38,9 +38,22 @@ const DEFAULT_COLUMNS: Col[] = [
 ];
 
 const SKELETON_WIDTHS = ['72%', '56%', '84%', '44%', '64%'];
-/* stackBelow widths the stylesheet has container queries for (styles/components.css, "DataTable: cards before
- * hydration"). Others still stack, but only once JavaScript has measured the table. */
-const STACK_WIDTHS = [360, 400, 480, 520, 560, 600, 640, 720, 768, 800, 900, 960, 1024];
+/* Width queries before hydration (4.20): each threshold (stackBelow, and up to three distinct hideBelow widths) gets a
+ * wrapper whose width is the table's width × Q / threshold, with `container-type: inline-size`. A fixed container
+ * query in the stylesheet, `(width < Q px)`, is then true exactly when the table is narrower than the threshold —
+ * any threshold, no per-table CSS. The table inside is scaled back to its real width. */
+const Q = 10000;
+const MAX_HIDE_LEVELS = 3;
+/* Narrower than a threshold, exactly as the stylesheet decides it: `(width < 9999.5px)` on a box Q / threshold times the
+ * table's width. Sub-pixel layout widths (699.98 for 700) then land on the same side in CSS and here. */
+function below(w: number, threshold: number): boolean {
+  return w < threshold * (1 - 0.5 / Q);
+}
+function hidePx(c: Col): number | undefined {
+  if (c.hideBelow == null) return undefined;
+  const px = typeof c.hideBelow === 'number' ? c.hideBelow : BP[c.hideBelow];
+  return px != null && px > 0 ? px : undefined;
+}
 const ROW_H_DEFAULT = 48,
   OVERSCAN = 8,
   FLEX_MIN = 160;
@@ -135,33 +148,52 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     columns.some(function (c: Col) {
       return c.hideBelow != null;
     });
-  /* Before the first measurement, render cards and grid together when the stylesheet has a container query for
-   * this stackBelow value (STACK_WIDTHS); CSS then picks one, so the server's HTML is already right on a phone. */
-  const dual = !!props.stackBelow && boxWidth[0] == null && STACK_WIDTHS.indexOf(props.stackBelow) >= 0;
   React.useEffect(
     function () {
       if (!measure || !wrapRef.current || typeof ResizeObserver === 'undefined') return;
       const ro = new ResizeObserver(function (en: ResizeObserverEntry[]) {
-        boxWidth[1](en[0].contentRect.width);
+        /* Border-box width: the same width the stylesheet's container queries compare (4.20). */
+        const bb = en[0].borderBoxSize && en[0].borderBoxSize[0];
+        boxWidth[1](bb ? bb.inlineSize : (en[0].target as HTMLElement).getBoundingClientRect().width);
       });
       ro.observe(wrapRef.current);
       return function () {
         ro.disconnect();
       };
     },
-    [measure, dual],
+    [measure],
   );
-  const stacked = !!props.stackBelow && boxWidth[0] != null && boxWidth[0] < props.stackBelow;
+  const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
   useIsoLayoutEffect(
     function () {
       if (measure && boxWidth[0] == null && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
     },
     [measure],
   );
+  /* Distinct hideBelow widths, widest first; the first MAX_HIDE_LEVELS also work before hydration (in CSS). */
+  const hideLevels: number[] = [];
+  columns.forEach(function (c: Col) {
+    const px = hidePx(c);
+    if (px != null && hideLevels.indexOf(px) < 0) hideLevels.push(px);
+  });
+  hideLevels.sort(function (a: number, b: number) {
+    return b - a;
+  });
+  hideLevels.length = Math.min(hideLevels.length, MAX_HIDE_LEVELS);
+  const levels: Array<{ name: string; px: number }> = [];
+  if (props.stackBelow && props.stackBelow > 0) levels.push({ name: 'stack', px: props.stackBelow });
+  hideLevels.forEach(function (px: number, i: number) {
+    levels.push({ name: 'h' + (i + 1), px: px });
+  });
+  function hideLevel(c: Col): number | undefined {
+    const px = hidePx(c);
+    const i = px == null ? -1 : hideLevels.indexOf(px);
+    return i < 0 ? undefined : i + 1;
+  }
   function tooNarrow(c: Col): boolean {
     if (c.hideBelow == null || boxWidth[0] == null || stacked) return false;
-    const px = typeof c.hideBelow === 'number' ? c.hideBelow : BP[c.hideBelow];
-    return px != null && boxWidth[0] < px;
+    const px = hidePx(c);
+    return px != null && below(boxWidth[0], px);
   }
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   /* Row height comes from CSS (--aura-table-row-height: 48, 40 in compact density, 48 again on touch), so the
@@ -173,7 +205,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     setTip = tipState[1];
   function showFull(e: React.SyntheticEvent<HTMLElement>) {
     const el = (e.target as HTMLElement).closest
-      ? ((e.target as HTMLElement).closest('.aura-table__td, .aura-table__card-fields dd') as HTMLElement | null)
+      ? ((e.target as HTMLElement).closest('.aura-table__td') as HTMLElement | null)
       : null;
     if (!el || el.scrollWidth <= el.clientWidth + 1 || el.querySelector('button, input, .aura-pill'))
       return setTip(null);
@@ -209,7 +241,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
 
   /* Buttons and links inside cells are reached with Enter (APG grid), not Tab: the grid stays one tab stop. */
   useIsoLayoutEffect(function () {
-    if (stacked || !gridRef.current) return;
+    if (!gridRef.current) return;
     const els = gridRef.current.querySelectorAll<HTMLElement>(
       '.aura-table__td button, .aura-table__td a[href], .aura-table__td input, .aura-table__td select, .aura-table__td textarea, .aura-table__td [tabindex="0"]',
     );
@@ -247,12 +279,39 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     }),
   );
   const nPinned = vis.filter(isPinned).length;
+  /* Card layout (below stackBelow): the first column is the title, the first other pill column sits beside it,
+   * `actions` columns go top-right, and the rest become label/value fields. The markup is the same in both layouts. */
+  const pillKey = (
+    vis.filter(function (c: Col, i: number) {
+      return i > 0 && c.pill;
+    })[0] || { key: '' }
+  ).key;
+  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' {
+    return i === 0 ? 'title' : c.key === pillKey ? 'pill' : c.actions ? 'actions' : 'field';
+  }
+  function cardAttrs(c: Col, i: number): Record<string, string | undefined> {
+    const part = cardPart(c, i),
+      lv = hideLevel(c);
+    return {
+      'data-card': part,
+      'data-label': part === 'field' ? c.label || undefined : undefined,
+      'data-hide': lv ? String(lv) : undefined,
+    };
+  }
+  const hasFields = vis.some(function (c: Col, i: number) {
+    return cardPart(c, i) === 'field';
+  });
   const hasFlex = vis.some(function (c: Col) {
     return widthOf(c) == null;
   });
-  let fixedSum = 0;
+  /* Minimum row width. A column that CSS may hide before hydration (hideBelow) counts only while it shows. */
+  let fixedSum = 0,
+    hideTerms = '';
   vis.forEach(function (c: Col) {
-    fixedSum += widthOf(c) != null ? widthOf(c)! : FLEX_MIN;
+    const w = widthOf(c) != null ? widthOf(c)! : FLEX_MIN,
+      lv = hideLevel(c);
+    if (lv && boxWidth[0] == null) hideTerms += ' + ' + w + 'px * var(--aura-h' + lv + '-on, 1)';
+    else fixedSum += w;
   });
   let pinOffsets: Record<string, number> = {},
     acc = 0;
@@ -264,16 +323,21 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   });
   const selW = selectable ? ' + var(--aura-table-select-width)' : '';
   const gutterR = controls ? 'var(--aura-space-12)' : 'var(--aura-space-6)';
-  const rowMinWidth = 'calc(' + fixedSum + 'px + var(--aura-space-6) + ' + gutterR + selW + ')';
+  const rowMinWidth = 'calc(' + fixedSum + 'px' + hideTerms + ' + var(--aura-space-6) + ' + gutterR + selW + ')';
 
+  /* Sizes go in custom properties, not inline width/flex, so the card layout (4.20, in CSS) can override them. */
   function cellStyle(c: Col, i: number): React.CSSProperties {
-    let w = widthOf(c),
-      s: React.CSSProperties;
-    if (w == null) s = { flex: '1 1 0', minWidth: (c.minWidth || FLEX_MIN) + 'px' };
-    else if (!hasFlex && i === vis.length - 1) s = { flex: '1 0 auto', width: w + 'px' };
-    else s = { width: w + 'px', flex: 'none' };
-    if (isPinned(c)) s.left = 'calc(var(--aura-space-6)' + selW + ' + ' + pinOffsets[c.key] + 'px)';
-    return s;
+    const w = widthOf(c),
+      s: Record<string, string> = {};
+    if (w == null) {
+      s['--aura-cell-flex'] = '1 1 0';
+      s['--aura-cell-min'] = (c.minWidth || FLEX_MIN) + 'px';
+    } else {
+      s['--aura-cell-flex'] = !hasFlex && i === vis.length - 1 ? '1 0 auto' : 'none';
+      s['--aura-cell-w'] = w + 'px';
+    }
+    if (isPinned(c)) s['--aura-cell-left'] = 'calc(var(--aura-space-6)' + selW + ' + ' + pinOffsets[c.key] + 'px)';
+    return s as React.CSSProperties;
   }
 
   /* sort (memoised: thousands of rows) */
@@ -383,7 +447,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
 
   /* virtual window */
   const height = props.height || 0;
-  const virtual = !!height && !loading && pageRows.length > 0;
+  /* Cards have their own heights, so a stacked table renders every row of the page. */
+  const virtual = !!height && !loading && pageRows.length > 0 && !stacked;
   const bodyH = Math.max(ROW_H, height - ROW_H);
   let start = 0,
     end = pageRows.length;
@@ -792,6 +857,12 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
             onChange={toggleAll}
           />
         ) : null}
+        {/* Shown only in the card layout, beside the select-all box. */}
+        {nRows ? (
+          <span className="aura-table__sel-text">{nSel ? t.selectedCount(nSel) : t.selectAll}</span>
+        ) : (
+          <span className="aura-sr-only">{t.selectRows}</span>
+        )}
       </span>,
     );
   vis.forEach(function (c: Col, i: number) {
@@ -809,6 +880,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         aria-sort={ariaSort}
         aria-colindex={ci + 1}
         style={cellStyle(c, i)}
+        data-hide={hideLevel(c) ? String(hideLevel(c)) : undefined}
         tabIndex={tabFor(0, ci)}
         data-rc={'0:' + ci}
         className={cx(
@@ -972,6 +1044,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
             pin && j === nPinned - 1 && 'is-pin-edge',
           )}
           style={cellStyle(c, j)}
+          {...cardAttrs(c, j)}
           onFocus={function () {
             if (activeState[0].r !== ri || activeState[0].c !== ci) activeState[1]({ r: ri, c: ci });
           }}
@@ -980,6 +1053,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         </span>,
       );
     });
+    if (hasFields) cells.push(<span key="__br" className="aura-table__break" aria-hidden={true} />);
     cells.push(
       <span
         key="__gr"
@@ -991,7 +1065,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   }
 
   let body: React.ReactNode;
-  const rowStyle = { minWidth: rowMinWidth };
+  const rowStyle = { ['--aura-row-min' as string]: rowMinWidth } as React.CSSProperties;
   if (loading) {
     const n = pageSize || props.skeletonRows || 5;
     const skRows: React.ReactElement[] = (body = []);
@@ -1009,6 +1083,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
             key={c.key}
             className={cx('aura-table__td', c.align === 'end' && 'is-end', isPinned(c) && 'is-pinned')}
             style={cellStyle(c, j)}
+            {...cardAttrs(c, j)}
+            data-label={undefined}
           >
             <span
               className={cx('aura-skel', c.pill && 'aura-skel--pill')}
@@ -1017,6 +1093,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           </span>,
         );
       });
+      if (hasFields) sk.push(<span key="__br" className="aura-table__break" />);
       sk.push(
         <span key="__gr" className={cx('aura-table__gutter aura-table__gutter--end', controls && 'has-picker')} />,
       );
@@ -1134,169 +1211,6 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     );
   }
 
-  /* stacked: below `stackBelow` px the rows become cards (first column = title, a pill column sits beside it, the rest as label/value pairs) */
-  function renderStacked(wrapRefArg: React.Ref<HTMLDivElement> | undefined): React.ReactElement {
-    const titleCol = vis[0],
-      pillCol = vis.filter(function (c: Col) {
-        return c.pill && c !== titleCol;
-      })[0];
-    const actionCols = vis.filter(function (c: Col) {
-      return c.actions && c !== titleCol;
-    });
-    const rest = vis.filter(function (c: Col) {
-      return c !== titleCol && c !== pillCol && !c.actions;
-    });
-    let cardBody: React.ReactElement;
-    if (loading) {
-      cardBody = (
-        <ul className="aura-table__cards" aria-busy={true}>
-          {[0, 1, 2].map(function (i: number) {
-            return (
-              <li key={i} className="aura-table__card" aria-hidden={true}>
-                <span className="aura-skel" style={{ width: '50%', height: '14px' }} />
-                <span className="aura-skel" style={{ width: '80%' }} />
-                <span className="aura-skel" style={{ width: '64%' }} />
-              </li>
-            );
-          })}
-        </ul>
-      );
-    } else if (!rows.length) {
-      const em2: DataTableEmpty = props.empty || {};
-      cardBody = (
-        <div className="aura-table__empty">
-          <div>
-            <span className="aura-table__empty-icon">
-              <Icon name={em2.icon || 'inbox'} size="lg" />
-            </span>
-            <p className="aura-table__empty-title">{em2.title || t.empty}</p>
-            {em2.description ? <p className="aura-table__empty-text">{em2.description}</p> : null}
-            {em2.action ? <div className="aura-table__empty-action">{em2.action}</div> : null}
-          </div>
-        </div>
-      );
-    } else {
-      const cellVal = cellContent;
-      cardBody = (
-        <ul className="aura-table__cards" aria-label={props.label}>
-          {pageRows.map(function (r: Row) {
-            const k = r[rowKey],
-              isSel = !!selSet[k];
-            return (
-              <li
-                key={k}
-                className={cx(
-                  'aura-table__card',
-                  isSel && 'is-selected',
-                  (props.onRowActivate || rowHref) && 'is-actionable',
-                )}
-                tabIndex={props.onRowActivate && !rowHref ? 0 : undefined}
-                onClick={function (e: React.MouseEvent<HTMLElement>) {
-                  const el = e.target as HTMLElement;
-                  if (el.closest && el.closest('.aura-check, button, a, input')) return;
-                  if (rowHref) followRow(e.currentTarget, e);
-                  else if (props.onRowActivate) props.onRowActivate(r);
-                }}
-                onKeyDown={function (e: React.KeyboardEvent) {
-                  if (e.target === e.currentTarget && e.key === 'Enter' && props.onRowActivate && !rowHref)
-                    props.onRowActivate(r);
-                }}
-              >
-                <div className="aura-table__card-head">
-                  {selectable ? (
-                    <Checkbox
-                      checked={isSel}
-                      label={t.selectRow(k)}
-                      onChange={function (on: boolean) {
-                        toggle(k, on);
-                      }}
-                    />
-                  ) : null}
-                  <span className={cx('aura-table__card-title', titleCol.mono && 'aura-table__mono')}>
-                    {rowLinkWrap(r, cellVal(titleCol, r))}
-                  </span>
-                  {pillCol ? cellVal(pillCol, r) : null}
-                  {actionCols.map(function (c: Col) {
-                    return (
-                      <span key={c.key} className="aura-table__card-actions">
-                        {cellVal(c, r)}
-                      </span>
-                    );
-                  })}
-                </div>
-                {rest.length ? (
-                  <dl className="aura-table__card-fields">
-                    {rest.map(function (c: Col) {
-                      return (
-                        <div key={c.key}>
-                          <dt>{c.label}</dt>
-                          <dd className={cx(c.mono && 'aura-table__mono', c.align === 'end' && 'is-end')}>
-                            {cellVal(c, r)}
-                          </dd>
-                        </div>
-                      );
-                    })}
-                  </dl>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      );
-    }
-    return (
-      <div
-        ref={wrapRefArg}
-        data-density={props.density}
-        className={cx('aura-table aura-table--stacked', refreshing && 'is-refreshing', props.className)}
-        onMouseOver={showFull}
-        onMouseLeave={hideFull}
-        onFocus={showFull}
-        onBlur={hideFull}
-        role="region"
-        aria-label={props.label}
-        aria-busy={busy || undefined}
-      >
-        {refreshing ? <span className="aura-table__busy-bar" aria-hidden={true} /> : null}
-        {selectable && pageRows.length && !busy ? (
-          <div className="aura-table__stack-bar">
-            <Checkbox
-              checked={all}
-              indeterminate={nSel > 0 && !all}
-              label={all ? t.deselectAllRows : t.selectAllRows}
-              onChange={toggleAll}
-            />
-            <span>{nSel ? t.selectedCount(nSel) : t.selectAll}</span>
-          </div>
-        ) : null}
-        {cardBody}
-        {props.footer && rows.length && !loading ? (
-          <div className="aura-table__card aura-table__card--total" role="group" aria-label={t.totals}>
-            <dl className="aura-table__card-fields">
-              {vis
-                .filter(function (c: Col) {
-                  return props.footer![c.key] != null;
-                })
-                .map(function (c: Col) {
-                  return (
-                    <div key={c.key}>
-                      <dt>{c.label || t.totals}</dt>
-                      <dd className={cx(c.mono && 'aura-table__mono', c.align === 'end' && 'is-end')}>
-                        {props.footer![c.key]}
-                      </dd>
-                    </div>
-                  );
-                })}
-            </dl>
-          </div>
-        ) : null}
-        {foot}
-        {tipEl}
-      </div>
-    );
-  }
-  if (stacked) return renderStacked(wrapMerged);
-
   /* Totals row (4.19): the body's widths and alignment, after the last row; sticky with stickyFooter. */
   const totalRow =
     props.footer && rows.length && !loading ? (
@@ -1322,13 +1236,17 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
                 c.align === 'end' && 'is-end',
                 pin && 'is-pinned',
                 pin && j === nPinned - 1 && 'is-pin-edge',
+                props.footer![c.key] == null && 'is-blank',
               )}
               style={cellStyle(c, j)}
+              {...cardAttrs(c, j)}
+              data-label={j === 0 ? undefined : c.label || t.totals}
             >
               {props.footer![c.key]}
             </span>
           );
         })}
+        {hasFields ? <span className="aura-table__break" aria-hidden={true} /> : null}
         <span
           className={cx('aura-table__gutter aura-table__gutter--end', controls && 'has-picker')}
           aria-hidden={true}
@@ -1339,13 +1257,24 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     scrollPaddingLeft: 'calc(var(--aura-space-6)' + selW + ' + ' + acc + 'px)',
     scrollPaddingTop: ROW_H + 'px',
   };
-  if (height) scrollStyle.height = height + 'px';
+  if (height) (scrollStyle as Record<string, string>)['--aura-table-h'] = height + 'px';
 
   const gridEl = (
     <div
-      ref={dual ? undefined : wrapMerged}
+      ref={levels.length ? wrapRef : wrapMerged}
       data-density={props.density}
-      className={cx('aura-table', scrolledX[0] && 'is-scrolled-x', refreshing && 'is-refreshing', props.className)}
+      className={cx(
+        'aura-table',
+        stacked && 'aura-table--stacked',
+        scrolledX[0] && 'is-scrolled-x',
+        refreshing && 'is-refreshing',
+        !levels.length && props.className,
+      )}
+      style={
+        levels.length
+          ? ({ ['--aura-q-back' as string]: String(levels[levels.length - 1].px / Q) } as React.CSSProperties)
+          : undefined
+      }
     >
       {refreshing ? <span className="aura-table__busy-bar" aria-hidden={true} /> : null}
       <div
@@ -1375,7 +1304,12 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
           if (sx !== scrolledX[0]) scrolledX[1](sx);
         }}
       >
-        <div className="aura-table__head" role="row" aria-rowindex={1} style={rowStyle}>
+        <div
+          className={cx('aura-table__head', selectable && nRows > 0 && !busy && 'has-select-all')}
+          role="row"
+          aria-rowindex={1}
+          style={rowStyle}
+        >
           {head}
         </div>
         {body}
@@ -1410,13 +1344,23 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       {tipEl}
     </div>
   );
-  if (!dual) return gridEl;
-  /* Width not measured yet (server render, first client render): both layouts, and a container query in the
-   * stylesheet shows the right one, so a phone gets cards before hydration. Measured before paint, then one. */
+  if (!levels.length) return gridEl;
+  /* Nested width-query boxes, outermost first (see Q above). The outer box takes the ref and className. */
+  let out: React.ReactElement = gridEl;
+  for (let i = levels.length - 1; i >= 0; i--) {
+    const prev = i === 0 ? Q : levels[i - 1].px;
+    out = (
+      <div
+        className={cx('aura-table-q', 'aura-table-q--' + levels[i].name)}
+        style={{ ['--aura-q-scale' as string]: String(prev / levels[i].px) } as React.CSSProperties}
+      >
+        {out}
+      </div>
+    );
+  }
   return (
-    <div ref={wrapMerged} className="aura-table-dual" data-stack-below={props.stackBelow}>
-      {renderStacked(undefined)}
-      {gridEl}
+    <div ref={ref} className={cx('aura-table-box', props.className)}>
+      {out}
     </div>
   );
 });

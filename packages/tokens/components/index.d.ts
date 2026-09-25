@@ -74,7 +74,7 @@ export interface DataTableColumn {
 	pinned?: boolean | undefined;
 	/** Start hidden (show it from the columns button). */
 	hidden?: boolean | undefined;
-	/** Hide this column when the table is narrower than this (px, or a breakpoint name). For tablets: keep ID, name, date and status; drop the rest below `lg`. Not applied to stacked cards. */
+	/** Hide this column when the table is narrower than this (px, or a breakpoint name). For tablets: keep ID, name, date and status; drop the rest below `lg`. Not applied to stacked cards. Decided in CSS from the first paint (4.20) for up to three distinct widths per table; more than that apply once JavaScript runs. */
 	hideBelow?: number | "sm" | "md" | "lg" | "xl" | undefined;
 	/** Row actions (a DropdownMenu or IconButton). In stacked cards it sits top-right instead of in the field list. Give it an empty label. */
 	actions?: boolean | undefined;
@@ -171,7 +171,7 @@ export interface DataTableProps {
 	onPinnedColumnsChange?: ((keys: string[]) => void) | undefined;
 	/** `compact` = 40px rows (48px on touch screens). Default: the surrounding density. */
 	density?: "comfortable" | "compact" | undefined;
-	/** Container width in px below which rows render as stacked cards (phones). Try 640. Measured with ResizeObserver, so it follows the container, not the window. */
+	/** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. */
 	stackBelow?: number | undefined;
 	className?: string | undefined;
 }
@@ -479,7 +479,9 @@ export interface TooltipProps {
 	content: React$1.ReactNode;
 	/** One focusable element. */
 	children: React$1.ReactElement;
-	side?: "top" | "bottom" | undefined;
+	/** Preferred side. Default `top`. `left` / `right` (4.20) for icon buttons at the right edge of a table or in a
+	 * collapsed rail. Flips to the opposite side when clipped, and always stays inside the viewport. */
+	side?: "top" | "bottom" | "left" | "right" | undefined;
 	/** Hover delay in ms. Default 400. */
 	delay?: number | undefined;
 	/** Force open (demos, tests). */
@@ -866,6 +868,41 @@ export interface AppShellProps {
 	bottomNav?: React$1.ReactElement | undefined;
 	className?: string | undefined;
 }
+export interface SeparatorProps {
+	/** Default `horizontal` (full width). `vertical` fills the height of a flex row, e.g. between toolbar groups. */
+	orientation?: "horizontal" | "vertical" | undefined;
+	/** Default true: hidden from screen readers. `false` renders `role="separator"`, announced as a boundary. */
+	decorative?: boolean | undefined;
+	/** Space on both sides, as an `aura-space-*` step (e.g. 4 = 16px). Default 0. */
+	spacing?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | undefined;
+	className?: string | undefined;
+}
+export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableElement>, "className"> {
+	/** The table's name (a `<caption>`). Give every table one; `captionHidden` keeps it for screen readers only. */
+	caption?: React$1.ReactNode | undefined;
+	captionHidden?: boolean | undefined;
+	/** `compact` tightens the cell padding. Default follows the page. */
+	density?: "comfortable" | "compact" | undefined;
+	className?: string | undefined;
+	children?: React$1.ReactNode | undefined;
+}
+export interface TableSectionProps extends React$1.HTMLAttributes<HTMLTableSectionElement> {
+	className?: string | undefined;
+}
+export interface TableRowProps extends React$1.HTMLAttributes<HTMLTableRowElement> {
+	className?: string | undefined;
+}
+export interface TableCellProps extends Omit<React$1.TdHTMLAttributes<HTMLTableCellElement>, "align" | "scope"> {
+	/** Text alignment. `numeric` implies `end`. */
+	align?: "start" | "center" | "end" | undefined;
+	/** Money and counts: right-aligned, tabular figures. */
+	numeric?: boolean | undefined;
+	/** IDs and codes in the mono face. */
+	mono?: boolean | undefined;
+	/** Th only. Default `col`. */
+	scope?: "col" | "row" | "colgroup" | "rowgroup" | undefined;
+	className?: string | undefined;
+}
 export interface ActionBarProps {
 	/** Buttons, right-aligned (the primary one last). */
 	children?: React$1.ReactNode | undefined;
@@ -1190,12 +1227,14 @@ export declare const Combobox: ComboboxComponent;
 export type FormatDateOptions = DateDisplayOptions & {
 	format?: "short" | "long" | "numeric" | Intl.DateTimeFormatOptions | undefined;
 };
-/** Format an ISO date for display, e.g. "18 ก.ย. 2569" (th, Buddhist) or "18 Sept 2026" (en, Gregorian). */
-export declare function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string;
 /** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
 export declare function parseDate(text: string | null | undefined): ISODate | null;
 /** Today as an ISO date in an IANA time zone (e.g. `Asia/Bangkok`), or in the runtime's own zone without one. (4.19) */
 export declare function todayIn(timeZone?: string | null): ISODate;
+/** Format an ISO date for display. Without a `locale` it is Thai with Buddhist-era years **until 5.0, which makes it
+ * English and Gregorian** like `@jirawatpyk/aura-react/server` and `useFormatDate()`. Pass `{ locale }` (or use
+ * `useFormatDate()` in components) so the switch changes nothing for you; a call without one warns once in development. */
+export declare function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOptions): string;
 /** formatDate bound to the nearest AuraProvider: its locale and calendar (English, Gregorian without one).
  * Options you pass still win. Use it in components; plain formatDate() stays for code outside React. */
 export declare function useFormatDate(): (iso: ISODate | null | undefined, opts?: FormatDateOptions) => string;
@@ -1257,6 +1296,19 @@ export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps &
 /** ActionBar — a bar stuck to the bottom of the screen or of a card: a status line and the form's or selection's
  * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field. */
 export declare const ActionBar: React$1.ForwardRefExoticComponent<ActionBarProps & React$1.RefAttributes<HTMLDivElement>>;
+/** Separator — a 1px `aura-border-default` rule between groups of content (4.20). Decorative by default (hidden from
+ * screen readers); `decorative={false}` makes it a `role="separator"` that is announced. */
+export declare const Separator: React$1.ForwardRefExoticComponent<SeparatorProps & React$1.RefAttributes<HTMLDivElement>>;
+/** A static table. Scrolls sideways inside its own box when it is wider than its container. */
+export declare const Table: React$1.ForwardRefExoticComponent<TableProps & React$1.RefAttributes<HTMLTableElement>>;
+export declare const THead: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
+export declare const TBody: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
+export declare const TFoot: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
+export declare const Tr: React$1.ForwardRefExoticComponent<TableRowProps & React$1.RefAttributes<HTMLTableRowElement>>;
+/** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
+export declare const Th: React$1.ForwardRefExoticComponent<TableCellProps & React$1.RefAttributes<HTMLTableCellElement>>;
+/** Data cell. `numeric` right-aligns with tabular figures (money, counts). */
+export declare const Td: React$1.ForwardRefExoticComponent<TableCellProps & React$1.RefAttributes<HTMLTableCellElement>>;
 /** BottomNav — a phone tab bar: icon over a short label, a count or dot, the current page marked. Fixed to the bottom,
  * padded for the home indicator, with a spacer of the same height in the flow so nothing sits under it. Which
  * breakpoints show it is decided in CSS, so the server's HTML is already right and nothing shifts on hydration. */

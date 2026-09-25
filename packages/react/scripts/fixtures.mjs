@@ -218,6 +218,45 @@ export function fixtures(A, React) {
         { key: 'owner', label: 'AMOUNT', align: 'end' },
       ],
     }),
+    /* 4.20 */
+    Separator: h('div', null, 'A', h(A.Separator, { spacing: 2 }), 'B', h(A.Separator, { decorative: false })),
+    Table: h(
+      A.Table,
+      { caption: 'Line items' },
+      h(A.THead, null, h(A.Tr, null, h(A.Th, null, 'Item'), h(A.Th, { numeric: true }, 'Amount'))),
+      h(
+        A.TBody,
+        null,
+        h(
+          A.Tr,
+          null,
+          h(A.Td, null, 'ค่าบำรุงสมาชิก', h('br'), 'Membership fee'),
+          h(A.Td, { numeric: true }, '100,000.00'),
+        ),
+      ),
+      h(A.TFoot, null, h(A.Tr, null, h(A.Th, { scope: 'row' }, 'Total'), h(A.Td, { numeric: true }, '107,000.00'))),
+    ),
+    Tr: h(
+      A.Table,
+      { caption: 'Tr', captionHidden: true },
+      h(A.TBody, null, h(A.Tr, null, h(A.Td, { mono: true }, 'INV-1'))),
+    ),
+    Th: h(A.Table, { caption: 'Th' }, h(A.THead, null, h(A.Tr, null, h(A.Th, { align: 'center' }, 'Qty')))),
+    Td: h(
+      A.Table,
+      { caption: 'Td', density: 'compact' },
+      h(A.TBody, null, h(A.Tr, null, h(A.Td, { align: 'end' }, '1'))),
+    ),
+    TableHide: h(A.DataTable, {
+      label: 'Hide',
+      rows,
+      stackBelow: 700,
+      columns: [
+        { key: 'id', label: 'ID', width: 96 },
+        { key: 'name', label: 'NAME', width: 200, hideBelow: 900 },
+        { key: 'owner', label: 'OWNER', hideBelow: 'md' },
+      ],
+    }),
     /* 4.19 */
     ActionBar: h(A.ActionBar, { status: 'Total 107,000.00 THB' }, h(A.Button, null, 'Save')),
     ActionBarBulk: h(

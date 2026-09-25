@@ -31,10 +31,31 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
       if (!open || !anchor.current || !tip.current) return;
       const r = anchor.current.getBoundingClientRect(),
         t = tip.current.getBoundingClientRect();
-      let side = props.side || 'top',
-        top = side === 'top' ? r.top - t.height - 8 : r.bottom + 8;
-      if (side === 'top' && top < 8) top = r.bottom + 8;
-      const left = Math.max(8, Math.min(r.left + r.width / 2 - t.width / 2, window.innerWidth - t.width - 8));
+      const vw = window.innerWidth,
+        vh = window.innerHeight,
+        gap = 8,
+        m = 8;
+      let side = props.side || 'top';
+      /* Flip to the opposite side when the preferred one is clipped and the other has room (4.20: left and right too). */
+      if (side === 'top' && r.top - t.height - gap < m && r.bottom + gap + t.height <= vh - m) side = 'bottom';
+      else if (side === 'bottom' && r.bottom + gap + t.height > vh - m && r.top - t.height - gap >= m) side = 'top';
+      else if (side === 'left' && r.left - t.width - gap < m && r.right + gap + t.width <= vw - m) side = 'right';
+      else if (side === 'right' && r.right + gap + t.width > vw - m && r.left - t.width - gap >= m) side = 'left';
+      const clampX = function (x: number) {
+        return Math.max(m, Math.min(x, vw - t.width - m));
+      };
+      const clampY = function (y: number) {
+        return Math.max(m, Math.min(y, vh - t.height - m));
+      };
+      let top: number, left: number;
+      if (side === 'top' || side === 'bottom') {
+        top = side === 'top' ? r.top - t.height - gap : r.bottom + gap;
+        left = clampX(r.left + r.width / 2 - t.width / 2);
+      } else {
+        left = side === 'left' ? r.left - t.width - gap : r.right + gap;
+        left = clampX(left);
+        top = clampY(r.top + r.height / 2 - t.height / 2);
+      }
       pos[1]({ top: top, left: left });
     },
     [open],
