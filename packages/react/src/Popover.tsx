@@ -19,10 +19,10 @@ function position(
   anchor: Element,
   pop: HTMLElement,
   placement: string | undefined,
-): { top: number; left: number; side: string } {
+): { top: number; left: number; side: string; maxHeight?: number } {
   const r = anchor.getBoundingClientRect(),
     pw = pop.offsetWidth,
-    ph = pop.offsetHeight,
+    ph = pop.scrollHeight,
     vw = window.innerWidth,
     vh = window.innerHeight,
     gap = 6;
@@ -30,9 +30,18 @@ function position(
     align = (placement || 'bottom-start').split('-')[1] || 'start';
   if (side === 'bottom' && r.bottom + gap + ph > vh - 8 && r.top - gap - ph > 8) side = 'top';
   else if (side === 'top' && r.top - gap - ph < 8 && r.bottom + gap + ph < vh - 8) side = 'bottom';
-  const top = side === 'top' ? r.top - gap - ph : r.bottom + gap;
+  /* Room on neither side: the roomier one, and the panel scrolls inside it (5.2: it ran off-screen). */
+  const below = vh - r.bottom - gap - 8,
+    above = r.top - gap - 8;
+  let maxHeight: number | undefined;
+  if (ph > below && ph > above) {
+    side = above > below ? 'top' : 'bottom';
+    maxHeight = Math.max(120, side === 'top' ? above : below);
+  }
+  const h = maxHeight ? Math.min(ph, maxHeight) : ph;
+  const top = side === 'top' ? r.top - gap - h : r.bottom + gap;
   const left = align === 'end' ? r.right - pw : align === 'center' ? r.left + r.width / 2 - pw / 2 : r.left;
-  return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side: side };
+  return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side: side, maxHeight: maxHeight };
 }
 
 export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function Popover(props, ref) {
@@ -45,7 +54,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
   const wrap = React.useRef<HTMLSpanElement | null>(null),
     pop = React.useRef<HTMLDivElement | null>(null),
     popMerged = useMergedRef(ref, pop);
-  const pos = React.useState<{ top: number; left: number; side: string } | null>(null),
+  const pos = React.useState<{ top: number; left: number; side: string; maxHeight?: number } | null>(null),
     mounted = useMounted();
   /* Set by a pointerdown anywhere in the panel's React tree — including lists that Combobox, DropdownMenu and
    * DatePicker portal into <body> — so those don't count as outside clicks (5.1.1). */
@@ -126,7 +135,11 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
             }}
             className={cx('aura-popover', pos[0] && 'is-' + pos[0].side, props.className)}
             style={Object.assign(
-              { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 },
+              {
+                top: pos[0] ? pos[0].top : -9999,
+                left: pos[0] ? pos[0].left : -9999,
+                maxHeight: pos[0] && pos[0].maxHeight ? pos[0].maxHeight : undefined,
+              },
               props.width ? { width: props.width } : null,
             )}
             onKeyDown={function (e: React.KeyboardEvent) {

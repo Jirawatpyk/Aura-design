@@ -186,6 +186,16 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.2 — the review's smaller items
+
+- **DataTable**: the totals row is part of the grid (arrow keys and Ctrl+End reach it); server paging without `totalRows` shows "1–25 of many · Page 1" while pages come back full; a page that no longer exists (a filter left one page) is reported back through `onPageChange` / `onStateChange`; a pinned column that `hideBelow` hides no longer pushes the next pinned column before hydration.
+- **Dates and times**: `parseDate` reads eight digits from a phone keypad (`18092569`, `20260918`), an era anywhere (`18 ก.ย. พ.ศ. 2569`; `ค.ศ.` keeps a year ≥ 2400 Gregorian), years 0–99 as written, and refuses 31 February instead of rolling it into March (so does `formatDate`). `parseTime` refuses `13pm` and `0am`. TimePicker says "That time isn't available" for a time `isTimeDisabled` refuses inside the range. The calendar popover is placed by its real size (touch cells, the range hint).
+- **Popover** taller than the room above and below scrolls inside the viewport. **FileUpload** items with a `url` (files already stored) link to it and show image thumbnails.
+- **Contrast**: the Avatar online dot has a `fg-positive` edge and the selected SegmentedControl option a `border-control` edge, so both marks reach 3:1 (210 pairs checked).
+- **Tokens package**: `@jirawatpyk/aura-tokens/tailwind` has types (`import aura from …/tailwind` in a strict `tailwind.config.ts`); `require('@jirawatpyk/aura-tokens')` works. Tailwind v4 `dark:` follows `data-theme="system"` with no script and stays off inside a light island (`Surface`).
+- **ESLint 9**: `import aura from '@jirawatpyk/aura-tokens/eslint-plugin'; export default [aura.configs.recommended];` The rule also catches `oklch()` / `color-mix()`, named colours in style values and Tailwind palette classes (`bg-red-500`, `text-white`), and no longer flags `#add-user` anchors. `lint-tokens.js` matches it and scans `.mjs`, `.cjs`, `.vue`, `.svelte`, `.astro`, `.html`.
+- **`aura-theme` CLI** takes `--brand=#…`, says what's wrong in one line (exit 2) instead of a stack trace, and accepts a hex without `#`.
+
 ## 5.1 — from DxT Monitor
 
 - **StatusPill `tone="warning"`**: solid amber (amber-600 light, amber-500 dark, ink label) with `triangle-alert`, for states that need attention but still work — lighter than Blocked and darker than Ready, so it doesn't rely on hue. The words Warning, Problem, Degraded and At risk pick it by themselves. New tokens `--aura-status-warning-bg` / `-fg` (6.3:1 light, 9.3:1 dark). DataTable pill columns sort it between Ready and Blocked.

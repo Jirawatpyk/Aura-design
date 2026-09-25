@@ -49,6 +49,15 @@ export function App(A, React) {
   return h(A.DataTable, { label: 'Virtual', stackBelow: 700, height: 360, rows, columns: [
     { key: 'id', label: 'ID', width: 120, mono: true }, { key: 'member', label: 'MEMBER', width: 200 }, { key: 'amount', label: 'AMOUNT', align: 'end' }] });
 }`;
+/* 5.2: two pinned columns, the first hidden below 900px. Before hydration the second must sit where it does after. */
+const APP4 = `
+export function App(A, React) {
+  const h = React.createElement;
+  const rows = Array.from({ length: 4 }, (_, i) => ({ name: 'Host ' + (i + 1), id: 'H-' + (i + 1), status: 'Ready', note: 'rack ' + i }));
+  return h(A.DataTable, { label: 'Pinned', rows, columns: [
+    { key: 'name', label: 'NAME', width: 160, pinned: true, hideBelow: 900 }, { key: 'id', label: 'ID', width: 120, pinned: true },
+    { key: 'status', label: 'STATUS', width: 120 }, { key: 'note', label: 'NOTE', width: 400 }] });
+}`;
 const A = await import('../dist/esm/index.js');
 const css = ['../tokens/aura.css', 'styles/components.css']
   .map((f) => fs.readFileSync(path.join(root, f), 'utf8'))
@@ -89,6 +98,7 @@ setTimeout(() => { window.__hydrated = true; }, 600);
 await makePage('shell', APP);
 await makePage('table', APP2);
 await makePage('virtual', APP3);
+await makePage('pinned', APP4);
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const fails = [];
@@ -209,6 +219,20 @@ async function checkVirtual(js) {
   if (js) for (const x of problems) fails.push(`${where}: console: ${x}`);
   await ctx.close();
 }
+async function checkPinned(js) {
+  const { ctx, p, problems } = await open('pinned', 800, 600, js);
+  const where = `pinned columns at 800px, JavaScript ${js ? 'on' : 'off'}`;
+  const m = await p.evaluate(() => {
+    const cell = [...document.querySelectorAll('.aura-table__td')].find((e) => e.textContent === 'H-1');
+    const status = [...document.querySelectorAll('.aura-table__td')].find((e) => e.textContent === 'Ready');
+    return { id: cell.getBoundingClientRect(), status: status.getBoundingClientRect() };
+  });
+  if (m.id.right > m.status.left + 1) fails.push(`${where}: the pinned ID cell (${m.id.left}–${m.id.right}) overlaps STATUS (${m.status.left})`);
+  pinnedLeft[js ? 'on' : 'off'] = m.id.left;
+  if (js) await afterHydration(p, problems, where);
+  await ctx.close();
+}
+const pinnedLeft = {};
 /* One markup: each row is in the server's HTML once. */
 for (const id of ['INV-2001', 'INV-2006']) {
   const n = serverHtml.table.split(id).length - 1;
@@ -220,7 +244,9 @@ for (const js of [false, true]) {
   await check(1280, 800, js);
   for (const w of [390, 699, 700, 899, 900, 1100]) await checkTable(w, js);
   await checkVirtual(js);
+  await checkPinned(js);
 }
+if (Math.abs(pinnedLeft.on - pinnedLeft.off) > 1) fails.push(`pinned ID cell moves on hydration: ${pinnedLeft.off} → ${pinnedLeft.on}`);
 await browser.close();
 if (fails.length) {
   console.error(`Layout before hydration FAIL (React ${React.version}):\n  ` + fails.join('\n  '));

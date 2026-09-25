@@ -69,6 +69,9 @@ for (const bg of ['bg-surface', 'bg-canvas']) {
 for (let i = 1; i < 8; i++) pairs.push([`chart-${i}`, `chart-${i + 1}`, NEIGHBOUR]);
 /* Status fills that sit side by side in a column must also differ in lightness, not only hue (5.1: warning). */
 pairs.push(['status-warning-bg', 'status-ready-bg', NEIGHBOUR], ['status-warning-bg', 'status-blocked-bg', NEIGHBOUR]);
+/* 5.2: state marks that were fill-only — the Avatar online dot's edge on its ring, the selected segment's edge on the
+ * track and on its own fill. */
+pairs.push(['fg-positive', 'bg-surface', UI], ['border-control', 'bg-surface-hover', UI], ['border-control', 'bg-surface', UI]);
 /* Progress / upload tracks: the edge shows the empty part at 3:1; the bar colours also clear 3:1 on the track fill. */
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['progress-track-edge', bg, UI]);
 for (const fg of ['fg-accent', 'fg-positive', 'fg-danger', 'fg-secondary']) pairs.push([fg, 'progress-track', UI]);

@@ -1943,3 +1943,106 @@ test.describe('5.1.1: full-review fixes', () => {
     expect(await page.evaluate(() => location.hash)).toBe('#dashboard');
   });
 });
+
+test.describe('5.2: low-severity review items', () => {
+  test('the totals row is reachable by arrow keys; a server table with no totalRows states no total', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-2--table-totals-and-open-total');
+    const box = page.getByTestId('totals');
+    await box.locator('[data-rc="2:1"]').focus();
+    await page.keyboard.press('ArrowDown');
+    const focused = () => page.evaluate(() => document.activeElement!.getAttribute('data-rc'));
+    expect(await focused()).toBe('3:1');
+    expect(await page.evaluate(() => document.activeElement!.closest('[role="row"]')!.getAttribute('aria-label'))).toBe(
+      'Totals',
+    );
+    await page.keyboard.press('ArrowDown'); // stays: no page after
+    expect(await focused()).toBe('3:1');
+    await page.keyboard.press('ArrowUp');
+    expect(await focused()).toBe('2:1');
+    await page.keyboard.press('Control+End');
+    expect(await focused()).toBe('3:2');
+    await expect(box.locator('[role="gridcell"][tabindex="0"]')).toHaveCount(1);
+    const open = page.getByTestId('open');
+    await expect(open.getByText('1–5 of many')).toBeVisible();
+    await expect(open.getByText('Page 1', { exact: true })).toBeVisible();
+  });
+
+  test('eight-digit dates; a taken time says so; a stored file links; state marks have edges', async ({ page }) => {
+    await story(page, 'aura-new-in-5-2--inputs-and-files');
+    const d = page.getByRole('textbox', { name: 'Install date' });
+    await d.fill('18092026');
+    await d.press('Enter');
+    await expect(page.getByTestId('date')).toHaveText('Date: 2026-09-18');
+    const time = page.getByRole('combobox', { name: 'Visit time' });
+    await time.fill('12:00');
+    await time.press('Enter');
+    await expect(page.getByText("That time isn't available. Choose another.")).toBeVisible();
+    await time.fill('13pm');
+    await time.press('Enter');
+    await expect(page.getByText('Type a time like 09:30')).toBeVisible();
+    const link = page.getByRole('link', { name: 'contract.png' });
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(page.locator('.aura-upload__thumb[src^="data:image/png"]')).toHaveCount(1);
+    expect(
+      parseFloat(await page.locator('.aura-avatar__status').evaluate((e) => getComputedStyle(e).borderTopWidth)),
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      await page.locator('.aura-segmented__option.is-selected').evaluate((e) => getComputedStyle(e).boxShadow),
+    ).toMatch(/inset/);
+  });
+
+  test('a clamped page is reported to the app', async ({ page }) => {
+    await story(page, 'aura-new-in-5-2--clamped-page');
+    await expect(page.getByTestId('state')).toHaveText('App page: 3');
+    await page.getByRole('button', { name: 'Filter' }).click();
+    await expect(page.getByTestId('state')).toHaveText('App page: 1');
+    await expect(page.getByText('R-4')).toBeVisible();
+    /* The same shrink behind a loading refetch is reported too. */
+    await page.reload();
+    await page.waitForSelector('#storybook-root > *');
+    await page.getByRole('button', { name: 'Refetch smaller' }).click();
+    await expect(page.getByTestId('state')).toHaveText('App page: 1');
+  });
+
+  test('a page restored from the URL survives rows that load later', async ({ page }) => {
+    await story(page, 'aura-new-in-5-2--restored-page');
+    await expect(page.getByText('row 11', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('state')).toHaveText('App page: 3');
+  });
+
+  test('in cards, arrows skip blank totals cells', async ({ page }) => {
+    await story(page, 'aura-new-in-5-2--totals-cards');
+    await page.locator('[data-rc="2:0"]').focus();
+    await page.keyboard.press('ArrowDown');
+    const f = await page.evaluate(() => {
+      const a = document.activeElement as HTMLElement;
+      return { rc: a.getAttribute('data-rc'), shown: a.getClientRects().length > 0 };
+    });
+    expect(f.rc).toBe('3:2');
+    expect(f.shown).toBe(true);
+  });
+
+  test('a popover taller than the viewport scrolls inside it', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 500 });
+    await story(page, 'aura-new-in-5-2--tall-popover');
+    await page.getByRole('button', { name: 'All hosts' }).click();
+    const r = await page.getByRole('dialog', { name: 'All hosts' }).evaluate((e) => ({
+      top: e.getBoundingClientRect().top,
+      bottom: e.getBoundingClientRect().bottom,
+      sh: e.scrollHeight,
+      ch: e.clientHeight,
+    }));
+    expect(r.top).toBeGreaterThanOrEqual(0);
+    expect(r.bottom).toBeLessThanOrEqual(500);
+    expect(r.sh).toBeGreaterThan(r.ch);
+    /* Scrolled, the title and Close stay in view. */
+    await page.getByRole('dialog', { name: 'All hosts' }).evaluate((e) => (e.scrollTop = 400));
+    const close = await page
+      .getByRole('dialog', { name: 'All hosts' })
+      .getByRole('button', { name: 'Close' })
+      .boundingBox();
+    expect(close!.y).toBeGreaterThanOrEqual(r.top - 1);
+  });
+});

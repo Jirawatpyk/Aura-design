@@ -30,6 +30,8 @@ export function parseTime(text: string | null | undefined): string | null {
   if (!m) return null;
   let hh = +m[1],
     mm = m[2] ? +m[2] : 0;
+  /* With am/pm the hour is 1–12: "13pm" and "0am" are not times (5.2). */
+  if ((am || pm) && (hh < 1 || hh > 12)) return null;
   if (pm && hh < 12) hh += 12;
   if (am && hh === 12) hh = 0;
   if (hh > 23 || mm > 59) return null;

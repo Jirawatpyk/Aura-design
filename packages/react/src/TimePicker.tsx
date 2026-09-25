@@ -147,7 +147,9 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
       return true;
     }
     if (blocked(v)) {
-      errState[1](t.timeOutOfRange(fromMin(lo), fromMin(hi)));
+      const n = toMin(v);
+      /* Inside the range but refused by isTimeDisabled: say that, not "choose between…" (5.2). */
+      errState[1](n != null && n >= lo && n <= hi ? t.timeUnavailable : t.timeOutOfRange(fromMin(lo), fromMin(hi)));
       return false;
     }
     errState[1](null);

@@ -111,7 +111,34 @@ for (const [cls, value] of Object.entries(CLASSES)) {
   if (!m) fails.push(`${cls}: not generated`);
   else if (!m[1].includes(value)) fails.push(`${cls}: expected ${value}, got ${m[1].trim()}`);
 }
-if (!/\.dark\\:bg-bg-canvas:where\(\.dark, \.dark \*, \[data-theme="dark"\]/.test(css)) fails.push('dark: variant does not follow .dark / data-theme="dark"');
+/* dark: in a browser (5.2): .dark and data-theme="dark" turn it on; a light island inside dark (Surface) and a light page
+ * don't; a dark island inside that light island does; data-theme="system" follows the OS with no script. */
+{
+  const p = await (await import('playwright')).chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+  const probe = async (scheme) => {
+    const pg = await p.newPage({ colorScheme: scheme });
+    await pg.setContent(`<!doctype html><html><head><style>${css}</style></head><body>
+      <div class="dark"><i id="d1" class="dark:bg-bg-canvas"></i><div data-theme="light"><i id="d2" class="dark:bg-bg-canvas"></i></div></div>
+      <div data-theme="dark"><i id="d3" class="dark:bg-bg-canvas"></i></div>
+      <div data-theme="light"><i id="d4" class="dark:bg-bg-canvas"></i></div>
+      <div data-theme="system"><i id="d5" class="dark:bg-bg-canvas"></i><div data-theme="light"><i id="d6" class="dark:bg-bg-canvas"></i></div></div>
+      <div class="dark"><div data-theme="light"><div data-theme="dark"><i id="d7" class="dark:bg-bg-canvas"></i></div></div></div>
+      <div data-theme="light"><div data-theme="dark"><div data-theme="light"><i id="d8" class="dark:bg-bg-canvas"></i></div></div></div></body></html>`);
+    const ids = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8'];
+    const on = await pg.evaluate((ids) => Object.fromEntries(ids.map((id) => [id, getComputedStyle(document.getElementById(id)).backgroundColor !== 'rgba(0, 0, 0, 0)'])), ids);
+    await pg.close();
+    return on;
+  };
+  const want = {
+    light: { d1: true, d2: false, d3: true, d4: false, d5: false, d6: false, d7: true, d8: false },
+    dark: { d1: true, d2: false, d3: true, d4: false, d5: true, d6: false, d7: true, d8: false },
+  };
+  for (const scheme of ['light', 'dark']) {
+    const got = await probe(scheme);
+    for (const id of Object.keys(got)) if (got[id] !== want[scheme][id]) fails.push(`dark: variant (${scheme} OS): #${id} ${got[id] ? 'on' : 'off'}`);
+  }
+  await p.close();
+}
 if (/--font-display:\s*var\(--font-display\)/.test(css)) fails.push('--font-display refers to itself');
 fs.rmSync(dir, { recursive: true, force: true });
 if (fails.length) {

@@ -13,20 +13,31 @@ export const pad = function (n: number) {
   return (n < 10 ? '0' : '') + n;
 };
 export function toISO(d: Date | null | undefined): ISODate | null {
-  return d ? d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) : null;
+  if (!d) return null;
+  const y = String(d.getFullYear());
+  return ('000' + y).slice(-Math.max(4, y.length)) + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 }
+/* A local date for any year: new Date(y, …) reads 0–99 as 1900–1999, setFullYear doesn't (5.2). */
+export function makeDate(y: number, monthIndex: number, day: number): Date {
+  const d = new Date(2000, 0, 1);
+  d.setFullYear(y, monthIndex, day);
+  return d;
+}
+/** ISO → local Date; null for text that isn't a real date ("2026-02-31" no longer rolls over into March, 5.2). */
 export function fromISO(s: ISODate | null | undefined): Date | null {
   if (!s) return null;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  if (!m) return null;
+  const d = makeDate(+m[1], +m[2] - 1, +m[3]);
+  return d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
 }
 export function addDays(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  return makeDate(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 export function addMonths(d: Date, n: number): Date {
-  const t = new Date(d.getFullYear(), d.getMonth() + n, 1);
-  const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
-  return new Date(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last));
+  const t = makeDate(d.getFullYear(), d.getMonth() + n, 1);
+  const last = makeDate(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+  return makeDate(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last));
 }
 export function same(a: Date | null | undefined, b: Date | null | undefined): boolean {
   return (
@@ -167,7 +178,25 @@ export function monthIndex(word: string): number {
 }
 /** Parse typed text: dd/mm/yyyy (Buddhist years ≥ 2400 are converted), d-m-yyyy, d.m.yyyy, yyyy-mm-dd or '18 ก.ย. 2569' / '18 Sep 2026'. */
 export function parseDate(text: string | null | undefined): ISODate | null {
-  const s = String(text || '').trim();
+  const raw = String(text || '').trim();
+  /* An era written anywhere ("18 ก.ย. พ.ศ. 2569", "พ.ศ. 2569") is read, then removed; ค.ศ. / AD / CE mean the
+   * year is Gregorian even if it is ≥ 2400 (5.2). */
+  const gregorian = /ค\.ศ\.|\d\s*(AD|CE)\b|^\s*(AD|CE)\s/i.test(raw);
+  let s = raw
+    .replace(/พ\.ศ\.|ค\.ศ\./g, ' ')
+    .replace(/(\d)\s*(BE|AD|CE)\b/gi, '$1 ')
+    .replace(/^\s*(BE|AD|CE)\s+/i, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  /* Eight digits with no separators (a phone keypad): ddmmyyyy, else yyyymmdd (5.2). */
+  const eight = /^(\d{2})(\d{2})(\d{4})$/.exec(s);
+  if (eight) {
+    /* ddmmyyyy only with a four-digit year: "20120112" is 12 January 2012, not 20 December 0112. */
+    const a =
+      +eight[3] >= 1000 ? parseDate(eight[1] + '/' + eight[2] + '/' + eight[3] + (gregorian ? ' ค.ศ.' : '')) : null;
+    if (a) return a;
+    s = s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6);
+  }
   let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s),
     y: number,
     mo: number,
@@ -180,13 +209,13 @@ export function parseDate(text: string | null | undefined): ISODate | null {
     d = +m[1];
     mo = +m[2];
     y = +m[3];
-  } else if ((m = /^(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(s.replace(ERA, '').trim())) && monthIndex(m[2]) >= 0) {
+  } else if ((m = /^(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(s)) && monthIndex(m[2]) >= 0) {
     d = +m[1];
     mo = monthIndex(m[2]) + 1;
     y = +m[3];
   } else return null;
-  if (y >= 2400) y -= 543;
-  const dt = new Date(y, mo - 1, d);
+  if (y >= 2400 && !gregorian) y -= 543;
+  const dt = makeDate(y, mo - 1, d);
   return dt.getMonth() === mo - 1 && dt.getDate() === d ? toISO(dt) : null;
 }
 

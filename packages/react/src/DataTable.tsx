@@ -323,12 +323,15 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     if (lv && boxWidth[0] == null) hideTerms += ' + ' + w + 'px * var(--aura-h' + lv + '-on, 1)';
     else fixedSum += w;
   });
-  let pinOffsets: Record<string, number> = {},
-    acc = 0;
+  /* Offsets of pinned columns as CSS terms: before hydration a pinned column that hideBelow hides counts as 0
+   * (its * var(--aura-hN-on, 1) term), so the next pinned column doesn't jump (5.2). */
+  let pinOffsets: Record<string, string> = {},
+    acc = '0px';
   vis.forEach(function (c: Col) {
     if (isPinned(c)) {
       pinOffsets[c.key] = acc;
-      acc += widthOf(c)!;
+      const lv = hideLevel(c);
+      acc += ' + ' + widthOf(c)! + 'px' + (lv && boxWidth[0] == null ? ' * var(--aura-h' + lv + '-on, 1)' : '');
     }
   });
   const selW = selectable ? ' + var(--aura-table-select-width)' : '';
@@ -346,7 +349,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       s['--aura-cell-flex'] = !hasFlex && i === vis.length - 1 ? '1 0 auto' : 'none';
       s['--aura-cell-w'] = w + 'px';
     }
-    if (isPinned(c)) s['--aura-cell-left'] = 'calc(var(--aura-space-6)' + selW + ' + ' + pinOffsets[c.key] + 'px)';
+    if (isPinned(c)) s['--aura-cell-left'] = 'calc(var(--aura-space-6)' + selW + ' + ' + pinOffsets[c.key] + ')';
     return s as React.CSSProperties;
   }
 
@@ -412,6 +415,23 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   const pageRows = pageSize && !manual ? view.slice(first, first + pageSize) : view;
   const canSortAny = !busy && (manual ? total > 1 : rows.length > 1);
   const shownTotal = manual && props.totalRows == null ? first + rows.length : total;
+  /* The page count shrank under the page being shown (a filter left one page, totalRows dropped): report the
+   * clamped page, so the app's page state and URL match the screen (5.2). Only a shrink counts — a page restored
+   * from the URL while rows are still loading (count 1 at first) is kept. */
+  const prevCount = React.useRef(pageCount);
+  React.useEffect(
+    function () {
+      if (busy) return; /* compare settled counts only: a refetch's empty rows are not a shrink */
+      const before = prevCount.current;
+      prevCount.current = pageCount;
+      const asked = pageState[0] || 1;
+      if (asked === page || pageCount >= before || asked > before) return;
+      if (props.getPageHref && !props.onPageChange && !props.onStateChange) return;
+      pageState[1](page);
+      emit(sort, page);
+    },
+    [pageState[0], page, busy, pageCount],
+  );
   /* Pager links (getPageHref) with no onPageChange: the URL is the page state, so keyboard paging follows the link. */
   const linkPaging = !!props.getPageHref && !props.onPageChange && !oneCallback;
   const prevLink = React.useRef<HTMLElement | null>(null),
@@ -499,10 +519,14 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
   /* grid geometry: r 0 = header, 1..N = rows; c 0.. = [select?] + vis */
   const nCols = vis.length + (selectable ? 1 : 0);
   const nRows = loading ? 0 : pageRows.length;
+  /* The totals row is grid row nRows + 1 (5.2): arrow keys reach it, so screen readers in grid mode hear it. */
+  const hasTotal = !!(props.footer && rows.length && !loading),
+    T = nRows + 1,
+    lastR = nRows + (hasTotal ? 1 : 0);
   const active = activeState[0];
-  const ar = Math.min(active.r, nRows),
+  const ar = Math.min(active.r, lastR),
     ac = Math.min(active.c, nCols - 1);
-  const activeRendered = ar === 0 || (ar - 1 >= start && ar - 1 < end);
+  const activeRendered = ar === 0 || (hasTotal && ar === T) || (ar - 1 >= start && ar - 1 < end);
   function colAt(ci: number): Col | null {
     return selectable ? (ci === 0 ? null : vis[ci - 1]) : vis[ci];
   }
@@ -535,13 +559,36 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     }
   });
   function focusCell(r: number, c: number) {
-    r = Math.max(0, Math.min(r, nRows));
+    r = Math.max(0, Math.min(r, lastR));
     c = Math.max(0, Math.min(c, nCols - 1));
     /* Cards: the header row is for screen readers only, except the select-all box. Keep focus on the cards. */
     if (stacked && r === 0 && nRows > 0 && !(selectable && c === 0)) r = 1;
+    /* A cell the layout hides (a blank totals cell in the card layout) is skipped for the nearest shown one in the row
+     * (5.2), so the grid never parks its tab stop on something invisible. */
+    if (gridRef.current && r === T && hasTotal) {
+      const shown = function (cc: number) {
+        const e = gridRef.current!.querySelector<HTMLElement>('[data-rc="' + r + ':' + cc + '"]');
+        return !!e && e.getClientRects().length > 0;
+      };
+      if (!shown(c))
+        for (let d = 1; d < nCols; d++) {
+          if (c + d < nCols && shown(c + d)) {
+            c = c + d;
+            break;
+          }
+          if (c - d >= 0 && shown(c - d)) {
+            c = c - d;
+            break;
+          }
+        }
+    }
     activeState[1]({ r: r, c: c });
     pending.current = { r: r, c: c };
-    if (virtual && r > 0) {
+    if (virtual && hasTotal && r === T && !props.stickyFooter) {
+      const sc = scrollRef.current!;
+      sc.scrollTop = sc.scrollHeight;
+      setScrollTop(sc.scrollTop);
+    } else if (virtual && r > 0 && r <= nRows) {
       const sc = scrollRef.current!,
         top = (r - 1) * ROW_H;
       if (top < sc.scrollTop) sc.scrollTop = top;
@@ -822,7 +869,8 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       c = +p[1],
       k = e.key,
       col = colAt(c);
-    const row = r > 0 ? pageRows[r - 1] : null;
+    const row = r > 0 && r <= nRows ? pageRows[r - 1] : null,
+      isTotal = hasTotal && r === T;
     let handled = true;
     if (r === 0 && col && e.altKey && (k === 'ArrowLeft' || k === 'ArrowRight') && canResize(col))
       setW(col, widthOf(col)! + (k === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 48 : 16), true);
@@ -838,21 +886,23 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     else if (k === 'ArrowRight') focusCell(r, c + 1);
     else if (k === 'ArrowLeft') focusCell(r, c - 1);
     else if (k === 'ArrowDown') {
-      if (r < nRows) focusCell(r + 1, c);
+      if (r < lastR) focusCell(r + 1, c);
       else if (pageSize && page < pageCount && goPage(page + 1, { r: 1, c: c })) activeState[1]({ r: 1, c: c });
     } else if (k === 'ArrowUp') {
       if (r > 1 || (r === 1 && !(pageSize && page > 1))) focusCell(r - 1, c);
       else if (r === 1 && goPage(page - 1, { r: pageSize, c: c })) activeState[1]({ r: pageSize, c: c });
     } else if (k === 'Home') focusCell(e.ctrlKey ? 1 : r, 0);
-    else if (k === 'End') focusCell(e.ctrlKey ? nRows : r, nCols - 1);
+    else if (k === 'End') focusCell(e.ctrlKey ? lastR : r, nCols - 1);
     else if (k === 'PageDown') {
       if (pageSize) {
         if (goPage(page + 1, { r: 1, c: c })) activeState[1]({ r: 1, c: c });
-      } else focusCell(Math.min(nRows, r + visibleRows), c);
+      } else focusCell(Math.min(lastR, r + visibleRows), c);
     } else if (k === 'PageUp') {
       if (pageSize) {
         if (goPage(page - 1, { r: 1, c: c })) activeState[1]({ r: 1, c: c });
       } else focusCell(Math.max(1, r - visibleRows), c);
+    } else if (isTotal && (k === ' ' || k === 'Enter' || k === 'F2')) {
+      handled = false;
     } else if (k === 'F2' && r > 0) {
       /* F2 (like Enter) moves into a control inside the cell; Escape brings focus back to the cell. */
       const inner = target.querySelector<HTMLElement>('button, a[href], input, select, textarea');
@@ -1249,14 +1299,18 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     );
   }
   /* 5.1.1: an empty later page (a server page past the end) keeps the pager, so there is a way back. */
+  /* Without totalRows, while pages come back full there may be more: don't state a total (5.2). */
+  const openTotal = manual && props.totalRows == null && !!pageSize && rows.length >= pageSize;
   if (pageSize && (rows.length || busy || page > 1)) {
     const from = rows.length ? first + 1 : 0,
       to = manual ? first + rows.length : Math.min(first + pageSize, view.length);
     foot = (
       <div className="aura-table__foot">
-        <span aria-live="polite">{busy ? t.loading : t.range(from, to, shownTotal)}</span>
+        <span aria-live="polite">
+          {busy ? t.loading : openTotal ? t.rangeOpen(from, to) : t.range(from, to, shownTotal)}
+        </span>
         <span className="aura-table__pager">
-          <span>{t.page(page, pageCount)}</span>
+          <span>{openTotal ? t.pageOpen(page) : t.page(page, pageCount)}</span>
           {pagerButton(-1)}
           {pagerButton(1)}
         </span>
@@ -1282,14 +1336,31 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
         style={rowStyle}
       >
         <span className="aura-table__gutter" aria-hidden={true} />
-        {selectable ? <span className={cx('aura-table__sel', nPinned && 'is-pinned')} aria-hidden={true} /> : null}
+        {selectable ? (
+          <span
+            role="gridcell"
+            aria-colindex={1}
+            className={cx('aura-table__sel', nPinned && 'is-pinned')}
+            tabIndex={tabFor(T, 0)}
+            data-rc={T + ':0'}
+            onFocus={function () {
+              activeState[1]({ r: T, c: 0 });
+            }}
+          />
+        ) : null}
         {vis.map(function (c: Col, j: number) {
-          const pin = isPinned(c);
+          const pin = isPinned(c),
+            ci = j + (selectable ? 1 : 0);
           return (
             <span
               key={c.key}
               role="gridcell"
               aria-colindex={j + (selectable ? 2 : 1)}
+              tabIndex={tabFor(T, ci)}
+              data-rc={T + ':' + ci}
+              onFocus={function () {
+                if (activeState[0].r !== T || activeState[0].c !== ci) activeState[1]({ r: T, c: ci });
+              }}
               className={cx(
                 'aura-table__td',
                 c.mono && 'aura-table__mono',
@@ -1314,7 +1385,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
       </div>
     ) : null;
   const scrollStyle: React.CSSProperties = {
-    scrollPaddingLeft: 'calc(var(--aura-space-6)' + selW + ' + ' + acc + 'px)',
+    scrollPaddingLeft: 'calc(var(--aura-space-6)' + selW + ' + ' + acc + ')',
     scrollPaddingTop: ROW_H + 'px',
     scrollPaddingBottom: stickyTotal ? ROW_H + 'px' : undefined,
   };

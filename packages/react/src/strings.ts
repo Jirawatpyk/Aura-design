@@ -56,6 +56,9 @@ export interface AuraStrings {
   loadingRows: string;
   range: (a: number | string, b: number | string, total: number) => string;
   page: (p: number, total: number) => string;
+  /** Server paging without totalRows (5.2): the range and page when the total isn't known. */
+  rangeOpen: (a: number | string, b: number | string) => string;
+  pageOpen: (p: number) => string;
   prevPage: string;
   nextPage: string;
   rowCount: (c: number) => string;
@@ -65,6 +68,8 @@ export interface AuraStrings {
   timePlaceholder: string;
   timeInvalid: string;
   timeOutOfRange: (a: number | string, b: number | string) => string;
+  /** A time inside the range that isTimeDisabled refuses (5.2). */
+  timeUnavailable: string;
   dropFiles: string;
   browse: string;
   browseOne: string;
@@ -155,6 +160,12 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     page: function (p, total) {
       return 'Page ' + p + ' of ' + total;
     },
+    rangeOpen: function (a, b) {
+      return a + '–' + b + ' of many';
+    },
+    pageOpen: function (p) {
+      return 'Page ' + p;
+    },
     prevPage: 'Previous page',
     nextPage: 'Next page',
     totals: 'Totals',
@@ -168,6 +179,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     timeOutOfRange: function (a, b) {
       return 'Choose a time between ' + a + ' and ' + b;
     },
+    timeUnavailable: "That time isn't available. Choose another.",
     dropFiles: 'Drag files here or',
     browse: 'Choose files',
     browseOne: 'Choose a file',
@@ -269,6 +281,12 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     page: function (p, total) {
       return 'หน้า ' + p + ' / ' + total;
     },
+    rangeOpen: function (a, b) {
+      return a + '–' + b + ' จากหลายรายการ';
+    },
+    pageOpen: function (p) {
+      return 'หน้า ' + p;
+    },
     prevPage: 'หน้าก่อนหน้า',
     nextPage: 'หน้าถัดไป',
     totals: 'รวม',
@@ -282,6 +300,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     timeOutOfRange: function (a, b) {
       return 'เลือกเวลาระหว่าง ' + a + '–' + b + ' น.';
     },
+    timeUnavailable: 'เวลานี้ไม่ว่าง เลือกเวลาอื่น',
     dropFiles: 'ลากไฟล์มาวาง หรือ',
     browse: 'เลือกไฟล์',
     browseOne: 'เลือกไฟล์',
@@ -383,6 +402,12 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     page: function (p, total) {
       return 'Sida ' + p + ' av ' + total;
     },
+    rangeOpen: function (a, b) {
+      return a + '–' + b + ' av många';
+    },
+    pageOpen: function (p) {
+      return 'Sida ' + p;
+    },
     prevPage: 'Föregående sida',
     nextPage: 'Nästa sida',
     totals: 'Summa',
@@ -396,6 +421,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     timeOutOfRange: function (a, b) {
       return 'Välj en tid mellan ' + a + ' och ' + b;
     },
+    timeUnavailable: 'Den tiden är inte ledig. Välj en annan.',
     dropFiles: 'Dra filer hit eller',
     browse: 'Välj filer',
     browseOne: 'Välj en fil',

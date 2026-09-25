@@ -82,6 +82,8 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
     [items, props.name],
   );
   function thumb(it: UploadItem): string | null {
+    /* A file already stored (edit forms) shows from its url (5.2: url was documented but unused). */
+    if (!it.file && it.url && /^image\//.test(it.type || '')) return it.url;
     if (!it.file || !/^image\//.test(it.type || '') || typeof URL === 'undefined' || !URL.createObjectURL) return null;
     if (!urls.current[it.id]) urls.current[it.id] = URL.createObjectURL(it.file);
     return urls.current[it.id];
@@ -210,7 +212,13 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
                   </span>
                 )}
                 <span className="aura-upload__meta">
-                  <span className="aura-upload__name">{it.name}</span>
+                  {it.url && !it.error ? (
+                    <a className="aura-upload__name" href={it.url} target="_blank" rel="noreferrer">
+                      {it.name}
+                    </a>
+                  ) : (
+                    <span className="aura-upload__name">{it.name}</span>
+                  )}
                   <span className="aura-upload__sub">
                     {it.error ? (
                       <React.Fragment>

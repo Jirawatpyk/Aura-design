@@ -391,17 +391,21 @@ function useCalendarPopover(boxRef: React.RefObject<HTMLDivElement | null>) {
     mounted = useMounted();
   function place() {
     if (!boxRef.current) return;
-    const r = boxRef.current.getBoundingClientRect(),
-      H = 380;
-    const up = window.innerHeight - r.bottom < H && r.top > H;
-    const left = Math.max(8, Math.min(r.left, window.innerWidth - 320 - 8));
+    /* The estimate places it the first time; once it is on screen its real size is used (5.2: 44px touch cells and
+     * the range hint made it wider and taller than 320 × 380, so it was clipped on phones). */
+    const el = popRef.current,
+      r = boxRef.current.getBoundingClientRect(),
+      W = el ? el.offsetWidth : 320,
+      H = el ? el.offsetHeight : 380;
+    const up = window.innerHeight - r.bottom < H + 12 && r.top > H + 12;
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
     pos[1](up ? { left: left, bottom: window.innerHeight - r.top + 4 } : { left: left, top: r.bottom + 4 });
   }
   useIsoLayoutEffect(
     function () {
       if (open) place();
     },
-    [open],
+    [open, !!pos[0]],
   );
   React.useEffect(
     function () {

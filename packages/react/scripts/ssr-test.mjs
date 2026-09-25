@@ -78,6 +78,16 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     for (const sel of ['.tenant-acme', '[data-tenant^="acme"]', '[lang|="th"]', '.tenant\\:acme', '.ร้าน', ':where(.x) .brand', '#app > .brand']) {
       try { A.createTheme({ brand: '#7c3aed' }).css(sel); } catch (e) { console.log(label, 'selector refused:', sel); fail++; }
     }
+    /* 5.2: parseDate reads eras anywhere and eight digits; no 1900s for years 0–99; no rollover; 12-hour times are 1–12. */
+    const P = {
+      '18 ก.ย. พ.ศ. 2569': '2026-09-18', '18092569': '2026-09-18', '20260918': '2026-09-18', '01/01/2450 ค.ศ.': '2450-01-01',
+      '0024-05-01': '0024-05-01', '31/02/2026': null, '2026-02-31': null, '18/09/2569': '2026-09-18',
+      '20120112': '2012-01-12', '19100515': '1910-05-15', '18 ก.ย. 2569BE': '2026-09-18', '18 ก.ย. 2569': '2026-09-18',
+      '18 sep. 2026': '2026-09-18', '2026-09-18': '2026-09-18',
+    };
+    for (const [txt, want] of Object.entries(P)) if (A.parseDate(txt) !== want) { console.log(label, 'parseDate', txt, '→', A.parseDate(txt), 'want', want); fail++; }
+    if (A.formatDate('2026-02-31') !== '') { console.log(label, 'formatDate rolled 2026-02-31 over:', A.formatDate('2026-02-31')); fail++; }
+    if (A.parseTime && (A.parseTime('13pm') !== null || A.parseTime('0am') !== null || A.parseTime('12am') !== '00:00' || A.parseTime('1:30 pm') !== '13:30')) { console.log(label, 'parseTime 12-hour:', A.parseTime('13pm'), A.parseTime('0am'), A.parseTime('12am'), A.parseTime('1:30 pm')); fail++; }
     for (const sel of ['.a{}</style>', '.a;b', '.a /* x */']) {
       let threw = false;
       try { A.createTheme({ brand: '#7c3aed' }).css(sel); } catch (e) { threw = true; }

@@ -1381,6 +1381,9 @@ export interface AuraStrings {
 	loadingRows: string;
 	range: (a: number | string, b: number | string, total: number) => string;
 	page: (p: number, total: number) => string;
+	/** Server paging without totalRows (5.2): the range and page when the total isn't known. */
+	rangeOpen: (a: number | string, b: number | string) => string;
+	pageOpen: (p: number) => string;
 	prevPage: string;
 	nextPage: string;
 	rowCount: (c: number) => string;
@@ -1390,6 +1393,8 @@ export interface AuraStrings {
 	timePlaceholder: string;
 	timeInvalid: string;
 	timeOutOfRange: (a: number | string, b: number | string) => string;
+	/** A time inside the range that isTimeDisabled refuses (5.2). */
+	timeUnavailable: string;
 	dropFiles: string;
 	browse: string;
 	browseOne: string;

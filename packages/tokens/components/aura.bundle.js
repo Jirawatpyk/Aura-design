@@ -378,6 +378,12 @@ window.Aura = (() => {
       page: function(p, total) {
         return "Page " + p + " of " + total;
       },
+      rangeOpen: function(a, b) {
+        return a + "\u2013" + b + " of many";
+      },
+      pageOpen: function(p) {
+        return "Page " + p;
+      },
       prevPage: "Previous page",
       nextPage: "Next page",
       totals: "Totals",
@@ -391,6 +397,7 @@ window.Aura = (() => {
       timeOutOfRange: function(a, b) {
         return "Choose a time between " + a + " and " + b;
       },
+      timeUnavailable: "That time isn't available. Choose another.",
       dropFiles: "Drag files here or",
       browse: "Choose files",
       browseOne: "Choose a file",
@@ -492,6 +499,12 @@ window.Aura = (() => {
       page: function(p, total) {
         return "\u0E2B\u0E19\u0E49\u0E32 " + p + " / " + total;
       },
+      rangeOpen: function(a, b) {
+        return a + "\u2013" + b + " \u0E08\u0E32\u0E01\u0E2B\u0E25\u0E32\u0E22\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23";
+      },
+      pageOpen: function(p) {
+        return "\u0E2B\u0E19\u0E49\u0E32 " + p;
+      },
       prevPage: "\u0E2B\u0E19\u0E49\u0E32\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32",
       nextPage: "\u0E2B\u0E19\u0E49\u0E32\u0E16\u0E31\u0E14\u0E44\u0E1B",
       totals: "\u0E23\u0E27\u0E21",
@@ -505,6 +518,7 @@ window.Aura = (() => {
       timeOutOfRange: function(a, b) {
         return "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E27\u0E25\u0E32\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07 " + a + "\u2013" + b + " \u0E19.";
       },
+      timeUnavailable: "\u0E40\u0E27\u0E25\u0E32\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E07 \u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E27\u0E25\u0E32\u0E2D\u0E37\u0E48\u0E19",
       dropFiles: "\u0E25\u0E32\u0E01\u0E44\u0E1F\u0E25\u0E4C\u0E21\u0E32\u0E27\u0E32\u0E07 \u0E2B\u0E23\u0E37\u0E2D",
       browse: "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E44\u0E1F\u0E25\u0E4C",
       browseOne: "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E44\u0E1F\u0E25\u0E4C",
@@ -606,6 +620,12 @@ window.Aura = (() => {
       page: function(p, total) {
         return "Sida " + p + " av " + total;
       },
+      rangeOpen: function(a, b) {
+        return a + "\u2013" + b + " av m\xE5nga";
+      },
+      pageOpen: function(p) {
+        return "Sida " + p;
+      },
       prevPage: "F\xF6reg\xE5ende sida",
       nextPage: "N\xE4sta sida",
       totals: "Summa",
@@ -619,6 +639,7 @@ window.Aura = (() => {
       timeOutOfRange: function(a, b) {
         return "V\xE4lj en tid mellan " + a + " och " + b;
       },
+      timeUnavailable: "Den tiden \xE4r inte ledig. V\xE4lj en annan.",
       dropFiles: "Dra filer hit eller",
       browse: "V\xE4lj filer",
       browseOne: "V\xE4lj en fil",
@@ -1690,20 +1711,29 @@ window.Aura = (() => {
     return (n2 < 10 ? "0" : "") + n2;
   };
   function toISO(d) {
-    return d ? d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) : null;
+    if (!d) return null;
+    const y = String(d.getFullYear());
+    return ("000" + y).slice(-Math.max(4, y.length)) + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function makeDate(y, monthIndex2, day) {
+    const d = new Date(2e3, 0, 1);
+    d.setFullYear(y, monthIndex2, day);
+    return d;
   }
   function fromISO(s) {
     if (!s) return null;
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+    if (!m) return null;
+    const d = makeDate(+m[1], +m[2] - 1, +m[3]);
+    return d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
   }
   function addDays(d, n2) {
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n2);
+    return makeDate(d.getFullYear(), d.getMonth(), d.getDate() + n2);
   }
   function addMonths(d, n2) {
-    const t = new Date(d.getFullYear(), d.getMonth() + n2, 1);
-    const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
-    return new Date(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last));
+    const t = makeDate(d.getFullYear(), d.getMonth() + n2, 1);
+    const last = makeDate(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+    return makeDate(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last));
   }
   function same(a, b) {
     return !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -1811,7 +1841,15 @@ window.Aura = (() => {
     return MONTHS[k] != null ? MONTHS[k] : -1;
   }
   function parseDate(text) {
-    const s = String(text || "").trim();
+    const raw = String(text || "").trim();
+    const gregorian = /ค\.ศ\.|\d\s*(AD|CE)\b|^\s*(AD|CE)\s/i.test(raw);
+    let s = raw.replace(/พ\.ศ\.|ค\.ศ\./g, " ").replace(/(\d)\s*(BE|AD|CE)\b/gi, "$1 ").replace(/^\s*(BE|AD|CE)\s+/i, " ").replace(/\s+/g, " ").trim();
+    const eight = /^(\d{2})(\d{2})(\d{4})$/.exec(s);
+    if (eight) {
+      const a = +eight[3] >= 1e3 ? parseDate(eight[1] + "/" + eight[2] + "/" + eight[3] + (gregorian ? " \u0E04.\u0E28." : "")) : null;
+      if (a) return a;
+      s = s.slice(0, 4) + "-" + s.slice(4, 6) + "-" + s.slice(6);
+    }
     let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s), y, mo, d;
     if (m) {
       y = +m[1];
@@ -1821,13 +1859,13 @@ window.Aura = (() => {
       d = +m[1];
       mo = +m[2];
       y = +m[3];
-    } else if ((m = /^(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(s.replace(ERA, "").trim())) && monthIndex(m[2]) >= 0) {
+    } else if ((m = /^(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(s)) && monthIndex(m[2]) >= 0) {
       d = +m[1];
       mo = monthIndex(m[2]) + 1;
       y = +m[3];
     } else return null;
-    if (y >= 2400) y -= 543;
-    const dt = new Date(y, mo - 1, d);
+    if (y >= 2400 && !gregorian) y -= 543;
+    const dt = makeDate(y, mo - 1, d);
     return dt.getMonth() === mo - 1 && dt.getDate() === d ? toISO(dt) : null;
   }
   function todayIn(timeZone) {
@@ -2118,16 +2156,16 @@ window.Aura = (() => {
     const pos = React17.useState(null), popRef = React17.useRef(null), mounted = useMounted();
     function place() {
       if (!boxRef.current) return;
-      const r = boxRef.current.getBoundingClientRect(), H = 380;
-      const up = window.innerHeight - r.bottom < H && r.top > H;
-      const left = Math.max(8, Math.min(r.left, window.innerWidth - 320 - 8));
+      const el = popRef.current, r = boxRef.current.getBoundingClientRect(), W = el ? el.offsetWidth : 320, H = el ? el.offsetHeight : 380;
+      const up = window.innerHeight - r.bottom < H + 12 && r.top > H + 12;
+      const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
       pos[1](up ? { left, bottom: window.innerHeight - r.top + 4 } : { left, top: r.bottom + 4 });
     }
     useIsoLayoutEffect(
       function() {
         if (open) place();
       },
-      [open]
+      [open, !!pos[0]]
     );
     React17.useEffect(
       function() {
@@ -3696,11 +3734,12 @@ window.Aura = (() => {
       if (lv && boxWidth[0] == null) hideTerms += " + " + w + "px * var(--aura-h" + lv + "-on, 1)";
       else fixedSum += w;
     });
-    let pinOffsets = {}, acc = 0;
+    let pinOffsets = {}, acc = "0px";
     vis.forEach(function(c) {
       if (isPinned(c)) {
         pinOffsets[c.key] = acc;
-        acc += widthOf(c);
+        const lv = hideLevel(c);
+        acc += " + " + widthOf(c) + "px" + (lv && boxWidth[0] == null ? " * var(--aura-h" + lv + "-on, 1)" : "");
       }
     });
     const selW = selectable ? " + var(--aura-table-select-width)" : "";
@@ -3715,7 +3754,7 @@ window.Aura = (() => {
         s["--aura-cell-flex"] = !hasFlex && i === vis.length - 1 ? "1 0 auto" : "none";
         s["--aura-cell-w"] = w + "px";
       }
-      if (isPinned(c)) s["--aura-cell-left"] = "calc(var(--aura-space-6)" + selW + " + " + pinOffsets[c.key] + "px)";
+      if (isPinned(c)) s["--aura-cell-left"] = "calc(var(--aura-space-6)" + selW + " + " + pinOffsets[c.key] + ")";
       return s;
     }
     const sortCol = sort && sort.key ? byKey[sort.key] : void 0;
@@ -3761,6 +3800,20 @@ window.Aura = (() => {
     const pageRows = pageSize && !manual ? view.slice(first, first + pageSize) : view;
     const canSortAny = !busy && (manual ? total > 1 : rows.length > 1);
     const shownTotal = manual && props.totalRows == null ? first + rows.length : total;
+    const prevCount = React28.useRef(pageCount);
+    React28.useEffect(
+      function() {
+        if (busy) return;
+        const before = prevCount.current;
+        prevCount.current = pageCount;
+        const asked = pageState[0] || 1;
+        if (asked === page || pageCount >= before || asked > before) return;
+        if (props.getPageHref && !props.onPageChange && !props.onStateChange) return;
+        pageState[1](page);
+        emit(sort, page);
+      },
+      [pageState[0], page, busy, pageCount]
+    );
     const linkPaging = !!props.getPageHref && !props.onPageChange && !oneCallback;
     const prevLink = React28.useRef(null), nextLink = React28.useRef(null), jumpLink = React28.useRef(null);
     const jumpState = React28.useState(null);
@@ -3829,9 +3882,10 @@ window.Aura = (() => {
     const visibleRows = Math.max(1, Math.floor(bodyH / ROW_H));
     const nCols = vis.length + (selectable ? 1 : 0);
     const nRows = loading ? 0 : pageRows.length;
+    const hasTotal = !!(props.footer && rows.length && !loading), T = nRows + 1, lastR = nRows + (hasTotal ? 1 : 0);
     const active = activeState[0];
-    const ar = Math.min(active.r, nRows), ac = Math.min(active.c, nCols - 1);
-    const activeRendered = ar === 0 || ar - 1 >= start && ar - 1 < end;
+    const ar = Math.min(active.r, lastR), ac = Math.min(active.c, nCols - 1);
+    const activeRendered = ar === 0 || hasTotal && ar === T || ar - 1 >= start && ar - 1 < end;
     function colAt(ci) {
       return selectable ? ci === 0 ? null : vis[ci - 1] : vis[ci];
     }
@@ -3862,12 +3916,33 @@ window.Aura = (() => {
       }
     });
     function focusCell(r, c) {
-      r = Math.max(0, Math.min(r, nRows));
+      r = Math.max(0, Math.min(r, lastR));
       c = Math.max(0, Math.min(c, nCols - 1));
       if (stacked && r === 0 && nRows > 0 && !(selectable && c === 0)) r = 1;
+      if (gridRef.current && r === T && hasTotal) {
+        const shown2 = function(cc) {
+          const e = gridRef.current.querySelector('[data-rc="' + r + ":" + cc + '"]');
+          return !!e && e.getClientRects().length > 0;
+        };
+        if (!shown2(c))
+          for (let d = 1; d < nCols; d++) {
+            if (c + d < nCols && shown2(c + d)) {
+              c = c + d;
+              break;
+            }
+            if (c - d >= 0 && shown2(c - d)) {
+              c = c - d;
+              break;
+            }
+          }
+      }
       activeState[1]({ r, c });
       pending.current = { r, c };
-      if (virtual && r > 0) {
+      if (virtual && hasTotal && r === T && !props.stickyFooter) {
+        const sc = scrollRef.current;
+        sc.scrollTop = sc.scrollHeight;
+        setScrollTop(sc.scrollTop);
+      } else if (virtual && r > 0 && r <= nRows) {
         const sc = scrollRef.current, top = (r - 1) * ROW_H;
         if (top < sc.scrollTop) sc.scrollTop = top;
         else if (top + ROW_H > sc.scrollTop + bodyH) sc.scrollTop = top + ROW_H - bodyH;
@@ -4110,7 +4185,7 @@ window.Aura = (() => {
         return;
       }
       const p = rc.split(":"), r = +p[0], c = +p[1], k = e.key, col = colAt(c);
-      const row = r > 0 ? pageRows[r - 1] : null;
+      const row = r > 0 && r <= nRows ? pageRows[r - 1] : null, isTotal = hasTotal && r === T;
       let handled = true;
       if (r === 0 && col && e.altKey && (k === "ArrowLeft" || k === "ArrowRight") && canResize(col))
         setW(col, widthOf(col) + (k === "ArrowLeft" ? -1 : 1) * (e.shiftKey ? 48 : 16), true);
@@ -4121,21 +4196,23 @@ window.Aura = (() => {
       else if (k === "ArrowRight") focusCell(r, c + 1);
       else if (k === "ArrowLeft") focusCell(r, c - 1);
       else if (k === "ArrowDown") {
-        if (r < nRows) focusCell(r + 1, c);
+        if (r < lastR) focusCell(r + 1, c);
         else if (pageSize && page < pageCount && goPage(page + 1, { r: 1, c })) activeState[1]({ r: 1, c });
       } else if (k === "ArrowUp") {
         if (r > 1 || r === 1 && !(pageSize && page > 1)) focusCell(r - 1, c);
         else if (r === 1 && goPage(page - 1, { r: pageSize, c })) activeState[1]({ r: pageSize, c });
       } else if (k === "Home") focusCell(e.ctrlKey ? 1 : r, 0);
-      else if (k === "End") focusCell(e.ctrlKey ? nRows : r, nCols - 1);
+      else if (k === "End") focusCell(e.ctrlKey ? lastR : r, nCols - 1);
       else if (k === "PageDown") {
         if (pageSize) {
           if (goPage(page + 1, { r: 1, c })) activeState[1]({ r: 1, c });
-        } else focusCell(Math.min(nRows, r + visibleRows), c);
+        } else focusCell(Math.min(lastR, r + visibleRows), c);
       } else if (k === "PageUp") {
         if (pageSize) {
           if (goPage(page - 1, { r: 1, c })) activeState[1]({ r: 1, c });
         } else focusCell(Math.max(1, r - visibleRows), c);
+      } else if (isTotal && (k === " " || k === "Enter" || k === "F2")) {
+        handled = false;
       } else if (k === "F2" && r > 0) {
         const inner = target.querySelector("button, a[href], input, select, textarea");
         if (inner) inner.focus();
@@ -4506,9 +4583,10 @@ window.Aura = (() => {
         }
       );
     }
+    const openTotal = manual && props.totalRows == null && !!pageSize && rows.length >= pageSize;
     if (pageSize && (rows.length || busy || page > 1)) {
       const from = rows.length ? first + 1 : 0, to = manual ? first + rows.length : Math.min(first + pageSize, view.length);
-      foot = /* @__PURE__ */ React28.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React28.createElement("span", { "aria-live": "polite" }, busy ? t.loading : t.range(from, to, shownTotal)), /* @__PURE__ */ React28.createElement("span", { className: "aura-table__pager" }, /* @__PURE__ */ React28.createElement("span", null, t.page(page, pageCount)), pagerButton(-1), pagerButton(1)));
+      foot = /* @__PURE__ */ React28.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React28.createElement("span", { "aria-live": "polite" }, busy ? t.loading : openTotal ? t.rangeOpen(from, to) : t.range(from, to, shownTotal)), /* @__PURE__ */ React28.createElement("span", { className: "aura-table__pager" }, /* @__PURE__ */ React28.createElement("span", null, openTotal ? t.pageOpen(page) : t.page(page, pageCount)), pagerButton(-1), pagerButton(1)));
     } else if (height && rows.length && !loading) {
       foot = /* @__PURE__ */ React28.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React28.createElement("span", null, t.rowCount(shownTotal)), selectable && selected.length ? /* @__PURE__ */ React28.createElement("span", null, t.selectedCount(selected.length)) : /* @__PURE__ */ React28.createElement("span", null));
     }
@@ -4522,15 +4600,32 @@ window.Aura = (() => {
         style: rowStyle
       },
       /* @__PURE__ */ React28.createElement("span", { className: "aura-table__gutter", "aria-hidden": true }),
-      selectable ? /* @__PURE__ */ React28.createElement("span", { className: cx("aura-table__sel", nPinned && "is-pinned"), "aria-hidden": true }) : null,
+      selectable ? /* @__PURE__ */ React28.createElement(
+        "span",
+        {
+          role: "gridcell",
+          "aria-colindex": 1,
+          className: cx("aura-table__sel", nPinned && "is-pinned"),
+          tabIndex: tabFor(T, 0),
+          "data-rc": T + ":0",
+          onFocus: function() {
+            activeState[1]({ r: T, c: 0 });
+          }
+        }
+      ) : null,
       vis.map(function(c, j) {
-        const pin = isPinned(c);
+        const pin = isPinned(c), ci = j + (selectable ? 1 : 0);
         return /* @__PURE__ */ React28.createElement(
           "span",
           {
             key: c.key,
             role: "gridcell",
             "aria-colindex": j + (selectable ? 2 : 1),
+            tabIndex: tabFor(T, ci),
+            "data-rc": T + ":" + ci,
+            onFocus: function() {
+              if (activeState[0].r !== T || activeState[0].c !== ci) activeState[1]({ r: T, c: ci });
+            },
             className: cx(
               "aura-table__td",
               c.mono && "aura-table__mono",
@@ -4556,7 +4651,7 @@ window.Aura = (() => {
       )
     ) : null;
     const scrollStyle = {
-      scrollPaddingLeft: "calc(var(--aura-space-6)" + selW + " + " + acc + "px)",
+      scrollPaddingLeft: "calc(var(--aura-space-6)" + selW + " + " + acc + ")",
       scrollPaddingTop: ROW_H + "px",
       scrollPaddingBottom: stickyTotal ? ROW_H + "px" : void 0
     };
@@ -5468,6 +5563,7 @@ window.Aura = (() => {
     const m = /^(\d{1,2})(?:[:.](\d{2}))?$/.exec(s) || /^(\d{1,2})(\d{2})$/.exec(s);
     if (!m) return null;
     let hh = +m[1], mm = m[2] ? +m[2] : 0;
+    if ((am || pm) && (hh < 1 || hh > 12)) return null;
     if (pm && hh < 12) hh += 12;
     if (am && hh === 12) hh = 0;
     if (hh > 23 || mm > 59) return null;
@@ -5582,7 +5678,8 @@ window.Aura = (() => {
         return true;
       }
       if (blocked(v)) {
-        errState[1](t.timeOutOfRange(fromMin(lo), fromMin(hi)));
+        const n2 = toMin(v);
+        errState[1](n2 != null && n2 >= lo && n2 <= hi ? t.timeUnavailable : t.timeOutOfRange(fromMin(lo), fromMin(hi)));
         return false;
       }
       errState[1](null);
@@ -5841,6 +5938,7 @@ window.Aura = (() => {
       [items2, props.name]
     );
     function thumb(it) {
+      if (!it.file && it.url && /^image\//.test(it.type || "")) return it.url;
       if (!it.file || !/^image\//.test(it.type || "") || typeof URL === "undefined" || !URL.createObjectURL) return null;
       if (!urls.current[it.id]) urls.current[it.id] = URL.createObjectURL(it.file);
       return urls.current[it.id];
@@ -5946,7 +6044,7 @@ window.Aura = (() => {
       ),
       items2.length ? /* @__PURE__ */ React46.createElement("ul", { className: "aura-upload__list", "aria-live": "polite" }, items2.map(function(it) {
         const src = thumb(it);
-        return /* @__PURE__ */ React46.createElement("li", { key: it.id, className: cx("aura-upload__item", it.error && "is-error") }, src ? /* @__PURE__ */ React46.createElement("img", { className: "aura-upload__thumb", src, alt: "" }) : /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__thumb is-icon", "aria-hidden": true }, /* @__PURE__ */ React46.createElement(Icon, { name: /^image\//.test(it.type || "") ? "image" : "file", size: "md" })), /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__meta" }, /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__name" }, it.name), /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__sub" }, it.error ? /* @__PURE__ */ React46.createElement(React46.Fragment, null, /* @__PURE__ */ React46.createElement(Icon, { name: "circle-alert", size: 12 }), it.error) : it.status === "uploading" ? t.uploading + (it.progress != null ? " " + Math.round(it.progress) + "%" : "") : it.status === "done" ? /* @__PURE__ */ React46.createElement(React46.Fragment, null, /* @__PURE__ */ React46.createElement(Icon, { name: "circle-check", size: 12 }), formatBytes(it.size)) : formatBytes(it.size)), it.status === "uploading" ? /* @__PURE__ */ React46.createElement(
+        return /* @__PURE__ */ React46.createElement("li", { key: it.id, className: cx("aura-upload__item", it.error && "is-error") }, src ? /* @__PURE__ */ React46.createElement("img", { className: "aura-upload__thumb", src, alt: "" }) : /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__thumb is-icon", "aria-hidden": true }, /* @__PURE__ */ React46.createElement(Icon, { name: /^image\//.test(it.type || "") ? "image" : "file", size: "md" })), /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__meta" }, it.url && !it.error ? /* @__PURE__ */ React46.createElement("a", { className: "aura-upload__name", href: it.url, target: "_blank", rel: "noreferrer" }, it.name) : /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__name" }, it.name), /* @__PURE__ */ React46.createElement("span", { className: "aura-upload__sub" }, it.error ? /* @__PURE__ */ React46.createElement(React46.Fragment, null, /* @__PURE__ */ React46.createElement(Icon, { name: "circle-alert", size: 12 }), it.error) : it.status === "uploading" ? t.uploading + (it.progress != null ? " " + Math.round(it.progress) + "%" : "") : it.status === "done" ? /* @__PURE__ */ React46.createElement(React46.Fragment, null, /* @__PURE__ */ React46.createElement(Icon, { name: "circle-check", size: 12 }), formatBytes(it.size)) : formatBytes(it.size)), it.status === "uploading" ? /* @__PURE__ */ React46.createElement(
           "span",
           {
             className: "aura-upload__bar",
@@ -6651,13 +6749,20 @@ window.Aura = (() => {
   var React55 = __toESM(require_react(), 1);
   var import_react_dom11 = __toESM(require_react_dom(), 1);
   function position(anchor, pop, placement) {
-    const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight, vw = window.innerWidth, vh = window.innerHeight, gap = 6;
+    const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.scrollHeight, vw = window.innerWidth, vh = window.innerHeight, gap = 6;
     let side = (placement || "bottom-start").split("-")[0], align = (placement || "bottom-start").split("-")[1] || "start";
     if (side === "bottom" && r.bottom + gap + ph > vh - 8 && r.top - gap - ph > 8) side = "top";
     else if (side === "top" && r.top - gap - ph < 8 && r.bottom + gap + ph < vh - 8) side = "bottom";
-    const top = side === "top" ? r.top - gap - ph : r.bottom + gap;
+    const below2 = vh - r.bottom - gap - 8, above = r.top - gap - 8;
+    let maxHeight;
+    if (ph > below2 && ph > above) {
+      side = above > below2 ? "top" : "bottom";
+      maxHeight = Math.max(120, side === "top" ? above : below2);
+    }
+    const h9 = maxHeight ? Math.min(ph, maxHeight) : ph;
+    const top = side === "top" ? r.top - gap - h9 : r.bottom + gap;
     const left = align === "end" ? r.right - pw : align === "center" ? r.left + r.width / 2 - pw / 2 : r.left;
-    return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side };
+    return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side, maxHeight };
   }
   var Popover = React55.forwardRef(function Popover2(props, ref) {
     const t = useStrings();
@@ -6737,7 +6842,11 @@ window.Aura = (() => {
           },
           className: cx("aura-popover", pos[0] && "is-" + pos[0].side, props.className),
           style: Object.assign(
-            { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 },
+            {
+              top: pos[0] ? pos[0].top : -9999,
+              left: pos[0] ? pos[0].left : -9999,
+              maxHeight: pos[0] && pos[0].maxHeight ? pos[0].maxHeight : void 0
+            },
             props.width ? { width: props.width } : null
           ),
           onKeyDown: function(e) {

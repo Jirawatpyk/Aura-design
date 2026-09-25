@@ -12,10 +12,12 @@
     "fonts",
     "tailwind.config.ts",
     "tailwind.tokens.cjs",
+    "tailwind.tokens.d.cts",
     "aura-tailwind.css",
     "aura-tailwind.prefixed.css",
     "figma-variables.csv",
     "eslint-plugin-aura.js",
+    "eslint-plugin-aura.d.ts",
     "components/aura.bundle.js",
     "components/aura.components.css",
     "components/index.d.ts",
@@ -26,17 +28,31 @@
     "LICENSE"
   ],
   "exports": {
+    ".": {
+      "types": "./tailwind.tokens.d.cts",
+      "default": "./tailwind.tokens.cjs"
+    },
     "./aura.css": "./aura.css",
     "./aura-fonts.css": "./aura-fonts.css",
     "./aura-fonts.local.css": "./aura-fonts.local.css",
     "./fonts/*": "./fonts/*",
     "./tokens.json": "./tokens.json",
-    "./tailwind": "./tailwind.tokens.cjs",
+    "./tailwind": {
+      "types": "./tailwind.tokens.d.cts",
+      "default": "./tailwind.tokens.cjs"
+    },
     "./tailwind.css": "./aura-tailwind.css",
     "./tailwind.prefixed.css": "./aura-tailwind.prefixed.css",
-    "./components.js": "./components/aura.bundle.js",
+    "./components.js": {
+      "types": "./components/index.d.ts",
+      "default": "./components/aura.bundle.js"
+    },
     "./components.css": "./components/aura.components.css",
-    "./eslint-plugin": "./eslint-plugin-aura.js"
+    "./eslint-plugin": {
+      "types": "./eslint-plugin-aura.d.ts",
+      "default": "./eslint-plugin-aura.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build": "node scripts/build-tokens.js",
@@ -45,7 +61,8 @@
     "lint:tokens": "node scripts/lint-tokens.js ../react/src && node scripts/lint-tokens.js ../react/styles",
     "check:generated": "node scripts/build-tokens.js && git diff --exit-code -- aura.css aura-fonts.css aura-fonts.local.css tailwind.tokens.cjs aura-tailwind.css aura-tailwind.prefixed.css figma-variables.csv",
     "prepack": "npm run build",
-    "check:fonts": "node scripts/fonts-check.mjs"
+    "check:fonts": "node scripts/fonts-check.mjs",
+    "check:eslint": "node scripts/eslint-check.mjs"
   },
   "keywords": [
     "design-system",

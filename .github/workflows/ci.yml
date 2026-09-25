@@ -49,6 +49,10 @@ jobs:
         if: matrix.react == '18'
         run: |
           set -o pipefail; npm run check:tailwind4 -w packages/tokens 2>&1 | tee -a ci.log
+      - name: ESLint plugin works under ESLint 9 and flags hard-coded colours (5.2)
+        if: matrix.react == '18'
+        run: |
+          set -o pipefail; npm run check:eslint -w packages/tokens 2>&1 | tee -a ci.log
       - name: Bundle in packages/tokens matches the React source
         if: matrix.react == '18'
         run: |
