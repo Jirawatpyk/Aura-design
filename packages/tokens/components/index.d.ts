@@ -417,9 +417,12 @@ export type SelectOption = string | {
 	label: string;
 	disabled?: boolean | undefined;
 };
+/** 5.3: opens AURA's own list (light and dark alike) over a real `<select>`, which keeps `name`, `required`, the ref,
+ * `onChange`, react-hook-form `register` and form posts. `multiple` or `size > 1` keeps the native list box. */
 export interface SelectProps extends FieldProps, Omit<React$1.SelectHTMLAttributes<HTMLSelectElement>, "required"> {
-	options: SelectOption[];
-	/** A disabled first option shown in fg-tertiary until something is chosen. */
+	/** The choices; or pass `<option>` / `<optgroup>` children instead (5.3: optional). */
+	options?: SelectOption[] | undefined;
+	/** Shown in fg-tertiary on the closed field until something is chosen; not listed as a choice. */
 	placeholder?: string | undefined;
 	icon?: IconInput | undefined;
 }
@@ -1217,6 +1220,7 @@ export interface FieldComponentProps extends Omit<FieldPropsPublic, "label"> {
 export declare const Field: React$1.ForwardRefExoticComponent<FieldComponentProps & React$1.RefAttributes<HTMLDivElement>>;
 export declare const TextField: React$1.ForwardRefExoticComponent<TextFieldProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const Textarea: React$1.ForwardRefExoticComponent<TextareaProps & React$1.RefAttributes<HTMLTextAreaElement>>;
+/** A select field: a button that opens an AURA list (5.3), over a real <select> that keeps forms, refs and events. */
 export declare const Select: React$1.ForwardRefExoticComponent<SelectProps & React$1.RefAttributes<HTMLSelectElement>>;
 export declare const RadioGroup: React$1.ForwardRefExoticComponent<RadioGroupProps & React$1.RefAttributes<HTMLFieldSetElement>>;
 export declare const Switch: React$1.ForwardRefExoticComponent<SwitchProps & React$1.RefAttributes<HTMLButtonElement>>;

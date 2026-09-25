@@ -498,9 +498,12 @@ export interface CommandProps {
 export interface TextareaProps
   extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {}
 export type SelectOption = string | { value: string; label: string; disabled?: boolean | undefined };
+/** 5.3: opens AURA's own list (light and dark alike) over a real `<select>`, which keeps `name`, `required`, the ref,
+ * `onChange`, react-hook-form `register` and form posts. `multiple` or `size > 1` keeps the native list box. */
 export interface SelectProps extends FieldProps, Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'required'> {
-  options: SelectOption[];
-  /** A disabled first option shown in fg-tertiary until something is chosen. */
+  /** The choices; or pass `<option>` / `<optgroup>` children instead (5.3: optional). */
+  options?: SelectOption[] | undefined;
+  /** Shown in fg-tertiary on the closed field until something is chosen; not listed as a choice. */
   placeholder?: string | undefined;
   icon?: IconInput | undefined;
 }

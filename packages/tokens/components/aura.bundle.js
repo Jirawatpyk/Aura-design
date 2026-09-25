@@ -1224,7 +1224,52 @@ window.Aura = (() => {
 
   // src/Select.tsx
   var React13 = __toESM(require_react(), 1);
+  var import_react_dom2 = __toESM(require_react_dom(), 1);
   var h3 = React13.createElement;
+  var FORM_KEYS = ["name", "form", "value", "defaultValue", "disabled", "autoComplete", "onInput", "onInvalid"];
+  var HANDLED_KEYS = FORM_KEYS.concat([
+    "onChange",
+    "onBlur",
+    "onFocus",
+    "onKeyDown",
+    "onClick",
+    "autoFocus",
+    "tabIndex",
+    "aria-label",
+    "aria-labelledby",
+    "aria-describedby",
+    "multiple",
+    "size"
+  ]);
+  function pick(o, keys) {
+    const r = {};
+    for (const k of keys) if (k in o) r[k] = o[k];
+    return r;
+  }
+  function readItems(el) {
+    if (!el) return [];
+    return Array.prototype.map.call(el.options, function(o, i) {
+      const g = o.parentElement && o.parentElement.tagName === "OPTGROUP" ? o.parentElement : null;
+      return {
+        value: o.value,
+        label: o.textContent || "",
+        disabled: o.disabled || !!(g && g.disabled),
+        group: g ? g.label : null,
+        index: i
+      };
+    });
+  }
+  function initialLabel(props) {
+    const opts = (props.options || []).map(function(o) {
+      return typeof o === "object" ? o : { value: o, label: o };
+    });
+    const v = props.value !== void 0 && props.value !== null ? String(props.value) : props.defaultValue !== void 0 && props.defaultValue !== null ? String(props.defaultValue) : props.placeholder ? "" : opts[0] ? opts[0].value : "";
+    const hit = opts.filter(function(o) {
+      return o.value === v;
+    })[0];
+    if (hit) return { label: hit.label, empty: false };
+    return { label: props.placeholder || "", empty: true };
+  }
   var Select = React13.forwardRef(function Select2(props, ref) {
     const auto = uid(), id = props.id || auto;
     const rest = omit(props, FIELD_KEYS.concat(["children"]));
@@ -1237,10 +1282,259 @@ window.Aura = (() => {
         /* @__PURE__ */ React13.createElement("option", { key: "__ph", value: "", disabled: true }, props.placeholder)
       );
     const extra = props.value === void 0 && props.defaultValue === void 0 && props.placeholder ? { defaultValue: "" } : {};
-    return /* @__PURE__ */ React13.createElement(
+    const native = !!props.multiple || props.size != null && props.size > 1;
+    const mounted = useMounted();
+    const live = !native && mounted;
+    const density = useDensity();
+    const selRef = React13.useRef(null), trigRef = React13.useRef(null), listRef = React13.useRef(null);
+    const shown = React13.useState(function() {
+      return initialLabel(props);
+    });
+    const openState = React13.useState(false), open = openState[0];
+    const activeState = React13.useState(-1), active = activeState[0];
+    const items2 = React13.useState([]);
+    const pos = React13.useState(null);
+    const typed = React13.useRef({ text: "", at: 0 });
+    const sync = React13.useCallback(function() {
+      const el = selRef.current;
+      if (!el) return;
+      const o = el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
+      const next = o ? { label: o.textContent || "", empty: o.value === "" } : { label: "", empty: true };
+      shown[1](function(cur) {
+        return cur.label === next.label && cur.empty === next.empty ? cur : next;
+      });
+    }, []);
+    const hook = React13.useCallback(
+      function(el) {
+        selRef.current = el;
+        if (!el || native || el.__auraHooked) return;
+        el.__auraHooked = true;
+        const proto = HTMLSelectElement.prototype;
+        const pv = Object.getOwnPropertyDescriptor(proto, "value"), pi = Object.getOwnPropertyDescriptor(proto, "selectedIndex");
+        if (pv && pv.set && pv.get)
+          Object.defineProperty(el, "value", {
+            configurable: true,
+            get: function() {
+              return pv.get.call(el);
+            },
+            set: function(v) {
+              pv.set.call(el, v);
+              sync();
+            }
+          });
+        if (pi && pi.set && pi.get)
+          Object.defineProperty(el, "selectedIndex", {
+            configurable: true,
+            get: function() {
+              return pi.get.call(el);
+            },
+            set: function(v) {
+              pi.set.call(el, v);
+              sync();
+            }
+          });
+        el.focus = function(o) {
+          if (trigRef.current) trigRef.current.focus(o);
+          else proto.focus.call(el, o);
+        };
+      },
+      [native, sync]
+    );
+    const selMerged = useMergedRef(ref, hook);
+    React13.useEffect(
+      function() {
+        const f = selRef.current && selRef.current.form;
+        if (!f || native) return;
+        function onReset() {
+          setTimeout(sync, 0);
+        }
+        f.addEventListener("reset", onReset);
+        return function() {
+          f.removeEventListener("reset", onReset);
+        };
+      },
+      [native, sync]
+    );
+    const focusedOnce = React13.useRef(false);
+    React13.useEffect(
+      function() {
+        if (!live || focusedOnce.current || !trigRef.current) return;
+        focusedOnce.current = true;
+        if (props.autoFocus || selRef.current && document.activeElement === selRef.current) trigRef.current.focus();
+      },
+      [live]
+    );
+    useIsoLayoutEffect(function() {
+      if (!live) return;
+      sync();
+      if (!open) return;
+      const now = readItems(selRef.current), was = items2[0];
+      const same2 = now.length === was.length && now.every(function(it, i) {
+        const w = was[i];
+        return w.value === it.value && w.label === it.label && w.disabled === it.disabled && w.group === it.group;
+      });
+      if (same2) return;
+      items2[1](now);
+      if (!choices(now).length) {
+        close(false);
+        return;
+      }
+      const hv = was[active] ? was[active].value : null;
+      const again = now.filter(function(it) {
+        return !it.disabled && it.value === hv;
+      })[0];
+      const cur = selRef.current ? selRef.current.selectedIndex : -1;
+      activeState[1](again ? again.index : now[cur] && !now[cur].disabled ? cur : choices(now)[0].index);
+    });
+    function choices(list) {
+      return list.filter(function(i) {
+        return !i.disabled;
+      });
+    }
+    function choose(it) {
+      const el = selRef.current;
+      if (!el || it.disabled) return;
+      if (el.value !== it.value) {
+        el.value = it.value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      sync();
+      close(true);
+    }
+    function openList(at) {
+      if (props.disabled || trigRef.current && trigRef.current.disabled) return;
+      const list = readItems(selRef.current);
+      const ok = choices(list);
+      if (!ok.length) return;
+      items2[1](list);
+      const cur = selRef.current ? selRef.current.selectedIndex : -1;
+      let a = at === "first" ? ok[0].index : at === "last" ? ok[ok.length - 1].index : cur;
+      if (typeof at === "number") a = at;
+      if (a < 0 || !list[a] || list[a].disabled) a = ok[0].index;
+      activeState[1](a);
+      openState[1](true);
+    }
+    function close(focus) {
+      openState[1](false);
+      pos[1](null);
+      if (focus && trigRef.current) trigRef.current.focus();
+    }
+    function step(from, dir, list) {
+      for (let i = from + dir; i >= 0 && i < list.length; i += dir) if (!list[i].disabled) return i;
+      return from;
+    }
+    function typing() {
+      return !!typed.current.text && Date.now() - typed.current.at < 500;
+    }
+    function typeahead(ch, list, from) {
+      const now = Date.now(), t = typed.current;
+      t.text = now - t.at < 500 ? t.text + ch : ch;
+      t.at = now;
+      const q = t.text.toLocaleLowerCase();
+      for (let k = 1; k <= list.length; k++) {
+        const i = (from + (t.text.length > 1 ? 0 : 1) + k - 1 + list.length) % list.length;
+        if (!list[i].disabled && list[i].label.toLocaleLowerCase().indexOf(q) === 0) return i;
+      }
+      t.text = "";
+      return -1;
+    }
+    function onKeyDown(e) {
+      const k = e.key;
+      const printable = k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+      const search = printable && (k !== " " || typing());
+      if (!open) {
+        if (search) {
+          const list2 = readItems(selRef.current);
+          const i = typeahead(k, list2, selRef.current ? selRef.current.selectedIndex : -1);
+          e.preventDefault();
+          if (i >= 0) openList(i);
+        } else if (k === "ArrowDown" || k === "ArrowUp" || k === "Enter" || k === " ") {
+          e.preventDefault();
+          openList(k === "ArrowUp" && !(selRef.current && selRef.current.value) ? "last" : void 0);
+        }
+        return;
+      }
+      const list = items2[0];
+      if (search) {
+        e.preventDefault();
+        const i = typeahead(k, list, active);
+        if (i >= 0) activeState[1](i);
+      } else if (k === "ArrowDown") {
+        e.preventDefault();
+        activeState[1](step(active, 1, list));
+      } else if (k === "ArrowUp") {
+        e.preventDefault();
+        activeState[1](step(active, -1, list));
+      } else if (k === "Home" || k === "PageUp") {
+        e.preventDefault();
+        activeState[1](k === "Home" ? step(-1, 1, list) : Math.max(step(-1, 1, list), step(active - 9, 1, list)));
+      } else if (k === "End" || k === "PageDown") {
+        e.preventDefault();
+        activeState[1](
+          k === "End" ? step(list.length, -1, list) : Math.min(step(list.length, -1, list), step(active + 9, -1, list))
+        );
+      } else if (k === "Enter" || k === " ") {
+        e.preventDefault();
+        if (list[active]) choose(list[active]);
+      } else if (k === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        close(true);
+      } else if (k === "Tab") {
+        close(false);
+      }
+    }
+    useIsoLayoutEffect(
+      function() {
+        if (!open) return;
+        function place() {
+          const t = trigRef.current && trigRef.current.parentElement;
+          if (!t) return;
+          const r = t.getBoundingClientRect(), below2 = window.innerHeight - r.bottom - 8, above = r.top - 8, want = listRef.current ? listRef.current.scrollHeight : 320, up = below2 < Math.min(want, 200) && above > below2;
+          pos[1]({
+            left: r.left,
+            width: r.width,
+            top: up ? void 0 : r.bottom + 4,
+            bottom: up ? window.innerHeight - r.top + 4 : void 0,
+            maxHeight: Math.min(320, (up ? above : below2) - 4)
+          });
+        }
+        place();
+        function outside(e) {
+          const n2 = e.target;
+          if (listRef.current && listRef.current.contains(n2)) return;
+          if (trigRef.current && trigRef.current.contains(n2)) return;
+          close(false);
+        }
+        function onScroll(e) {
+          if (!listRef.current || !listRef.current.contains(e.target)) place();
+        }
+        document.addEventListener("pointerdown", outside, true);
+        window.addEventListener("scroll", onScroll, true);
+        window.addEventListener("resize", place);
+        return function() {
+          document.removeEventListener("pointerdown", outside, true);
+          window.removeEventListener("scroll", onScroll, true);
+          window.removeEventListener("resize", place);
+        };
+      },
+      [open]
+    );
+    React13.useEffect(
+      function() {
+        if (!open || !listRef.current || active < 0) return;
+        const el = listRef.current.querySelector('[data-idx="' + active + '"]');
+        if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+      },
+      [open, active, pos[0] != null]
+    );
+    const described = [describedBy(id, props), rest["aria-describedby"]].filter(Boolean).join(" ") || void 0;
+    const field = (child) => /* @__PURE__ */ React13.createElement(
       Field,
       {
         id,
+        labelId: native ? void 0 : id + "-label",
         label: props.label,
         hint: props.hint,
         error: props.error,
@@ -1249,19 +1543,180 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React13.createElement("div", { className: cx("aura-input aura-select", props.icon && "has-icon") }, props.icon ? /* @__PURE__ */ React13.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, h3(
-        "select",
-        Object.assign(extra, rest, {
-          ref,
-          id,
-          className: "aura-input__control",
-          required: props.required,
-          "aria-invalid": props.error ? true : void 0,
-          "aria-describedby": describedBy(id, props)
-        }),
-        opts,
-        props.children
-      ), /* @__PURE__ */ React13.createElement(Icon, { name: "chevron-down", className: "aura-select__chevron" }))
+      child
+    );
+    if (!live)
+      return field(
+        /* @__PURE__ */ React13.createElement("div", { className: cx("aura-input aura-select", props.icon && "has-icon") }, props.icon ? /* @__PURE__ */ React13.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, h3(
+          "select",
+          Object.assign(extra, rest, {
+            ref: native ? ref : selMerged,
+            id,
+            className: "aura-input__control",
+            required: props.required,
+            "aria-invalid": props.error ? true : void 0,
+            "aria-describedby": described
+          }),
+          opts,
+          props.children
+        ), /* @__PURE__ */ React13.createElement(Icon, { name: "chevron-down", className: "aura-select__chevron" }))
+      );
+    const listId = id + "-list", labelId = id + "-label";
+    const optId = function(i) {
+      return id + "-opt-" + i;
+    };
+    const labelledBy = rest["aria-labelledby"] || (props.label ? labelId : void 0);
+    const selIndex = selRef.current ? selRef.current.selectedIndex : -1;
+    const option = function(it) {
+      const sel = selIndex === it.index;
+      return /* @__PURE__ */ React13.createElement(
+        "div",
+        {
+          key: it.index,
+          id: optId(it.index),
+          role: "option",
+          "data-idx": it.index,
+          "aria-selected": sel,
+          "aria-disabled": it.disabled || void 0,
+          className: cx(
+            "aura-combo__option",
+            it.index === active && "is-active",
+            sel && "is-selected",
+            it.disabled && "is-disabled"
+          ),
+          onPointerDown: function(e) {
+            e.preventDefault();
+          },
+          onPointerMove: function() {
+            if (!it.disabled && active !== it.index) activeState[1](it.index);
+          },
+          onClick: function() {
+            choose(it);
+          }
+        },
+        /* @__PURE__ */ React13.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React13.createElement("span", { className: "aura-combo__label" }, it.label)),
+        sel ? /* @__PURE__ */ React13.createElement(Icon, { name: "check", className: "aura-combo__check" }) : null
+      );
+    };
+    const runs = [];
+    items2[0].forEach(function(it) {
+      if (it.value === "" && it.disabled) return;
+      const last = runs[runs.length - 1];
+      if (last && last.group === it.group) last.items.push(it);
+      else runs.push({ group: it.group, items: [it] });
+    });
+    const popup = open ? (0, import_react_dom2.createPortal)(
+      /* @__PURE__ */ React13.createElement(
+        "div",
+        {
+          ref: listRef,
+          "data-density": density,
+          className: "aura-combo__popover aura-select__popover",
+          style: pos[0] ? {
+            left: pos[0].left,
+            minWidth: pos[0].width,
+            top: pos[0].top,
+            bottom: pos[0].bottom,
+            maxHeight: pos[0].maxHeight
+          } : { left: -9999, top: -9999 }
+        },
+        /* @__PURE__ */ React13.createElement(
+          "div",
+          {
+            id: listId,
+            role: "listbox",
+            "aria-labelledby": labelledBy,
+            "aria-label": labelledBy ? void 0 : rest["aria-label"],
+            className: "aura-combo__list"
+          },
+          runs.map(function(r, n2) {
+            if (r.group === null) return /* @__PURE__ */ React13.createElement(React13.Fragment, { key: "r" + n2 }, r.items.map(option));
+            const gid = id + "-group-" + n2;
+            return /* @__PURE__ */ React13.createElement("div", { key: "r" + n2, role: "group", "aria-labelledby": gid }, /* @__PURE__ */ React13.createElement("div", { id: gid, className: "aura-select__group" }, r.group), r.items.map(option));
+          })
+        )
+      ),
+      document.body
+    ) : null;
+    const userFocus = rest.onFocus, userBlur = rest.onBlur, userKey = rest.onKeyDown, userClick = rest.onClick;
+    return field(
+      /* @__PURE__ */ React13.createElement(
+        "div",
+        {
+          className: cx("aura-input aura-select aura-select--custom", props.icon && "has-icon", open && "is-open"),
+          "data-invalid": props.error ? "" : void 0
+        },
+        props.icon ? /* @__PURE__ */ React13.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null,
+        h3(
+          "select",
+          Object.assign(extra, pick(rest, FORM_KEYS), {
+            ref: selMerged,
+            id: id + "-select",
+            className: "aura-select__native",
+            tabIndex: -1,
+            "aria-hidden": true,
+            required: props.required,
+            onChange: function(e) {
+              sync();
+              if (props.onChange) props.onChange(e);
+            },
+            /* A browser focusing the <select> (the required bubble, a label click) hands focus to the button. */
+            onFocus: function() {
+              if (trigRef.current) trigRef.current.focus();
+            },
+            /* Only the blur the button reports (below): the <select>'s own, while it hands focus over, is not one. */
+            onBlur: function(e) {
+              if (!e.nativeEvent.isTrusted && userBlur) userBlur(e);
+            }
+          }),
+          opts,
+          props.children
+        ),
+        /* @__PURE__ */ React13.createElement(
+          "button",
+          {
+            ...omit(rest, HANDLED_KEYS),
+            ref: trigRef,
+            type: "button",
+            role: "combobox",
+            form: id + "-no-form",
+            className: "aura-input__control aura-select__trigger",
+            disabled: props.disabled,
+            tabIndex: rest.tabIndex,
+            "aria-haspopup": "listbox",
+            "aria-expanded": open,
+            "aria-controls": open ? listId : void 0,
+            "aria-activedescendant": open && active >= 0 ? optId(active) : void 0,
+            id,
+            "aria-label": rest["aria-label"],
+            "aria-labelledby": rest["aria-labelledby"],
+            "aria-required": props.required || void 0,
+            "aria-invalid": props.error ? true : void 0,
+            "aria-describedby": described,
+            onFocus: function(e) {
+              if (userFocus) userFocus(e);
+            },
+            onClick: function(e) {
+              if (userClick) userClick(e);
+              if (e.defaultPrevented) return;
+              if (open) close(true);
+              else openList();
+            },
+            onKeyDown: function(e) {
+              if (userKey) userKey(e);
+              if (!e.defaultPrevented) onKeyDown(e);
+            },
+            onBlur: function(e) {
+              if (listRef.current && e.relatedTarget && listRef.current.contains(e.relatedTarget)) return;
+              if (open) close(false);
+              if (selRef.current) selRef.current.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+            }
+          },
+          /* @__PURE__ */ React13.createElement("span", { id: id + "-value", className: cx("aura-select__value", shown[0].empty && "is-placeholder") }, shown[0].label || " ")
+        ),
+        /* @__PURE__ */ React13.createElement(Icon, { name: "chevron-down", className: "aura-select__chevron" }),
+        popup
+      )
     );
   });
 
@@ -1360,7 +1815,7 @@ window.Aura = (() => {
 
   // src/Combobox.tsx
   var React16 = __toESM(require_react(), 1);
-  var import_react_dom2 = __toESM(require_react_dom(), 1);
+  var import_react_dom3 = __toESM(require_react_dom(), 1);
   function norm(s) {
     return String(s == null ? "" : s).normalize("NFC").toLocaleLowerCase("th");
   }
@@ -1380,6 +1835,7 @@ window.Aura = (() => {
       const multi = all.multiple === true;
       const mp = all;
       const t = useStrings();
+      const density = useDensity();
       const auto = uid(), id = props.id || auto, listId = id + "-list";
       const options = (props.options || []).map(toOpt);
       const st = useMaybeControlled(
@@ -1542,8 +1998,8 @@ window.Aura = (() => {
       const optId = function(i) {
         return id + "-opt-" + i;
       };
-      const list = open && mounted && posState[0] ? (0, import_react_dom2.createPortal)(
-        /* @__PURE__ */ React16.createElement("div", { ref: listRef, className: "aura-combo__popover", style: posState[0] }, live.length ? /* @__PURE__ */ React16.createElement(
+      const list = open && mounted && posState[0] ? (0, import_react_dom3.createPortal)(
+        /* @__PURE__ */ React16.createElement("div", { ref: listRef, "data-density": density, className: "aura-combo__popover", style: posState[0] }, live.length ? /* @__PURE__ */ React16.createElement(
           "ul",
           {
             id: listId,
@@ -1703,7 +2159,7 @@ window.Aura = (() => {
 
   // src/DatePicker.tsx
   var React17 = __toESM(require_react(), 1);
-  var import_react_dom3 = __toESM(require_react_dom(), 1);
+  var import_react_dom4 = __toESM(require_react_dom(), 1);
 
   // src/dates.ts
   var ERA = /^พ\.ศ\.\s?|\s?(BE|พ\.ศ\.)$/g;
@@ -2308,7 +2764,7 @@ window.Aura = (() => {
       pop.setOpen(false);
       if (inputRef.current) inputRef.current.focus();
     }
-    const cal = pop.open && pop.mounted && pop.pos ? (0, import_react_dom3.createPortal)(
+    const cal = pop.open && pop.mounted && pop.pos ? (0, import_react_dom4.createPortal)(
       /* @__PURE__ */ React17.createElement(
         "div",
         {
@@ -2433,7 +2889,7 @@ window.Aura = (() => {
         draft[1](null);
         if (inputRef.current) inputRef.current.focus();
       }
-      function pick(iso) {
+      function pick2(iso) {
         if (!draft[0]) {
           draft[1](iso);
           return;
@@ -2443,7 +2899,7 @@ window.Aura = (() => {
         st[1](a <= b ? { start: a, end: b } : { start: b, end: a });
         close();
       }
-      const cal = pop.open && pop.mounted && pop.pos ? (0, import_react_dom3.createPortal)(
+      const cal = pop.open && pop.mounted && pop.pos ? (0, import_react_dom4.createPortal)(
         /* @__PURE__ */ React17.createElement(
           "div",
           {
@@ -2477,7 +2933,7 @@ window.Aura = (() => {
               start: draft[0] || v.start,
               end: draft[0] ? null : v.end,
               focus: draft[0] || v.start,
-              onSelect: pick
+              onSelect: pick2
             }
           )
         ),
@@ -2547,7 +3003,7 @@ window.Aura = (() => {
 
   // src/Toaster.tsx
   var React19 = __toESM(require_react(), 1);
-  var import_react_dom4 = __toESM(require_react_dom(), 1);
+  var import_react_dom5 = __toESM(require_react_dom(), 1);
   var MAX_VISIBLE = 3;
   var toastState = {
     list: [],
@@ -2708,7 +3164,7 @@ window.Aura = (() => {
       };
     }, []);
     if (!mounted) return null;
-    return (0, import_react_dom4.createPortal)(
+    return (0, import_react_dom5.createPortal)(
       /* @__PURE__ */ React19.createElement(
         "div",
         {
@@ -2989,7 +3445,7 @@ window.Aura = (() => {
 
   // src/Command.tsx
   var React25 = __toESM(require_react(), 1);
-  var import_react_dom5 = __toESM(require_react_dom(), 1);
+  var import_react_dom6 = __toESM(require_react_dom(), 1);
 
   // src/useModal.tsx
   var React24 = __toESM(require_react(), 1);
@@ -3193,7 +3649,7 @@ window.Aura = (() => {
     }
     if (!modal.ready) return null;
     let i = -1;
-    return (0, import_react_dom5.createPortal)(
+    return (0, import_react_dom6.createPortal)(
       /* @__PURE__ */ React25.createElement(
         "div",
         {
@@ -3302,7 +3758,7 @@ window.Aura = (() => {
 
   // src/Tooltip.tsx
   var React26 = __toESM(require_react(), 1);
-  var import_react_dom6 = __toESM(require_react_dom(), 1);
+  var import_react_dom7 = __toESM(require_react_dom(), 1);
   var Tooltip = React26.forwardRef(function Tooltip2(props, ref) {
     const id = uid(), st = React26.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
     const anchor = React26.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip = React26.useRef(null), timer = React26.useRef(void 0);
@@ -3400,7 +3856,7 @@ window.Aura = (() => {
       },
       React26.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
     );
-    return /* @__PURE__ */ React26.createElement(React26.Fragment, null, trigger, open && mounted ? (0, import_react_dom6.createPortal)(
+    return /* @__PURE__ */ React26.createElement(React26.Fragment, null, trigger, open && mounted ? (0, import_react_dom7.createPortal)(
       /* @__PURE__ */ React26.createElement(
         "div",
         {
@@ -3422,7 +3878,7 @@ window.Aura = (() => {
 
   // src/Dialog.tsx
   var React27 = __toESM(require_react(), 1);
-  var import_react_dom7 = __toESM(require_react_dom(), 1);
+  var import_react_dom8 = __toESM(require_react_dom(), 1);
   var Dialog = React27.forwardRef(function Dialog2(props, ref) {
     const t = useStrings();
     const density = useDensity();
@@ -3437,7 +3893,7 @@ window.Aura = (() => {
       footSelector: ".aura-dialog__foot"
     });
     if (!modal.ready) return null;
-    return (0, import_react_dom7.createPortal)(
+    return (0, import_react_dom8.createPortal)(
       /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
         "div",
         {
@@ -3472,7 +3928,7 @@ window.Aura = (() => {
     });
     if (!modal.ready) return null;
     const side = props.side === "left" ? "left" : "right";
-    return (0, import_react_dom7.createPortal)(
+    return (0, import_react_dom8.createPortal)(
       /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
         "div",
         {
@@ -3496,7 +3952,7 @@ window.Aura = (() => {
 
   // src/DataTable.tsx
   var React28 = __toESM(require_react(), 1);
-  var import_react_dom8 = __toESM(require_react_dom(), 1);
+  var import_react_dom9 = __toESM(require_react_dom(), 1);
   var BP = { sm: 640, md: 768, lg: 1024, xl: 1280 };
   var DEFAULT_COLUMNS = [
     { key: "id", label: "ID", width: 96, mono: true },
@@ -3653,7 +4109,7 @@ window.Aura = (() => {
     function hideFull() {
       setTip(null);
     }
-    const tipEl = tip && typeof document !== "undefined" ? (0, import_react_dom8.createPortal)(
+    const tipEl = tip && typeof document !== "undefined" ? (0, import_react_dom9.createPortal)(
       /* @__PURE__ */ React28.createElement(
         "div",
         {
@@ -4903,7 +5359,7 @@ window.Aura = (() => {
 
   // src/SideNav.tsx
   var React31 = __toESM(require_react(), 1);
-  var import_react_dom9 = __toESM(require_react_dom(), 1);
+  var import_react_dom10 = __toESM(require_react_dom(), 1);
   function contains(it, id) {
     return !!id && !!it.children && it.children.some(function(c) {
       return c.id === id || contains(c, id);
@@ -5096,7 +5552,7 @@ window.Aura = (() => {
           }
         }
       )) : null,
-      tip && typeof document !== "undefined" ? (0, import_react_dom9.createPortal)(
+      tip && typeof document !== "undefined" ? (0, import_react_dom10.createPortal)(
         /* @__PURE__ */ React31.createElement(
           "div",
           {
@@ -5540,7 +5996,7 @@ window.Aura = (() => {
 
   // src/TimePicker.tsx
   var React45 = __toESM(require_react(), 1);
-  var import_react_dom10 = __toESM(require_react_dom(), 1);
+  var import_react_dom11 = __toESM(require_react_dom(), 1);
 
   // src/text.ts
   function formatBytes(n2) {
@@ -5756,7 +6212,7 @@ window.Aura = (() => {
       }
     }
     const error = errState[0] || props.error;
-    const list = open && mounted && pos[0] ? (0, import_react_dom10.createPortal)(
+    const list = open && mounted && pos[0] ? (0, import_react_dom11.createPortal)(
       /* @__PURE__ */ React45.createElement("div", { ref: listRef, className: "aura-combo__popover aura-time__popover", style: pos[0] }, /* @__PURE__ */ React45.createElement("ul", { id: listId, role: "listbox", "aria-label": props.label, className: "aura-combo__list" }, slots.map(function(s, i) {
         const dis = blocked(s), sel = s === value;
         return /* @__PURE__ */ React45.createElement(
@@ -6747,7 +7203,7 @@ window.Aura = (() => {
 
   // src/Popover.tsx
   var React55 = __toESM(require_react(), 1);
-  var import_react_dom11 = __toESM(require_react_dom(), 1);
+  var import_react_dom12 = __toESM(require_react_dom(), 1);
   function position(anchor, pop, placement) {
     const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.scrollHeight, vw = window.innerWidth, vh = window.innerHeight, gap = 6;
     let side = (placement || "bottom-start").split("-")[0], align = (placement || "bottom-start").split("-")[1] || "start";
@@ -6825,7 +7281,7 @@ window.Aura = (() => {
       [open, mounted]
     );
     const child = React55.Children.only(props.trigger);
-    const panel = open && mounted ? (0, import_react_dom11.createPortal)(
+    const panel = open && mounted ? (0, import_react_dom12.createPortal)(
       /* @__PURE__ */ React55.createElement(
         "div",
         {

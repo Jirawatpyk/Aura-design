@@ -90,10 +90,14 @@ test.describe('Forms', () => {
   });
   test('select shows its placeholder until a choice is made', async ({ page }) => {
     await story(page, 'aura-forms--select-and-textarea');
-    const s = page.getByLabel('Team');
-    await expect(s).toHaveValue('');
-    await s.selectOption('Mobile');
-    await expect(s).toHaveValue('Mobile');
+    const s = page.getByRole('combobox', { name: 'Team' });
+    const native = page.locator('select');
+    await expect(s).toHaveText('Choose a team');
+    await expect(native).toHaveValue('');
+    await s.click();
+    await page.getByRole('option', { name: 'Mobile' }).click();
+    await expect(s).toHaveText('Mobile');
+    await expect(native).toHaveValue('Mobile');
   });
 });
 
@@ -2044,5 +2048,171 @@ test.describe('5.2: low-severity review items', () => {
       .getByRole('button', { name: 'Close' })
       .boundingBox();
     expect(close!.y).toBeGreaterThanOrEqual(r.top - 1);
+  });
+});
+
+test.describe('5.3: Select opens AURA’s own list', () => {
+  for (const theme of ['light', 'dark']) {
+    test(`mouse and keyboard pick; groups; disabled skipped; axe on the open list (${theme})`, async ({ page }) => {
+      await story(page, 'aura-new-in-5-3--select-list', theme);
+      const owner = page.getByRole('combobox', { name: 'Owner' });
+      await expect(owner).toHaveText('Jirawat');
+      await owner.click();
+      const list = page.getByRole('listbox');
+      await expect(list).toBeVisible();
+      await expect(page.getByRole('option', { name: 'Jirawat' })).toHaveAttribute('aria-selected', 'true');
+      /* The list is AURA's: surface fill, radius, its own active row (not the OS highlight). */
+      const look = await page.locator('.aura-select__popover').evaluate((e) => {
+        const s = getComputedStyle(e);
+        return { radius: s.borderTopLeftRadius, bg: s.backgroundColor };
+      });
+      expect(parseFloat(look.radius)).toBeGreaterThan(4);
+      expect(look.bg).not.toBe('rgba(0, 0, 0, 0)');
+      expect(await axeScan(page, '.aura-select__popover')).toEqual([]);
+      await page.getByRole('option', { name: 'QA' }).click();
+      await expect(page.getByTestId('owner')).toHaveText('Owner: QA');
+      await expect(owner).toBeFocused();
+      /* Keyboard: Down moves, the disabled last option is skipped, Enter picks; Escape closes without a change. */
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowDown');
+      await expect(owner).toHaveAttribute('aria-activedescendant', /opt-3$/);
+      await page.keyboard.press('Escape');
+      await expect(page.getByTestId('owner')).toHaveText('Owner: QA');
+      await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('Home');
+      await page.keyboard.press('Enter');
+      await expect(page.getByTestId('owner')).toHaveText('Owner: Jirawat');
+      /* Typeahead on the closed field opens on the match. */
+      await owner.focus();
+      await page.keyboard.type('de');
+      await expect(owner).toHaveAttribute('aria-activedescendant', /opt-1$/);
+      await page.keyboard.press('Enter');
+      await expect(page.getByTestId('owner')).toHaveText('Owner: Design');
+      /* Children with optgroups: group headings in the list; placeholder until chosen. */
+      const region = page.getByRole('combobox', { name: 'Region' });
+      await expect(region).toHaveText('Choose a region');
+      await region.click();
+      await expect(page.locator('.aura-select__group')).toHaveText(['Asia', 'Europe']);
+      /* The placeholder prompts on the closed field; it is not a choice in the list. */
+      await expect(page.getByRole('option')).toHaveText(['Thailand', 'Vietnam', 'Sweden']);
+      await expect(page.getByRole('group', { name: 'Asia' }).getByRole('option')).toHaveText(['Thailand', 'Vietnam']);
+      await page.getByRole('option', { name: 'Sweden' }).click();
+      await expect(region).toHaveText('Sweden');
+      await expect(page.getByRole('combobox', { name: 'Locked' })).toBeDisabled();
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    });
+  }
+
+  test('react-hook-form register, reset, setValue, setFocus; native post and required; selectOption still works', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-3--select-in-forms');
+    const tier = page.getByRole('combobox', { name: 'Tier' });
+    await expect(tier).toHaveText('SME');
+    await tier.click();
+    await page.getByRole('option', { name: 'Enterprise' }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.getByTestId('sent')).toHaveText('tier=Enterprise');
+    await page.getByRole('button', { name: 'Set', exact: true }).click();
+    await expect(tier).toHaveText('Corporate');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.getByText('Corporate needs approval')).toBeVisible();
+    await expect(tier).toHaveAttribute('aria-invalid', 'true');
+    await page.getByRole('button', { name: 'Reset', exact: true }).click();
+    await expect(tier).toHaveText('Enterprise');
+    await page.getByRole('button', { name: 'Focus', exact: true }).click();
+    await expect(tier).toBeFocused();
+    /* A native form: required stops an empty post; the value posts once chosen. Test helpers on the <select> work. */
+    await page.getByRole('button', { name: 'Post', exact: true }).click();
+    await expect(page.getByTestId('posted')).toHaveText('');
+    await page.locator('select[name="size"]').selectOption('M');
+    await expect(page.getByRole('combobox', { name: 'Size' })).toHaveText('M');
+    await page.getByRole('button', { name: 'Post', exact: true }).click();
+    await expect(page.getByTestId('posted')).toHaveText('size=M');
+  });
+
+  test('inside a dialog and a popover: a pick keeps the overlay open; Escape closes the list first', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-3--select-in-overlays');
+    await page.getByRole('button', { name: 'Edit member' }).click();
+    const dlg = page.getByRole('dialog', { name: 'Edit member' });
+    const role = dlg.getByRole('combobox', { name: 'Role' });
+    await role.click();
+    const opt = page.getByRole('option', { name: 'Admin' });
+    const z = await opt.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return (
+        document.elementFromPoint(r.left + 5, r.top + r.height / 2) === el ||
+        el.contains(document.elementFromPoint(r.left + 5, r.top + r.height / 2))
+      );
+    });
+    expect(z).toBe(true);
+    await opt.click();
+    await expect(dlg).toBeVisible();
+    await expect(page.getByTestId('role')).toHaveText('Role: Admin');
+    await expect(role).toBeFocused();
+    await role.press('Enter');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+    await expect(dlg).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await page.getByRole('button', { name: 'Filter' }).click();
+    const pop = page.getByRole('dialog', { name: 'Filter' });
+    await pop.getByRole('combobox', { name: 'Status' }).click();
+    await page.getByRole('option', { name: 'Closed' }).click();
+    await expect(pop).toBeVisible();
+    await expect(pop.getByRole('combobox', { name: 'Status' })).toHaveText('Closed');
+  });
+
+  test('caller props reach the button; aria-labelledby; id = name; late options; autoFocus; space in typeahead', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-3--select-edges');
+    await expect(page.getByRole('combobox', { name: 'Auto' })).toBeFocused();
+    const p = page.getByTestId('props-sel');
+    await expect(p).toHaveAttribute('role', 'combobox');
+    await expect(p).toHaveAttribute('title', 'Pick one');
+    await expect(p).toHaveCSS('letter-spacing', '1px');
+    await p.focus();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Tab');
+    await expect(page.getByTestId('log')).toHaveText('focus,key:ArrowDown,key:Escape,key:Tab,blur');
+    await expect(page.getByRole('combobox', { name: 'External name' })).toHaveCount(1);
+    await page.getByRole('button', { name: 'Read' }).click();
+    await expect(page.getByTestId('read')).toHaveText('VN');
+    /* Nothing to choose: no empty listbox. */
+    const empty = page.getByRole('combobox', { name: 'Empty' });
+    await empty.click();
+    await expect(empty).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+    /* Options that change while the list is open show up; the chosen one stays marked. */
+    await page.getByRole('button', { name: 'Grow later' }).click();
+    const late = page.getByRole('combobox', { name: 'Late' });
+    await late.click();
+    await expect(page.getByRole('option')).toHaveText(['Alpha']);
+    await expect(page.getByRole('option')).toHaveText(['Zulu', 'Alpha', 'Bravo']);
+    await expect(page.getByRole('option', { name: 'Alpha' })).toHaveAttribute('aria-selected', 'true');
+    /* The highlight stays on Alpha (now second), not whatever took its place. */
+    await expect(late).toHaveAttribute('aria-activedescendant', /opt-1$/);
+    await page.keyboard.press('Escape');
+    /* "new d": the space is part of the search. */
+    const city = page.getByRole('combobox', { name: 'City' });
+    await city.focus();
+    await page.keyboard.type('new d');
+    await expect(city).toHaveAttribute('aria-expanded', 'true');
+    await expect(city).toHaveAttribute('aria-activedescendant', /opt-1$/);
+    await page.keyboard.press('Enter');
+    await expect(city).toHaveText('New Delhi');
+    /* A letter that matches nothing doesn't swallow the Space that follows. */
+    await page.keyboard.type('q');
+    await page.keyboard.press('Space');
+    await expect(city).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });

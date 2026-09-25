@@ -249,7 +249,8 @@ def p_filters(pg):
     pg.get_by_role('button', name='ตัวกรอง').click()
     dr = pg.get_by_role('dialog', name='ตัวกรอง'); expect(dr).to_be_visible()
     assert dr.bounding_box()['width'] >= 389, dr.bounding_box()
-    dr.get_by_label('สถานะ').select_option('เสร็จสิ้น')
+    dr.get_by_role('combobox', name='สถานะ').click()   # 5.3: AURA's own list, not the browser's
+    pg.get_by_role('option', name='เสร็จสิ้น').click()
     dr.get_by_role('button', name='ดูผลลัพธ์').click()
     expect(pg.get_by_role('button', name='ตัวกรอง (1)')).to_be_visible()
     pills = pg.locator(CARD + ' .aura-pill').all_inner_texts(); assert pills and set(pills) == {'เสร็จสิ้น'}, pills

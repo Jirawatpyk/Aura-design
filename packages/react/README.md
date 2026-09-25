@@ -186,6 +186,13 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.3 — Select opens AURA's own list
+
+- **Select** no longer hands its list to the operating system (a white list in dark mode on Windows, a different look on every OS). The field is a button that opens an AURA list like Combobox: tokens in light and dark, a check on the chosen item, `optgroup` headings, disabled options skipped, type to jump (Thai too), Home/End/PageUp/PageDown, Escape closes the list before a dialog. The same list is used on phones (as in shadcn), not the native picker.
+- **Nothing to change in your code.** A real `<select>` is still underneath: `name` and `required` in a form post, `ref`, `onChange`, react-hook-form `register` / `reset` / `setValue` / `setFocus`, a form's reset button. `options` is now optional, so `<option>` / `<optgroup>` children work on their own. `multiple` or `size > 1` keep the native list box. Before hydration (and with JavaScript off) the field is that `<select>` itself, so it works from the first paint.
+- **Where props go**: `style`, `title`, `data-*`, `aria-label`, `aria-labelledby`, `autoFocus`, `onFocus`, `onKeyDown` and `onClick` go to the button people use; `name`, `form`, `value`, `defaultValue`, `disabled`, `onChange`, `onInput`, `onBlur` stay with the `<select>`. `id` names the button (the label points at it); the `<select>` is `` `${id}-select` ``, and `form.elements.namedItem(name)` still returns it. Read the value in `onChange` / `onBlur` (their `e.target` is the `<select>`); in `onFocus` / `onKeyDown` / `onClick` `e.target` is the button.
+- **Tests**: the label now names the button (`getByRole('combobox', { name: 'Team' })`, then `getByRole('option', { name: 'Mobile' })`). `page.locator('select[name="team"]').selectOption('Mobile')` still works and updates the field; `getByLabel('Team').selectOption()` no longer does, because the label points at the button.
+
 ## 5.2 — the review's smaller items
 
 - **DataTable**: the totals row is part of the grid (arrow keys and Ctrl+End reach it); server paging without `totalRows` shows "1–25 of many · Page 1" while pages come back full; a page that no longer exists (a filter left one page) is reported back through `onPageChange` / `onStateChange`; a pinned column that `hideBelow` hides no longer pushes the next pinned column before hydration.
@@ -252,7 +259,7 @@ Tailwind's `dark:` variant keeps working: the `.dark` class on `<html>` is kept 
 
 ## Refs and forms
 
-Every component forwards `ref` to its real element — fields to the `<input>`/`<select>`/`<textarea>`, buttons to the `<button>`, layouts to their root. react-hook-form: `register` for TextField/Textarea/Select, `Controller` (pass `field.ref`) for Combobox, DatePicker, TimePicker, FileUpload, Checkbox. See `examples/settings`.
+Every component forwards `ref` to its real element — fields to the `<input>`/`<select>`/`<textarea>`, buttons to the `<button>`, layouts to their root. react-hook-form: `register` for TextField/Textarea/Select (Select's ref is its hidden `<select>`; `.focus()` on it moves to the visible button), `Controller` (pass `field.ref`) for Combobox, DatePicker, TimePicker, FileUpload, Checkbox. See `examples/settings`.
 
 ## Brand themes
 

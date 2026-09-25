@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStrings, useAuraLocale } from './locale.js';
+import { useStrings, useAuraLocale, useDensity } from './locale.js';
 import { createPortal } from 'react-dom';
 import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
@@ -51,6 +51,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
     const multi = (all as ComboboxMultipleProps).multiple === true;
     const mp = all as ComboboxMultipleProps;
     const t = useStrings();
+    const density = useDensity();
     const auto = uid(),
       id = props.id || auto,
       listId = id + '-list';
@@ -247,7 +248,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
     const list =
       open && mounted && posState[0]
         ? createPortal(
-            <div ref={listRef} className="aura-combo__popover" style={posState[0]}>
+            <div ref={listRef} data-density={density} className="aura-combo__popover" style={posState[0]}>
               {/* 5.1.1: the listbox exists only while it has options (an empty one fails axe, aria-required-children);
                * "Searching…", "No matches" and "keep typing" sit beside it as a status line. */}
               {live.length ? (
