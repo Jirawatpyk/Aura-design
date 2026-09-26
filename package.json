@@ -1,7 +1,7 @@
 {
   "name": "aura-design",
   "private": true,
-  "version": "5.7.1",
+  "version": "5.7.2",
   "description": "AURA Design System — tokens, React components, Storybook. Enterprise Standard, Human Creative.",
   "workspaces": [
     "packages/tokens",
