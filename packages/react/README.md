@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.7.2 — SideNav labels hyphenate
+
+- **SideNav** (item 64): a long compound word hyphenates at a syllable (`hyphens: auto`) instead of breaking wherever the line runs out — "Marknadsförings-" / "målgrupp" rather than "Marknadsföringsmålgrup" / "p". The browser's dictionary for the page's `lang` decides — Safari and Firefox ship them; Chrome downloads them on demand, so they can be missing (headless and managed machines especially). Breaking anywhere stays the last resort. Only words of 12+ letters hyphenate, with at least 5 on each side (`hyphenate-limit-chars`, Chrome 109+ and Firefox 137+), so ordinary English labels still wrap between words; a long English word in a two-line label can now hyphenate too. Where no dictionary is available, put a soft hyphen in the label — `'Marknadsförings\u00ADmålgrupp'` — which breaks there everywhere, shows a hyphen only when it breaks, and adds no hyphen to the accessible name (it is an invisible format character screen readers skip). Set `<html lang>` per locale.
+
 ## 5.7.1 — SideNav labels wrap
 
 - **SideNav** (item 63): a long label wraps to a second line instead of ending in an ellipsis, so Thai and Swedish names read in full in the 240px nav and the phone drawer. One-line rows stay 36px (44px on touch); a two-line row grows to 44px with its icon centred. Past two lines the label clamps; the accessible name is always complete. The collapsed rail is unchanged.

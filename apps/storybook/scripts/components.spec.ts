@@ -2465,3 +2465,39 @@ test.describe('5.7.1: Chamber-OS item 63', () => {
     await ctx.close();
   });
 });
+
+test.describe('5.7.2: Chamber-OS item 64', () => {
+  test('64: nav labels hyphenate; a soft hyphen breaks with a visible hyphen and a clean name', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await story(page, 'aura-new-in-5-7--long-nav-labels');
+    const labels = page.locator('.aura-nav__label');
+    expect(await labels.first().evaluate((el) => getComputedStyle(el).hyphens)).toBe('auto');
+    /* The soft-hyphen label: two lines, split after "Marknadsförings", no line holding one letter. */
+    const shy = page.locator('.aura-nav__item').nth(4);
+    /* The second line starts right after the soft hyphen: the caret at its left edge sits before "målgrupp". */
+    const split = await shy.locator('.aura-nav__label').evaluate((el) => {
+      const t = el.firstChild as Text;
+      const b = el.getBoundingClientRect();
+      const c = document.caretRangeFromPoint(b.left + 1, b.top + 27)!;
+      return { offset: c.startOffset, at: t.data.indexOf('\u00AD'), height: Math.round(b.height) };
+    });
+    expect(split.height).toBe(36); // two lines
+    expect(split.offset).toBe(split.at + 1);
+    await expect(shy).toHaveAccessibleName('Marknadsföringsmålgrupp 12');
+    /* Playwright strips U+00AD before comparing names, so read Chromium's own tree: the name carries no visible
+     * hyphen. (Chromium keeps the soft hyphen itself — an invisible format character screen readers don't speak.) */
+    const cdp = await page.context().newCDPSession(page);
+    const { nodes } = await cdp.send('Accessibility.getFullAXTree');
+    const names = nodes.map((n: any) => String(n.name?.value ?? '')).filter((n: string) => n.includes('lgrupp'));
+    expect(names.length).toBeGreaterThan(0);
+    for (const n of names) expect(n, 'no hyphen in the accessible name').not.toMatch(/[-\u2010\u2011]/);
+    /* The plain compound ("Marknadsföringsmålgrupp") hyphenates only where the browser has a Swedish dictionary;
+     * headless Chromium on Linux has none, so CI checks the CSS above and the soft-hyphen path, not that render. */
+    /* Clamp, row heights and arrow keys unchanged. */
+    expect(Math.round((await page.locator('.aura-nav__item').nth(0).boundingBox())!.height)).toBe(36);
+    expect((await shy.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.locator('.aura-nav__item').nth(3).focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(shy).toBeFocused();
+  });
+});

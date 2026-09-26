@@ -133,7 +133,7 @@ export const ShortTabs: StoryObj = {
 /* 63 (5.7.1): long labels wrap to two lines in a 240px nav instead of an ellipsis. */
 export const LongNavLabels: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', height: 420 }}>
+    <div style={{ display: 'flex', height: 420 }} lang="sv">
       <Aura.SideNav
         defaultValue="sv"
         sections={[
@@ -142,6 +142,9 @@ export const LongNavLabels: StoryObj = {
               { id: 'home', label: 'Home', icon: 'house' },
               { id: 'sv', label: 'Godkännande av medlemsändringar', icon: 'users', count: 4 },
               { id: 'th', label: 'การอนุมัติคำขอแก้ไขข้อมูลของสมาชิก', icon: 'file-text' },
+              /* 64 (5.7.2): hyphens: auto where the browser has a Swedish dictionary; a soft hyphen everywhere. */
+              { id: 'mg', label: 'Marknadsföringsmålgrupp', icon: 'mail', count: 12 },
+              { id: 'shy', label: 'Marknadsförings\u00ADmålgrupp', icon: 'globe', count: 12 },
             ],
           },
         ]}
