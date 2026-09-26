@@ -828,6 +828,8 @@ window.Aura = (() => {
     const pos = posState[0], setPos = posState[1];
     const items2 = props.items || [];
     const mounted = useMounted();
+    const headerId = uid();
+    const hasHeader = props.header != null && props.header !== false && props.header !== "";
     const Link = useLinkComponent(props.linkComponent);
     useIsoLayoutEffect(
       function() {
@@ -845,7 +847,20 @@ window.Aura = (() => {
         const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
         setPos({ top, left, maxHeight });
       },
-      [props.anchor, mounted]
+      [props.anchor, mounted, hasHeader]
+    );
+    const hadHeader = React6.useRef(hasHeader);
+    React6.useEffect(
+      function() {
+        if (hadHeader.current === hasHeader) return;
+        hadHeader.current = hasHeader;
+        const a = document.activeElement;
+        if (own.current && (!a || a === document.body)) {
+          const first = own.current.querySelector('[role^="menuitem"]:not([disabled])');
+          if (first) first.focus();
+        }
+      },
+      [hasHeader]
     );
     React6.useEffect(
       function() {
@@ -871,22 +886,22 @@ window.Aura = (() => {
       [mounted]
     );
     function onKeyDown(e) {
-      const list = Array.prototype.slice.call(
+      const list2 = Array.prototype.slice.call(
         own.current.querySelectorAll('[role^="menuitem"]:not([disabled])')
       );
-      const i = list.indexOf(document.activeElement);
+      const i = list2.indexOf(document.activeElement);
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        list[(i + 1) % list.length].focus();
+        list2[(i + 1) % list2.length].focus();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        list[(i - 1 + list.length) % list.length].focus();
+        list2[(i - 1 + list2.length) % list2.length].focus();
       } else if (e.key === "Home") {
         e.preventDefault();
-        list[0].focus();
+        list2[0].focus();
       } else if (e.key === "End") {
         e.preventDefault();
-        list[list.length - 1].focus();
+        list2[list2.length - 1].focus();
       } else if (e.key === " " && document.activeElement && document.activeElement.tagName === "A") {
         e.preventDefault();
         document.activeElement.click();
@@ -898,9 +913,9 @@ window.Aura = (() => {
       }
       e.stopPropagation();
     }
-    function groupItems(list) {
+    function groupItems(list2) {
       const out = [];
-      list.forEach(function(it, i) {
+      list2.forEach(function(it, i) {
         const g = it.type === "radio" && it.group ? it.group : null;
         const last = out[out.length - 1];
         if (last && last.group === g && g !== null) last.items.push({ it, i });
@@ -955,27 +970,28 @@ window.Aura = (() => {
         body
       );
     }
-    const el = /* @__PURE__ */ React6.createElement(
+    const style = {
+      top: pos ? pos.top : -9999,
+      left: pos ? pos.left : -9999,
+      maxHeight: pos && pos.maxHeight ? pos.maxHeight : void 0
+    };
+    const list = groupItems(items2).map(function(block, bi) {
+      const rendered = block.items.map(function(x) {
+        return renderItem(x.it, x.i);
+      });
+      return block.group ? /* @__PURE__ */ React6.createElement("div", { key: "g" + bi, role: "group", "aria-label": block.group, className: "aura-menu__group" }, rendered) : /* @__PURE__ */ React6.createElement(React6.Fragment, { key: "f" + bi }, rendered);
+    });
+    const el = hasHeader ? /* @__PURE__ */ React6.createElement("div", { ref: merged, className: "aura-menu has-header", onKeyDown, style }, /* @__PURE__ */ React6.createElement(
       "div",
       {
-        ref: merged,
-        role: "menu",
-        "aria-label": props.label,
-        className: "aura-menu",
-        onKeyDown,
-        style: {
-          top: pos ? pos.top : -9999,
-          left: pos ? pos.left : -9999,
-          maxHeight: pos && pos.maxHeight ? pos.maxHeight : void 0
+        className: "aura-menu__header",
+        id: headerId,
+        onMouseDown: function(e) {
+          e.preventDefault();
         }
       },
-      groupItems(items2).map(function(block, bi) {
-        const rendered = block.items.map(function(x) {
-          return renderItem(x.it, x.i);
-        });
-        return block.group ? /* @__PURE__ */ React6.createElement("div", { key: "g" + bi, role: "group", "aria-label": block.group, className: "aura-menu__group" }, rendered) : /* @__PURE__ */ React6.createElement(React6.Fragment, { key: "f" + bi }, rendered);
-      })
-    );
+      props.header
+    ), /* @__PURE__ */ React6.createElement("div", { role: "menu", "aria-label": props.label, "aria-describedby": headerId, className: "aura-menu__list" }, list)) : /* @__PURE__ */ React6.createElement("div", { ref: merged, role: "menu", "aria-label": props.label, className: "aura-menu", onKeyDown, style }, list);
     return mounted ? (0, import_react_dom.createPortal)(el, document.body) : null;
   });
 
@@ -1015,6 +1031,7 @@ window.Aura = (() => {
         label: props.label,
         items: props.items,
         linkComponent: props.linkComponent,
+        header: props.header,
         onClose: function(restore) {
           setAnchor(null);
           if (restore && typeof anchor.focus === "function") anchor.focus();
@@ -4014,6 +4031,7 @@ window.Aura = (() => {
     function close() {
       if (props.dismissible !== false && props.onClose) props.onClose();
     }
+    const scrimCloses = props.dismissible !== false && (props.dismissOnScrim !== void 0 ? props.dismissOnScrim : props.role !== "alertdialog");
     const modal = useModal(props.open, own, {
       autoFocus: props.autoFocus,
       onEscape: close,
@@ -4022,7 +4040,17 @@ window.Aura = (() => {
     });
     if (!modal.ready) return null;
     return (0, import_react_dom8.createPortal)(
-      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
+      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement(
+        "div",
+        {
+          className: "aura-scrim",
+          onClick: scrimCloses ? close : void 0,
+          onMouseDown: scrimCloses ? void 0 : function(e) {
+            e.preventDefault();
+          },
+          "aria-hidden": true
+        }
+      ), /* @__PURE__ */ React27.createElement(
         "div",
         {
           ref: merged,
@@ -4056,8 +4084,19 @@ window.Aura = (() => {
     });
     if (!modal.ready) return null;
     const side = props.side === "left" ? "left" : "right";
+    const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
     return (0, import_react_dom8.createPortal)(
-      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }), /* @__PURE__ */ React27.createElement(
+      /* @__PURE__ */ React27.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React27.createElement(
+        "div",
+        {
+          className: "aura-scrim",
+          onClick: drawerScrimCloses ? close : void 0,
+          onMouseDown: !drawerScrimCloses ? function(e) {
+            e.preventDefault();
+          } : void 0,
+          "aria-hidden": true
+        }
+      ), /* @__PURE__ */ React27.createElement(
         "div",
         {
           ref: merged,
@@ -5726,7 +5765,10 @@ window.Aura = (() => {
     const items2 = props.items || [];
     return /* @__PURE__ */ React32.createElement("nav", { ref, "aria-label": props.label || t.breadcrumb, className: cx("aura-crumbs", props.className) }, /* @__PURE__ */ React32.createElement("ol", null, items2.map(function(it, i) {
       const last = i === items2.length - 1;
-      return /* @__PURE__ */ React32.createElement("li", { key: i }, last ? /* @__PURE__ */ React32.createElement("span", { "aria-current": "page", className: "aura-crumbs__current" }, it.label) : it.href ? /* @__PURE__ */ React32.createElement(Link, { href: it.href, onClick: it.onClick }, it.label) : /* @__PURE__ */ React32.createElement("button", { type: "button", onClick: it.onClick }, it.label), last ? null : /* @__PURE__ */ React32.createElement(Icon, { name: "chevron-right", size: 12, className: "aura-crumbs__sep" }));
+      return /* @__PURE__ */ React32.createElement("li", { key: i }, last ? /* @__PURE__ */ React32.createElement("span", { "aria-current": "page", className: "aura-crumbs__current" }, it.label) : it.href ? /* @__PURE__ */ React32.createElement(Link, { href: it.href, onClick: it.onClick }, it.label) : it.onClick ? /* @__PURE__ */ React32.createElement("button", { type: "button", onClick: it.onClick }, it.label) : (
+        /* 5.7: a segment with no page and no action is text, not a button that does nothing. */
+        /* @__PURE__ */ React32.createElement("span", { className: "aura-crumbs__text" }, it.label)
+      ), last ? null : /* @__PURE__ */ React32.createElement(Icon, { name: "chevron-right", size: 12, className: "aura-crumbs__sep" }));
     })));
   });
 
@@ -5921,7 +5963,7 @@ window.Aura = (() => {
         },
         "aria-expanded": open
       }
-    ) : null, /* @__PURE__ */ React38.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React38.createElement("main", { className: "aura-shell__content", id: props.mainId || "main" }, props.children), props.bottomNav || null));
+    ) : null, /* @__PURE__ */ React38.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React38.createElement("main", { className: "aura-shell__content", id: props.mainId || "main", tabIndex: -1 }, props.children), props.bottomNav || null));
   });
 
   // src/ActionBar.tsx
@@ -6076,8 +6118,11 @@ window.Aura = (() => {
       /* @__PURE__ */ React42.createElement("ul", { className: "aura-bottomnav__list" }, props.items.map(function(it) {
         const on = active === it.id;
         const count = it.count != null && it.count > 0 ? it.count > 99 ? "99+" : String(it.count) : null;
+        const suffix = count || it.badge && it.badgeLabel ? " (" + (count || it.badgeLabel) + ")" : "";
         const common = {
           className: cx("aura-bottomnav__item", on && "is-active"),
+          /* 5.7: a full name when the label is shortened; the count / badge words still follow. */
+          "aria-label": it.ariaLabel ? it.ariaLabel + suffix : void 0,
           "aria-current": on ? "page" : void 0,
           onClick: function(e) {
             if (!it.href) e.preventDefault();
@@ -6088,7 +6133,7 @@ window.Aura = (() => {
         const inner = [
           /* @__PURE__ */ React42.createElement("span", { key: "i", className: "aura-bottomnav__icon" }, /* @__PURE__ */ React42.createElement(Icon, { name: it.icon, size: "md" }), count ? /* @__PURE__ */ React42.createElement("span", { className: "aura-bottomnav__count", "aria-hidden": "true" }, count) : it.badge ? /* @__PURE__ */ React42.createElement("span", { className: "aura-bottomnav__dot", "aria-hidden": "true" }) : null),
           /* @__PURE__ */ React42.createElement("span", { key: "l", className: "aura-bottomnav__label" }, it.label),
-          count || it.badge && it.badgeLabel ? /* @__PURE__ */ React42.createElement("span", { key: "s", className: "aura-sr-only" }, " (" + (count || it.badgeLabel) + ")") : null
+          suffix && !it.ariaLabel ? /* @__PURE__ */ React42.createElement("span", { key: "s", className: "aura-sr-only" }, suffix) : null
         ];
         return /* @__PURE__ */ React42.createElement("li", { key: it.id, className: "aura-bottomnav__cell" }, it.href ? /* @__PURE__ */ React42.createElement(Link, { href: it.href, ...common }, inner) : /* @__PURE__ */ React42.createElement("button", { type: "button", ...common }, inner));
       }))

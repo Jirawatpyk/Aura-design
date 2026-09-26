@@ -2351,3 +2351,82 @@ test.describe('5.6: Chamber-OS addendum 4', () => {
     await ctx.close();
   });
 });
+
+test.describe('5.7: Chamber-OS addendum 5', () => {
+  test('57: DropdownMenu header is outside the items and describes the menu', async ({ page }) => {
+    await story(page, 'aura-new-in-5-7--account-menu');
+    await page.getByRole('button', { name: 'Account' }).click();
+    const menu = page.getByRole('menu', { name: 'Account' });
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Profile' })).toBeFocused();
+    await expect(menu).toHaveAccessibleDescription(/Jirawat Piyakit.*tao@example\.co\.th.*Chamber admin/);
+    await expect(menu.getByText('Jirawat Piyakit')).toHaveCount(0); // not inside role=menu
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByRole('menuitem', { name: 'Sign out' })).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitem', { name: 'Profile' })).toBeFocused();
+    await page.getByText('tao@example.co.th').click(); // clicking the header keeps the menu open
+    await expect(menu).toBeVisible();
+    expect(await axeScan(page, 'body')).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+  });
+
+  test('58: a breadcrumb item with no href or onClick is text', async ({ page }) => {
+    await story(page, 'aura-new-in-5-7--text-crumb');
+    const nav = page.getByRole('navigation');
+    await expect(nav.getByRole('link', { name: 'Settings' })).toHaveCount(1);
+    await expect(nav.getByRole('button')).toHaveCount(0);
+    await expect(nav.locator('.aura-crumbs__text')).toHaveText('Renewals');
+    await expect(nav.locator('[aria-current="page"]')).toHaveText('Schedules');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('59: focus moves to <main> when the row acted on is gone, with no ring', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await story(page, 'aura-new-in-5-7--shell-focus');
+    await page.getByRole('button', { name: 'Approve Member A' }).click();
+    const main = page.locator('#main-content');
+    await expect(main).toBeFocused();
+    expect(await main.evaluate((m) => getComputedStyle(m).outlineStyle)).toBe('none');
+    expect(await axeScan(page, 'body')).toEqual([]);
+  });
+
+  test('60: alertdialog ignores a scrim click; Escape still closes it', async ({ page }) => {
+    await story(page, 'aura-new-in-5-7--confirm-with-reason');
+    await page.getByRole('button', { name: 'Reject request' }).click();
+    const d = page.getByRole('alertdialog');
+    await d.getByRole('textbox', { name: 'Reason' }).fill('Duplicate');
+    await page.mouse.click(5, 5);
+    await expect(d).toBeVisible();
+    await expect(d.getByRole('textbox', { name: 'Reason' })).toHaveValue('Duplicate');
+    await expect(page.getByTestId('closed')).toHaveText('Closed 0');
+    await page.keyboard.press('Escape');
+    await expect(d).toHaveCount(0);
+    await expect(page.getByTestId('closed')).toHaveText('Closed 1');
+  });
+
+  test('61: BottomNav ariaLabel names the item; count still read', async ({ page }) => {
+    await story(page, 'aura-new-in-5-7--short-tabs');
+    const nav = page.getByRole('navigation');
+    await expect(nav.getByRole('button', { name: 'Mitt konto', exact: true })).toHaveCount(1);
+    await expect(nav.getByRole('button', { name: 'สิทธิประโยชน์ (3)', exact: true })).toHaveCount(1);
+    await expect(nav.getByText('Konto', { exact: true })).toBeVisible();
+    expect(await axeScan(page, 'body')).toEqual([]);
+  });
+
+  test('62: SideNav rows are 44px on touch, 36px otherwise', async ({ browser, page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await story(page, 'aura-new-in-5-7--shell-focus');
+    const h = async (p: typeof page) => (await p.locator('.aura-nav__item').first().boundingBox())!.height;
+    expect(Math.round(await h(page))).toBe(36);
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+    const phone = await ctx.newPage();
+    await story(phone, 'aura-new-in-5-7--shell-focus');
+    await phone.getByRole('button', { name: 'Open navigation' }).click();
+    await expect(phone.locator('.aura-drawer .aura-nav__item').first()).toBeVisible();
+    for (const b of await phone.locator('.aura-drawer .aura-nav__item').all())
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await ctx.close();
+  });
+});

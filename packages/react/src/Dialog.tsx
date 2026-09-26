@@ -16,6 +16,10 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
   function close() {
     if (props.dismissible !== false && props.onClose) props.onClose();
   }
+  /* 5.7: an alertdialog (a confirmation, often with a typed reason) ignores scrim clicks unless asked. */
+  const scrimCloses =
+    props.dismissible !== false &&
+    (props.dismissOnScrim !== undefined ? props.dismissOnScrim : props.role !== 'alertdialog');
   const modal = useModal(props.open, own, {
     autoFocus: props.autoFocus,
     onEscape: close,
@@ -25,7 +29,19 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
   if (!modal.ready) return null;
   return createPortal(
     <div className="aura-dialog-layer" data-density={density} onKeyDown={modal.onKeyDown}>
-      <div className="aura-scrim" onClick={close} aria-hidden={true} />
+      <div
+        className="aura-scrim"
+        onClick={scrimCloses ? close : undefined}
+        /* A scrim that doesn't close keeps focus in the dialog, so Escape still works after a stray click. */
+        onMouseDown={
+          scrimCloses
+            ? undefined
+            : function (e: React.MouseEvent) {
+                e.preventDefault();
+              }
+        }
+        aria-hidden={true}
+      />
       <div
         ref={merged}
         role={props.role || 'dialog'}
@@ -76,9 +92,21 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
   });
   if (!modal.ready) return null;
   const side = props.side === 'left' ? 'left' : 'right';
+  const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
   return createPortal(
     <div className="aura-dialog-layer aura-drawer-layer" data-density={density} onKeyDown={modal.onKeyDown}>
-      <div className="aura-scrim" onClick={close} aria-hidden={true} />
+      <div
+        className="aura-scrim"
+        onClick={drawerScrimCloses ? close : undefined}
+        onMouseDown={
+          !drawerScrimCloses
+            ? function (e: React.MouseEvent) {
+                e.preventDefault();
+              }
+            : undefined
+        }
+        aria-hidden={true}
+      />
       <div
         ref={merged}
         role="dialog"

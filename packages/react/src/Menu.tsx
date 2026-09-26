@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { cx, useIsoLayoutEffect, useMounted, useMergedRef } from './internal.js';
+import { cx, uid, useIsoLayoutEffect, useMounted, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
 import { useLinkComponent } from './locale.js';
 import type { MenuItem, MenuProps } from './types.js';
@@ -14,6 +14,8 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     setPos = posState[1];
   const items = props.items || [];
   const mounted = useMounted();
+  const headerId = uid();
+  const hasHeader = props.header != null && props.header !== false && props.header !== '';
   const Link = useLinkComponent(props.linkComponent);
   useIsoLayoutEffect(
     function () {
@@ -38,7 +40,21 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
       setPos({ top: top, left: left, maxHeight: maxHeight });
     },
-    [props.anchor, mounted],
+    [props.anchor, mounted, hasHeader],
+  );
+  /* A header that appears or goes while open (an async user fetch) rebuilds the items; keep focus in the menu. */
+  const hadHeader = React.useRef(hasHeader);
+  React.useEffect(
+    function () {
+      if (hadHeader.current === hasHeader) return;
+      hadHeader.current = hasHeader;
+      const a = document.activeElement;
+      if (own.current && (!a || a === document.body)) {
+        const first = own.current.querySelector<HTMLElement>('[role^="menuitem"]:not([disabled])');
+        if (first) first.focus();
+      }
+    },
+    [hasHeader],
   );
   React.useEffect(
     function () {
@@ -171,31 +187,43 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       </button>
     );
   }
-  const el = (
-    <div
-      ref={merged}
-      role="menu"
-      aria-label={props.label}
-      className="aura-menu"
-      onKeyDown={onKeyDown}
-      style={{
-        top: pos ? pos.top : -9999,
-        left: pos ? pos.left : -9999,
-        maxHeight: pos && pos.maxHeight ? pos.maxHeight : undefined,
-      }}
-    >
-      {groupItems(items).map(function (block, bi) {
-        const rendered = block.items.map(function (x) {
-          return renderItem(x.it, x.i);
-        });
-        return block.group ? (
-          <div key={'g' + bi} role="group" aria-label={block.group} className="aura-menu__group">
-            {rendered}
-          </div>
-        ) : (
-          <React.Fragment key={'f' + bi}>{rendered}</React.Fragment>
-        );
-      })}
+  const style = {
+    top: pos ? pos.top : -9999,
+    left: pos ? pos.left : -9999,
+    maxHeight: pos && pos.maxHeight ? pos.maxHeight : undefined,
+  };
+  const list = groupItems(items).map(function (block, bi) {
+    const rendered = block.items.map(function (x) {
+      return renderItem(x.it, x.i);
+    });
+    return block.group ? (
+      <div key={'g' + bi} role="group" aria-label={block.group} className="aura-menu__group">
+        {rendered}
+      </div>
+    ) : (
+      <React.Fragment key={'f' + bi}>{rendered}</React.Fragment>
+    );
+  });
+  /* 5.7: a header sits outside role="menu" (a menu may only hold items, groups and separators) and describes it. */
+  const el = hasHeader ? (
+    <div ref={merged} className="aura-menu has-header" onKeyDown={onKeyDown} style={style}>
+      <div
+        className="aura-menu__header"
+        id={headerId}
+        /* A click on the header text keeps focus on the item, so Escape and the arrows still work. */
+        onMouseDown={function (e: React.MouseEvent) {
+          e.preventDefault();
+        }}
+      >
+        {props.header}
+      </div>
+      <div role="menu" aria-label={props.label} aria-describedby={headerId} className="aura-menu__list">
+        {list}
+      </div>
+    </div>
+  ) : (
+    <div ref={merged} role="menu" aria-label={props.label} className="aura-menu" onKeyDown={onKeyDown} style={style}>
+      {list}
     </div>
   );
   return mounted ? createPortal(el, document.body) : null;

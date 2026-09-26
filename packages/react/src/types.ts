@@ -391,6 +391,9 @@ export interface MenuProps {
   autoFocus?: boolean | undefined;
   /** Router link for items with `href`; defaults to AuraProvider's `linkComponent`, then `<a>`. (4.19) */
   linkComponent?: React.ElementType | undefined;
+  /** Content above the items (5.7), e.g. who is signed in. Not an item: arrow keys skip it; it is the menu's
+   * accessible description, read once when the menu opens. */
+  header?: React.ReactNode | undefined;
 }
 
 /* ---------- Forms ---------- */
@@ -623,6 +626,9 @@ export interface DialogProps {
   size?: 'sm' | 'md' | 'lg' | undefined;
   /** Default true. False hides the close button and ignores Escape and scrim clicks. */
   dismissible?: boolean | undefined;
+  /** Whether a click on the scrim closes it (5.7). Default true, false for `role="alertdialog"`: a stray click
+   * outside shouldn't throw away a typed reason. Escape and the close button still close it. */
+  dismissOnScrim?: boolean | undefined;
   /** Use `alertdialog` for destructive confirmations. */
   role?: 'dialog' | 'alertdialog' | undefined;
   /** Default true. Turn off only for static demos. */
@@ -713,6 +719,7 @@ export interface SideNavProps {
 }
 export interface BreadcrumbProps {
   /** Root first; the last item is the current page. */
+  /** An item with neither `href` nor `onClick` is plain text (5.7), for a segment with no page of its own. */
   items: Array<{ label: string; href?: string | undefined; onClick?: (() => void) | undefined }>;
   label?: string | undefined;
   /** Your router's link (e.g. `Link` from `next/link`) for this component; defaults to AuraProvider's `linkComponent`, then `<a>`. */
@@ -739,6 +746,9 @@ export interface DropdownMenuProps {
   label?: string | undefined;
   /** Router link for items with `href`. (4.19) */
   linkComponent?: React.ElementType | undefined;
+  /** Content above the items (5.7), e.g. name, email and role in an account menu. Not an item: arrow keys skip
+   * it; it is the menu's accessible description (`aria-describedby`). */
+  header?: React.ReactNode | undefined;
 }
 
 export interface ComboboxOption {
@@ -948,6 +958,8 @@ export interface DrawerProps {
   footer?: React.ReactNode | undefined;
   /** Scrim click and Escape close it. Default true. */
   dismissible?: boolean | undefined;
+  /** Whether a click on the scrim closes it (5.7). Default true; Escape and the close button still close it. */
+  dismissOnScrim?: boolean | undefined;
   /** Default true: focus moves to the element with `data-autofocus`, else the first control in the body. False only for static demos. */
   autoFocus?: boolean | undefined;
   /** Needed when there is no title. */
@@ -989,7 +1001,8 @@ export interface AppShellProps {
   children?: React.ReactNode | undefined;
   navLabel?: string | undefined;
   menuLabel?: string | undefined;
-  /** id of `<main>`, for a skip link. Default `main`. */
+  /** id of `<main>`, for a skip link. Default `main`. `<main>` has `tabIndex={-1}` (5.7), so a skip link or
+   * `document.getElementById(mainId).focus()` moves focus there (no ring is drawn on it). */
   mainId?: string | undefined;
   /** A BottomNav for phones (4.19). Shown below its `hideFrom` breakpoint; the content keeps room for it, and a
    * viewport ActionBar sits on top of it. With a `bottomNav` and no `nav`, there is no menu button. */
@@ -1070,6 +1083,9 @@ export interface BottomNavItem {
   badge?: boolean | undefined;
   /** Read after the label when `badge` is set, e.g. "new". */
   badgeLabel?: string | undefined;
+  /** The full name for screen readers when `label` is shortened to fit (5.7), e.g. label "Konto", ariaLabel
+   * "Mitt konto". Include the visible label in it (WCAG 2.5.3). The count or badge is still appended. */
+  ariaLabel?: string | undefined;
 }
 export interface BottomNavProps {
   /** 2–5 items. */

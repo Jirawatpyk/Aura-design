@@ -247,6 +247,12 @@ a.aura-menu__item { text-decoration: none; box-sizing: border-box; }
 }
 .aura-menu__radio.is-on { border-color: var(--aura-button-primary-bg); }
 .aura-menu__radio.is-on::after { content: ''; width: 8px; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-button-primary-bg); }
+/* 5.7: a header above the items (who is signed in), set off by a hairline like a separator. */
+.aura-menu__header { margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-1)) var(--aura-space-1); padding: var(--aura-space-3); border-bottom: 1px solid var(--aura-border-default); color: var(--aura-fg-secondary); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.aura-menu__header > * { margin: 0; }
+/* Stays in view when a long menu scrolls. */
+.aura-menu.has-header .aura-menu__header { position: sticky; top: calc(-1 * var(--aura-space-1)); z-index: 1; background: var(--aura-bg-surface); }
+.aura-menu__header strong, .aura-menu__header b { color: var(--aura-fg-primary); font-weight: 500; font-size: 13px; }
 .aura-menu__sep { height: 1px; margin: var(--aura-space-1) calc(-1 * var(--aura-space-1)); background: var(--aura-border-default); }
 
 /* Footer + pager */
@@ -644,6 +650,8 @@ a.aura-tab { text-decoration: none; }
 .aura-nav__item.is-active { background: var(--aura-bg-selected); color: var(--aura-fg-primary); }
 .aura-nav__item.is-active .aura-icon { color: var(--aura-fg-accent); }
 .aura-nav__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: -2px; }
+/* Touch (5.7): rows are 44px on coarse pointers (AppShell's phone drawer); desktop keeps 36px. */
+@media (pointer: coarse) { .aura-nav__item { height: auto; min-height: var(--aura-touch-target); } }
 .aura-nav__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-nav__count { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--aura-fg-secondary); }
 .aura-nav__badge { display: inline-flex; align-items: center; flex: none; }
@@ -689,6 +697,8 @@ a.aura-tab { text-decoration: none; }
 .aura-crumbs a:hover, .aura-crumbs button:hover { color: var(--aura-fg-primary); text-decoration: underline; text-underline-offset: 3px; }
 .aura-crumbs a:focus-visible, .aura-crumbs button:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
 .aura-crumbs__current { color: var(--aura-fg-primary); font-weight: 500; }
+/* 5.7: a segment with no page of its own — the links' colour, not interactive. */
+.aura-crumbs__text { color: var(--aura-fg-secondary); }
 .aura-crumbs__sep { color: var(--aura-fg-tertiary); }
 
 /* ---------- Avatar ---------- */
@@ -884,6 +894,8 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-shell__bar-content { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--aura-space-3); }
 .aura-shell__content { flex: 1; min-width: 0; padding: var(--aura-space-6) var(--aura-space-4); }
+/* 5.7: <main> takes focus (tabIndex -1) for skip links and "the row you acted on is gone"; a landmark gets no ring. */
+.aura-shell__content:focus { outline: none; }
 @media (min-width: 640px) { .aura-shell__content { padding: var(--aura-space-6); } }
 @media (min-width: 1024px) { .aura-shell__content { padding: var(--aura-space-8); } }
 /* The shell already pads its content: a Container directly inside only caps the width. */

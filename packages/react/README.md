@@ -186,6 +186,15 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.7 — Chamber-OS addendum 5 (shell details)
+
+- **DropdownMenu `header`**: content above the items, e.g. name, email and role in an account menu. It sits outside `role="menu"` (arrow keys, Home/End skip it; clicking it keeps focus on the item) and is the menu's accessible description (`aria-describedby`). Screen readers differ in whether they speak a menu's description on open; keep the essentials (who is signed in) in the trigger's name too if they must be heard. With a header, the menu's `ref` and `.aura-menu` are the outer box and `role="menu"` is `.aura-menu__list` inside it.
+- **Breadcrumb**: an item with neither `href` nor `onClick` is plain text (`.aura-crumbs__text`), not a button that does nothing.
+- **AppShell** `<main>` has `tabIndex={-1}`, so a skip link or `document.getElementById(mainId)?.focus({ preventScroll: true })` moves focus there when the row you acted on leaves the list. No ring is drawn on the landmark.
+- **Dialog / Drawer `dismissOnScrim`**: `false` keeps it open on a scrim click; Escape and the close button still close it, and focus stays inside. **`role="alertdialog"` now defaults to `false`**, so a stray click outside a confirmation doesn't throw away a typed reason; pass `dismissOnScrim` to get the old behaviour.
+- **BottomNav item `ariaLabel`**: the full name when the visible label is shortened (`label="Konto"`, `ariaLabel="Mitt konto"`); the count or badge words still follow. Include the visible text in it (WCAG 2.5.3).
+- **SideNav** rows are 44px on touch screens (AppShell's phone drawer); 36px with a mouse.
+
 ## 5.6 — Chamber-OS addendum 4 (selectable rows, richer toasts)
 
 - **DataTable** `isRowSelectable={(r) => r.status === 'Awaiting review'}`: a row it rejects shows no checkbox (the cell stays, so columns line up), and select-all, Space, the "N selected" count and `onSelectionChange` skip it. A rejected key passed in through `selected` is never shown as selected and is dropped from your state with one `onSelectionChange` call. `rowSelectDisabledLabel={(r) => …}` names the empty cell for screen readers. Server HTML has no checkbox for those rows.

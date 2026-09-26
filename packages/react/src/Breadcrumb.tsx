@@ -23,10 +23,13 @@ export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(functio
                 <Link href={it.href} onClick={it.onClick}>
                   {it.label}
                 </Link>
-              ) : (
+              ) : it.onClick ? (
                 <button type="button" onClick={it.onClick}>
                   {it.label}
                 </button>
+              ) : (
+                /* 5.7: a segment with no page and no action is text, not a button that does nothing. */
+                <span className="aura-crumbs__text">{it.label}</span>
               )}
               {last ? null : <Icon name="chevron-right" size={12} className="aura-crumbs__sep" />}
             </li>

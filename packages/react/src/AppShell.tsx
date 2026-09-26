@@ -96,7 +96,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
             <div className="aura-shell__bar-content">{props.header}</div>
           </header>
         ) : null}
-        <main className="aura-shell__content" id={props.mainId || 'main'}>
+        <main className="aura-shell__content" id={props.mainId || 'main'} tabIndex={-1}>
           {props.children}
         </main>
         {props.bottomNav || null}

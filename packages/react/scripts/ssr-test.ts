@@ -40,6 +40,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const boxes = (html.match(/type="checkbox"/g) || []).length;
     if (boxes !== 2) { console.log(label, 'isRowSelectable: expected 2 checkboxes (header + 1 row), got', boxes); fail++; }
   }
+  /* 5.7: a breadcrumb segment with no href or onClick is text; AppShell's <main> can take focus. */
+  {
+    const crumbs = renderToString(React.createElement(A.Breadcrumb, { items: [{ label: 'Settings', href: '/s' }, { label: 'Renewals' }, { label: 'Schedules' }] }));
+    if (/<button/.test(crumbs) || !/aura-crumbs__text">Renewals</.test(crumbs)) { console.log(label, 'Breadcrumb text item:', crumbs); fail++; }
+    const shell = renderToString(React.createElement(A.AppShell, { mainId: 'main-content' }, 'x'));
+    if (!/<main[^>]*tabindex="-1"/.test(shell)) { console.log(label, 'AppShell main tabindex:', shell); fail++; }
+  }
   /* 5.0.1: an unknown time zone or a malformed today doesn't crash; link Tabs mark no tab for a route without one. */
   try {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(A.todayIn('Asia/Bangkk'))) throw new Error('todayIn gave ' + A.todayIn('Asia/Bangkk'));

@@ -29,8 +29,11 @@ export const BottomNav = React.forwardRef<HTMLElement, BottomNavProps>(function 
           {props.items.map(function (it: BottomNavItem) {
             const on = active === it.id;
             const count = it.count != null && it.count > 0 ? (it.count > 99 ? '99+' : String(it.count)) : null;
+            const suffix = count || (it.badge && it.badgeLabel) ? ' (' + (count || it.badgeLabel) + ')' : '';
             const common = {
               className: cx('aura-bottomnav__item', on && 'is-active'),
+              /* 5.7: a full name when the label is shortened; the count / badge words still follow. */
+              'aria-label': it.ariaLabel ? it.ariaLabel + suffix : undefined,
               'aria-current': on ? ('page' as const) : undefined,
               onClick: function (e: React.MouseEvent) {
                 if (!it.href) e.preventDefault();
@@ -52,9 +55,9 @@ export const BottomNav = React.forwardRef<HTMLElement, BottomNavProps>(function 
               <span key="l" className="aura-bottomnav__label">
                 {it.label}
               </span>,
-              count || (it.badge && it.badgeLabel) ? (
+              suffix && !it.ariaLabel ? (
                 <span key="s" className="aura-sr-only">
-                  {' (' + (count || it.badgeLabel) + ')'}
+                  {suffix}
                 </span>
               ) : null,
             ];
