@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.7.1
+
+### Patch Changes
+
+- 2b96404: SideNav: long labels wrap to a second line instead of an ellipsis (Chamber-OS item 63). One-line rows keep 36px (44px on touch), a two-line row grows to 44px, labels clamp past two lines, and the collapsed rail is unchanged.
+
 ## 5.7.0
 
 ### Minor Changes
