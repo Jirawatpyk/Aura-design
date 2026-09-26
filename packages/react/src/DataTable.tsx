@@ -88,8 +88,39 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   const sort = sortState[0],
     setSort = sortState[1];
   const selState = useMaybeControlled<RowKey[]>(props.selected, props.defaultSelected || [], props.onSelectionChange);
-  const selected = selState[0],
+  /* 5.6 (Chamber-OS 52): rows `isRowSelectable` rejects show no checkbox and never count as selected, even when the
+   * app passes their keys in. Keys of rows not on hand (other server pages) are kept as given. */
+  const canSelect = function (r: Row | null | undefined): boolean {
+    return !!r && (!props.isRowSelectable || !!props.isRowSelectable(r));
+  };
+  const rejected: Record<string, boolean> = {};
+  if (props.isRowSelectable)
+    rows.forEach(function (r: Row) {
+      if (!canSelect(r)) rejected[String(r[rowKey])] = true;
+    });
+  const selected = selState[0].filter(function (k: RowKey) {
+      return !rejected[String(k)];
+    }),
     setSelected = selState[1];
+  /* Keys the app passed in for rejected rows are dropped from its state too, so `selected` never holds one. */
+  const droppedSig =
+    selState[0].length === selected.length
+      ? ''
+      : '#' +
+        selState[0]
+          .filter(function (k: RowKey) {
+            return rejected[String(k)];
+          })
+          .join('\u0000') +
+        '#' +
+        selected.join('\u0000');
+  React.useEffect(
+    function () {
+      if (droppedSig !== '') setSelected(selected);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [droppedSig],
+  );
   const pageState = useMaybeControlled<number>(
     props.page,
     props.defaultPage || 1,
@@ -602,7 +633,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   }
 
   /* select */
-  const pageKeys = pageRows.map(function (r: Row): RowKey {
+  const pageKeys = pageRows.filter(canSelect).map(function (r: Row): RowKey {
     return r[rowKey];
   });
   const selSet: Record<string, boolean> = {};
@@ -908,10 +939,13 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       if (inner) inner.focus();
       else handled = false;
     } else if (k === ' ' || k === 'Enter') {
-      if (r === 0 && !col && selectable && nRows) toggleAll();
-      else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
-      else if (r > 0 && k === ' ' && selectable) toggle(row![rowKey], !selSet[row![rowKey]]);
-      else if (
+      if (r === 0 && !col && selectable && nRows) {
+        if (pageKeys.length) toggleAll();
+      } else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
+      else if (r > 0 && k === ' ' && selectable) {
+        /* Space on a row that can't be selected does nothing, but is still handled so the page doesn't scroll. */
+        if (canSelect(row)) toggle(row![rowKey], !selSet[row![rowKey]]);
+      } else if (
         r > 0 &&
         k === 'Enter' &&
         rowHref &&
@@ -945,7 +979,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           activeState[1]({ r: 0, c: 0 });
         }}
       >
-        {nRows ? (
+        {pageKeys.length ? (
           <Checkbox
             hideLabel
             checked={all}
@@ -956,7 +990,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           />
         ) : null}
         {/* Shown only in the card layout, beside the select-all box. */}
-        {nRows ? (
+        {pageKeys.length ? (
           <span className="aura-table__sel-text">{nSel ? t.selectedCount(nSel) : t.selectAll}</span>
         ) : (
           <span className="aura-sr-only">{t.selectRows}</span>
@@ -1108,20 +1142,24 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           className={cx('aura-table__sel', nPinned && 'is-pinned')}
           tabIndex={tabFor(ri, 0)}
           data-rc={ri + ':0'}
-          aria-label={t.selectRow(k)}
+          aria-label={
+            canSelect(r) ? t.selectRow(k) : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : undefined
+          }
           onFocus={function (e: React.FocusEvent) {
             if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
           }}
         >
-          <Checkbox
-            hideLabel
-            checked={isSel}
-            tabIndex={-1}
-            label={t.selectRow(k)}
-            onChange={function (on: boolean) {
-              toggle(k, on);
-            }}
-          />
+          {canSelect(r) ? (
+            <Checkbox
+              hideLabel
+              checked={isSel}
+              tabIndex={-1}
+              label={t.selectRow(k)}
+              onChange={function (on: boolean) {
+                toggle(k, on);
+              }}
+            />
+          ) : null}
         </span>,
       );
     vis.forEach(function (c: Col, j: number) {
@@ -1231,7 +1269,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             key={k}
             role="row"
             aria-rowindex={first + i + 2}
-            aria-selected={selectable ? isSel : undefined}
+            aria-selected={selectable && canSelect(r) ? isSel : undefined}
             className={cx(
               'aura-table__row',
               isSel && 'is-selected',

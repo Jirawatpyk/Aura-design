@@ -496,7 +496,9 @@ a.aura-icon-btn { text-decoration: none; }
   display: flex; flex-direction: column; gap: var(--aura-space-2); width: min(380px, calc(100vw - 2 * var(--aura-space-4)));
   font-family: var(--font-sans);
 }
-.aura-toaster.is-top { bottom: auto; top: var(--aura-space-6); }
+.aura-toaster.is-top { bottom: auto; top: calc(var(--aura-toaster-offset, var(--aura-space-6)) + env(safe-area-inset-top, 0px)); }
+/* 5.6: top-center / bottom-center; `offset` (or --aura-toaster-offset) clears an app's top bar. */
+.aura-toaster.is-center { right: auto; left: 50%; transform: translateX(-50%); }
 .aura-toast {
   display: flex; align-items: flex-start; gap: var(--aura-space-3); padding: var(--aura-space-3) var(--aura-space-2) var(--aura-space-3) var(--aura-space-4);
   background: var(--aura-bg-surface); color: var(--aura-fg-primary);
@@ -511,10 +513,27 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-toast__body { flex: 1; min-width: 0; padding-top: 1px; }
 .aura-toast__title { margin: 0; font-size: 14px; font-weight: 500; line-height: 20px; }
 .aura-toast__text { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-toast__text > * { margin: 0; }
+.aura-toast__text a { color: var(--aura-fg-accent); text-underline-offset: 2px; }
+.aura-toast__text a:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-radius: var(--aura-radius-xs); }
+.aura-toast__actions { flex: none; align-self: center; display: flex; gap: var(--aura-space-1); }
+/* Two actions, or one under a description (5.6): the actions take a row of their own below the text, lined up with it
+ * (the action's own padding sits left of the text column), so the text keeps the toast's width. */
+.aura-toast.has-action-row { flex-wrap: wrap; row-gap: var(--aura-space-1); }
+.aura-toast.has-action-row .aura-toast__body { flex-basis: 0; }
+.aura-toast.has-action-row .aura-toast__actions { order: 3; flex-basis: 100%; flex-wrap: wrap; margin-left: calc(16px + var(--aura-space-3) - var(--aura-space-2)); margin-bottom: calc(-1 * var(--aura-space-1)); }
 .aura-toast__action {
   flex: none; align-self: center; height: var(--aura-control-sm); padding: 0 var(--aura-space-2);
   border: 0; border-radius: var(--aura-radius-sm); background: transparent; color: var(--aura-fg-accent);
   font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap;
+}
+/* Touch (5.6): the 32px action gets a 44px hit area, as IconButton does. Links in the text only get a little padding —
+ * lines sit 20px apart, so a 44px box would overlap the next line's link. */
+@media (pointer: coarse) {
+  .aura-toast__action { position: relative; }
+  .aura-toast__action::after { content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, var(--aura-touch-target)); height: max(100%, var(--aura-touch-target)); transform: translate(-50%, -50%); }
+  .aura-toast__text a { padding-block: 2px; }
 }
 .aura-toast__action:hover { background: var(--aura-bg-surface-hover); }
 .aura-toast__action:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 0; }
@@ -1203,6 +1222,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-dialog__foot > * { width: 100%; }
   .aura-drawer:not(.aura-drawer--nav) { max-width: none; }
   .aura-toaster { left: var(--aura-space-4); right: var(--aura-space-4); bottom: var(--aura-space-4); width: auto; }
+  .aura-toaster.is-center { left: var(--aura-space-4); right: var(--aura-space-4); transform: none; }
+  .aura-toaster.is-top { top: calc(var(--aura-toaster-offset, var(--aura-space-4)) + env(safe-area-inset-top, 0px)); }
   .aura-card { padding: var(--aura-space-4); }
   .aura-stat { padding: var(--aura-space-4); }
   .aura-stat__value { font-size: 24px; }
@@ -1385,9 +1406,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @media (max-width: 767.98px) { :root:has(.aura-bottomnav--below-md) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
 @media (max-width: 1023.98px) { :root:has(.aura-bottomnav--below-lg) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
 @media (max-width: 1279.98px) { :root:has(.aura-bottomnav--below-xl) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
-/* Toasts clear a BottomNav wherever it shows (phones and tablets). */
-.aura-toaster:not(.is-top) { bottom: calc(var(--aura-space-6) + var(--aura-bottomnav-offset, 0px)); }
-@media (max-width: 639.98px) { .aura-toaster:not(.is-top) { bottom: calc(var(--aura-space-4) + var(--aura-bottomnav-offset, 0px)); } }
+/* Toasts clear a BottomNav wherever it shows (phones and tablets), else the bottom safe-area inset (5.6). */
+.aura-toaster:not(.is-top) { bottom: calc(var(--aura-toaster-offset, var(--aura-space-6)) + var(--aura-bottomnav-offset, env(safe-area-inset-bottom, 0px))); }
+@media (max-width: 639.98px) { .aura-toaster:not(.is-top) { bottom: calc(var(--aura-toaster-offset, var(--aura-space-4)) + var(--aura-bottomnav-offset, env(safe-area-inset-bottom, 0px))); } }
 
 /* ---------- 4.19: ActionBar ---------- */
 /* Sticky, not fixed: it keeps its place at the end of its parent, so it never covers the last field. */

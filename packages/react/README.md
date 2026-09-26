@@ -186,13 +186,30 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.6 — Chamber-OS addendum 4 (selectable rows, richer toasts)
+
+- **DataTable** `isRowSelectable={(r) => r.status === 'Awaiting review'}`: a row it rejects shows no checkbox (the cell stays, so columns line up), and select-all, Space, the "N selected" count and `onSelectionChange` skip it. A rejected key passed in through `selected` is never shown as selected and is dropped from your state with one `onSelectionChange` call. `rowSelectDisabledLabel={(r) => …}` names the empty cell for screen readers. Server HTML has no checkbox for those rows.
+- **Toasts**: `description` takes JSX (lines with their own links, read once in the live region); `actions` (up to two; two, or one under a description, go on their own row below the text); an action with `href` is a link through `linkComponent` (Cmd/Ctrl-click opens a tab and keeps the toast); `dismiss: false` keeps the toast open after its action. Escape closes the toast under focus.
+- **Toaster** `position="top-center"` (or `bottom-center`, `top-right`, `bottom-right`) and `offset={64}` (or `--aura-toaster-offset`) to clear a top bar, plus the safe-area inset; below 640px toasts still span the width.
+- **Alt+T** (`hotkey`, matched on the physical key so macOS Option+T works; `false` turns it off) focuses the newest toast's action, else its close button, and pauses its timer while focus stays inside (moving the mouse away doesn't restart it); the region's name and `aria-keyshortcuts` say the shortcut. It matches the key position, so it works on Thai and other layouts; in a text field on macOS, where Option+T types "†", it is left to the field.
+- **Focus comes back**: when a toast holding focus closes (its action ran, Escape, the close button), focus returns to where it was before — the element Alt+T was pressed on, else the one focused when the toast appeared — instead of falling to `<body>`.
+- **Touch**: toast actions get a 44px hit area on coarse pointers, as IconButton does (links in the text get a little padding; a 44px box would overlap the next line). Bottom toasters add the bottom safe-area inset too.
+
 ## 5.5 — DataTable is generic over its rows
 
 - The type of `rows` is the table's row type, and every `render`, `sortValue`, `getRowHref` and `onRowActivate` gets it — no annotations, and a typo inside a callback (`r.amuont`) or a callback written for another type is a compile error (column `key`s stay plain strings):
 
 ```tsx
-const columns: DataTableColumn<Order>[] = [{ key: 'amount', label: 'AMOUNT', align: 'end', render: (r) => baht(r.amount) }];
-<DataTable label="Orders" rows={orders} columns={columns} onRowActivate={setDetail} getRowHref={(r) => '/orders/' + r.id} />
+const columns: DataTableColumn<Order>[] = [
+  { key: 'amount', label: 'AMOUNT', align: 'end', render: (r) => baht(r.amount) },
+];
+<DataTable
+  label="Orders"
+  rows={orders}
+  columns={columns}
+  onRowActivate={setDetail}
+  getRowHref={(r) => '/orders/' + r.id}
+/>;
 ```
 
 - `DataTableColumn<Row>` types a column list declared on its own; `<DataTable<Order> …>` names the type explicitly. `rows={[]}` (nothing loaded yet) keeps the untyped default, and so do `any[]`, `Record<string, any>[]` and anything reading `typeof DataTable` (`ComponentProps`, `memo`, wrappers).

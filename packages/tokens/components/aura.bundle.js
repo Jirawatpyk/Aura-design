@@ -3079,10 +3079,35 @@ window.Aura = (() => {
     promote();
     emitToasts();
   };
+  var hotkeyOrigin = /* @__PURE__ */ new WeakMap();
+  function outsideToaster(el) {
+    return el && el !== document.body && !el.closest(".aura-toaster") ? el : null;
+  }
   function ToastItem(props) {
     const str = useStrings();
+    const Link = useLinkComponent();
+    const node = React19.useRef(null);
+    const origin = React19.useRef(null);
+    useIsoLayoutEffect(function() {
+      origin.current = outsideToaster(document.activeElement);
+      const el = node.current;
+      return function() {
+        if (!el || !el.contains(document.activeElement)) return;
+        const back = [hotkeyOrigin.get(el), origin.current].filter(function(b) {
+          return !!b && b.isConnected;
+        })[0];
+        hotkeyOrigin.delete(el);
+        setTimeout(function() {
+          if (back && back.isConnected && (!document.activeElement || document.activeElement === document.body))
+            back.focus();
+        }, 0);
+      };
+    }, []);
     const t = props.toast, timer = React19.useRef(null), left = React19.useRef(t.duration || 5e3), since = React19.useRef(0);
-    const hover = React19.useRef(false);
+    const hover = React19.useRef(false), focused = React19.useRef(false);
+    function syncFocus() {
+      if (focused.current && !(node.current && node.current.contains(document.activeElement))) focused.current = false;
+    }
     function start() {
       if (left.current === Infinity || timer.current) return;
       since.current = Date.now();
@@ -3091,11 +3116,10 @@ window.Aura = (() => {
       }, left.current);
     }
     function resume() {
-      hover.current = false;
-      start();
+      syncFocus();
+      if (!hover.current && !focused.current) start();
     }
     function pause() {
-      hover.current = true;
       if (timer.current) {
         clearTimeout(timer.current);
         timer.current = null;
@@ -3107,23 +3131,56 @@ window.Aura = (() => {
         if (timer.current) clearTimeout(timer.current);
         timer.current = null;
         left.current = t.duration || 5e3;
-        if (!hover.current) start();
+        syncFocus();
+        if (!hover.current && !focused.current) start();
         return function() {
           if (timer.current) clearTimeout(timer.current);
         };
       },
       [t.rev]
     );
+    const rich = t.description != null && typeof t.description !== "boolean" && t.description !== "";
+    const actions = (t.actions && t.actions.length ? t.actions : t.action ? [t.action] : []).slice(0, 2);
+    function run(a) {
+      if (a.onClick) a.onClick();
+      if (a.dismiss !== false) toast.dismiss(t.id);
+    }
     return /* @__PURE__ */ React19.createElement(
       "div",
       {
-        className: cx("aura-toast", "aura-toast--" + t.tone, t.loading && "is-loading"),
+        ref: node,
+        onKeyDown: function(e) {
+          if (e.key === "Escape") {
+            e.stopPropagation();
+            toast.dismiss(t.id);
+          }
+        },
+        className: cx(
+          "aura-toast",
+          "aura-toast--" + t.tone,
+          t.loading && "is-loading",
+          /* Two actions, or one beside a description, go on their own row under the text so it keeps its width. */
+          (actions.length > 1 || actions.length && rich) && "has-action-row"
+        ),
         role: t.tone === "danger" ? "alert" : "status",
         "aria-busy": t.loading || void 0,
-        onMouseEnter: pause,
-        onMouseLeave: resume,
-        onFocus: pause,
-        onBlur: resume
+        onMouseEnter: function() {
+          hover.current = true;
+          pause();
+        },
+        onMouseLeave: function() {
+          hover.current = false;
+          resume();
+        },
+        onFocus: function() {
+          focused.current = true;
+          pause();
+        },
+        onBlur: function(e) {
+          if (node.current && e.relatedTarget && node.current.contains(e.relatedTarget)) return;
+          focused.current = false;
+          resume();
+        }
       },
       /* @__PURE__ */ React19.createElement(
         Icon,
@@ -3132,19 +3189,33 @@ window.Aura = (() => {
           className: cx("aura-toast__icon", t.loading && "aura-spin")
         }
       ),
-      /* @__PURE__ */ React19.createElement("div", { className: "aura-toast__body" }, /* @__PURE__ */ React19.createElement("p", { className: "aura-toast__title" }, t.title), t.description ? /* @__PURE__ */ React19.createElement("p", { className: "aura-toast__text" }, t.description) : null),
-      t.action ? /* @__PURE__ */ React19.createElement(
-        "button",
-        {
-          type: "button",
-          className: "aura-toast__action",
-          onClick: function() {
-            t.action.onClick && t.action.onClick();
-            toast.dismiss(t.id);
-          }
-        },
-        t.action.label
-      ) : null,
+      /* @__PURE__ */ React19.createElement("div", { className: "aura-toast__body" }, /* @__PURE__ */ React19.createElement("p", { className: "aura-toast__title" }, t.title), rich ? /* @__PURE__ */ React19.createElement("div", { className: "aura-toast__text" }, t.description) : null),
+      actions.length ? /* @__PURE__ */ React19.createElement("div", { className: "aura-toast__actions" }, actions.map(function(a, i) {
+        return a.href ? /* @__PURE__ */ React19.createElement(
+          Link,
+          {
+            key: i,
+            href: a.href,
+            className: "aura-toast__action",
+            onClick: function(e) {
+              if (plainClick(e)) run(a);
+              else if (a.onClick) a.onClick();
+            }
+          },
+          a.label
+        ) : /* @__PURE__ */ React19.createElement(
+          "button",
+          {
+            key: i,
+            type: "button",
+            className: "aura-toast__action",
+            onClick: function() {
+              run(a);
+            }
+          },
+          a.label
+        );
+      })) : null,
       /* @__PURE__ */ React19.createElement(
         IconButton,
         {
@@ -3158,7 +3229,22 @@ window.Aura = (() => {
       )
     );
   }
-  function Toaster(props) {
+  function hotkeyMatcher(spec) {
+    const parts = spec.split("+").map(function(p) {
+      return p.trim().toLowerCase();
+    });
+    const key = parts[parts.length - 1] || "";
+    const code = /^[a-z]$/.test(key) ? "Key" + key.toUpperCase() : /^[0-9]$/.test(key) ? "Digit" + key : null;
+    const want = function(m) {
+      return parts.indexOf(m) >= 0 && parts.indexOf(m) < parts.length - 1;
+    };
+    return function(e) {
+      if (e.altKey !== want("alt") || e.ctrlKey !== want("ctrl") || e.shiftKey !== want("shift") || e.metaKey !== (want("meta") || want("cmd")))
+        return false;
+      return code ? e.code === code : e.key.toLowerCase() === key;
+    };
+  }
+  function Toaster(props = {}) {
     const t = useStrings();
     const mounted = useMounted();
     const s = React19.useState(toastState.list);
@@ -3171,15 +3257,49 @@ window.Aura = (() => {
         });
       };
     }, []);
+    const region = React19.useRef(null);
+    const hotkey = props.hotkey === void 0 ? "Alt+T" : props.hotkey;
+    React19.useEffect(
+      function() {
+        if (!hotkey) return;
+        const match = hotkeyMatcher(hotkey);
+        function onKey(e) {
+          if (!e.key || e.repeat || e.isComposing || !match(e) || !region.current) return;
+          const el = e.target;
+          const editable = !!el && (el.isContentEditable || /^(INPUT|TEXTAREA)$/.test(el.tagName || ""));
+          const mac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || "");
+          if (editable && mac && e.altKey && !e.ctrlKey && !e.metaKey && e.key.length === 1) return;
+          const items2 = region.current.querySelectorAll(".aura-toast");
+          const last = items2[items2.length - 1];
+          if (!last) return;
+          const target = last.querySelector(".aura-toast__action") || last.querySelector("button");
+          if (!target) return;
+          e.preventDefault();
+          const from = outsideToaster(document.activeElement);
+          if (from) hotkeyOrigin.set(last, from);
+          target.focus();
+        }
+        document.addEventListener("keydown", onKey);
+        return function() {
+          document.removeEventListener("keydown", onKey);
+        };
+      },
+      [hotkey]
+    );
     if (!mounted) return null;
+    const pos = props.position || "bottom";
+    const offset = props.offset;
     return (0, import_react_dom5.createPortal)(
       /* @__PURE__ */ React19.createElement(
         "div",
         {
-          className: cx("aura-toaster", props && props.position === "top" && "is-top"),
+          ref: region,
+          className: cx("aura-toaster", pos.indexOf("top") === 0 && "is-top", /center$/.test(pos) && "is-center"),
+          style: offset != null ? { "--aura-toaster-offset": typeof offset === "number" ? offset + "px" : offset } : void 0,
           role: "region",
           "aria-live": "polite",
-          "aria-label": t.notifications
+          "aria-label": hotkey ? t.notifications + " (" + hotkey + ")" : t.notifications,
+          "aria-keyshortcuts": hotkey || void 0
         },
         s[0].map(function(t2) {
           return /* @__PURE__ */ React19.createElement(ToastItem, { key: t2.id, toast: t2 });
@@ -4007,7 +4127,27 @@ window.Aura = (() => {
     );
     const sort = sortState[0], setSort = sortState[1];
     const selState = useMaybeControlled(props.selected, props.defaultSelected || [], props.onSelectionChange);
-    const selected = selState[0], setSelected = selState[1];
+    const canSelect = function(r) {
+      return !!r && (!props.isRowSelectable || !!props.isRowSelectable(r));
+    };
+    const rejected = {};
+    if (props.isRowSelectable)
+      rows.forEach(function(r) {
+        if (!canSelect(r)) rejected[String(r[rowKey])] = true;
+      });
+    const selected = selState[0].filter(function(k) {
+      return !rejected[String(k)];
+    }), setSelected = selState[1];
+    const droppedSig = selState[0].length === selected.length ? "" : "#" + selState[0].filter(function(k) {
+      return rejected[String(k)];
+    }).join("\0") + "#" + selected.join("\0");
+    React28.useEffect(
+      function() {
+        if (droppedSig !== "") setSelected(selected);
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [droppedSig]
+    );
     const pageState = useMaybeControlled(
       props.page,
       props.defaultPage || 1,
@@ -4418,7 +4558,7 @@ window.Aura = (() => {
         el.focus();
       }
     }
-    const pageKeys = pageRows.map(function(r) {
+    const pageKeys = pageRows.filter(canSelect).map(function(r) {
       return r[rowKey];
     });
     const selSet = {};
@@ -4682,10 +4822,12 @@ window.Aura = (() => {
         if (inner) inner.focus();
         else handled = false;
       } else if (k === " " || k === "Enter") {
-        if (r === 0 && !col && selectable && nRows) toggleAll();
-        else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
-        else if (r > 0 && k === " " && selectable) toggle(row[rowKey], !selSet[row[rowKey]]);
-        else if (r > 0 && k === "Enter" && rowHref && !target.querySelector("button, a[href]:not(.aura-table__row-link), input, select, textarea"))
+        if (r === 0 && !col && selectable && nRows) {
+          if (pageKeys.length) toggleAll();
+        } else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
+        else if (r > 0 && k === " " && selectable) {
+          if (canSelect(row)) toggle(row[rowKey], !selSet[row[rowKey]]);
+        } else if (r > 0 && k === "Enter" && rowHref && !target.querySelector("button, a[href]:not(.aura-table__row-link), input, select, textarea"))
           followRow(target.closest('[role="row"]'), e);
         else if (r > 0 && k === "Enter" && target.querySelector("button, a[href], input, select, textarea"))
           target.querySelector("button, a[href], input, select, textarea").focus();
@@ -4714,7 +4856,7 @@ window.Aura = (() => {
               activeState[1]({ r: 0, c: 0 });
             }
           },
-          nRows ? /* @__PURE__ */ React28.createElement(
+          pageKeys.length ? /* @__PURE__ */ React28.createElement(
             Checkbox,
             {
               hideLabel: true,
@@ -4725,7 +4867,7 @@ window.Aura = (() => {
               onChange: toggleAll
             }
           ) : null,
-          nRows ? /* @__PURE__ */ React28.createElement("span", { className: "aura-table__sel-text" }, nSel ? t.selectedCount(nSel) : t.selectAll) : /* @__PURE__ */ React28.createElement("span", { className: "aura-sr-only" }, t.selectRows)
+          pageKeys.length ? /* @__PURE__ */ React28.createElement("span", { className: "aura-table__sel-text" }, nSel ? t.selectedCount(nSel) : t.selectAll) : /* @__PURE__ */ React28.createElement("span", { className: "aura-sr-only" }, t.selectRows)
         )
       );
     vis.forEach(function(c, i) {
@@ -4863,12 +5005,12 @@ window.Aura = (() => {
               className: cx("aura-table__sel", nPinned && "is-pinned"),
               tabIndex: tabFor(ri, 0),
               "data-rc": ri + ":0",
-              "aria-label": t.selectRow(k),
+              "aria-label": canSelect(r) ? t.selectRow(k) : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : void 0,
               onFocus: function(e) {
                 if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
               }
             },
-            /* @__PURE__ */ React28.createElement(
+            canSelect(r) ? /* @__PURE__ */ React28.createElement(
               Checkbox,
               {
                 hideLabel: true,
@@ -4879,7 +5021,7 @@ window.Aura = (() => {
                   toggle(k, on);
                 }
               }
-            )
+            ) : null
           )
         );
       vis.forEach(function(c, j) {
@@ -4982,7 +5124,7 @@ window.Aura = (() => {
                 key: k,
                 role: "row",
                 "aria-rowindex": first + i + 2,
-                "aria-selected": selectable ? isSel : void 0,
+                "aria-selected": selectable && canSelect(r) ? isSel : void 0,
                 className: cx(
                   "aura-table__row",
                   isSel && "is-selected",

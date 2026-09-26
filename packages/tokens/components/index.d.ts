@@ -124,6 +124,11 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	onSortChange?: ((sort: DataTableSort | null) => void) | undefined;
 	/** Adds a checkbox column. */
 	selectable?: boolean | undefined;
+	/** Which rows can be selected (5.6). A row it rejects shows no checkbox (the cell stays, so columns line up), is
+	 * skipped by select-all, Space and the count, and never appears in `onSelectionChange` — even if passed in. */
+	isRowSelectable?: RowCallback<boolean, Row> | undefined;
+	/** Accessible name for a rejected row's empty cell, e.g. `(r) => 'Not awaiting review'` (5.6). */
+	rowSelectDisabledLabel?: RowCallback<string, Row> | undefined;
 	/** Controlled selection (row keys); pair with onSelectionChange. */
 	selected?: Array<string | number> | undefined;
 	/** Initial selection when uncontrolled. */
@@ -487,14 +492,23 @@ export interface AlertProps {
 	onDismiss?: (() => void) | undefined;
 	className?: string | undefined;
 }
+/** A button (or, with `href`, a link through AuraProvider's `linkComponent`) on a toast (5.6: `href`, `dismiss`). */
+export interface ToastAction {
+	label: string;
+	onClick?: (() => void) | undefined;
+	/** Makes the action a link (routes through `linkComponent`, so `next/link` navigates client-side). */
+	href?: string | undefined;
+	/** Default true: the toast closes when the action runs. `false` keeps it (a list of items to work through). */
+	dismiss?: boolean | undefined;
+}
 export interface ToastOptions {
 	title: string;
-	description?: string | undefined;
+	/** Text, or (5.6) rich content — lines with their own links, read once inside the toast's live region. */
+	description?: React$1.ReactNode | undefined;
 	tone?: FeedbackTone | undefined;
-	action?: {
-		label: string;
-		onClick?: (() => void) | undefined;
-	} | undefined;
+	action?: ToastAction | undefined;
+	/** Up to two actions in a row (5.6); used instead of `action` when given. */
+	actions?: ToastAction[] | undefined;
 	/** ms before it closes itself. Default 5000; Infinity keeps it until dismissed. */
 	duration?: number | undefined;
 	/** Reuse an id to replace a toast in place (same position, timer restarts) — never a second toast. */
@@ -1285,10 +1299,18 @@ export declare namespace toast {
 	var dismiss: (id: string) => void;
 }
 export interface ToasterProps {
-	/** Default `bottom`. */
-	position?: "bottom" | "top" | undefined;
+	/** Default `bottom` (bottom right). `top` is top right; `top-center` / `bottom-center` centre the stack (5.6).
+	 * Below 640px toasts span the width either way. */
+	position?: "bottom" | "bottom-right" | "bottom-center" | "top" | "top-right" | "top-center" | undefined;
+	/** Distance from the top or bottom edge (5.6), e.g. `64` to clear a 56px top bar; px or any CSS length. Sets
+	 * `--aura-toaster-offset`; the safe-area inset is added on top. Default 24px (16px below 640px). */
+	offset?: number | string | undefined;
+	/** Keyboard shortcut to the newest toast (5.6): focuses its action, else its close button, and pauses its timer;
+	 * Escape closes it and returns focus. Default `"Alt+T"` (matched on the physical key, so macOS Option+T works);
+	 * `false` turns it off. */
+	hotkey?: string | false | undefined;
 }
-export declare function Toaster(props: ToasterProps): React$1.ReactElement | null;
+export declare function Toaster(props?: ToasterProps): React$1.ReactElement | null;
 export declare const PasswordField: React$1.ForwardRefExoticComponent<PasswordFieldProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const FormErrorSummary: React$1.ForwardRefExoticComponent<FormErrorSummaryProps & React$1.RefAttributes<HTMLDivElement>>;
 export declare const FilterBar: React$1.ForwardRefExoticComponent<FilterBarProps & React$1.RefAttributes<HTMLDivElement>>;

@@ -33,6 +33,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       console.log(label, 'Select server HTML is not the native <select>:', html); fail++;
     }
   }
+  /* 5.6: rows isRowSelectable rejects render no checkbox in the server HTML (JavaScript off). */
+  {
+    const html = renderToString(React.createElement(A.DataTable, { label: 'Q', selectable: true, isRowSelectable: (r: { ok: boolean }) => r.ok,
+      rows: [{ id: 'a', ok: true }, { id: 'b', ok: false }, { id: 'c', ok: false }], columns: [{ key: 'id', label: 'ID' }] }));
+    const boxes = (html.match(/type="checkbox"/g) || []).length;
+    if (boxes !== 2) { console.log(label, 'isRowSelectable: expected 2 checkboxes (header + 1 row), got', boxes); fail++; }
+  }
   /* 5.0.1: an unknown time zone or a malformed today doesn't crash; link Tabs mark no tab for a route without one. */
   try {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(A.todayIn('Asia/Bangkk'))) throw new Error('todayIn gave ' + A.todayIn('Asia/Bangkk'));

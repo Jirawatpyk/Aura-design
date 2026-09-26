@@ -2216,3 +2216,138 @@ test.describe('5.3: Select opens AURA’s own list', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.6: Chamber-OS addendum 4', () => {
+  test('52: only selectable rows get a checkbox; select-all, Space and passed-in keys respect it', async ({ page }) => {
+    await story(page, 'aura-new-in-5-6--selectable-rows');
+    const grid = page.getByRole('grid', { name: 'E-Blast queue' });
+    await expect(grid.getByRole('checkbox')).toHaveCount(3); // header + 2 rows
+    const all = grid.getByRole('checkbox', { name: /select all/i });
+    await all.check();
+    await expect(page.getByTestId('sel')).toHaveText('Selected: EB-1,EB-3');
+    await expect(all).toBeChecked();
+    /* Space on a rejected row changes nothing, and is still handled (no page scroll). */
+    await grid.locator('[data-rc="2:0"]').focus();
+    await page.evaluate(() => {
+      (window as any).__spaceDefault = null;
+      /* Read after dispatch finishes (the grid stops propagation of keys it handles). */
+      window.addEventListener(
+        'keydown',
+        (e) => setTimeout(() => ((window as any).__spaceDefault = e.defaultPrevented)),
+        {
+          capture: true,
+          once: true,
+        },
+      );
+    });
+    await page.keyboard.press('Space');
+    await expect(page.getByTestId('sel')).toHaveText('Selected: EB-1,EB-3');
+    await expect.poll(() => page.evaluate(() => (window as any).__spaceDefault)).toBe(true);
+    await expect(grid.locator('[data-rc="2:0"]')).toHaveAttribute('aria-label', 'EB-2: In design, not selectable');
+    /* A rejected key passed in never shows as selected, and is dropped from the app's state. */
+    await page.getByRole('button', { name: 'Pass in EB-2 and EB-3' }).click();
+    await expect(grid.getByRole('row', { selected: true })).toHaveCount(1);
+    await expect(page.getByTestId('sel')).toHaveText('Selected: EB-3');
+    await expect(all).not.toBeChecked();
+    await grid.getByRole('checkbox', { name: /EB-1/ }).check();
+    await expect(page.getByTestId('sel')).toHaveText('Selected: EB-3,EB-1');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('53–56: rich toast with links and two actions; top-center under the bar; Alt+T; Escape returns focus', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await story(page, 'aura-new-in-5-6--rich-toasts');
+    const opener = page.getByRole('button', { name: 'Supersede warning' });
+    await opener.click();
+    const t = page.locator('.aura-toast', { hasText: '2 bills need voiding' });
+    await expect(t.getByRole('link', { name: 'Open SC-101' })).toBeVisible();
+    await expect(t.getByRole('link', { name: 'Open SC-102' })).toBeVisible();
+    /* 54: centred, 64px from the top. */
+    const box = (await page.locator('.aura-toaster').boundingBox())!;
+    expect(Math.abs(box.x + box.width / 2 - 512)).toBeLessThan(2);
+    expect(Math.round(box.y)).toBe(64);
+    /* Two actions sit on their own row under the text, which keeps most of the toast's width. */
+    const body = (await t.locator('.aura-toast__body').boundingBox())!;
+    const acts = (await t.locator('.aura-toast__actions').boundingBox())!;
+    expect(acts.y).toBeGreaterThanOrEqual(body.y + body.height - 1);
+    expect(body.width).toBeGreaterThan(box.width * 0.7);
+    /* 53: an action with dismiss:false keeps the toast. */
+    await t.getByRole('button', { name: 'Void next' }).click();
+    await expect(page.getByTestId('log')).toHaveText('void next');
+    await expect(t).toBeVisible();
+    /* 55: Alt+T from the page focuses the newest toast's first action; Escape closes it and returns focus. */
+    await opener.focus();
+    await page.keyboard.press('Alt+KeyT');
+    await expect(t.getByRole('button', { name: 'Void next' })).toBeFocused();
+    await expect(page.getByRole('region', { name: /Alt\+T/ })).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(t).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    /* Focus comes back after an action that closes the toast too. */
+    const send = page.getByRole('button', { name: 'Send invoice' });
+    await send.click();
+    await page.keyboard.press('Alt+KeyT');
+    await expect(page.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('log')).toHaveText('undo');
+    await expect(send).toBeFocused();
+    expect(await axeScan(page, 'body')).toEqual([]);
+  });
+
+  test('55: timer stays paused while focus is inside; hotkey leaves typing in fields alone', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await story(page, 'aura-new-in-5-6--rich-toasts');
+    const send = page.getByRole('button', { name: 'Send invoice' });
+    await send.click();
+    const t = page.locator('.aura-toast', { hasText: 'Invoice sent' });
+    await page.keyboard.press('Alt+KeyT');
+    await expect(t.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await t.hover();
+    await page.mouse.move(5, 650);
+    await page.waitForTimeout(5600); // past the 5 s default
+    await expect(t).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(send).toBeFocused();
+    /* In a text field on macOS, Option+T (key "†", code KeyT) types; the hotkey doesn't fire. On other platforms
+     * Alt+T works from a field whatever the layout (Thai gives key "ะ"). */
+    await send.click();
+    const inField = (mac: boolean, key: string) =>
+      page.evaluate(
+        ([mac, key]) => {
+          Object.defineProperty(navigator, 'platform', { get: () => (mac ? 'MacIntel' : 'Win32'), configurable: true });
+          const i = document.createElement('input');
+          i.setAttribute('aria-label', 'scratch');
+          document.body.appendChild(i);
+          i.focus();
+          const e = new KeyboardEvent('keydown', { key, code: 'KeyT', altKey: true, bubbles: true, cancelable: true });
+          i.dispatchEvent(e);
+          const r = [e.defaultPrevented, document.activeElement === i];
+          i.remove();
+          return r;
+        },
+        [mac, key] as const,
+      );
+    expect(await inField(true, '†')).toEqual([false, true]);
+    expect(await inField(false, 'ะ')).toEqual([true, false]);
+  });
+
+  test('54 phone: full width below 640px, offset kept; 56: 44px action hit area on touch', async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await story(page, 'aura-new-in-5-6--rich-toasts');
+    await page.getByRole('button', { name: 'Send invoice' }).click();
+    const box = (await page.locator('.aura-toaster').boundingBox())!;
+    expect(Math.round(box.x)).toBe(16);
+    expect(Math.round(box.width)).toBe(358);
+    expect(Math.round(box.y)).toBe(64);
+    const hit = await page.locator('.aura-toast__action').evaluate((el) => {
+      const a = getComputedStyle(el, '::after');
+      return [parseFloat(a.width), parseFloat(a.height)];
+    });
+    expect(hit[0]).toBeGreaterThanOrEqual(44);
+    expect(hit[1]).toBeGreaterThanOrEqual(44);
+    await ctx.close();
+  });
+});
