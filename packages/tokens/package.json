@@ -1,6 +1,6 @@
 {
   "name": "@jirawatpyk/aura-tokens",
-  "version": "5.4.0",
+  "version": "5.5.0",
   "description": "AURA Design System — tokens (CSS variables, Tailwind preset, Figma variables), theme contrast checks and token lint.",
   "main": "tailwind.tokens.cjs",
   "types": "components/index.d.ts",
