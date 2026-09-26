@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.7.3 — 2026-09-26
+
+### Patch changes
+
+- 5ecf32b: FormErrorSummary: with `focusKey`, it takes focus only after a submit (including a server error set after a valid submit), never when live react-hook-form errors come back while someone types — WCAG 3.2.2 (Chamber-OS item 65). Without `focusKey` the behaviour is unchanged.
+
 ## 5.7.2 — 2026-09-26
 
 ### Patch changes
