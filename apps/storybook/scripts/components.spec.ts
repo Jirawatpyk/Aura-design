@@ -2430,3 +2430,38 @@ test.describe('5.7: Chamber-OS addendum 5', () => {
     await ctx.close();
   });
 });
+
+test.describe('5.7.1: Chamber-OS item 63', () => {
+  test('63: long SideNav labels read in full on two lines; short rows stay 36px', async ({ browser, page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await story(page, 'aura-new-in-5-7--long-nav-labels');
+    const nav = page.locator('.aura-nav');
+    expect(Math.round((await nav.boundingBox())!.width)).toBe(240);
+    const rows = page.locator('.aura-nav__item');
+    expect(Math.round((await rows.nth(0).boundingBox())!.height)).toBe(36);
+    for (const i of [1, 2]) {
+      const label = rows.nth(i).locator('.aura-nav__label');
+      const m = await label.evaluate((el) => ({
+        sh: el.scrollHeight,
+        ch: el.clientHeight,
+        h: el.getBoundingClientRect().height,
+      }));
+      expect(m.sh, 'label is not clipped').toBeLessThanOrEqual(m.ch + 1);
+      expect(Math.round(m.h)).toBe(36); // two 18px lines
+      const row = (await rows.nth(i).boundingBox())!;
+      const icon = (await rows.nth(i).locator('.aura-icon').first().boundingBox())!;
+      expect(Math.abs(icon.y + icon.height / 2 - (row.y + row.height / 2))).toBeLessThan(1.5); // icon centred on the row
+      expect(row.height).toBeGreaterThanOrEqual(44);
+    }
+    await rows.nth(0).focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(rows.nth(1)).toBeFocused();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+    const phone = await ctx.newPage();
+    await story(phone, 'aura-new-in-5-7--long-nav-labels');
+    for (const b of await phone.locator('.aura-nav__item').all())
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await ctx.close();
+  });
+});

@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.7.1 — SideNav labels wrap
+
+- **SideNav** (item 63): a long label wraps to a second line instead of ending in an ellipsis, so Thai and Swedish names read in full in the 240px nav and the phone drawer. One-line rows stay 36px (44px on touch); a two-line row grows to 44px with its icon centred. Past two lines the label clamps; the accessible name is always complete. The collapsed rail is unchanged.
+
 ## 5.7 — Chamber-OS addendum 5 (shell details)
 
 - **DropdownMenu `header`**: content above the items, e.g. name, email and role in an account menu. It sits outside `role="menu"` (arrow keys, Home/End skip it; clicking it keeps focus on the item) and is the menu's accessible description (`aria-describedby`). Screen readers differ in whether they speak a menu's description on open; keep the essentials (who is signed in) in the trigger's name too if they must be heard. With a header, the menu's `ref` and `.aura-menu` are the outer box and `role="menu"` is `.aura-menu__list` inside it.

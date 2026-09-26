@@ -129,3 +129,23 @@ export const ShortTabs: StoryObj = {
     />
   ),
 };
+
+/* 63 (5.7.1): long labels wrap to two lines in a 240px nav instead of an ellipsis. */
+export const LongNavLabels: StoryObj = {
+  render: () => (
+    <div style={{ display: 'flex', height: 420 }}>
+      <Aura.SideNav
+        defaultValue="sv"
+        sections={[
+          {
+            items: [
+              { id: 'home', label: 'Home', icon: 'house' },
+              { id: 'sv', label: 'Godkännande av medlemsändringar', icon: 'users', count: 4 },
+              { id: 'th', label: 'การอนุมัติคำขอแก้ไขข้อมูลของสมาชิก', icon: 'file-text' },
+            ],
+          },
+        ]}
+      />
+    </div>
+  ),
+};
