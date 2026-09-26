@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.7.0
+
+### Minor Changes
+
+- d980bd4: Chamber-OS addendum 5: DropdownMenu `header` (outside the items, the menu's description); a Breadcrumb item with no `href` or `onClick` renders as text; AppShell `<main>` takes focus (`tabIndex={-1}`, no ring); Dialog and Drawer `dismissOnScrim` — `role="alertdialog"` now ignores scrim clicks by default (Escape and the close button still close it); BottomNav item `ariaLabel`; SideNav rows 44px on touch screens.
+
 ## 5.6.0
 
 ### Minor Changes
