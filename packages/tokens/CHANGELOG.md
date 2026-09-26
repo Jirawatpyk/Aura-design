@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.7.2
+
+### Patch Changes
+
+- c9e2d34: SideNav: long compound words in labels hyphenate at a syllable (`hyphens: auto`, using the browser's dictionary for the page's `lang`) instead of breaking mid-word with no hyphen (Chamber-OS item 64). A soft hyphen in a label breaks there in every browser.
+
 ## 5.7.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.7.2 — 2026-09-26
+
+### Patch changes
+
+- c9e2d34: SideNav: long compound words in labels hyphenate at a syllable (`hyphens: auto`, using the browser's dictionary for the page's `lang`) instead of breaking mid-word with no hyphen (Chamber-OS item 64). A soft hyphen in a label breaks there in every browser.
+
 ## 5.7.1 — 2026-09-26
 
 ### Patch changes
