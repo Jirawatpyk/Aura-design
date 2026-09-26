@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cx } from './internal.js';
+import { cx } from './classes.js';
 import type { IconName, IconProps } from './types.js';
 const h = React.createElement;
 

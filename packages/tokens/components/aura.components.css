@@ -1476,6 +1476,40 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl .is-numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .aura-tbl-wrap[data-density='compact'] .aura-tbl__th, .aura-tbl-wrap[data-density='compact'] .aura-tbl__td { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
 .aura-tbl-wrap:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
+/* Stacked rows (5.8, Chamber-OS 67): below `stackBelow` (the table's own box: sm 640px, md 768px) each body row is a
+ * card and each cell shows its column label. The column headers stay for screen readers (visually hidden) and the
+ * table keeps explicit roles. The box is a size container, so it needs a width of its own. */
+.aura-tbl-wrap.is-stackable { container: aura-tbl / inline-size; width: 100%; }
+@container aura-tbl (width < 768px) {
+  .aura-tbl--stack-md, .aura-tbl--stack-md > .aura-tbl__body, .aura-tbl--stack-md > .aura-tbl__foot, .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td { display: block; }
+  .aura-tbl--stack-md > .aura-tbl__head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .aura-tbl--stack-md > .aura-tbl__caption { display: block; padding: var(--aura-space-4) var(--aura-space-4) 0; }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row { padding: var(--aura-space-3) var(--aura-space-4); }
+  .aura-tbl-wrap[data-density='compact'] > .aura-tbl--stack-md > * > .aura-tbl__row { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row + .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row:first-child { border-top: 1px solid var(--aura-border-default); }
+  .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
+  .aura-tbl--stack-md > * > .aura-tbl__row > * + * { margin-top: var(--aura-space-2); }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td[data-label]::before {
+    content: attr(data-label); content: attr(data-label) / '';
+    display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
+  }
+}
+@container aura-tbl (width < 640px) {
+  .aura-tbl--stack-sm, .aura-tbl--stack-sm > .aura-tbl__body, .aura-tbl--stack-sm > .aura-tbl__foot, .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { display: block; }
+  .aura-tbl--stack-sm > .aura-tbl__head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .aura-tbl--stack-sm > .aura-tbl__caption { display: block; padding: var(--aura-space-4) var(--aura-space-4) 0; }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row { padding: var(--aura-space-3) var(--aura-space-4); }
+  .aura-tbl-wrap[data-density='compact'] > .aura-tbl--stack-sm > * > .aura-tbl__row { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row + .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row:first-child { border-top: 1px solid var(--aura-border-default); }
+  .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
+  .aura-tbl--stack-sm > * > .aura-tbl__row > * + * { margin-top: var(--aura-space-2); }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td[data-label]::before {
+    content: attr(data-label); content: attr(data-label) / '';
+    display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
+  }
+}
 
 /* ---------- 4.20: DataTable width queries and cards, one markup ---------- */
 /* Each .aura-table-q is the table's width × 10000 / its threshold (DataTable.tsx, Q), so `(width < 9999.5px)` is true

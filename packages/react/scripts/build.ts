@@ -21,12 +21,15 @@ const jsx: BuildOptions = { tsconfig: path.join(root, 'tsconfig.src.json'), jsx:
 
 await build({ entryPoints: entries, outdir: path.join(dist, 'esm'), format: 'esm', target: 'es2019', banner, logLevel: 'error', ...jsx });
 await build({ entryPoints: [path.join(src, 'index.ts')], outfile: path.join(dist, 'cjs/index.cjs'), bundle: true, format: 'cjs', platform: 'neutral', target: 'es2019', external, banner, logLevel: 'error', ...jsx });
-/* @jirawatpyk/aura-react/server (4.17): the pure helpers bundled on their own, with no 'use client' and no React, so
- * Server Components can call them. The build fails if React sneaks into it. */
+/* @jirawatpyk/aura-react/server (4.17): the pure helpers bundled on their own, with no 'use client', so Server
+ * Components can call them. 5.8: plus the hook-free display components (display.tsx, Icon.tsx) — React stays
+ * external; the build fails if any other component module (hooks, context) sneaks in. */
+const SERVER_TSX = ['display.tsx', 'Icon.tsx'];
 for (const [format, file] of [['esm', 'index.js'], ['cjs', 'index.cjs']] as [Format, string][]) {
-  const r = await build({ entryPoints: [path.join(src, 'server.ts')], outfile: path.join(dist, 'server', file), bundle: true, format, platform: 'neutral', target: 'es2019', logLevel: 'error', metafile: true, ...jsx });
+  const r = await build({ entryPoints: [path.join(src, 'server.ts')], outfile: path.join(dist, 'server', file), bundle: true, format, platform: 'neutral', target: 'es2019', external, logLevel: 'error', metafile: true, ...jsx });
   const inputs = Object.keys(r.metafile!.inputs);
-  if (inputs.some((f) => /node_modules[\\/]react/.test(f) || /\.tsx$/.test(f))) throw new Error('server entry pulls in React or a component: ' + inputs.join(', '));
+  const bad = inputs.filter((f) => /node_modules/.test(f) || (/\.tsx$/.test(f) && SERVER_TSX.indexOf(path.basename(f)) < 0));
+  if (bad.length) throw new Error('server entry pulls in a stateful module: ' + bad.join(', '));
 }
 
 /* IIFE: react / react-dom come from window globals. */

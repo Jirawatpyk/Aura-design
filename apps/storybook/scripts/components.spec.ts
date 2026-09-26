@@ -2540,3 +2540,77 @@ test.describe('5.7.3: Chamber-OS item 65', () => {
     await expect(page.getByLabel(/^Password/).first()).toBeFocused();
   });
 });
+
+test.describe('5.8: Chamber-OS addendum 8', () => {
+  test('66: Alert role, icon and attributes', async ({ page }) => {
+    await story(page, 'aura-new-in-5-8--alert-role-and-icon');
+    const pending = page.getByTestId('pending');
+    await expect(pending).toHaveAttribute('role', 'status');
+    await expect(pending).toHaveAttribute('id', 'cr-pending');
+    await expect(pending.locator('svg.aura-alert__icon')).toHaveAttribute('aria-hidden', 'true');
+    const clock = await pending.locator('svg.aura-alert__icon').innerHTML();
+    expect(clock).toContain('M12 6v6l4 2'); // the clock, not the warning triangle
+    const paused = page.locator('[data-outcome="paused"]');
+    await expect(paused).toHaveAttribute('role', 'status');
+    await expect(paused.locator('.aura-icon--custom')).toHaveAttribute('aria-hidden', 'true');
+    await expect(paused.locator('[data-icon="pause"]')).toHaveCount(1);
+    await expect(page.getByRole('alert')).toHaveCount(1); // only the default danger alert interrupts
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('67: Table stackBelow — cards with labels at 390px, a normal table at 1024px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, 'aura-new-in-5-8--stacked-diff');
+    const wrap = page.locator('.aura-tbl-wrap');
+    const table = page.getByRole('table', { name: 'Changes requested' });
+    await expect(table).toBeVisible();
+    expect(await wrap.evaluate((w) => w.scrollWidth <= w.clientWidth + 1)).toBe(true); // no sideways scroll
+    await expect(table.getByRole('row')).toHaveCount(3); // header row kept for screen readers
+    await expect(table.getByRole('columnheader')).toHaveCount(3);
+    await expect(table.getByRole('rowheader', { name: 'Address' })).toBeVisible();
+    const cells = table.locator('tbody td');
+    const labels = await cells.evaluateAll((els) => els.map((e) => getComputedStyle(e, '::before').content));
+    expect(labels).toEqual(
+      ['"Seen at submission"', '"Proposed"', '"Seen at submission"', '"Proposed (new)"'].map((s) =>
+        expect.stringContaining(s.slice(1, -1)),
+      ),
+    );
+    expect(await table.locator('thead').evaluate((e) => e.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
+    expect(
+      await table
+        .locator('tbody tr')
+        .first()
+        .evaluate((e) => getComputedStyle(e).display),
+    ).toBe('block');
+    /* The address cell is full width, not a 100px column. */
+    const cellW = await cells.nth(2).evaluate((e) => e.getBoundingClientRect().width);
+    expect(cellW).toBeGreaterThan(300);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await expect
+      .poll(() =>
+        table
+          .locator('tbody tr')
+          .first()
+          .evaluate((e) => getComputedStyle(e).display),
+      )
+      .toBe('table-row');
+    expect(await table.locator('thead').evaluate((e) => e.getBoundingClientRect().height)).toBeGreaterThan(20);
+    expect(await cells.first().evaluate((e) => getComputedStyle(e, '::before').content)).toBe('none');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('69: Card and StatusPill pass attributes to the root; a titled card is labelled by its title', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-8--card-and-pill-attributes');
+    const card = page.getByTestId('history-item');
+    await expect(card).toHaveAttribute('id', 'renewal-prefs');
+    await expect(card).toHaveAttribute('data-request-id', 'CR-1042');
+    await expect(page.getByRole('region', { name: 'Renewal preferences' })).toHaveAttribute('id', 'renewal-prefs');
+    const pill = card.locator('.aura-pill');
+    await expect(pill).toHaveAttribute('data-state', 'decided');
+    await expect(pill).toHaveAttribute('data-outcome', 'approved');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

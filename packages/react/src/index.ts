@@ -25,6 +25,7 @@ export { Tooltip } from './Tooltip.js';
 export { Dialog, Drawer } from './Dialog.js';
 export { DataTable } from './DataTable.js';
 export { Card } from './Card.js';
+export { buttonClass } from './display.js';
 export { Tabs } from './Tabs.js';
 export { SideNav } from './SideNav.js';
 export { Breadcrumb } from './Breadcrumb.js';

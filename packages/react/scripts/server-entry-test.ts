@@ -1,17 +1,45 @@
-/* @jirawatpyk/aura-react/server: no 'use client', no React, and the helpers work where React Server Components run
- * (Node's `react-server` condition, where React has no createContext or hooks). Run after `npm run build`:
+/* @jirawatpyk/aura-react/server: no 'use client', no hooks, and the helpers and (5.8) display components work where
+ * React Server Components run (Node's `react-server` condition, where React has no createContext or hooks — calling
+ * one throws, so rendering the components here proves they use none). Run after `npm run build`:
  * node --conditions=react-server scripts/server-entry-test.ts */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+/* React 18's stable build refuses the react-server condition ("not yet supported outside of experimental channels";
+ * Next.js ships its own React for Server Components). Then check without the condition; React 19 runs the real thing. */
+try {
+  createRequire(import.meta.url)('react');
+} catch (e) {
+  if (!/experimental channels/.test((e as Error).message)) throw e;
+  console.log('React 18: no react-server build to load; checking the server entry without the condition.');
+  const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { stdio: 'inherit' });
+  process.exit(r.status ?? 1);
+}
 const fails = [];
 for (const f of ['dist/server/index.js', 'dist/server/index.cjs']) {
   const code = fs.readFileSync(path.join(root, f), 'utf8');
   if (/use client/.test(code)) fails.push(f + " contains 'use client'");
-  if (/require\(["']react|from ["']react/.test(code)) fails.push(f + ' imports react');
+  if (/react-dom|createContext|use(State|Effect|LayoutEffect|Context|Ref|Memo|Callback|Id)\b/.test(code))
+    fails.push(f + ' uses react-dom, context or a hook');
+}
+/* A tiny server renderer: calls function and forwardRef components (no hooks allowed) and prints tags and attributes. */
+function tree(n: any): string {
+  if (n == null || n === false || n === true) return '';
+  if (Array.isArray(n)) return n.map(tree).join('');
+  if (typeof n !== 'object') return String(n);
+  const t = n.type;
+  if (typeof t === 'function') return tree(t(n.props));
+  if (t && typeof t === 'object' && typeof t.render === 'function') return tree(t.render(n.props, null));
+  if (typeof t === 'symbol') return tree(n.props.children);
+  const attrs = Object.keys(n.props)
+    .filter((k) => k !== 'children' && n.props[k] != null && typeof n.props[k] !== 'object')
+    .map((k) => ` ${k === 'className' ? 'class' : k}="${n.props[k]}"`)
+    .join('');
+  return `<${t}${attrs}>${tree(n.props.children)}</${t}>`;
 }
 const esm = await import(path.join(root, 'dist/server/index.js'));
 const cjs = createRequire(import.meta.url)(path.join(root, 'dist/server/index.cjs'));
@@ -35,11 +63,37 @@ for (const [name, A] of [
   if (!/--aura-/.test(theme.css()) || !theme.checks.every((c: { pass: boolean }) => c.pass)) fails.push(`${name}: createTheme`);
   if (!/data-theme/.test(A.colorSchemeScript())) fails.push(`${name}: colorSchemeScript`);
   if (A.breakpoints.lg !== 1024) fails.push(`${name}: breakpoints`);
+  /* 5.8: the display components render under react-server (a hook or context would throw there). */
+  try {
+    const html = [
+      tree(A.Card({ id: 'renewal-prefs', 'data-testid': 'card', title: 'Renewal', titleId: 't1', children: 'Body' })),
+      tree(A.StatusPill({ 'data-state': 'decided', children: 'Ready' })),
+      tree(A.Alert({ tone: 'danger', role: 'status', icon: 'clock', title: 'Paused', children: 'Benefits paused' })),
+      tree(A.Badge({ tone: 'success', children: '3' })),
+      tree(A.EmptyState({ title: 'Nothing yet' })),
+    ].join('');
+    for (const want of [
+      'id="renewal-prefs"',
+      'data-testid="card"',
+      'aria-labelledby="t1"',
+      'aura-pill--ready',
+      'data-state="decided"',
+      'role="status"',
+      'aura-alert--danger',
+      'aura-badge--success',
+      'aura-empty',
+    ])
+      if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
+    if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')
+      fails.push(`${name}: buttonClass gave "${A.buttonClass({ variant: 'secondary', size: 'sm' })}"`);
+  } catch (e) {
+    fails.push(`${name}: display components threw under react-server: ${(e as Error).message}`);
+  }
 }
 if (fails.length) {
   console.error('Server entry FAIL:\n  ' + fails.join('\n  '));
   process.exit(1);
 }
 console.log(
-  `Server entry OK — no 'use client', no React; formatDate('2026-09-24') = "${esm.formatDate('2026-09-24')}"; every helper works (ESM and CJS).`,
+  `Server entry OK — no 'use client', no hooks, display components render; formatDate('2026-09-24') = "${esm.formatDate('2026-09-24')}"; every helper works (ESM and CJS).`,
 );

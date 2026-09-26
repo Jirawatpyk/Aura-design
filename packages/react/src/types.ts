@@ -311,8 +311,8 @@ export interface AuraProviderProps {
 /** `warning` (5.1): needs attention but still works — Warning, Problem, Degraded, At risk. */
 export type StatusTone = 'neutral' | 'progress' | 'ready' | 'warning' | 'blocked';
 /** Status pill: tone fill + icon + the status word. Tone comes from the word unless given. */
-export interface StatusPillProps {
-  /** The status word shown, e.g. "In Progress". */
+export interface StatusPillProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> {
+  /** The status word shown, e.g. "In Progress". Other attributes (`id`, `data-*`, `aria-*`) go on the pill (5.8). */
   children: React.ReactNode;
   /** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
   tone?: StatusTone | undefined;
@@ -564,8 +564,13 @@ export interface SwitchProps {
 
 /* ---------- Feedback & overlays ---------- */
 export type FeedbackTone = 'info' | 'success' | 'warning' | 'danger';
-export interface AlertProps {
+export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title' | 'role'> {
   tone?: FeedbackTone | undefined;
+  /** Default: `alert` for warning and danger, `status` otherwise (5.8). Pass `status` for a standing notice in a
+   * warning or danger tone that shouldn't interrupt; `note` or `none` for one that isn't a live region. */
+  role?: 'alert' | 'status' | 'note' | 'none' | undefined;
+  /** Replaces the tone's icon (5.8): a name or your own element; always hidden from screen readers. */
+  icon?: IconInput | undefined;
   title?: React.ReactNode | undefined;
   children?: React.ReactNode | undefined;
   /** Usually a secondary Button. */
@@ -640,7 +645,8 @@ export interface DialogProps {
 }
 
 /* ---------- Layout & navigation ---------- */
-export interface CardProps {
+/** Other attributes (`id`, `data-*`, `aria-*`) go on the card's root (5.8). */
+export interface CardProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
   title?: React.ReactNode | undefined;
   description?: React.ReactNode | undefined;
   /** Top-right, usually an IconButton. */
@@ -1030,6 +1036,10 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
   captionHidden?: boolean | undefined;
   /** `compact` tightens the cell padding. Default follows the page. */
   density?: 'comfortable' | 'compact' | undefined;
+  /** Below this width of the table's box (5.8) — `sm` 640px, `md` 768px — each body row becomes a card and each
+   * cell shows its column's header as a label: a `Td`'s `label`, else the text of the matching `Th` in `THead`.
+   * Done in CSS (a container query), so the server's HTML is already right; table semantics are kept. */
+  stackBelow?: 'sm' | 'md' | undefined;
   className?: string | undefined;
   children?: React.ReactNode | undefined;
 }
@@ -1048,6 +1058,8 @@ export interface TableCellProps extends Omit<React.TdHTMLAttributes<HTMLTableCel
   mono?: boolean | undefined;
   /** Th only. Default `col`. */
   scope?: 'col' | 'row' | 'colgroup' | 'rowgroup' | undefined;
+  /** The label this cell shows when its table is stacked (`stackBelow`, 5.8). Default: the matching header's text. */
+  label?: string | undefined;
   className?: string | undefined;
 }
 

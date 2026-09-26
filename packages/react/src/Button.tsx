@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { cx, omit } from './internal.js';
+import { omit } from './internal.js';
+import { buttonClass } from './display.js';
 import { Icon } from './Icon.js';
 import { useLinkComponent } from './locale.js';
 import type { ButtonLinkProps, ButtonProps } from './types.js';
@@ -35,13 +36,12 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
       role={disabled ? 'link' : undefined}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : props.tabIndex}
-      className={cx(
-        'aura-btn',
-        'aura-btn--' + variant,
-        props.size === 'sm' && 'aura-btn--sm',
-        props.fullWidth && 'aura-btn--full',
-        props.className,
-      )}
+      className={buttonClass({
+        variant: variant,
+        size: props.size,
+        fullWidth: props.fullWidth,
+        className: props.className,
+      })}
       onClick={disabled ? undefined : props.onClick}
     >
       {props.icon ? <Icon name={props.icon} /> : null}
@@ -80,14 +80,13 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
         {...rest}
         ref={ref as React.ForwardedRef<HTMLButtonElement>}
         type={props.type || 'button'}
-        className={cx(
-          'aura-btn',
-          'aura-btn--' + variant,
-          props.size === 'sm' && 'aura-btn--sm',
-          props.fullWidth && 'aura-btn--full',
-          loading && 'is-loading',
-          props.className,
-        )}
+        className={buttonClass({
+          variant: variant,
+          size: props.size,
+          fullWidth: props.fullWidth,
+          loading: loading,
+          className: props.className,
+        })}
         aria-busy={loading || undefined}
         aria-disabled={loading || undefined}
         onClick={

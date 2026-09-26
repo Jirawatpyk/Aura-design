@@ -236,8 +236,8 @@ export interface AuraProviderProps {
 /** `warning` (5.1): needs attention but still works — Warning, Problem, Degraded, At risk. */
 export type StatusTone = "neutral" | "progress" | "ready" | "warning" | "blocked";
 /** Status pill: tone fill + icon + the status word. Tone comes from the word unless given. */
-export interface StatusPillProps {
-	/** The status word shown, e.g. "In Progress". */
+export interface StatusPillProps extends Omit<React$1.HTMLAttributes<HTMLSpanElement>, "children"> {
+	/** The status word shown, e.g. "In Progress". Other attributes (`id`, `data-*`, `aria-*`) go on the pill (5.8). */
 	children: React$1.ReactNode;
 	/** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
 	tone?: StatusTone | undefined;
@@ -488,8 +488,13 @@ export interface SwitchProps {
 	className?: string | undefined;
 }
 export type FeedbackTone = "info" | "success" | "warning" | "danger";
-export interface AlertProps {
+export interface AlertProps extends Omit<React$1.HTMLAttributes<HTMLDivElement>, "title" | "role"> {
 	tone?: FeedbackTone | undefined;
+	/** Default: `alert` for warning and danger, `status` otherwise (5.8). Pass `status` for a standing notice in a
+	 * warning or danger tone that shouldn't interrupt; `note` or `none` for one that isn't a live region. */
+	role?: "alert" | "status" | "note" | "none" | undefined;
+	/** Replaces the tone's icon (5.8): a name or your own element; always hidden from screen readers. */
+	icon?: IconInput | undefined;
 	title?: React$1.ReactNode | undefined;
 	children?: React$1.ReactNode | undefined;
 	/** Usually a secondary Button. */
@@ -562,7 +567,8 @@ export interface DialogProps {
 	autoFocus?: boolean | undefined;
 	className?: string | undefined;
 }
-export interface CardProps {
+/** Other attributes (`id`, `data-*`, `aria-*`) go on the card's root (5.8). */
+export interface CardProps extends Omit<React$1.HTMLAttributes<HTMLElement>, "title"> {
 	title?: React$1.ReactNode | undefined;
 	description?: React$1.ReactNode | undefined;
 	/** Top-right, usually an IconButton. */
@@ -943,6 +949,10 @@ export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableEl
 	captionHidden?: boolean | undefined;
 	/** `compact` tightens the cell padding. Default follows the page. */
 	density?: "comfortable" | "compact" | undefined;
+	/** Below this width of the table's box (5.8) — `sm` 640px, `md` 768px — each body row becomes a card and each
+	 * cell shows its column's header as a label: a `Td`'s `label`, else the text of the matching `Th` in `THead`.
+	 * Done in CSS (a container query), so the server's HTML is already right; table semantics are kept. */
+	stackBelow?: "sm" | "md" | undefined;
 	className?: string | undefined;
 	children?: React$1.ReactNode | undefined;
 }
@@ -961,6 +971,8 @@ export interface TableCellProps extends Omit<React$1.TdHTMLAttributes<HTMLTableC
 	mono?: boolean | undefined;
 	/** Th only. Default `col`. */
 	scope?: "col" | "row" | "colgroup" | "rowgroup" | undefined;
+	/** The label this cell shows when its table is stacked (`stackBelow`, 5.8). Default: the matching header's text. */
+	label?: string | undefined;
 	className?: string | undefined;
 }
 export interface ActionBarProps {
@@ -1306,6 +1318,15 @@ export declare const Calendar: React$1.ForwardRefExoticComponent<CalendarProps &
 /** Typed date field + calendar popover. English / Gregorian unless a locale is set; `th` shows Buddhist-era dates (18 ก.ย. 2569) and accepts พ.ศ. or ค.ศ. years. The value is always a Gregorian ISO date. */
 export declare const DatePicker: React$1.ForwardRefExoticComponent<DatePickerProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const DateRangePicker: React$1.ForwardRefExoticComponent<DateRangePickerProps & React$1.RefAttributes<HTMLInputElement>>;
+/** The class list of a Button (5.8): put it on your own link or `<Link>` to make it look like one, e.g. in a Server
+ * Component — `<Link href="/renew" className={buttonClass({ variant: 'secondary' })}>Renew</Link>`. */
+export declare function buttonClass(opts?: {
+	variant?: ButtonProps["variant"];
+	size?: ButtonProps["size"];
+	fullWidth?: boolean | undefined;
+	loading?: boolean | undefined;
+	className?: string | undefined;
+}): string;
 export declare const Alert: React$1.ForwardRefExoticComponent<AlertProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
 export declare function toast(opts: ToastOptions | string): string;

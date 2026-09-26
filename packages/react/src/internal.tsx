@@ -1,17 +1,6 @@
 import * as React from 'react';
-import type { Tone } from './types.js';
 
-export function cx(...parts: Array<string | number | bigint | boolean | null | undefined>): string;
-export function cx(): string {
-  return Array.prototype.filter.call(arguments, Boolean).join(' ');
-}
-export function omit<T extends object, K extends string>(src: T, keys: readonly K[]): Omit<T, K> {
-  const out: Record<string, unknown> = {};
-  for (const k in src)
-    if (Object.prototype.hasOwnProperty.call(src, k) && (keys as readonly string[]).indexOf(k) < 0)
-      out[k] = (src as Record<string, unknown>)[k];
-  return out as Omit<T, K>;
-}
+export { cx, omit, tone } from './classes.js';
 
 /* Controlled-or-not state: use the prop when given, else keep it here.
  * 5.1.1: the setter is stable and always calls the latest onChange, so effects that keep it (outside-click handlers)
@@ -114,13 +103,6 @@ export function useMergedRef<T>(a: React.Ref<T> | undefined, b: React.Ref<T> | u
     },
     [a, b],
   );
-}
-
-/* Badge / Progress tone → class suffix. */
-const TONES: string[] = ['neutral', 'accent', 'success', 'warning', 'danger'];
-
-export function tone(t: Tone | undefined): string {
-  return TONES.indexOf(t as string) >= 0 ? (t as string) : 'neutral';
 }
 
 /* Development-only notices, once per key (5.1). Bundlers replace process.env.NODE_ENV; without one (the window.Aura

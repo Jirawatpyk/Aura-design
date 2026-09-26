@@ -1,25 +1,9 @@
 import * as React from 'react';
-import { Icon } from './Icon.js';
-import { cx, omit, tone } from './internal.js';
+import { badgeElement } from './display.js';
 import type { BadgeProps } from './types.js';
 
 /* ---------- Badge: a static label or count ---------- */
+/* The markup lives in display.tsx (5.8), shared with the server entry's Badge. */
 export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(function Badge(props, ref) {
-  const rest = omit(props, ['tone', 'variant', 'icon', 'className', 'children']);
-  return (
-    <span
-      {...rest}
-      ref={ref}
-      className={cx(
-        'aura-badge',
-        'aura-badge--' + tone(props.tone),
-        props.variant === 'solid' && 'is-solid',
-        props.variant === 'outline' && 'is-outline',
-        props.className,
-      )}
-    >
-      {props.icon ? <Icon name={props.icon} size={12} /> : null}
-      {props.children}
-    </span>
-  );
+  return badgeElement(props, ref);
 });

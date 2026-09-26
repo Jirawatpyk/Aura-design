@@ -47,6 +47,48 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const shell = renderToString(React.createElement(A.AppShell, { mainId: 'main-content' }, 'x'));
     if (!/<main[^>]*tabindex="-1"/.test(shell)) { console.log(label, 'AppShell main tabindex:', shell); fail++; }
   }
+  /* 5.8 (Chamber-OS 66, 68, 69): /server display components give the root's HTML; attributes reach the root. */
+  {
+    const { renderToStaticMarkup: m } = require('react-dom/server');
+    const e = React.createElement;
+    const cases: Array<[string, Record<string, unknown>]> = [
+      ['Card', { title: 'Renewal', titleId: 'rp-t', id: 'renewal-prefs', 'data-testid': 'history-item', description: 'd', footer: 'f', children: 'b' }],
+      ['Card', { 'aria-labelledby': 'outer', children: 'b', variant: 'creative', interactive: true, as: 'article' }],
+      ['StatusPill', { 'data-state': 'decided', 'data-outcome': 'approved', children: 'Approved' }],
+      ['Alert', { tone: 'danger', role: 'status', icon: 'clock', title: 'Pending review', 'data-testid': 'a', id: 'n1', children: 'x', action: e('button', null, 'Go') }],
+      ['Alert', { tone: 'warning', children: 'y' }],
+      ['Badge', { tone: 'success', icon: 'check', 'data-x': '1', children: '3' }],
+      ['EmptyState', { title: 'Nothing', description: 'yet', icon: 'search', size: 'sm', bordered: true, headingLevel: 2 }],
+    ];
+    for (const [n, p] of cases) {
+      const a = m(e(A[n], p)), b = m(e(S[n], p));
+      if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
+    }
+    const card = m(e(A.Card, cases[0]![1])), pill = m(e(A.StatusPill, cases[2]![1])), alert = m(e(A.Alert, cases[3]![1]));
+    if (!/id="renewal-prefs"/.test(card) || !/data-testid="history-item"/.test(card) || !/aria-labelledby="rp-t"/.test(card)) { console.log(label, 'Card attributes:', card); fail++; }
+    if (!/aria-labelledby="outer"/.test(m(e(A.Card, cases[1]![1])))) { console.log(label, 'Card keeps a caller aria-labelledby without a title'); fail++; }
+    if (!/data-state="decided"/.test(pill) || !/data-outcome="approved"/.test(pill)) { console.log(label, 'StatusPill attributes:', pill); fail++; }
+    if (!/role="status"/.test(alert) || !/data-testid="a"/.test(alert) || !/id="n1"/.test(alert)) { console.log(label, 'Alert role/attributes:', alert); fail++; }
+    const clock = m(e(A.Icon, { name: 'clock' })), withIcon = m(e(A.Alert, { tone: 'danger', icon: 'clock' }));
+    if (withIcon.indexOf(clock.replace('<svg ', '<svg ').slice(0, 20)) < 0 || !/aria-hidden="true"/.test(withIcon)) { console.log(label, 'Alert icon:', withIcon); fail++; }
+    const custom = m(e(A.Alert, { icon: e('svg', { 'data-mine': '1' }) }));
+    if (!/data-mine="1"/.test(custom) || !/aura-icon--custom[^>]*aria-hidden="true"/.test(custom)) { console.log(label, 'Alert custom icon element:', custom); fail++; }
+    /* With none of the new props, the output is what 5.7.3 gave. */
+    const plain = m(e(A.Alert, { tone: 'danger', title: 'T', children: 'x' }));
+    if (!/^<div class="aura-alert aura-alert--danger" role="alert"><svg/.test(plain)) { console.log(label, 'Alert default markup:', plain); fail++; }
+    /* 67: labels from THead (fragments opened, aria-hidden parts skipped, colSpan counted); Td label wins; a nested
+     * plain table takes no labels or roles. */
+    const tbl = m(
+      e(A.Table, { caption: 'Diff', stackBelow: 'sm' },
+        e(React.Fragment, null, e(A.THead, null, e(A.Tr, null, e(A.Th, null, 'Field'), e(A.Th, { colSpan: 2 }, 'Seen ', e('span', { 'aria-hidden': true }, '↑')), e(A.Th, null, 'Proposed')))),
+        e(A.TBody, null, e(A.Tr, null, e(A.Th, { scope: 'row' }, 'Address'), e(React.Fragment, null, e(A.Td, null, 'a'), e(A.Td, null, 'b')), e(A.Td, { label: 'New' }, e(A.Table, { caption: 'inner' }, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))))))),
+    );
+    const got = (tbl.match(/data-label="[^"]*"/g) || []).join(' ');
+    if (got !== 'data-label="Seen" data-label="Seen" data-label="New"' || !/role="table"/.test(tbl) || !/role="rowheader"/.test(tbl)) { console.log(label, 'Table stack labels:', got, tbl); fail++; }
+    if ((tbl.match(/role="table"/g) || []).length !== 1 || /<td class="aura-tbl__td" role="cell">x/.test(tbl)) { console.log(label, 'nested table took the outer labels or roles:', tbl); fail++; }
+    if (S.buttonClass({ variant: 'secondary', size: 'sm', fullWidth: true }) !== 'aura-btn aura-btn--secondary aura-btn--sm aura-btn--full') { console.log(label, 'buttonClass'); fail++; }
+    if (m(e(A.Button, { href: '/x', variant: 'secondary' }, 'Go')).indexOf('class="' + S.buttonClass({ variant: 'secondary' }) + '"') < 0) { console.log(label, 'Button class != buttonClass'); fail++; }
+  }
   /* 5.0.1: an unknown time zone or a malformed today doesn't crash; link Tabs mark no tab for a route without one. */
   try {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(A.todayIn('Asia/Bangkk'))) throw new Error('todayIn gave ' + A.todayIn('Asia/Bangkk'));
