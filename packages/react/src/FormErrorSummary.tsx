@@ -49,14 +49,59 @@ export const FormErrorSummary = React.forwardRef<HTMLDivElement, FormErrorSummar
       id = props.id || auto;
     const list = items(props.errors);
     const box = React.useRef<HTMLDivElement | null>(null);
+    /* 5.7.3 (Chamber-OS 65): with `focusKey`, focus follows submits only. A new key arms one focus, taken as soon as
+     * the list has errors (at once for client errors, later for a server error set after a valid submit); typing
+     * disarms it. The list emptying and refilling while someone types (react-hook-form re-validating onChange)
+     * never pulls focus out of their field — WCAG 3.2.2. The key at mount arms nothing (errors already there at mount
+     * are focused once). Typing, a click or a key press elsewhere disarms it, so a later live error (a blur-validated
+     * field, a picker set through setValue) can't take focus. Without `focusKey`, it focuses when errors first appear. */
+    const keyed = props.focusKey !== undefined;
+    const lastKey = React.useRef<{ v: unknown } | null>(null),
+      armed = React.useRef(false),
+      hadErrors = React.useRef(false);
+    const has = list.length > 0;
     React.useEffect(
       function () {
-        const has = list.length > 0;
-        if (has && box.current) box.current.focus();
+        const appeared = has && !hadErrors.current;
+        hadErrors.current = has;
+        if (!keyed) {
+          lastKey.current = null;
+          if (appeared && box.current) box.current.focus();
+          return;
+        }
+        if (!lastKey.current) {
+          lastKey.current = { v: props.focusKey };
+          armed.current = has; /* at mount: only errors that are already there */
+        } else if (!Object.is(lastKey.current.v, props.focusKey)) {
+          lastKey.current = { v: props.focusKey };
+          armed.current = true;
+        }
+        if (armed.current && has && box.current) {
+          armed.current = false;
+          box.current.focus();
+        }
       },
-      /* focus when errors first appear, and again whenever focusKey changes (each submit) */
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [list.length > 0, props.focusKey],
+      [has, props.focusKey, keyed],
+    );
+    React.useEffect(
+      function () {
+        if (!keyed) return;
+        function disarm() {
+          armed.current = false;
+        }
+        /* A submit's own click or Enter comes before its new key, so it re-arms right after. */
+        const events = ['input', 'change', 'keydown', 'pointerdown'];
+        events.forEach(function (n) {
+          document.addEventListener(n, disarm, true);
+        });
+        return function () {
+          events.forEach(function (n) {
+            document.removeEventListener(n, disarm, true);
+          });
+        };
+      },
+      [keyed],
     );
     if (!list.length) return null;
     return (

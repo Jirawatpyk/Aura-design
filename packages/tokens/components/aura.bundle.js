@@ -3394,14 +3394,50 @@ window.Aura = (() => {
       const auto = uid(), id = props.id || auto;
       const list = items(props.errors);
       const box = React21.useRef(null);
+      const keyed = props.focusKey !== void 0;
+      const lastKey = React21.useRef(null), armed = React21.useRef(false), hadErrors = React21.useRef(false);
+      const has = list.length > 0;
       React21.useEffect(
         function() {
-          const has = list.length > 0;
-          if (has && box.current) box.current.focus();
+          const appeared = has && !hadErrors.current;
+          hadErrors.current = has;
+          if (!keyed) {
+            lastKey.current = null;
+            if (appeared && box.current) box.current.focus();
+            return;
+          }
+          if (!lastKey.current) {
+            lastKey.current = { v: props.focusKey };
+            armed.current = has;
+          } else if (!Object.is(lastKey.current.v, props.focusKey)) {
+            lastKey.current = { v: props.focusKey };
+            armed.current = true;
+          }
+          if (armed.current && has && box.current) {
+            armed.current = false;
+            box.current.focus();
+          }
         },
-        /* focus when errors first appear, and again whenever focusKey changes (each submit) */
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [list.length > 0, props.focusKey]
+        [has, props.focusKey, keyed]
+      );
+      React21.useEffect(
+        function() {
+          if (!keyed) return;
+          function disarm() {
+            armed.current = false;
+          }
+          const events = ["input", "change", "keydown", "pointerdown"];
+          events.forEach(function(n2) {
+            document.addEventListener(n2, disarm, true);
+          });
+          return function() {
+            events.forEach(function(n2) {
+              document.removeEventListener(n2, disarm, true);
+            });
+          };
+        },
+        [keyed]
       );
       if (!list.length) return null;
       return /* @__PURE__ */ React21.createElement(

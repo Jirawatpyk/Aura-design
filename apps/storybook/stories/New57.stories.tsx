@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
+import { useForm } from 'react-hook-form';
 import { Aura } from './aura';
 
 const meta: Meta = { title: 'AURA/New in 5.7' };
@@ -151,4 +152,61 @@ export const LongNavLabels: StoryObj = {
       />
     </div>
   ),
+};
+
+/* 65 (5.7.3): FormErrorSummary with react-hook-form's live errors takes focus on submit only, never while typing;
+ * a server error set after a valid submit still takes it. */
+type Login = { email: string; password: string };
+export const SummaryFocusOnSubmit: StoryObj = {
+  render: () => {
+    const { register, handleSubmit, setError, setFocus, formState } = useForm<Login>({ shouldFocusError: false });
+    return (
+      <form
+        noValidate
+        style={{ maxWidth: 380, display: 'grid', gap: 20 }}
+        onSubmit={handleSubmit(() => {
+          /* The request isn't awaited: submitCount changes now, the server's answer arrives later. */
+          setTimeout(() => setError('password', { message: 'Wrong email or password' }), 300);
+        })}
+      >
+        <Aura.FormErrorSummary
+          errors={formState.errors}
+          focusKey={formState.submitCount}
+          onSelect={(f) => setFocus(f as keyof Login)}
+        />
+        <Aura.TextField
+          label="Email address"
+          type="email"
+          error={formState.errors.email?.message}
+          {...register('email', { required: 'Enter your email address' })}
+        />
+        <Aura.PasswordField
+          label="Password"
+          error={formState.errors.password?.message}
+          {...register('password', { required: 'Enter your password' })}
+        />
+        <Aura.Button type="submit">Sign in</Aura.Button>
+      </form>
+    );
+  },
+};
+
+/* 65: validated on blur before any submit — the summary shows but doesn't take focus. */
+export const SummaryFocusOnBlur: StoryObj = {
+  render: () => {
+    const { register, handleSubmit, formState } = useForm<Login>({ mode: 'onBlur', shouldFocusError: false });
+    return (
+      <form noValidate style={{ maxWidth: 380, display: 'grid', gap: 20 }} onSubmit={handleSubmit(() => {})}>
+        <Aura.FormErrorSummary errors={formState.errors} focusKey={formState.submitCount} />
+        <Aura.TextField
+          label="Email address"
+          type="email"
+          error={formState.errors.email?.message}
+          {...register('email', { required: 'Enter your email address' })}
+        />
+        <Aura.PasswordField label="Password" {...register('password')} />
+        <Aura.Button type="submit">Sign in</Aura.Button>
+      </form>
+    );
+  },
 };

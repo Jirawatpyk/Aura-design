@@ -436,7 +436,10 @@ export interface FormErrorSummaryProps {
   title?: React.ReactNode | undefined;
   /** Called with the field when a link is followed, e.g. react-hook-form's `setFocus`. Default: focus the element whose id (or name) is the field. */
   onSelect?: ((field: string) => void) | undefined;
-  /** Change it on every submit (e.g. `formState.submitCount`) to move focus to the summary again. It also takes focus when errors first appear. */
+  /** Change it on every submit (e.g. `formState.submitCount`). With it, the summary takes focus only after a submit —
+   * never while someone types and live errors come and go (5.7.3). Without it, it takes focus whenever errors
+   * first appear; with react-hook-form's live `errors`, always pass `focusKey={formState.submitCount}` (a primitive, not a new object
+   * each render) and `useForm({ shouldFocusError: false })`, so RHF doesn't move focus to the field first. */
   focusKey?: unknown;
   className?: string | undefined;
   id?: string | undefined;

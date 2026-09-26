@@ -2501,3 +2501,42 @@ test.describe('5.7.2: Chamber-OS item 64', () => {
     await expect(shy).toBeFocused();
   });
 });
+
+test.describe('5.7.3: Chamber-OS item 65', () => {
+  test('65: FormErrorSummary with live RHF errors focuses on submit only, never while typing', async ({ page }) => {
+    await story(page, 'aura-new-in-5-7--summary-focus-on-submit');
+    const summary = page.locator('.aura-error-summary');
+    const email = page.getByRole('textbox', { name: /^Email address/ });
+    const password = page.getByLabel(/^Password/).first();
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await expect(summary).toBeFocused(); // a failed submit focuses it
+    await email.fill('tao@example.co.th');
+    await password.fill('secret');
+    await expect(summary).toHaveCount(0); // every field fixed: the list empties
+    await password.focus();
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.press('Backspace'); // break it again: the list refills while typing
+    await expect(summary).toBeVisible();
+    await page.waitForTimeout(150);
+    await expect(password).toBeFocused(); // WCAG 3.2.2: focus stays in the field
+    await page.keyboard.press('Enter'); // the next failed submit focuses it again
+    await expect(summary).toBeFocused();
+    await password.fill('secret');
+    await expect(summary).toHaveCount(0);
+    await page.getByRole('button', { name: 'Sign in' }).click(); // valid: the server answers later with setError
+    await expect(summary).toHaveCount(0); // nothing yet: the new key armed one focus
+    await expect(summary).toBeFocused();
+    await expect(summary).toContainText('Wrong email or password');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('65: blur-validated errors before any submit never take focus', async ({ page }) => {
+    await story(page, 'aura-new-in-5-7--summary-focus-on-blur');
+    const email = page.getByRole('textbox', { name: /^Email address/ });
+    await email.focus();
+    await page.keyboard.press('Tab'); // blur the empty required field: RHF adds an error (mode onBlur)
+    await expect(page.locator('.aura-error-summary')).toBeVisible();
+    await page.waitForTimeout(150);
+    await expect(page.getByLabel(/^Password/).first()).toBeFocused();
+  });
+});
