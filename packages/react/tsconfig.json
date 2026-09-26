@@ -1,4 +1,4 @@
 {
   "compilerOptions": { "strict": true, "noEmit": true, "jsx": "react-jsx", "module": "esnext", "moduleResolution": "bundler", "target": "es2020", "skipLibCheck": false, "lib": ["dom", "es2020"], "types": [] },
-  "files": ["types-test/usage.tsx"]
+  "files": ["types-test/usage.tsx", "types-test/generic-rows.tsx"]
 }

@@ -186,6 +186,19 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.5 — DataTable is generic over its rows
+
+- The type of `rows` is the table's row type, and every `render`, `sortValue`, `getRowHref` and `onRowActivate` gets it — no annotations, and a typo inside a callback (`r.amuont`) or a callback written for another type is a compile error (column `key`s stay plain strings):
+
+```tsx
+const columns: DataTableColumn<Order>[] = [{ key: 'amount', label: 'AMOUNT', align: 'end', render: (r) => baht(r.amount) }];
+<DataTable label="Orders" rows={orders} columns={columns} onRowActivate={setDetail} getRowHref={(r) => '/orders/' + r.id} />
+```
+
+- `DataTableColumn<Row>` types a column list declared on its own; `<DataTable<Order> …>` names the type explicitly. `rows={[]}` (nothing loaded yet) keeps the untyped default, and so do `any[]`, `Record<string, any>[]` and anything reading `typeof DataTable` (`ComponentProps`, `memo`, wrappers).
+- Two type-level changes: rows that are a union of arrays (`cond ? orders : invoices`) need the type named, `<DataTable<Order | Invoice> …>`; rows typed `Record<string, unknown>[]` give `render` an `unknown` value, so convert it (`String(r.n)`).
+- Types only; nothing changes at run time. `typeof DataTable` is now a generic function type rather than `ForwardRefExoticComponent` (it still takes `ref`).
+
 ## 5.4 — types, and TypeScript across the repo
 
 - **DataTable** takes rows of your own interface (`rows={orders}` with `interface Order {…}`; readonly arrays too), and `render`, `sortValue`, `getRowHref` and `onRowActivate` can be written with it: `render: (r: Order) => baht(r.amount)` — no cast from `Record<string, any>`.

@@ -46,12 +46,18 @@ export interface DataTableState {
 	sort: DataTableSort | null;
 	page: number;
 }
-/** A callback that gets one row. Written with your own row type (`(r: Order) => …`) it still fits (5.4):
- * the row is checked the way method parameters are, so no cast from `Record<string, any>` is needed. */
-export type RowCallback<R> = {
-	bivarianceHack(row: Record<string, any>): R;
+/** Internal helper (exported only because the declarations reference it): `T` as written, but never inferred from
+ * this position (works before TypeScript 5.4's own `NoInfer`), so a table's row type comes from its `rows`. */
+export type NoInferRow<T> = [
+	T
+][T extends any ? 0 : never];
+/** A callback that gets one row of type `Row` and returns `T`. Checked the way method parameters are, so a callback
+ * written for a narrower or wider row type still fits; one written for an unrelated type is an error (5.5). */
+export type RowCallback<T, Row = Record<string, any>> = {
+	bivarianceHack(row: NoInferRow<Row>): T;
 }["bivarianceHack"];
-export interface DataTableColumn {
+/** One column. `Row` is the table's row type (5.5): `DataTableColumn<Order>` types `render` and `sortValue`. */
+export interface DataTableColumn<Row extends Record<string, any> = Record<string, any>> {
 	/** Key into each row object. */
 	key: string;
 	/** Header label (source style: UPPERCASE). */
@@ -67,9 +73,9 @@ export interface DataTableColumn {
 	/** Header becomes a button cycling asc → desc → unsorted. */
 	sortable?: boolean | undefined;
 	/** Value to sort by, when not the cell value (dates, amounts). */
-	sortValue?: RowCallback<string | number | null> | undefined;
+	sortValue?: RowCallback<string | number | null, Row> | undefined;
 	/** Custom cell content. */
-	render?: RowCallback<React$1.ReactNode> | undefined;
+	render?: RowCallback<React$1.ReactNode, Row> | undefined;
 	/** Set false to keep a sized column fixed when the table is `resizable`. */
 	resizable?: boolean | undefined;
 	/** Resize limits in px. Defaults 64 / 480. For the flexible column, minWidth defaults to 160. */
@@ -99,13 +105,14 @@ export interface DataTableEmpty {
 	/** One action, usually a secondary Button. */
 	action?: React$1.ReactNode | undefined;
 }
-/** Enterprise data table: 48px rows, hairline dividers, mono header band. */
-export interface DataTableProps {
+/** Enterprise data table: 48px rows, hairline dividers, mono header band. Generic over the row type (5.5): with
+ * `rows={orders}` every `render`, `sortValue`, `getRowHref` and `onRowActivate` gets an `Order`. */
+export interface DataTableProps<Row extends Record<string, any> = Record<string, any>> {
 	/** Defaults to ID · NAME · STATUS · OWNER (96 / 160 / 112 / auto px). */
-	columns?: DataTableColumn[] | undefined;
-	/** Row objects. Any typed interface works (5.4: before, `interface Order {…}` rows needed a cast); cells show
-	 * the value at each column's key unless the column has `render`. */
-	rows: ReadonlyArray<Record<string, any>>;
+	columns?: DataTableColumn<Row>[] | undefined;
+	/** Row objects, of any interface; their type is the table's row type. Cells show the value at each column's key
+	 * unless the column has `render`. */
+	rows: ReadonlyArray<Row>;
 	/** Column key giving each row a unique React key. Default: the first column's key. */
 	rowKey?: string | undefined;
 	/** Accessible name for the table. */
@@ -152,7 +159,7 @@ export interface DataTableProps {
 	totalRows?: number | undefined;
 	/** Makes each row a link: the first column's content renders as the provider's linkComponent (or `<a>`), and a click
 	 * or Enter anywhere on the row follows it. Ctrl/⌘-click opens a new tab as usual. */
-	getRowHref?: RowCallback<string> | undefined;
+	getRowHref?: RowCallback<string, Row> | undefined;
 	/** Pager arrows become links to these URLs (search-param paging). Without onPageChange the link navigates. */
 	getPageHref?: ((page: number) => string) | undefined;
 	/** Router link for getRowHref / getPageHref. Default: AuraProvider's linkComponent, else `<a>`. */
@@ -160,7 +167,7 @@ export interface DataTableProps {
 	/** Skeleton row count when there is no pageSize. Default 5. */
 	skeletonRows?: number | undefined;
 	/** Called on row click or Enter. */
-	onRowActivate?: RowCallback<void> | undefined;
+	onRowActivate?: RowCallback<void, Row> | undefined;
 	/** Fixed height in px: sticky header, and only the rows in view are rendered. */
 	height?: number | undefined;
 	/** Column menu on every header, drag-to-reorder, and the show/hide columns button. */
@@ -1290,8 +1297,15 @@ export declare const Tooltip: React$1.ForwardRefExoticComponent<TooltipProps & R
 export declare const Dialog: React$1.ForwardRefExoticComponent<DialogProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Side panel over the page: record detail, filters, mobile navigation. Modal (focus trap, scroll lock, focus restore). */
 export declare const Drawer: React$1.ForwardRefExoticComponent<DrawerProps & React$1.RefAttributes<HTMLDivElement>>;
-/** Enterprise data table: 48px rows, hairline dividers, mono header band. */
-export declare const DataTable: React$1.ForwardRefExoticComponent<DataTableProps & React$1.RefAttributes<HTMLDivElement>>;
+/** Enterprise data table: 48px rows, hairline dividers, mono header band. Generic over the row type (5.5): the
+ * type of `rows` types every `render`, `sortValue`, `getRowHref` and `onRowActivate`. */
+export declare const DataTable: {
+	(props: DataTableProps & {
+		rows: readonly never[];
+	} & React$1.RefAttributes<HTMLDivElement>): React$1.ReactElement | null;
+	<Row extends Record<string, any> = Record<string, any>>(props: DataTableProps<Row> & React$1.RefAttributes<HTMLDivElement>): React$1.ReactElement | null;
+	displayName?: string | undefined;
+};
 export declare const Card: React$1.ForwardRefExoticComponent<CardProps & React$1.RefAttributes<HTMLElement>>;
 export declare const Tabs: React$1.ForwardRefExoticComponent<TabsProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Side navigation: sections of links or buttons, collapsible groups, counts and badges. Arrow keys move between items. */

@@ -68,7 +68,7 @@ window.Aura = (() => {
     Combobox: () => Combobox,
     Command: () => Command,
     Container: () => Container,
-    DataTable: () => DataTable,
+    DataTable: () => DataTable2,
     DatePicker: () => DatePicker,
     DateRangePicker: () => DateRangePicker,
     Dialog: () => Dialog,
@@ -3982,7 +3982,7 @@ window.Aura = (() => {
   var ROW_H_DEFAULT = 48;
   var OVERSCAN = 8;
   var FLEX_MIN = 160;
-  var DataTable = React28.forwardRef(function DataTable2(props, ref) {
+  var DataTableImpl = React28.forwardRef(function DataTable(props, ref) {
     const t = useStrings();
     const columns = props.columns || DEFAULT_COLUMNS;
     const byKey = {};
@@ -5217,6 +5217,7 @@ window.Aura = (() => {
     }
     return /* @__PURE__ */ React28.createElement("div", { ref, className: cx("aura-table-box", props.className) }, out);
   });
+  var DataTable2 = DataTableImpl;
 
   // src/Card.tsx
   var React29 = __toESM(require_react(), 1);

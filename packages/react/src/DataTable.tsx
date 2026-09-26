@@ -58,8 +58,7 @@ const ROW_H_DEFAULT = 48,
   OVERSCAN = 8,
   FLEX_MIN = 160;
 
-/** Enterprise data table: 48px rows, hairline dividers, mono header band. */
-export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(function DataTable(props, ref) {
+const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function DataTable(props, ref) {
   const t = useStrings();
   const columns = props.columns || DEFAULT_COLUMNS;
   const byKey: Record<string, Col> = {};
@@ -1503,3 +1502,14 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(functi
     </div>
   );
 });
+
+/** Enterprise data table: 48px rows, hairline dividers, mono header band. Generic over the row type (5.5): the
+ * type of `rows` types every `render`, `sortValue`, `getRowHref` and `onRowActivate`. */
+export const DataTable = DataTableImpl as unknown as {
+  /* `rows={[]}` (nothing loaded yet): the default row type, not `never`. */
+  (props: DataTableProps & { rows: readonly never[] } & React.RefAttributes<HTMLDivElement>): React.ReactElement | null;
+  <Row extends Record<string, any> = Record<string, any>>(
+    props: DataTableProps<Row> & React.RefAttributes<HTMLDivElement>,
+  ): React.ReactElement | null;
+  displayName?: string | undefined;
+};

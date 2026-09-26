@@ -176,14 +176,14 @@ export function App() {
     { separator: true },
     { label: 'ยกเลิกคำสั่งซื้อ', icon: 'ban', disabled: r.status === 'ยกเลิก', onSelect: () => setConfirm(r) },
   ];
-  const columns: DataTableColumn[] = [
+  const columns: DataTableColumn<Order>[] = [
     { key: 'id', label: 'รหัส', width: 104, mono: true, sortable: true, pinned: true },
     { key: 'customer', label: 'ลูกค้า', width: 180, sortable: true },
-    { key: 'date', label: 'วันที่', width: 150, sortable: true, render: (r: Order) => formatDate(r.date) + ' ' + r.time },
-    { key: 'owner', label: 'ผู้ดูแล', width: 140, hideBelow: 860, render: (r: Order) => ownerName(r.owner), sortValue: (r: Order) => ownerName(r.owner) },
+    { key: 'date', label: 'วันที่', width: 150, sortable: true, render: (r) => formatDate(r.date) + ' ' + r.time },
+    { key: 'owner', label: 'ผู้ดูแล', width: 140, hideBelow: 860, render: (r) => ownerName(r.owner), sortValue: (r) => ownerName(r.owner) },
     { key: 'status', label: 'สถานะ', width: 120, pill: true, tones: TONE, sortable: true },
-    { key: 'amount', label: 'ยอด', width: 96, hideBelow: 800, sortable: true, render: (r: Order) => baht(r.amount) },
-    { key: 'actions', label: '', actions: true, width: 56, resizable: false, render: (r: Order) => (
+    { key: 'amount', label: 'ยอด', width: 96, hideBelow: 800, sortable: true, render: (r) => baht(r.amount) },
+    { key: 'actions', label: '', actions: true, width: 56, resizable: false, render: (r) => (
       <DropdownMenu label={'จัดการ ' + r.id} items={rowActions(r)} trigger={<IconButton icon="ellipsis" label={'จัดการ ' + r.id} />} />
     ) },
   ];
@@ -251,7 +251,7 @@ export function App() {
           <DataTable label="คำสั่งซื้อ" columns={columns} rows={shown} rowKey="id" loading={loading}
             selectable selected={selected} onSelectionChange={setSelected}
             pageSize={10} resizable stackBelow={640} defaultSort={{ key: 'date', dir: 'asc' }}
-            onRowActivate={(r: Order) => setDetail(r)}
+            onRowActivate={setDetail}
             empty={{ icon: 'search', title: 'ไม่พบคำสั่งซื้อ', description: 'ลองล้างตัวกรองหรือเปลี่ยนช่วงวันที่',
               action: <Button variant="secondary" onClick={() => setFilters(EMPTY_FILTERS)}>ล้างตัวกรอง</Button> }} />
         </Stack>
