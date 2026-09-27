@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.8.0 — 2026-09-27
+
+### Minor changes
+
+- 3b94880: Chamber-OS addendum 8: `@jirawatpyk/aura-react/server` exports hook-free `Card`, `Badge`, `StatusPill`, `Alert` (no `onDismiss`), `EmptyState`, `Icon` and `buttonClass()` for Server Components, with the same HTML as the root components (the server entry now imports React); Alert takes `role`, `icon` and pass-through attributes; Card and StatusPill pass attributes to their root; Table `stackBelow="sm" | "md"` stacks rows into labelled cards in CSS.
+
 ## 5.7.3 — 2026-09-26
 
 ### Patch changes
