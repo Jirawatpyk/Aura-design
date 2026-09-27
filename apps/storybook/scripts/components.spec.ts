@@ -718,10 +718,16 @@ test.describe('4.10: Chamber-OS group A', () => {
     await expect(grid).toHaveAttribute('aria-rowcount', '58');
     await expect(page.getByText('1–10 of 57')).toBeVisible();
     await expect(page.getByText('Page 1 of 6')).toBeVisible();
+    /* Hold the fake request so the loading state is checked deterministically (it raced a 400ms timer before). */
+    await page.evaluate(() => ((window as any).__holdServer = true));
     await page.getByRole('button', { name: 'Next page' }).click();
     await expect(page.locator('.aura-table.is-refreshing')).toHaveCount(1);
     await expect(grid).toHaveAttribute('aria-busy', 'true');
     await expect(page.locator('.aura-table__row').first()).toContainText('INV-1001'); // previous page kept
+    await page.evaluate(() => {
+      (window as any).__holdServer = false;
+      (window as any).__releaseServer();
+    });
     await expect(page.locator('.aura-table__row').first()).toContainText('INV-1011');
     await expect(page.getByText('11–20 of 57')).toBeVisible();
     await expect(page.locator('.aura-table.is-refreshing')).toHaveCount(0);

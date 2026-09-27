@@ -8,5 +8,10 @@
   "aura.css (tokens)": 3584,
   "aura.bundle.js (window.Aura, minified)": 56320,
   "Card only": 1024,
-  "Skeleton only": 1024
+  "Skeleton only": 1024,
+  "Icon only": 4096,
+  "Alert only": 7680,
+  "Select only": 11776,
+  "SideNav only": 9728,
+  "Toaster only": 10240
 }

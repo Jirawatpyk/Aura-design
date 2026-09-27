@@ -154,11 +154,24 @@ export const ServerTable: StoryObj = {
         return;
       }
       setLoading(true);
-      const id = setTimeout(() => {
+      let done = false;
+      const answer = () => {
+        if (done) return;
+        done = true;
         const s = sort ? [...ALL].sort((a: any, b: any) => (a[sort.key] > b[sort.key] ? 1 : -1) * (sort.dir === 'asc' ? 1 : -1)) : ALL;
         setRows(s.slice((page - 1) * 10, page * 10));
         setLoading(false);
-      }, 400);
+      };
+      /* Tests set window.__holdServer to keep the "request" pending until they call window.__releaseServer(), so the
+       * loading state can be checked without racing a timer on a busy machine. */
+      const w = window as any;
+      if (w.__holdServer) {
+        w.__releaseServer = answer;
+        return () => {
+          done = true;
+        };
+      }
+      const id = setTimeout(answer, 400);
       return () => clearTimeout(id);
     }, [page, sort]);
     return (

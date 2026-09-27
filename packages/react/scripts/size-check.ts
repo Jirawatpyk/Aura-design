@@ -24,6 +24,14 @@ const entries: Record<string, () => Promise<number>> = {
   'DataTable only': () => js(`export { DataTable } from ${JSON.stringify(esm)};`),
   'DatePicker only': () => js(`export { DatePicker } from ${JSON.stringify(esm)};`),
   'createTheme only': () => js(`export { createTheme } from ${JSON.stringify(esm)};`),
+  /* 5.8.1: what an app pays for the pieces nearly every screen imports. The shared costs live here — the icon map
+   * (~3.4 kB) and the three-language strings (~3.1 kB) — so a regression in them shows even while "everything" grows
+   * with new components. */
+  'Icon only': () => js(`export { Icon } from ${JSON.stringify(esm)};`),
+  'Alert only': () => js(`export { Alert } from ${JSON.stringify(esm)};`),
+  'Select only': () => js(`export { Select } from ${JSON.stringify(esm)};`),
+  'SideNav only': () => js(`export { SideNav } from ${JSON.stringify(esm)};`),
+  'Toaster only': () => js(`export { Toaster } from ${JSON.stringify(esm)};`),
   /* Small components: these stay tiny only while each lives in its own file (one file per component). */
   'Card only': () => js(`export { Card } from ${JSON.stringify(esm)};`),
   'Skeleton only': () => js(`export { Skeleton } from ${JSON.stringify(esm)};`),
