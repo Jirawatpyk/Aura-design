@@ -13,6 +13,7 @@ import type {
   DateRangePickerProps,
   ISODate,
 } from './types.js';
+import { IconCalendar, IconChevronDown, IconChevronLeft, IconChevronRight, IconX } from './icons.js';
 
 type PopoverPos = { left: number; top?: number | undefined; bottom?: number | undefined };
 import {
@@ -202,7 +203,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
       <div className="aura-cal" ref={gridMerged} key={gridKey}>
         <div className="aura-cal__head">
           <IconButton
-            icon="chevron-left"
+            icon={<IconChevronLeft />}
             label={dt.prevYears}
             onClick={function () {
               setFocus(new Date(yr - 12, focusDate.getMonth(), 1));
@@ -220,7 +221,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
               fmt(tag, { year: 'numeric' }, new Date(base + 11, 0, 1)).replace(ERA, '')}
           </button>
           <IconButton
-            icon="chevron-right"
+            icon={<IconChevronRight />}
             label={dt.nextYears}
             onClick={function () {
               setFocus(new Date(yr + 12, focusDate.getMonth(), 1));
@@ -255,7 +256,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
     <div className="aura-cal" ref={gridMerged} key={gridKey}>
       <div className="aura-cal__head">
         <IconButton
-          icon="chevron-left"
+          icon={<IconChevronLeft />}
           label={dt.prevMonth}
           onClick={function () {
             setFocus(addMonths(focusDate, -1));
@@ -270,10 +271,10 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
           }}
         >
           {monthTitle}
-          <Icon name="chevron-down" size={14} />
+          <Icon name={<IconChevronDown />} size={14} />
         </button>
         <IconButton
-          icon="chevron-right"
+          icon={<IconChevronRight />}
           label={dt.nextMonth}
           onClick={function () {
             setFocus(addMonths(focusDate, 1));
@@ -515,7 +516,7 @@ function DateField(props: DateFieldInternalProps) {
             aria-label={props.clearLabel}
             onClick={props.onClear}
           >
-            <Icon name="x" />
+            <Icon name={<IconX />} />
           </button>
         ) : null}
         <button
@@ -530,7 +531,7 @@ function DateField(props: DateFieldInternalProps) {
             props.onToggle(!props.open);
           }}
         >
-          <Icon name="calendar" />
+          <Icon name={<IconCalendar />} />
         </button>
       </div>
     </Field>

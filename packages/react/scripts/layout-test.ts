@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SIX_NOTICES } from './fixtures.ts';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aura-layout-'));
@@ -117,7 +118,7 @@ async function open(name: string, width: number, height: number, js: boolean) {
   const p = await ctx.newPage();
   const problems: string[] = [];
   p.on('console', (m) => {
-    if (m.type() === 'error' || m.type() === 'warning') problems.push(m.text().slice(0, 300));
+    if ((m.type() === 'error' || m.type() === 'warning') && !SIX_NOTICES.test(m.text())) problems.push(m.text().slice(0, 300));
   });
   await p.goto('file://' + path.join(dir, name + '.html'));
   if (js) await p.waitForFunction(() => window.__hydrated, null, { timeout: 15000 });

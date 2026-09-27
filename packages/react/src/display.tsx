@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx, omit, tone as badgeTone } from './classes.js';
 import { toneFor } from './status.js';
+import type { AuraIcon } from './iconSvg.js';
 import type {
   AlertProps,
   BadgeProps,
@@ -9,10 +10,19 @@ import type {
   CardProps,
   EmptyStateProps,
   FeedbackTone,
-  IconName,
   StatusPillProps,
   StatusTone,
 } from './types.js';
+import {
+  IconBan,
+  IconCircle,
+  IconCircleAlert,
+  IconCircleCheck,
+  IconCircleDotDashed,
+  IconInbox,
+  IconInfo,
+  IconTriangleAlert,
+} from './icons.js';
 
 /* Display components with no state and no hooks (5.8, Chamber-OS 68). Each renders from one function here, used by
  * the root component (with its ref) and by the one in `@jirawatpyk/aura-react/server` (a plain function a Server
@@ -20,11 +30,11 @@ import type {
 
 const h = React.createElement;
 
-export const ALERT_ICON: Record<FeedbackTone, IconName> = {
-  info: 'info',
-  success: 'circle-check',
-  warning: 'triangle-alert',
-  danger: 'circle-alert',
+export const ALERT_ICON: Record<FeedbackTone, AuraIcon> = {
+  info: IconInfo,
+  success: IconCircleCheck,
+  warning: IconTriangleAlert,
+  danger: IconCircleAlert,
 };
 
 export function alertElement(
@@ -41,7 +51,7 @@ export function alertElement(
       className={cx('aura-alert', 'aura-alert--' + tone, props.className)}
       role={props.role || (tone === 'danger' || tone === 'warning' ? 'alert' : 'status')}
     >
-      <Icon name={props.icon || ALERT_ICON[tone]} className="aura-alert__icon" />
+      <Icon name={props.icon || h(ALERT_ICON[tone])} className="aura-alert__icon" />
       <div className="aura-alert__body">
         {props.title ? <p className="aura-alert__title">{props.title}</p> : null}
         {props.children ? <div className="aura-alert__text">{props.children}</div> : null}
@@ -96,12 +106,12 @@ export function cardElement(props: CardProps, ref: React.Ref<HTMLElement> | unde
   );
 }
 
-const PILL_ICON: Record<StatusTone, IconName> = {
-  neutral: 'circle',
-  progress: 'circle-dot-dashed',
-  ready: 'circle-check',
-  warning: 'triangle-alert',
-  blocked: 'ban',
+const PILL_ICON: Record<StatusTone, AuraIcon> = {
+  neutral: IconCircle,
+  progress: IconCircleDotDashed,
+  ready: IconCircleCheck,
+  warning: IconTriangleAlert,
+  blocked: IconBan,
 };
 
 export function statusPillElement(
@@ -112,7 +122,7 @@ export function statusPillElement(
   const rest = omit(props, ['tone', 'className', 'children']);
   return (
     <span {...rest} ref={ref} className={cx('aura-pill', 'aura-pill--' + tone, props.className)}>
-      <Icon name={PILL_ICON[tone] || 'circle'} size={12} />
+      <Icon name={h(PILL_ICON[tone] || IconCircle)} size={12} />
       {props.children}
     </span>
   );
@@ -149,7 +159,7 @@ export function emptyStateElement(
       className={cx('aura-empty', props.size === 'sm' && 'is-sm', props.bordered && 'is-bordered', props.className)}
     >
       <span className="aura-empty__icon" aria-hidden={true}>
-        <Icon name={props.icon || 'inbox'} size={props.size === 'sm' ? 'md' : 'lg'} />
+        <Icon name={props.icon || <IconInbox />} size={props.size === 'sm' ? 'md' : 'lg'} />
       </span>
       <HT className="aura-empty__title">{props.title}</HT>
       {props.description ? <p className="aura-empty__text">{props.description}</p> : null}

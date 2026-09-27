@@ -4,6 +4,8 @@
 import * as React from 'react';
 import * as Aura from '../dist/index';
 import { Button, DataTable, DatePicker, SideNav, TextField } from '../dist/index';
+import { IconPlus, IconUsers, allIcons, defineIcon } from '../dist/icons/index';
+import { th } from '../dist/locales/th';
 
 type Mod = typeof Aura;
 type OptionalKeys<T> = { [K in keyof T]-?: {} extends Pick<T, K> ? K : never }[keyof T];
@@ -103,5 +105,22 @@ export function TypedRows53({ rows, open }: { rows: readonly Invoice53[]; open: 
         },
       ]}
     />
+  );
+}
+
+/* 5.9: the per-icon components and a locale pack fit the published props. */
+export function Prep60() {
+  Aura.registerIcons(allIcons);
+  Aura.registerIcons([IconUsers]);
+  const Mine = defineIcon('mine', [['path', { d: 'M4 4h16' }]]);
+  return (
+    <Aura.AuraProvider locale="th" strings={th}>
+      {/* 5.8's override with an untyped parameter still compiles (no implicit any). */}
+      <Aura.AuraProvider strings={{ pageN: (n) => 'p' + n }} />
+      <Button icon={<IconPlus />}>New</Button>
+      <IconUsers size="md" label="Members" />
+      <Aura.Icon name={<Mine />} />
+      <SideNav items={[{ id: 'a', label: 'A', icon: <IconUsers /> }]} />
+    </Aura.AuraProvider>
   );
 }

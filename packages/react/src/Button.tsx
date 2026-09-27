@@ -4,6 +4,7 @@ import { buttonClass } from './display.js';
 import { Icon } from './Icon.js';
 import { useLinkComponent } from './locale.js';
 import type { ButtonLinkProps, ButtonProps } from './types.js';
+import { IconLoaderCircle } from './icons.js';
 
 /** Button with an `href` is a link; without, a button. Two call signatures so each gets the right props and ref. */
 export interface ButtonComponent {
@@ -97,7 +98,11 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
             : props.onClick
         }
       >
-        {loading ? <Icon name="loader-circle" className="aura-spin" /> : props.icon ? <Icon name={props.icon} /> : null}
+        {loading ? (
+          <Icon name={<IconLoaderCircle />} className="aura-spin" />
+        ) : props.icon ? (
+          <Icon name={props.icon} />
+        ) : null}
         {props.children}
         {props.iconRight && !loading ? <Icon name={props.iconRight} /> : null}
       </button>

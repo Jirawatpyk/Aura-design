@@ -15,6 +15,22 @@ import type {
   MenuItem,
   StatusPillProps,
 } from './types.js';
+import {
+  IconArrowDown,
+  IconArrowLeft,
+  IconArrowRight,
+  IconArrowUp,
+  IconArrowUpDown,
+  IconChevronLeft,
+  IconChevronRight,
+  IconColumns3,
+  IconEllipsis,
+  IconEyeOff,
+  IconInbox,
+  IconPin,
+  IconPinOff,
+  IconRotateCcw,
+} from './icons.js';
 
 type Col = DataTableColumn;
 type Row = Record<string, any>;
@@ -797,14 +813,14 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       items.push(
         {
           label: t.sortAsc,
-          icon: 'arrow-up',
+          icon: <IconArrowUp />,
           onSelect: function () {
             applySort({ key: c.key, dir: 'asc' });
           },
         },
         {
           label: t.sortDesc,
-          icon: 'arrow-down',
+          icon: <IconArrowDown />,
           onSelect: function () {
             applySort({ key: c.key, dir: 'desc' });
           },
@@ -814,7 +830,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     if (c.width != null)
       items.push({
         label: isPinned(c) ? t.unpin : t.pin,
-        icon: isPinned(c) ? 'pin-off' : 'pin',
+        icon: isPinned(c) ? <IconPinOff /> : <IconPin />,
         onSelect: function () {
           togglePin(c.key);
         },
@@ -823,7 +839,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       items.push(
         {
           label: t.moveLeft,
-          icon: 'arrow-left',
+          icon: <IconArrowLeft />,
           disabled: gi <= 0,
           onSelect: function () {
             moveCol(c.key, -1);
@@ -831,7 +847,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         },
         {
           label: t.moveRight,
-          icon: 'arrow-right',
+          icon: <IconArrowRight />,
           disabled: gi >= group.length - 1,
           onSelect: function () {
             moveCol(c.key, 1);
@@ -842,7 +858,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       { separator: true },
       {
         label: t.hideColumn,
-        icon: 'eye-off',
+        icon: <IconEyeOff />,
         disabled: shown.length <= 1,
         onSelect: function () {
           setHidden(c.key, true);
@@ -866,7 +882,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           },
         };
       })
-      .concat([{ separator: true }, { label: t.resetColumns, icon: 'rotate-ccw', onSelect: resetColumns }]);
+      .concat([{ separator: true }, { label: t.resetColumns, icon: <IconRotateCcw />, onSelect: resetColumns }]);
   }
   function openMenu(kind: MenuState['kind'], key: string | null, anchor: HTMLElement, rc?: MenuState['rc']) {
     setMenu({ kind: kind, key: key, anchor: anchor, rc: rc });
@@ -1066,14 +1082,17 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
               }}
             >
               {c.label}
-              <Icon name={isSorted ? (sort!.dir === 'desc' ? 'arrow-down' : 'arrow-up') : 'arrow-up-down'} size={12} />
+              <Icon
+                name={isSorted ? sort!.dir === 'desc' ? <IconArrowDown /> : <IconArrowUp /> : <IconArrowUpDown />}
+                size={12}
+              />
             </button>
           ) : (
             <span className={cx('aura-table__th-label', !c.label && 'aura-sr-only')}>
               {c.label || (c.actions ? t.actions : c.key)}
             </span>
           )}
-          {pin ? <Icon name="pin" size={12} className="aura-table__pin-icon" label={t.pinned} /> : null}
+          {pin ? <Icon name={<IconPin />} size={12} className="aura-table__pin-icon" label={t.pinned} /> : null}
           {controls ? (
             <button
               type="button"
@@ -1087,7 +1106,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
                 openMenu('col', c.key, e.currentTarget, { r: 0, c: ci });
               }}
             >
-              <Icon name="ellipsis" />
+              <Icon name={<IconEllipsis />} />
             </button>
           ) : null}
         </span>
@@ -1246,7 +1265,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       <div className="aura-table__empty" role="row">
         <div role="gridcell">
           <span className="aura-table__empty-icon">
-            <Icon name={em.icon || 'inbox'} size="lg" />
+            <Icon name={em.icon || <IconInbox />} size="lg" />
           </span>
           <p className="aura-table__empty-title">{em.title || t.empty}</p>
           {em.description ? <p className="aura-table__empty-text">{em.description}</p> : null}
@@ -1305,7 +1324,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     const p = page + dir,
       off = busy || (dir < 0 ? page <= 1 : page >= pageCount),
       label = dir < 0 ? t.prevPage : t.nextPage,
-      icon = dir < 0 ? 'chevron-left' : 'chevron-right';
+      icon = dir < 0 ? <IconChevronLeft /> : <IconChevronRight />;
     if (props.getPageHref && !off)
       return (
         <Link
@@ -1496,7 +1515,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       {controls ? (
         <div className="aura-table__picker">
           <IconButton
-            icon="columns-3"
+            icon={<IconColumns3 />}
             label={t.showHideColumns}
             aria-haspopup="menu"
             onClick={function (e: React.MouseEvent<HTMLButtonElement>) {

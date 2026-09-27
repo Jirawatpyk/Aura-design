@@ -1,5 +1,5 @@
 {
   "compilerOptions": { "jsx": "react-jsx", "module": "esnext", "moduleResolution": "bundler", "target": "es2020", "strict": true, "skipLibCheck": true, "noEmit": true,
-    "paths": { "@aura/react": ["../../packages/react/src/index.ts"] } },
+    "paths": { "@aura/react": ["../../packages/react/src/index.ts"], "@aura/react/icons": ["../../packages/react/src/icons.ts"], "@aura/react/locales/th": ["../../packages/react/src/strings.th.ts"], "@aura/react/locales/sv": ["../../packages/react/src/strings.sv.ts"] } },
   "include": ["stories", ".storybook"]
 }

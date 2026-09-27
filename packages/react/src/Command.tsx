@@ -6,6 +6,7 @@ import { cx, uid } from './internal.js';
 import { useDensity, useStrings } from './locale.js';
 import { useModal } from './useModal.js';
 import type { CommandItem, CommandProps } from './types.js';
+import { IconLoaderCircle, IconSearch } from './icons.js';
 
 function isMac(): boolean {
   return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -169,7 +170,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
         className={cx('aura-command', props.className)}
       >
         <div className="aura-command__search">
-          <Icon name="search" className="aura-command__search-icon" />
+          <Icon name={<IconSearch />} className="aura-command__search-icon" />
           <input
             ref={input}
             data-autofocus=""
@@ -198,7 +199,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
         <div className="aura-command__list" aria-busy={props.loading || undefined}>
           {props.loading ? (
             <div className="aura-command__loading">
-              <Icon name="loader-circle" className="aura-spin" />
+              <Icon name={<IconLoaderCircle />} className="aura-spin" />
               {t.searching}
             </div>
           ) : null}

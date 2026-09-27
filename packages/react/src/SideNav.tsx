@@ -5,6 +5,7 @@ import { IconButton } from './IconButton.js';
 import { cx, plainClick, uid, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { NavItem, SideNavProps } from './types.js';
+import { IconChevronDown, IconPanelLeftClose, IconPanelLeftOpen } from './icons.js';
 
 function contains(it: NavItem, id: string | undefined): boolean {
   return (
@@ -141,7 +142,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
           {it.count}
         </span>
       ) : null,
-      group ? <Icon key="g" name="chevron-down" className={cx('aura-nav__chevron', open && 'is-open')} /> : null,
+      group ? <Icon key="g" name={<IconChevronDown />} className={cx('aura-nav__chevron', open && 'is-open')} /> : null,
     ];
   }
   function item(it: NavItem, depth: number) {
@@ -250,7 +251,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
       {props.collapsible ? (
         <div className="aura-nav__toggle">
           <IconButton
-            icon={collapsed ? 'panel-left-open' : 'panel-left-close'}
+            icon={collapsed ? <IconPanelLeftOpen /> : <IconPanelLeftClose />}
             label={collapsed ? t.expandNav : t.collapseNav}
             size="md"
             onClick={function () {

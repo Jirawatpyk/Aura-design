@@ -5,6 +5,7 @@ import { useStrings } from './locale.js';
 import { Icon } from './Icon.js';
 import { Field } from './Field.js';
 import type { TimePickerProps } from './types.js';
+import { IconCheck, IconChevronDown, IconClock, IconX } from './icons.js';
 
 type PopoverPos = {
   left: number;
@@ -259,7 +260,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
                     }}
                   >
                     <span className="aura-combo__label">{s}</span>
-                    {sel ? <Icon name="check" className="aura-combo__check" /> : null}
+                    {sel ? <Icon name={<IconCheck />} className="aura-combo__check" /> : null}
                   </li>
                 );
               })}
@@ -281,7 +282,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
       className={props.className}
     >
       <div ref={boxRef} className={cx('aura-input aura-combo aura-time has-icon', open && 'is-open')}>
-        <Icon name="clock" className="aura-input__icon" />
+        <Icon name={<IconClock />} className="aura-input__icon" />
         <input
           ref={inputMerged}
           id={id}
@@ -332,7 +333,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
               if (inputRef.current) inputRef.current.focus();
             }}
           >
-            <Icon name="x" />
+            <Icon name={<IconX />} />
           </button>
         ) : null}
         <button
@@ -351,7 +352,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
             }
           }}
         >
-          <Icon name="chevron-down" />
+          <Icon name={<IconChevronDown />} />
         </button>
       </div>
       {list}

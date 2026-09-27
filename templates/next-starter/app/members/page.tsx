@@ -2,6 +2,7 @@
  * home page all go through next/link via the AuraProvider in app/providers.tsx. */
 import { Container, Stack, Breadcrumb, Card, SideNav, Tabs } from '@jirawatpyk/aura-react';
 import { MembersPager } from './members-pager';
+import { IconFileText, IconUsers } from '@jirawatpyk/aura-react/icons';
 
 const PAGES = 5;
 
@@ -23,8 +24,8 @@ export default async function MembersPage({
             label="ส่วนงาน"
             value="members"
             items={[
-              { id: 'orders', label: 'คำสั่งซื้อ', icon: 'file-text', href: '/' },
-              { id: 'members', label: 'สมาชิก', icon: 'users', href: '/members' },
+              { id: 'orders', label: 'คำสั่งซื้อ', icon: <IconFileText />, href: '/' },
+              { id: 'members', label: 'สมาชิก', icon: <IconUsers />, href: '/members' },
             ]}
           />
         </div>

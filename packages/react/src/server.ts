@@ -13,7 +13,7 @@ export { createTheme, contrast, scale as brandScale } from './theme.js';
 export { colorSchemeScript } from './colorSchemeScript.js';
 export { breakpoints } from './breakpoints.js';
 export type { FormatDateOptions } from './dates.js';
-export type { AuraStrings } from './strings.js';
+export type { AuraStrings, AuraLocalePack } from './strings.js';
 export type { ColorScheme, ColorSchemeOptions } from './colorSchemeScript.js';
 export type { ISODate, StatusTone, Theme, ThemeCheck, ThemeOptions } from './types.js';
 
@@ -29,7 +29,7 @@ export {
   ServerEmptyState as EmptyState,
   buttonClass,
 } from './display.js';
-export { Icon } from './Icon.js';
+export { Icon, registerIcons } from './Icon.js';
 export type {
   AlertProps,
   BadgeProps,

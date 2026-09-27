@@ -3,6 +3,7 @@ import { Icon } from './Icon.js';
 import { cx } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { BreadcrumbProps } from './types.js';
+import { IconChevronRight } from './icons.js';
 
 export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(function Breadcrumb(props, ref) {
   const t = useStrings();
@@ -31,7 +32,7 @@ export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(functio
                 /* 5.7: a segment with no page and no action is text, not a button that does nothing. */
                 <span className="aura-crumbs__text">{it.label}</span>
               )}
-              {last ? null : <Icon name="chevron-right" size={12} className="aura-crumbs__sep" />}
+              {last ? null : <Icon name={<IconChevronRight />} size={12} className="aura-crumbs__sep" />}
             </li>
           );
         })}

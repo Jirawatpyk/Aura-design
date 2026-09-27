@@ -5,6 +5,7 @@ import { cx } from './internal.js';
 import { useStrings } from './locale.js';
 import { useBreakpoint } from './responsive.js';
 import type { AppShellProps } from './types.js';
+import { IconMenu } from './icons.js';
 
 type NavElementProps = {
   value?: string | undefined;
@@ -84,7 +85,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
             {props.nav ? (
               <IconButton
                 className="aura-shell__menu"
-                icon="menu"
+                icon={<IconMenu />}
                 label={props.menuLabel || t.openNav}
                 size="md"
                 onClick={function () {

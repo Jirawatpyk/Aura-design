@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { AuraProviderProps } from './types.js';
+import { devWarnOnce } from './classes.js';
 
 import { STRINGS } from './strings.js';
 import type { AuraStrings } from './strings.js';
@@ -23,6 +24,26 @@ const LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 /** Sets the language of built-in labels (and the default date locale) for everything inside. */
 export function AuraProvider(props: AuraProviderProps): React.ReactElement {
   const outer = React.useContext(LocaleContext);
+  /* 5.9: announce 6.0, where only English is built in. A full set of strings (the pack) means the app is ready. */
+  const l = props.locale;
+  if (
+    (l === 'th' || l === 'sv') &&
+    !(props.strings && Object.keys(props.strings).length >= Object.keys(STRINGS.en).length)
+  )
+    devWarnOnce(
+      'locale-pack-' + l,
+      'AuraProvider locale="' +
+        l +
+        '": from 6.0 only English is built in. Pass the pack: import { ' +
+        l +
+        " } from '@jirawatpyk/aura-react/locales/" +
+        l +
+        '\'; <AuraProvider locale="' +
+        l +
+        '" strings={' +
+        l +
+        '}>.',
+    );
   const density = props.density || (outer && outer.density) || null;
   const timeZone = props.timeZone || (outer && outer.timeZone) || null;
   /* 5.1.1: a nested provider (say, one that only sets density) inherits what it doesn't set — locale, calendar,

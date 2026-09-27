@@ -3,6 +3,7 @@
 import { Container, Stack, Grid, Card, Stat, Alert, Button, ColorSchemeToggle } from '@jirawatpyk/aura-react';
 import { formatDate } from '@jirawatpyk/aura-react/server'; /* pure helpers: callable in a Server Component */
 import { OrdersTable, type Order } from './orders-table';
+import { IconArrowRight, IconChartColumn, IconCircleAlert, IconFileText } from '@jirawatpyk/aura-react/icons';
 
 async function getOrders(): Promise<Order[]> {
   /* Replace with your data source (database, API). */
@@ -22,7 +23,7 @@ export default async function Page() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 style={{ fontFamily: 'var(--font-display)', margin: 0 }}>คำสั่งซื้อ</h1>
           <Stack direction="row" gap={3} align="center">
-            <Button href="/members" variant="secondary" iconRight="arrow-right">
+            <Button href="/members" variant="secondary" iconRight={<IconArrowRight />}>
               สมาชิก
             </Button>
             <ColorSchemeToggle />
@@ -32,13 +33,13 @@ export default async function Page() {
           แก้ไฟล์ <code>app/page.tsx</code> ได้เลย — ดูคอมโพเนนต์ทั้งหมดที่ Storybook ของ AURA
         </Alert>
         <Grid columns={{ base: 1, md: 3 }} gap={4}>
-          <Stat label="คำสั่งซื้อ" value={orders.length} unit="รายการ" icon="file-text" />
-          <Stat label="ยอดรวม" value={'฿' + total.toLocaleString('en')} icon="chart-column" />
+          <Stat label="คำสั่งซื้อ" value={orders.length} unit="รายการ" icon={<IconFileText />} />
+          <Stat label="ยอดรวม" value={'฿' + total.toLocaleString('en')} icon={<IconChartColumn />} />
           <Stat
             label="ติดปัญหา"
             value={orders.filter((o) => o.status === 'Blocked').length}
             unit="รายการ"
-            icon="circle-alert"
+            icon={<IconCircleAlert />}
             href="/members"
           />
         </Grid>

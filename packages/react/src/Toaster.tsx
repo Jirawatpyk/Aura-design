@@ -6,6 +6,7 @@ import { cx, plainClick, useIsoLayoutEffect, useMounted } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import { createPortal } from 'react-dom';
 import type { FeedbackTone, ToastAction, ToastOptions, ToastShorthandOptions } from './types.js';
+import { IconInfo, IconLoaderCircle, IconX } from './icons.js';
 
 /* Toasts: Aura.toast({...}) from anywhere; render <Aura.Toaster /> once near the app root. */
 
@@ -208,7 +209,7 @@ function ToastItem(props: { toast: ToastEntry }) {
       }}
     >
       <Icon
-        name={t.loading ? 'loader-circle' : ALERT_ICON[t.tone] || 'info'}
+        name={t.loading ? <IconLoaderCircle /> : React.createElement(ALERT_ICON[t.tone] || IconInfo)}
         className={cx('aura-toast__icon', t.loading && 'aura-spin')}
       />
       <div className="aura-toast__body">
@@ -247,7 +248,7 @@ function ToastItem(props: { toast: ToastEntry }) {
         </div>
       ) : null}
       <IconButton
-        icon="x"
+        icon={<IconX />}
         label={str.dismissToast}
         className="aura-toast__close"
         onClick={function () {

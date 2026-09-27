@@ -4,6 +4,7 @@ import { Icon } from './Icon.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
 import { useStrings } from './locale.js';
 import type { NumberFieldProps } from './types.js';
+import { IconMinus, IconPlus } from './icons.js';
 
 function decimalsOf(n: number): number {
   const s = String(n);
@@ -173,7 +174,7 @@ export const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
                 nudge(-step);
               }}
             >
-              <Icon name="minus" />
+              <Icon name={<IconMinus />} />
             </button>
             <button
               type="button"
@@ -189,7 +190,7 @@ export const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
                 nudge(step);
               }}
             >
-              <Icon name="plus" />
+              <Icon name={<IconPlus />} />
             </button>
           </span>
         ) : null}

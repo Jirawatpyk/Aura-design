@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
 import type { AccordionItem, AccordionProps } from './types.js';
+import { IconChevronDown } from './icons.js';
 
 const h = React.createElement;
 
@@ -73,7 +74,7 @@ export const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(functi
                   {it.title}
                   {it.description ? <span className="aura-accordion__desc">{it.description}</span> : null}
                 </span>
-                <Icon name="chevron-down" className="aura-accordion__chevron" />
+                <Icon name={<IconChevronDown />} className="aura-accordion__chevron" />
               </button>
             </HT>
             <div id={pid} role="region" aria-labelledby={bid} className="aura-accordion__panel" hidden={!on}>

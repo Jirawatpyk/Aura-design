@@ -5,6 +5,7 @@ import { cx, uid, useMergedRef } from './internal.js';
 import { IconButton } from './IconButton.js';
 import { useModal } from './useModal.js';
 import type { DialogProps, DrawerProps } from './types.js';
+import { IconX } from './icons.js';
 
 export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dialog(props, ref) {
   const t = useStrings();
@@ -56,7 +57,7 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
             {props.title}
           </h2>
           {props.dismissible !== false ? (
-            <IconButton icon="x" label={t.close} className="aura-dialog__close" onClick={close} />
+            <IconButton icon={<IconX />} label={t.close} className="aura-dialog__close" onClick={close} />
           ) : null}
         </div>
         {props.description ? (
@@ -126,7 +127,7 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
             ) : (
               <span style={{ flex: 1 }} />
             )}
-            {props.dismissible !== false ? <IconButton icon="x" label={t.close} onClick={close} /> : null}
+            {props.dismissible !== false ? <IconButton icon={<IconX />} label={t.close} onClick={close} /> : null}
           </div>
         ) : null}
         {props.description ? (

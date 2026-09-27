@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fixtures } from './fixtures.ts';
+import { fixtures, SIX_NOTICES } from './fixtures.ts';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const A = await import('../dist/esm/index.js');
@@ -37,7 +37,7 @@ const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: p
 const page = await browser.newPage();
 const problems: string[] = [];
 
-page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') problems.push(`${m.type()}: ${m.text().slice(0, 400)}`); });
+page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !SIX_NOTICES.test(m.text())) problems.push(`${m.type()}: ${m.text().slice(0, 400)}`); });
 page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
 await page.goto('file://' + path.join(dir, 'index.html'));
 await page.waitForFunction(() => Number(window.__hydrated || 0) > 0, null, { timeout: 15000 });

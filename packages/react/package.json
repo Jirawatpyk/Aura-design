@@ -28,6 +28,36 @@
         "default": "./dist/server/index.cjs"
       }
     },
+    "./icons": {
+      "import": {
+        "types": "./dist/icons/index.d.ts",
+        "default": "./dist/esm/icons.js"
+      },
+      "require": {
+        "types": "./dist/icons/index.d.cts",
+        "default": "./dist/icons/index.cjs"
+      }
+    },
+    "./locales/th": {
+      "import": {
+        "types": "./dist/locales/th.d.ts",
+        "default": "./dist/esm/strings.th.js"
+      },
+      "require": {
+        "types": "./dist/locales/th.d.cts",
+        "default": "./dist/locales/th.cjs"
+      }
+    },
+    "./locales/sv": {
+      "import": {
+        "types": "./dist/locales/sv.d.ts",
+        "default": "./dist/esm/strings.sv.js"
+      },
+      "require": {
+        "types": "./dist/locales/sv.d.cts",
+        "default": "./dist/locales/sv.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css",
     "./aura.bundle.js": "./dist/aura.bundle.js",
@@ -36,6 +66,7 @@
   "files": [
     "dist",
     "scripts/aura-theme.mjs",
+    "scripts/aura-icons-codemod.mjs",
     "README.md",
     "LICENSE"
   ],
@@ -45,7 +76,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.ts && node scripts/sync-bundle.ts",
-    "test:ssr": "node scripts/ssr-test.ts && node --conditions=react-server scripts/server-entry-test.ts",
+    "test:ssr": "node scripts/ssr-test.ts && node scripts/prep60-test.ts && node --conditions=react-server scripts/server-entry-test.ts",
     "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.json && tsc -p tsconfig.exact.json && tsc -p examples/tsconfig.json",
     "examples": "node examples/build.ts",
     "themes": "node scripts/test-themes.ts",
@@ -76,7 +107,8 @@
     "@playwright/test": "^1.45.0"
   },
   "bin": {
-    "aura-theme": "scripts/aura-theme.mjs"
+    "aura-theme": "scripts/aura-theme.mjs",
+    "aura-icons-codemod": "scripts/aura-icons-codemod.mjs"
   },
   "repository": {
     "type": "git",

@@ -5,11 +5,13 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AuraProvider, Toaster } from '@jirawatpyk/aura-react';
+import { th } from '@jirawatpyk/aura-react/locales/th';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    /* Thai built-in labels; dates show พ.ศ. Use locale="en" for English (and Gregorian) — or pass next-intl's locale. */
-    <AuraProvider locale="th" linkComponent={Link}>
+    /* Thai labels (the pack: from 6.0 only English is built in); dates show พ.ศ. Use locale="en" for English (and
+     * Gregorian) — or pass next-intl's locale with that language's pack. */
+    <AuraProvider locale="th" strings={th} linkComponent={Link}>
       {children}
       <Toaster />
     </AuraProvider>

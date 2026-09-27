@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export { cx, omit, tone } from './classes.js';
+export { cx, omit, tone, devWarnOnce } from './classes.js';
 
 /* Controlled-or-not state: use the prop when given, else keep it here.
  * 5.1.1: the setter is stable and always calls the latest onChange, so effects that keep it (outside-click handlers)
@@ -105,23 +105,7 @@ export function useMergedRef<T>(a: React.Ref<T> | undefined, b: React.Ref<T> | u
   );
 }
 
-/* Development-only notices, once per key (5.1). Bundlers replace process.env.NODE_ENV; without one (the window.Aura
- * script) the lookup throws and nothing is printed. */
-declare const process: { env: { NODE_ENV?: string } };
-const warned: Record<string, boolean> = {};
 /* A plain left click: not Ctrl/⌘/Shift/Alt (open in a new tab or window) and not already handled (5.1.1). */
 export function plainClick(e: React.MouseEvent): boolean {
   return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
-}
-export function devWarnOnce(key: string, message: string): void {
-  if (warned[key]) return;
-  let dev = false;
-  try {
-    dev = process.env.NODE_ENV !== 'production';
-  } catch (e) {
-    dev = false;
-  }
-  if (!dev) return;
-  warned[key] = true;
-  console.warn('[AURA] ' + message);
 }

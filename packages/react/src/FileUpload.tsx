@@ -8,6 +8,7 @@ import { IconButton } from './IconButton.js';
 import { Field } from './Field.js';
 
 import { formatBytes } from './text.js';
+import { IconCircleAlert, IconCircleCheck, IconCloudUpload, IconFile, IconImage, IconX } from './icons.js';
 export { formatBytes };
 function matches(file: File, accept: string | undefined): boolean {
   if (!accept) return true;
@@ -160,7 +161,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
           add(e.dataTransfer && e.dataTransfer.files);
         }}
       >
-        <Icon name="cloud-upload" size="lg" className="aura-upload__icon" />
+        <Icon name={<IconCloudUpload />} size="lg" className="aura-upload__icon" />
         <span className="aura-upload__text">{t.dropFiles} </span>
         {/* The real input: visually hidden, still the labelled, focusable control (keyboard and screen readers use it). */}
         <input
@@ -208,7 +209,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
                   <img className="aura-upload__thumb" src={src} alt="" />
                 ) : (
                   <span className="aura-upload__thumb is-icon" aria-hidden={true}>
-                    <Icon name={/^image\//.test(it.type || '') ? 'image' : 'file'} size="md" />
+                    <Icon name={/^image\//.test(it.type || '') ? <IconImage /> : <IconFile />} size="md" />
                   </span>
                 )}
                 <span className="aura-upload__meta">
@@ -222,14 +223,14 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
                   <span className="aura-upload__sub">
                     {it.error ? (
                       <React.Fragment>
-                        <Icon name="circle-alert" size={12} />
+                        <Icon name={<IconCircleAlert />} size={12} />
                         {it.error}
                       </React.Fragment>
                     ) : it.status === 'uploading' ? (
                       t.uploading + (it.progress != null ? ' ' + Math.round(it.progress) + '%' : '')
                     ) : it.status === 'done' ? (
                       <React.Fragment>
-                        <Icon name="circle-check" size={12} />
+                        <Icon name={<IconCircleCheck />} size={12} />
                         {formatBytes(it.size)}
                       </React.Fragment>
                     ) : (
@@ -250,7 +251,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
                   ) : null}
                 </span>
                 <IconButton
-                  icon="x"
+                  icon={<IconX />}
                   label={t.remove(it.name)}
                   onClick={function () {
                     remove(it);

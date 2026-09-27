@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useStrings } from './locale.js';
 import { IconButton } from './IconButton.js';
 import { DropdownMenu } from './DropdownMenu.js';
+import { IconMoon, IconSun } from './icons.js';
 
 /* Light / dark / system colour scheme.
  * The tokens do the work: <html data-theme="light|dark|system"> (system follows prefers-color-scheme in CSS).
@@ -121,7 +122,12 @@ export function ColorSchemeToggle(props: ColorSchemeToggleProps): React.ReactEle
   return (
     <DropdownMenu
       label={label}
-      trigger={<IconButton icon={cs.resolved === 'dark' ? 'moon' : 'sun'} label={label + ': ' + names[cs.scheme]} />}
+      trigger={
+        <IconButton
+          icon={cs.resolved === 'dark' ? <IconMoon /> : <IconSun />}
+          label={label + ': ' + names[cs.scheme]}
+        />
+      }
       items={SCHEMES.map(function (s) {
         return {
           label: names[s],

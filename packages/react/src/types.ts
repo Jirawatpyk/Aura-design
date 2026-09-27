@@ -297,7 +297,7 @@ export interface AuraProviderProps {
   locale?: 'th' | 'en' | 'sv' | undefined;
   /** Default calendar for DatePicker / DateRangePicker / Calendar / formatDate callers that read it. Unset: `buddhist` (พ.ศ.) for `th`, `gregory` for `en` and `sv`. */
   calendar?: 'buddhist' | 'gregory' | undefined;
-  /** Override individual strings. */
+  /** Override individual strings, or pass a whole locale pack (`strings={th}` from `@jirawatpyk/aura-react/locales/th`, 5.9). */
   strings?: Partial<Record<string, string | ((...args: any[]) => string)>> | undefined;
   /** IANA time zone for "today" in DatePicker, DateRangePicker and Calendar, e.g. `Asia/Bangkok` (4.19). Default: the browser's. */
   timeZone?: string | undefined;

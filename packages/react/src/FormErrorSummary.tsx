@@ -3,6 +3,7 @@ import { Icon } from './Icon.js';
 import { cx, uid } from './internal.js';
 import { useStrings } from './locale.js';
 import type { FormErrorItem, FormErrorSummaryProps } from './types.js';
+import { IconCircleAlert } from './icons.js';
 
 function items(errors: FormErrorSummaryProps['errors']): FormErrorItem[] {
   if (Array.isArray(errors)) return errors;
@@ -117,7 +118,7 @@ export const FormErrorSummary = React.forwardRef<HTMLDivElement, FormErrorSummar
         aria-labelledby={id + '-title'}
         className={cx('aura-alert aura-alert--danger aura-error-summary', props.className)}
       >
-        <Icon name="circle-alert" className="aura-alert__icon" />
+        <Icon name={<IconCircleAlert />} className="aura-alert__icon" />
         <div className="aura-alert__body">
           <h2 className="aura-alert__title" id={id + '-title'}>
             {props.title || t.errorSummary(list.length)}

@@ -32,6 +32,9 @@ const entries: Record<string, () => Promise<number>> = {
   'Select only': () => js(`export { Select } from ${JSON.stringify(esm)};`),
   'SideNav only': () => js(`export { SideNav } from ${JSON.stringify(esm)};`),
   'Toaster only': () => js(`export { Toaster } from ${JSON.stringify(esm)};`),
+  /* 5.9: one icon from the per-icon entry (the rest must shake out) and a locale pack on its own. */
+  'IconUsers (/icons)': () => js(`export { IconUsers } from ${JSON.stringify(path.join(root, 'dist/esm/icons.js'))};`),
+  'th pack (/locales/th)': () => js(`export { th } from ${JSON.stringify(path.join(root, 'dist/esm/strings.th.js'))};`),
   /* Small components: these stay tiny only while each lives in its own file (one file per component). */
   'Card only': () => js(`export { Card } from ${JSON.stringify(esm)};`),
   'Skeleton only': () => js(`export { Skeleton } from ${JSON.stringify(esm)};`),

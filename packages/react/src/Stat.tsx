@@ -3,6 +3,7 @@ import { cx } from './internal.js';
 import { Icon } from './Icon.js';
 import { useLinkComponent } from './locale.js';
 import type { StatProps } from './types.js';
+import { IconMinus, IconTrendingDown, IconTrendingUp } from './icons.js';
 
 /* Stat — one number on a card: label, value, optional change and caption. Dashboards and page summaries.
  * change: { value: '+12%', direction: 'up' | 'down' | 'flat', tone?: 'positive' | 'negative' | 'neutral', label?: 'vs last month' }
@@ -53,7 +54,10 @@ export const Stat = React.forwardRef<HTMLElement, StatProps>(function Stat(props
         <span className="aura-stat__foot">
           {ch && !props.loading ? (
             <span className={cx('aura-stat__change', 'is-' + tone)}>
-              <Icon name={dir === 'up' ? 'trending-up' : dir === 'down' ? 'trending-down' : 'minus'} size={14} />
+              <Icon
+                name={dir === 'up' ? <IconTrendingUp /> : dir === 'down' ? <IconTrendingDown /> : <IconMinus />}
+                size={14}
+              />
               <span>{ch.value}</span>
             </span>
           ) : null}

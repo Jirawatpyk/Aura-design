@@ -1,5 +1,5 @@
 /* @aura/react — AURA Design System components. Import styles once: import '@aura/react/styles.css' */
-export { Icon, iconNames, ICONS } from './Icon.js';
+export { Icon, iconNames, ICONS, registerIcons } from './Icon.js';
 export { Button } from './Button.js';
 export { IconButton } from './IconButton.js';
 export { Menu } from './Menu.js';
@@ -66,6 +66,8 @@ export type { ContainerProps } from './Container.js';
 export type { ToasterProps } from './Toaster.js';
 export type { ThemeStyleProps } from './ThemeStyle.js';
 export type { AuraStrings, AuraLocaleValue } from './locale.js';
+export type { AuraLocalePack } from './strings.js';
 export type { FormatDateOptions } from './DatePicker.js';
 export type { IconShape } from './Icon.js';
+export type { AuraIcon } from './iconSvg.js';
 export type { ColorScheme, ColorSchemeOptions, ColorSchemeState, ColorSchemeToggleProps } from './colorScheme.js';

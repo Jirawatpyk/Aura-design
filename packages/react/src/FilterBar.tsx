@@ -5,6 +5,7 @@ import { Tag } from './Tag.js';
 import { cx, uid } from './internal.js';
 import { useStrings } from './locale.js';
 import type { ActiveFilter, FilterBarProps } from './types.js';
+import { IconSearch, IconX } from './icons.js';
 
 /* FilterBar — the row above a list or table: search, filter controls, applied-filter chips, result count and
  * actions. State stays with the page (URL search params in server mode); the bar only reports changes. */
@@ -68,7 +69,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
       <div className="aura-filterbar__row">
         {hasSearch ? (
           <div className="aura-input has-icon aura-filterbar__search">
-            <Icon name="search" className="aura-input__icon" />
+            <Icon name={<IconSearch />} className="aura-input__icon" />
             <input
               id={id}
               type="search"
@@ -90,7 +91,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
             />
             {draft[0] ? (
               <IconButton
-                icon="x"
+                icon={<IconX />}
                 label={t.clear((props.searchLabel || t.search).toLowerCase())}
                 className="aura-filterbar__clear-search"
                 onClick={function () {

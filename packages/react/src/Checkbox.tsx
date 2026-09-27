@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cx, devWarnOnce, omit, uid, useMergedRef, useMaybeControlled } from './internal.js';
 import { Icon } from './Icon.js';
 import type { CheckboxProps } from './types.js';
+import { IconCheck, IconMinus } from './icons.js';
 
 /* Checkbox — a 16px box. Children are the visible label beside it; `label` alone names a bare box (table rows) and,
  * until 6.0, is not shown — pass `hideLabel` to say that is intended. `description` adds a second line.
@@ -62,9 +63,9 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
       />
       <span className="aura-check__box" aria-hidden={true}>
         {props.indeterminate ? (
-          <Icon name="minus" size={12} strokeWidth={3} />
+          <Icon name={<IconMinus />} size={12} strokeWidth={3} />
         ) : on ? (
-          <Icon name="check" size={12} strokeWidth={3} />
+          <Icon name={<IconCheck />} size={12} strokeWidth={3} />
         ) : null}
       </span>
       {!labelled && props.description ? (

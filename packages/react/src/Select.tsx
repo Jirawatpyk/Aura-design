@@ -5,6 +5,7 @@ import { Icon } from './Icon.js';
 import { useDensity } from './locale.js';
 import { cx, devWarnOnce, omit, uid, useIsoLayoutEffect, useMergedRef, useMounted } from './internal.js';
 import type { SelectOption, SelectProps } from './types.js';
+import { IconCheck, IconChevronDown } from './icons.js';
 
 const h = React.createElement;
 
@@ -421,7 +422,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           opts,
           props.children,
         )}
-        <Icon name="chevron-down" className="aura-select__chevron" />
+        <Icon name={<IconChevronDown />} className="aura-select__chevron" />
       </div>,
     );
 
@@ -461,7 +462,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         <span className="aura-combo__text">
           <span className="aura-combo__label">{it.label}</span>
         </span>
-        {sel ? <Icon name="check" className="aura-combo__check" /> : null}
+        {sel ? <Icon name={<IconCheck />} className="aura-combo__check" /> : null}
       </div>
     );
   };
@@ -599,7 +600,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           {shown[0].label || ' '}
         </span>
       </button>
-      <Icon name="chevron-down" className="aura-select__chevron" />
+      <Icon name={<IconChevronDown />} className="aura-select__chevron" />
       {popup}
     </div>,
   );

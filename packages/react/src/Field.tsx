@@ -3,6 +3,7 @@ import { Icon } from './Icon.js';
 import { cx } from './internal.js';
 import { useStrings } from './locale.js';
 import type { FieldPropsPublic } from './types.js';
+import { IconCircleAlert } from './icons.js';
 
 const h = React.createElement;
 
@@ -43,7 +44,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(funct
       {props.children}
       {props.error ? (
         <p className="aura-field__error" id={props.id + '-error'}>
-          <Icon name="circle-alert" size={14} />
+          <Icon name={<IconCircleAlert />} size={14} />
           {props.error}
         </p>
       ) : props.hint ? (

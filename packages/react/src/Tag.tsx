@@ -3,6 +3,7 @@ import { Icon } from './Icon.js';
 import { cx, omit } from './internal.js';
 import { useStrings } from './locale.js';
 import type { TagProps } from './types.js';
+import { IconCheck, IconX } from './icons.js';
 
 /* ---------- Tag: an interactive chip — removable (onRemove) or selectable (selected + onClick) ---------- */
 export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, ref) {
@@ -25,7 +26,7 @@ export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, r
         disabled={props.disabled}
         className={cx('aura-tag is-selectable', props.selected && 'is-selected', props.className)}
       >
-        {props.selected ? <Icon name="check" size={14} /> : inner[0]}
+        {props.selected ? <Icon name={<IconCheck />} size={14} /> : inner[0]}
         {inner[1]}
       </button>
     );
@@ -40,7 +41,7 @@ export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, r
           aria-label={props.removeLabel || t.remove(typeof props.children === 'string' ? props.children : '')}
           onClick={props.onRemove}
         >
-          <Icon name="x" size={12} />
+          <Icon name={<IconX />} size={12} />
         </button>
       ) : null}
     </span>

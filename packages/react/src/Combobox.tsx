@@ -5,6 +5,7 @@ import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedR
 import { Icon } from './Icon.js';
 import { Field } from './Field.js';
 import type { ComboboxMultipleProps, ComboboxOption, ComboboxProps } from './types.js';
+import { IconCheck, IconChevronDown, IconLoaderCircle, IconSearch, IconX } from './icons.js';
 
 /** One value, or with `multiple` any number (chips). Two call signatures so value/onChange are typed for each. */
 export interface ComboboxComponent {
@@ -291,7 +292,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                           <span className="aura-combo__label">{o.label}</span>
                           {o.description ? <span className="aura-combo__desc">{o.description}</span> : null}
                         </span>
-                        {isSel ? <Icon name="check" className="aura-combo__check" /> : null}
+                        {isSel ? <Icon name={<IconCheck />} className="aura-combo__check" /> : null}
                       </li>
                     );
                   })}
@@ -301,7 +302,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                 <div className="aura-combo__list" role="status">
                   {props.loading ? (
                     <div className="aura-combo__note">
-                      <Icon name="loader-circle" className="aura-spin" />
+                      <Icon name={<IconLoaderCircle />} className="aura-spin" />
                       {props.loadingText || t.searching}
                     </div>
                   ) : !live.length ? (
@@ -328,7 +329,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         className={props.className}
       >
         <div ref={boxRef} className={cx('aura-input aura-combo has-icon', open && 'is-open', multi && 'is-multi')}>
-          <Icon name={props.icon || 'search'} className="aura-input__icon" />
+          <Icon name={props.icon || <IconSearch />} className="aura-input__icon" />
           {multi && picked.length ? (
             <span className="aura-combo__chips">
               {picked.map(function (o: ComboboxOption) {
@@ -353,7 +354,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                           if (inputRef.current) inputRef.current.focus();
                         }}
                       >
-                        <Icon name="x" />
+                        <Icon name={<IconX />} />
                       </button>
                     )}
                   </span>
@@ -435,7 +436,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                 if (inputRef.current) inputRef.current.focus();
               }}
             >
-              <Icon name="x" />
+              <Icon name={<IconX />} />
             </button>
           ) : null}
           <button
@@ -454,7 +455,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
               }
             }}
           >
-            <Icon name="chevron-down" />
+            <Icon name={<IconChevronDown />} />
           </button>
         </div>
         {list}

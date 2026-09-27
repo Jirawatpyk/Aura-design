@@ -2620,3 +2620,28 @@ test.describe('5.8: Chamber-OS addendum 8', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.9: preparing for 6.0', () => {
+  /* The dev notices are checked in packages/react/scripts/prep60-test.ts: this Storybook build is a production build. */
+  test('icon components draw what the name draws, in buttons, nav items and alone', async ({ page }) => {
+    await story(page, 'aura-new-in-5-9--icon-components');
+    const svg = (loc: import('@playwright/test').Locator) =>
+      loc
+        .locator('svg')
+        .first()
+        .evaluate((s) => s.outerHTML);
+    const byComp = await svg(page.getByRole('button', { name: 'New invoice' }).first());
+    expect(byComp).toBe(await svg(page.getByTestId('by-name')));
+    await expect(page.getByRole('img', { name: 'Members' })).toHaveAttribute('width', '24');
+    await expect(page.locator('.aura-nav svg.aura-icon')).toHaveCount(3);
+    await expect(page.getByRole('button', { name: 'Delete row' }).locator('svg.aura-icon')).toHaveCount(1);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('a locale pack gives the Thai labels', async ({ page }) => {
+    await story(page, 'aura-new-in-5-9--locale-pack');
+    await expect(page.getByRole('navigation', { name: 'เลขหน้า' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ปิด' })).toBeVisible();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

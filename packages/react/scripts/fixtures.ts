@@ -2,6 +2,10 @@
 import type * as ReactNS from 'react';
 /** The built package (ESM or CJS), loosely: fixtures pass deliberately odd props to test the edges. */
 export type AuraModule = Record<string, any>;
+/** 5.9's dev notices announcing 6.0 (icon names as strings, a Thai or Swedish provider without its pack). The
+ * fixtures still use the 5.x forms on purpose; prep60-test.ts checks the notices themselves, so the browser tests
+ * that fail on any console warning let exactly these through. */
+export const SIX_NOTICES = /^\[AURA\] (Icon names as strings \(|AuraProvider locale="(th|sv)": from 6\.0 only English)/;
 export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, ReactNS.ReactElement> {
   const h = React.createElement;
   const rows = [

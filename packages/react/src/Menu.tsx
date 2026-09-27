@@ -4,6 +4,7 @@ import { cx, uid, useIsoLayoutEffect, useMounted, useMergedRef } from './interna
 import { Icon } from './Icon.js';
 import { useLinkComponent } from './locale.js';
 import type { MenuItem, MenuProps } from './types.js';
+import { IconCheck } from './icons.js';
 
 /** Popover list anchored to an element, rendered in a portal. */
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(props, ref) {
@@ -131,7 +132,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       <span className={cx('aura-menu__radio', it.checked && 'is-on')} />
     ) : isCheck ? (
       <span className={cx('aura-menu__check', it.checked && 'is-on')}>
-        {it.checked ? <Icon name="check" size={12} strokeWidth={3} /> : null}
+        {it.checked ? <Icon name={<IconCheck />} size={12} strokeWidth={3} /> : null}
       </span>
     ) : it.icon ? (
       <Icon name={it.icon} />

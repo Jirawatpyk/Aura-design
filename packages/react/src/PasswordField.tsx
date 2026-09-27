@@ -4,6 +4,7 @@ import { IconButton } from './IconButton.js';
 import { cx, omit } from './internal.js';
 import { useStrings } from './locale.js';
 import type { PasswordFieldProps } from './types.js';
+import { IconEye, IconEyeOff } from './icons.js';
 
 /* PasswordField — a TextField whose trailing button shows or hides the password. The button keeps one name
  * ("Show password") and reports its state with aria-pressed, so screen readers hear "Show password, pressed". */
@@ -23,7 +24,7 @@ export const PasswordField = React.forwardRef<HTMLInputElement, PasswordFieldPro
       suffix={
         props.toggle === false ? undefined : (
           <IconButton
-            icon={shown[0] ? 'eye-off' : 'eye'}
+            icon={shown[0] ? <IconEyeOff /> : <IconEye />}
             label={t.showPassword}
             aria-pressed={shown[0]}
             disabled={props.disabled}

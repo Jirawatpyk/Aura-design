@@ -3,6 +3,7 @@ import { Icon } from './Icon.js';
 import { cx } from './internal.js';
 import { useStrings } from './locale.js';
 import type { StepItem, StepperProps } from './types.js';
+import { IconCheck } from './icons.js';
 
 /** Progress through a multi-step flow. Completed steps can link back; the current one has aria-current="step". */
 export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Stepper(props, ref) {
@@ -26,7 +27,7 @@ export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Step
           const state = i < at ? 'done' : i === at ? 'current' : 'upcoming';
           const marker = (
             <span className="aura-stepper__marker" aria-hidden={true}>
-              {state === 'done' ? <Icon name="check" /> : i + 1}
+              {state === 'done' ? <Icon name={<IconCheck />} /> : i + 1}
             </span>
           );
           const text = (

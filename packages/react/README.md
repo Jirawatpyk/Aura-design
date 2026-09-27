@@ -186,6 +186,24 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.9 — Preparing for 6.0
+
+6.0 makes the changes below. 5.9 changes nothing that works today: it adds the new way alongside the old one, and a development-only `console.warn` (once per page load, never in production builds) where your code relies on something 6.0 removes. Clear the notices on 5.9 and 6.0 is a version bump. If your tests fail on any console warning, they will see these until you migrate (or filter lines starting `[AURA]`).
+
+| In 6.0 | Why | Do this on 5.9 |
+|---|---|---|
+| **Icon names as strings need `registerIcons`.** The name map (~3.4 kB gzip) leaves the default bundle. | Every component paid for all 70 icons. | Import icons as components: `icon={<IconUsers />}` from `@jirawatpyk/aura-react/icons` — `npx aura-icons-codemod src` rewrites literal names for you (`--dry` to preview; details below). Or keep names: `registerIcons(allIcons)` once at startup. |
+| **Only English is built in.** Thai and Swedish move to packs. | Single-language apps stop shipping two other languages. | `import { th } from '@jirawatpyk/aura-react/locales/th'` and `<AuraProvider locale="th" strings={th}>` (same for `sv`). |
+| **Checkbox shows `label`** beside the box (today it is only the accessible name). | A hidden label fails WCAG 2.5.3 for voice users. Announced since 5.1. | Visible text as `children`, or `hideLabel` for a bare box (a table row). |
+| **DropdownMenu has one structure**: `role="menu"` is always on `.aura-menu__list` inside `.aura-menu` (today it moves to `.aura-menu` when there is no `header`). | Same DOM for CSS and tests either way. | Select menus by `[role="menu"]` or `.aura-menu__list`, not `.aura-menu[role="menu"]`. No notice (it can't see your CSS). |
+| **`engines.node`** is declared (`>=20`) for the `aura-theme` and `aura-icons-codemod` scripts. | Nothing was declared; older Node is out of support. | Run them on Node 20 or later. The components don't care. |
+
+**Icons, in detail.** Each icon is its own component — `IconUsers`, `IconPlus`, `IconTrash2` … (the name in PascalCase) — rendering exactly the `<svg>` the name gives, with the same `size`, `label`, `strokeWidth` and `className`. They work wherever AURA takes an icon (`icon`, `iconRight`, item `icon`s, `<Icon name={<IconUsers />} />`) and on their own (`<IconUsers size="md" />`). A bundler keeps only the ones you import (~0.7 kB for the first, less for each next). The entry has no `'use client'`, so Server Components render them too. `defineIcon(name, paths)` makes one of your own that behaves the same. AURA's own components now use the components internally, so the notice only ever points at your code. `registerIcons([IconUsers, IconPlus])` registers just those names (others still get the notice). The root package and `/server` keep separate registries: if Server Components render names with `/server`'s `Icon`, call `registerIcons` in a server module too.
+
+**The codemod** reads your code with the TypeScript parser (your project's `typescript`; types, strings and comments are left alone). In `.tsx`/`.jsx` files that import AURA it converts `<Icon name="…">`, `icon`/`iconRight` with a literal name on AURA components, and `icon: '…'` in object literals that have a `label` or `title` (nav, menu, tab and option items), then adds the import. It lists what it leaves: names chosen at run time, items in `.ts` files (no JSX there), objects it can't tell are AURA's, and names that clash with another import (e.g. Tabler's `IconPlus`). Review the diff before committing.
+
+**Size in 5.9.** Until 6.0 the name map stays in the bundle next to the components AURA uses internally, so a typical import grows by about 0.5 kB gzip in 5.9 (Button 4.1 → 4.7 kB); 6.0 removes the map (about −3.4 kB for every app that moves off names).
+
 ## 5.8 — Chamber-OS addendum 8 (member portal)
 
 - **Server Components** (item 68): `@jirawatpyk/aura-react/server` now has the stateless display components — `Card`, `Badge`, `StatusPill`, `Alert` (no `onDismiss`), `EmptyState`, `Icon` — and `buttonClass(opts)` for a link that looks like a Button. They render from the same functions as the root components (same HTML for the same props) but carry no `'use client'`, hooks or context, so a Server Component can render them without becoming a client reference or pulling the barrel into its route's bundle. Measured in the Next starter: a server page using all of them adds no AURA client reference.

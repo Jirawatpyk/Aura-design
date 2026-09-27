@@ -4,6 +4,7 @@ import { IconButton } from './IconButton.js';
 import { cx, plainClick, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { PaginationProps } from './types.js';
+import { IconChevronLeft, IconChevronRight } from './icons.js';
 
 /* ---------- Pagination: page links for lists outside DataTable ---------- */
 function pageList(page: number, count: number, sib: number): Array<number | string> {
@@ -74,7 +75,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
   }
   /* Previous / next: links through the router when getHref is set (4.17), otherwise buttons; a disabled arrow at
    * either end is always a button (a link can't be disabled). */
-  function arrow(p: number, icon: 'chevron-left' | 'chevron-right', label: string, rel: string, disabled: boolean) {
+  function arrow(p: number, icon: React.ReactElement, label: string, rel: string, disabled: boolean) {
     if (!link || disabled)
       return (
         <IconButton
@@ -106,7 +107,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
   }
   return (
     <nav ref={ref} className={cx('aura-pagination', props.className)} aria-label={props.label || t.pagination}>
-      {arrow(page - 1, 'chevron-left', t.prevPage, 'prev', page <= 1)}
+      {arrow(page - 1, <IconChevronLeft />, t.prevPage, 'prev', page <= 1)}
       <ol className="aura-pagination__list">
         {pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function (p: number | string) {
           return typeof p === 'number' ? (
@@ -121,7 +122,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
       <span className="aura-pagination__compact" aria-hidden={true}>
         {t.page(page, count)}
       </span>
-      {arrow(page + 1, 'chevron-right', t.nextPage, 'next', page >= count)}
+      {arrow(page + 1, <IconChevronRight />, t.nextPage, 'next', page >= count)}
     </nav>
   );
 });

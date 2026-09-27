@@ -3,6 +3,7 @@ import { IconButton } from './IconButton.js';
 import { alertElement } from './display.js';
 import { useStrings } from './locale.js';
 import type { AlertProps } from './types.js';
+import { IconX } from './icons.js';
 
 export { ALERT_ICON } from './display.js';
 
@@ -13,7 +14,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert
     props,
     ref,
     props.onDismiss ? (
-      <IconButton icon="x" label={t.dismiss} className="aura-alert__close" onClick={props.onDismiss} />
+      <IconButton icon={<IconX />} label={t.dismiss} className="aura-alert__close" onClick={props.onDismiss} />
     ) : null,
   );
 });

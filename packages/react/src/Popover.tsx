@@ -13,6 +13,7 @@ import {
 import { useDensity, useStrings } from './locale.js';
 import { createPortal } from 'react-dom';
 import type { PopoverProps } from './types.js';
+import { IconX } from './icons.js';
 
 /* ---------- Popover: a small non-modal panel anchored to a trigger ---------- */
 function position(
@@ -155,7 +156,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
                   {props.title}
                 </p>
                 <IconButton
-                  icon="x"
+                  icon={<IconX />}
                   label={t.close}
                   onClick={function () {
                     close(true);

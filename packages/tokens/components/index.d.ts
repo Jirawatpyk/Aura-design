@@ -223,7 +223,7 @@ export interface AuraProviderProps {
 	locale?: "th" | "en" | "sv" | undefined;
 	/** Default calendar for DatePicker / DateRangePicker / Calendar / formatDate callers that read it. Unset: `buddhist` (พ.ศ.) for `th`, `gregory` for `en` and `sv`. */
 	calendar?: "buddhist" | "gregory" | undefined;
-	/** Override individual strings. */
+	/** Override individual strings, or pass a whole locale pack (`strings={th}` from `@jirawatpyk/aura-react/locales/th`, 5.9). */
 	strings?: Partial<Record<string, string | ((...args: any[]) => string)>> | undefined;
 	/** IANA time zone for "today" in DatePicker, DateRangePicker and Calendar, e.g. `Asia/Bangkok` (4.19). Default: the browser's. */
 	timeZone?: string | undefined;
@@ -1247,7 +1247,22 @@ export type IconShape = [
 	string,
 	Record<string, string>
 ];
+/** An AURA icon component from `@jirawatpyk/aura-react/icons` (5.9), e.g. `IconUsers`. */
+export type AuraIcon = React$1.ForwardRefExoticComponent<Omit<IconProps, "name"> & React$1.RefAttributes<SVGSVGElement>> & {
+	/** The icon's path data. */
+	readonly auraShapes: IconShape[];
+	/** Its name in the set, e.g. `users`. */
+	readonly iconName: string;
+};
+/** @deprecated 5.9 — path data by name. In 6.0 it is removed; use the per-icon components or `allIcons` from
+ * `@jirawatpyk/aura-react/icons`. */
 export declare const ICONS: Record<IconName, IconShape[]>;
+/** Makes icon names as strings work: `registerIcons(allIcons)` once at startup, with `allIcons` from
+ * `@jirawatpyk/aura-react/icons`, or only the icons you use (`registerIcons([IconUsers, IconPlus])`). In 5.x every
+ * name already works and this only says you are ready for 6.0 (it silences the notice); in 6.0 it is required. Call it in the module
+ * graph that renders the names: a client module for the components, and also a server module if Server Components
+ * render names with `/server`'s Icon (the two entries keep separate registries). */
+export declare function registerIcons(icons: readonly AuraIcon[]): void;
 export declare const Icon: React$1.ForwardRefExoticComponent<IconProps & React$1.RefAttributes<SVGSVGElement>>;
 /** Every icon name the bundle carries. */
 export declare const iconNames: IconName[];
@@ -1509,6 +1524,12 @@ export interface AuraStrings {
 	pageN: (p: number) => string;
 	accepts: (list?: string, max?: number | string) => string;
 }
+/** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
+ * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */
+/** A whole language for AuraProvider `strings` (5.9): every built-in label, and assignable to the prop. */
+export type AuraLocalePack = AuraStrings & {
+	[key: string]: string | ((...args: any[]) => string);
+};
 export declare const STRINGS: {
 	en: AuraStrings;
 	th: AuraStrings;

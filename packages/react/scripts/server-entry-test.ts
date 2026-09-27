@@ -20,7 +20,16 @@ try {
   process.exit(r.status ?? 1);
 }
 const fails = [];
-for (const f of ['dist/server/index.js', 'dist/server/index.cjs']) {
+for (const f of [
+  'dist/server/index.js',
+  'dist/server/index.cjs',
+  'dist/esm/icons.js',
+  'dist/esm/iconSvg.js',
+  'dist/esm/classes.js',
+  'dist/icons/index.cjs',
+  'dist/esm/strings.th.js',
+  'dist/locales/sv.cjs',
+]) {
   const code = fs.readFileSync(path.join(root, f), 'utf8');
   if (/use client/.test(code)) fails.push(f + " contains 'use client'");
   if (/react-dom|createContext|use(State|Effect|LayoutEffect|Context|Ref|Memo|Callback|Id)\b/.test(code))
@@ -60,7 +69,8 @@ for (const [name, A] of [
   if (A.statusTone('Ready') !== 'ready') fails.push(`${name}: statusTone('Ready')`);
   if (A.STRINGS.th.close == null) fails.push(`${name}: STRINGS.th`);
   const theme = A.createTheme({ brand: '#0ea5e9' });
-  if (!/--aura-/.test(theme.css()) || !theme.checks.every((c: { pass: boolean }) => c.pass)) fails.push(`${name}: createTheme`);
+  if (!/--aura-/.test(theme.css()) || !theme.checks.every((c: { pass: boolean }) => c.pass))
+    fails.push(`${name}: createTheme`);
   if (!/data-theme/.test(A.colorSchemeScript())) fails.push(`${name}: colorSchemeScript`);
   if (A.breakpoints.lg !== 1024) fails.push(`${name}: breakpoints`);
   /* 5.8: the display components render under react-server (a hook or context would throw there). */
@@ -88,6 +98,19 @@ for (const [name, A] of [
       fails.push(`${name}: buttonClass gave "${A.buttonClass({ variant: 'secondary', size: 'sm' })}"`);
   } catch (e) {
     fails.push(`${name}: display components threw under react-server: ${(e as Error).message}`);
+  }
+}
+/* 5.9: the per-icon components render under react-server too, alone and through the server Alert. */
+{
+  const I = await import(path.join(root, 'dist/esm/icons.js'));
+  const e = createRequire(import.meta.url)('react').createElement;
+  try {
+    const html =
+      tree(e(I.IconUsers, { size: 20, label: 'Members' })) + tree(esm.Alert({ icon: e(I.IconClock), children: 'x' }));
+    for (const want of ['width="20"', 'aria-label="Members"', 'class="aura-icon aura-alert__icon"'])
+      if (html.indexOf(want) < 0) fails.push(`icons: missing ${want} in ${html}`);
+  } catch (e) {
+    fails.push(`icons threw under react-server: ${(e as Error).message}`);
   }
 }
 if (fails.length) {
