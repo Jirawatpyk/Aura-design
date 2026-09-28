@@ -2926,18 +2926,21 @@ test.describe('5.10.1: fixes from a new project', () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]).toEqual(rows[1]);
     expect(rows[0]!.opacity).toBe('1');
-    /* Forced colours: a locked-on switch is GrayText, not the enabled Highlight. */
+    /* Forced colours: a locked-on switch is GrayText at full opacity. Compared with a GrayText probe rather than a
+     * literal — system colours resolve differently per browser build (headless shell reports them all as white). */
     await page.emulateMedia({ forcedColors: 'active' });
-    expect(
-      await page
-        .getByRole('switch', { name: 'Two-factor sign-in' })
-        .evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).not.toBe(
-      await page.getByRole('switch', { name: 'Weekly digest' }).evaluate((el) => getComputedStyle(el).backgroundColor),
-    );
-    expect(
-      await page.getByRole('switch', { name: 'Two-factor sign-in' }).evaluate((el) => getComputedStyle(el).opacity),
-    ).toBe('1');
+    /* The track animates its background; read it once the change to the forced colour has finished. */
+    await page.waitForFunction(() => document.getAnimations().every((a) => a.playState === 'finished'));
+    const fc = await page.getByRole('switch', { name: 'Two-factor sign-in' }).evaluate((el) => {
+      const probe = document.createElement('span');
+      probe.style.cssText = 'background: GrayText; forced-color-adjust: none';
+      document.body.appendChild(probe);
+      const want = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { bg: getComputedStyle(el).backgroundColor, want, opacity: getComputedStyle(el).opacity };
+    });
+    expect(fc.bg).toBe(fc.want);
+    expect(fc.opacity).toBe('1');
     await page.emulateMedia({ forcedColors: 'none' });
     await expect(page.getByRole('button', { name: 'Remove Acme AB' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Remove filter: status' })).toBeVisible();
