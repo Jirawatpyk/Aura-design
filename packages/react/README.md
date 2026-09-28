@@ -186,6 +186,15 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.9 — Chamber-OS addendum 9 (pay sheet)
+
+- **Drawer** (item 70): other attributes (`id`, `data-*`, `aria-*`) go on the `.aura-drawer` panel; `closeLabel` names the close button and its tooltip after what it closes ("Close payment drawer" — pass it in the page's language); `closeProps` puts attributes on that button (`{ 'data-testid': 'pay-sheet-close' }`; its `onClick` runs first and can `preventDefault()` to keep the drawer open). Without them the output is as before; focus trap, Escape, scrim and focus return are unchanged.
+- **Tabs** (item 71): `keepMounted` keeps every panel in the DOM with the inactive ones `hidden`, so a switch doesn't tear down what's inside (a Stripe `<Elements>` iframe, a half-typed form). `activation="manual"`: Arrow keys, Home and End move focus and the tab stop without selecting; Enter, Space or a click selects — for tabs whose selection does work (starting a PaymentIntent). When focus leaves the list the tab stop goes back to the selected tab. Each tab takes `tabProps` (`data-testid`, an `aria-label` that starts with the visible label — a dev notice says when it doesn't, WCAG 2.5.3). Defaults are unchanged.
+  ```tsx
+  <Tabs label="Payment method" keepMounted activation="manual" value={method} onChange={setMethod}
+    tabs={[{ id: 'card', label: 'Card', tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'method-card' }, content: <Elements … /> }]} />
+  ```
+
 ## 5.9 — Preparing for 6.0
 
 6.0 makes the changes below. 5.9 changes nothing that works today: it adds the new way alongside the old one, and a development-only `console.warn` (once per page load, never in production builds) where your code relies on something 6.0 removes. Clear the notices on 5.9 and 6.0 is a version bump. If your tests fail on any console warning, they will see these until you migrate (or filter lines starting `[AURA]`).

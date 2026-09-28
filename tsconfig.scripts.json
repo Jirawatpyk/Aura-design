@@ -24,6 +24,7 @@
     "scripts/*.mts",
     "packages/react/scripts/*.ts",
     "packages/react/scripts/aura-theme.mjs",
+    "packages/react/scripts/aura-icons-codemod.mjs",
     "packages/react/examples/build.ts",
     "packages/react/tests/*.ts",
     "packages/tokens/scripts/*.mts",

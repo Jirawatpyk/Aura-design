@@ -4494,6 +4494,25 @@ window.Aura = (() => {
     });
     if (!modal.ready) return null;
     const side = props.side === "left" ? "left" : "right";
+    const rest = omit(props, [
+      "open",
+      "onClose",
+      "side",
+      "size",
+      "title",
+      "description",
+      "children",
+      "footer",
+      "dismissible",
+      "dismissOnScrim",
+      "autoFocus",
+      "aria-label",
+      "aria-describedby",
+      "aria-labelledby",
+      "className",
+      "closeLabel",
+      "closeProps"
+    ]);
     const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
     return (0, import_react_dom8.createPortal)(
       /* @__PURE__ */ React29.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React29.createElement(
@@ -4509,16 +4528,29 @@ window.Aura = (() => {
       ), /* @__PURE__ */ React29.createElement(
         "div",
         {
+          ...rest,
           ref: merged,
           role: "dialog",
           "aria-modal": true,
-          "aria-labelledby": props.title ? titleId : void 0,
+          "aria-labelledby": props.title ? titleId : props["aria-labelledby"],
           "aria-label": props.title ? void 0 : props["aria-label"],
-          "aria-describedby": props.description ? descId : void 0,
+          "aria-describedby": cx(props.description ? descId : "", props["aria-describedby"]) || void 0,
           tabIndex: -1,
           className: cx("aura-drawer", "aura-drawer--" + side, "aura-drawer--" + (props.size || "md"), props.className)
         },
-        props.title || props.dismissible !== false ? /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__head" }, props.title ? /* @__PURE__ */ React29.createElement("h2", { className: "aura-drawer__title", id: titleId }, props.title) : /* @__PURE__ */ React29.createElement("span", { style: { flex: 1 } }), props.dismissible !== false ? /* @__PURE__ */ React29.createElement(IconButton, { icon: /* @__PURE__ */ React29.createElement(IconX, null), label: t.close, onClick: close }) : null) : null,
+        props.title || props.dismissible !== false ? /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__head" }, props.title ? /* @__PURE__ */ React29.createElement("h2", { className: "aura-drawer__title", id: titleId }, props.title) : /* @__PURE__ */ React29.createElement("span", { style: { flex: 1 } }), props.dismissible !== false ? /* @__PURE__ */ React29.createElement(
+          IconButton,
+          {
+            ...props.closeProps,
+            icon: /* @__PURE__ */ React29.createElement(IconX, null),
+            label: props.closeLabel || t.close,
+            onClick: function(e) {
+              const own2 = props.closeProps && props.closeProps.onClick;
+              if (own2) own2(e);
+              if (!e.defaultPrevented) close();
+            }
+          }
+        ) : null) : null,
         props.description ? /* @__PURE__ */ React29.createElement("p", { className: "aura-drawer__desc", id: descId }, props.description) : null,
         /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__body" }, props.children),
         props.footer ? /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__foot" }, props.footer) : null
@@ -5843,6 +5875,16 @@ window.Aura = (() => {
       return t.id === cur;
     })[0] || firstOn || items2[0];
     const Link = useLinkComponent(props.linkComponent);
+    const manual = props.activation === "manual";
+    const [focusId, setFocusId] = React32.useState(null);
+    items2.forEach(function(t) {
+      const al = t.tabProps && t.tabProps["aria-label"];
+      if (al && al.toLowerCase().indexOf(String(t.label).toLowerCase()) !== 0)
+        devWarnOnce(
+          "tab-label-in-name",
+          'Tabs: tabProps aria-label "' + al + '" should start with the visible label "' + t.label + '" so voice control finds the tab (WCAG 2.5.3 Label in Name).'
+        );
+    });
     if (asLinks)
       return /* @__PURE__ */ React32.createElement(
         "nav",
@@ -5858,14 +5900,37 @@ window.Aura = (() => {
             t.label,
             t.count != null ? /* @__PURE__ */ React32.createElement("span", { key: "c", className: "aura-tab__count" }, t.count) : null
           ];
-          return t.disabled ? /* @__PURE__ */ React32.createElement("span", { key: t.id, className: "aura-tab is-disabled", "aria-disabled": true }, inner) : /* @__PURE__ */ React32.createElement(
+          const own = omit(t.tabProps || {}, [
+            "type",
+            "disabled",
+            "form",
+            "formAction",
+            "formEncType",
+            "formMethod",
+            "formNoValidate",
+            "formTarget",
+            "name",
+            "value"
+          ]);
+          return t.disabled ? /* @__PURE__ */ React32.createElement(
+            "span",
+            {
+              ...omit(own, ["onClick"]),
+              key: t.id,
+              className: cx("aura-tab is-disabled", own.className),
+              "aria-disabled": true
+            },
+            inner
+          ) : /* @__PURE__ */ React32.createElement(
             Link,
             {
+              ...own,
               key: t.id,
               href: t.href,
-              className: cx("aura-tab", on && "is-active"),
+              className: cx("aura-tab", on && "is-active", own.className),
               "aria-current": on ? "page" : void 0,
               onClick: function(e) {
+                if (own.onClick) own.onClick(e);
                 if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 st[1](t.id);
               }
@@ -5879,19 +5944,28 @@ window.Aura = (() => {
         return !t2.disabled;
       });
       const t = enabled[(i + enabled.length) % enabled.length];
-      st[1](t.id);
+      if (manual) setFocusId(t.id);
+      else st[1](t.id);
       if (refs.current[t.id]) refs.current[t.id].focus();
     }
+    const stop = manual && focusId && items2.filter(function(t) {
+      return t.id === focusId && !t.disabled;
+    })[0] || current2;
     return /* @__PURE__ */ React32.createElement("div", { ref, className: cx("aura-tabs", props.className) }, /* @__PURE__ */ React32.createElement(
       "div",
       {
         role: "tablist",
         "aria-label": props.label,
         className: "aura-tabs__list",
+        onBlur: manual ? function(e) {
+          if (!e.currentTarget.contains(e.relatedTarget)) setFocusId(null);
+        } : void 0,
         onKeyDown: function(e) {
           const enabled = items2.filter(function(t) {
             return !t.disabled;
-          }), i = enabled.indexOf(current2);
+          }), focused = enabled.filter(function(t) {
+            return refs.current[t.id] === e.target;
+          })[0], i = enabled.indexOf(focused || stop);
           if (e.key === "ArrowRight") {
             e.preventDefault();
             go(i + 1);
@@ -5909,22 +5983,31 @@ window.Aura = (() => {
       },
       items2.map(function(t) {
         const on = current2 && t.id === current2.id;
+        const own = t.tabProps || {};
         return /* @__PURE__ */ React32.createElement(
           "button",
           {
+            ...own,
             key: t.id,
             type: "button",
             role: "tab",
             id: base + "-tab-" + t.id,
             "aria-selected": on,
             "aria-controls": base + "-panel-" + t.id,
-            tabIndex: on ? 0 : -1,
+            tabIndex: stop && t.id === stop.id ? 0 : -1,
             disabled: t.disabled,
             ref: function(el) {
               refs.current[t.id] = el;
             },
-            className: cx("aura-tab", on && "is-active"),
-            onClick: function() {
+            className: cx("aura-tab", on && "is-active", own.className),
+            onFocus: manual ? function(e) {
+              if (own.onFocus) own.onFocus(e);
+              setFocusId(t.id);
+            } : own.onFocus,
+            onClick: function(e) {
+              if (own.onClick) own.onClick(e);
+              if (e.defaultPrevented) return;
+              if (manual && current2 && t.id === current2.id) return;
               st[1](t.id);
             }
           },
@@ -5933,7 +6016,26 @@ window.Aura = (() => {
           t.count != null ? /* @__PURE__ */ React32.createElement("span", { className: "aura-tab__count" }, t.count) : null
         );
       })
-    ), current2 && current2.content !== void 0 ? /* @__PURE__ */ React32.createElement(
+    ), props.keepMounted ? (
+      /* 5.9: every panel stays in the DOM (same node across switches); the inactive ones are hidden. */
+      items2.map(function(t) {
+        if (t.content === void 0) return null;
+        const on = current2 && t.id === current2.id;
+        return /* @__PURE__ */ React32.createElement(
+          "div",
+          {
+            key: t.id,
+            role: "tabpanel",
+            id: base + "-panel-" + t.id,
+            "aria-labelledby": base + "-tab-" + t.id,
+            tabIndex: 0,
+            hidden: !on,
+            className: "aura-tabs__panel"
+          },
+          t.content
+        );
+      })
+    ) : current2 && current2.content !== void 0 ? /* @__PURE__ */ React32.createElement(
       "div",
       {
         role: "tabpanel",

@@ -674,6 +674,9 @@ export interface TabItem {
   /** A route (4.19). When every tab has one, Tabs renders a `nav` of links (section tabs that are pages), with
    * `aria-current="page"` on the current one and no panels. */
   href?: string | undefined;
+  /** Attributes for this tab's button (or link): `data-testid`, or an `aria-label` that starts with the visible
+   * label ("Card — switch payment method") so voice control still finds it (WCAG 2.5.3). (5.9, Chamber-OS 71) */
+  tabProps?: ButtonAttributes | undefined;
 }
 export interface TabsProps {
   tabs: TabItem[];
@@ -686,6 +689,12 @@ export interface TabsProps {
   /** Router link for tabs with `href`; defaults to AuraProvider's `linkComponent`, then `<a>`. (4.19) */
   linkComponent?: React.ElementType | undefined;
   className?: string | undefined;
+  /** Keep every panel mounted, the inactive ones `hidden`, so their state survives a switch (a payment iframe, a
+   * half-filled form). Default false: only the active panel is rendered. (5.9, Chamber-OS 71) */
+  keepMounted?: boolean | undefined;
+  /** `auto` (default): arrow keys select as they move. `manual`: arrows, Home and End only move focus; Enter, Space
+   * or a click selects — for tabs whose selection does work (loads data, starts a payment). (5.9) */
+  activation?: 'auto' | 'manual' | undefined;
 }
 export interface NavItem {
   id: string;
@@ -953,7 +962,17 @@ export interface DateRangePickerProps extends DateFieldProps {
   onChange?: ((value: DateRange) => void) | undefined;
 }
 
-export interface DrawerProps {
+/** `data-*` attributes in an object prop (TypeScript checks object literals, where JSX would allow them anyway). */
+export type DataAttributes = { [key: `data-${string}`]: string | number | boolean | undefined };
+/** Attributes for a button AURA renders for you (a Drawer's close button, a tab): `data-testid`, `aria-*`, `id`… */
+export type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement> & DataAttributes;
+
+/** `id`, `data-*`, `aria-*`, `style`, `lang` and `dir` go on the `.aura-drawer` panel (5.9, Chamber-OS 70). */
+export interface DrawerProps
+  extends
+    Pick<React.HTMLAttributes<HTMLDivElement>, 'id' | 'style' | 'lang' | 'dir'>,
+    React.AriaAttributes,
+    DataAttributes {
   open: boolean;
   onClose: () => void;
   /** Default `right`. */
@@ -974,6 +993,11 @@ export interface DrawerProps {
   /** Needed when there is no title. */
   'aria-label'?: string | undefined;
   className?: string | undefined;
+  /** The close button's accessible name and tooltip, saying what it closes ("Close payment drawer"). Default: the
+   * built-in "Close" in the provider's language. (5.9) */
+  closeLabel?: string | undefined;
+  /** Attributes for the close button, e.g. `{ 'data-testid': 'pay-sheet-close' }`. (5.9) */
+  closeProps?: ButtonAttributes | undefined;
 }
 
 export type Breakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';

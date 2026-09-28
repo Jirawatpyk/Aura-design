@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useStrings, useDensity } from './locale.js';
 import { createPortal } from 'react-dom';
-import { cx, uid, useMergedRef } from './internal.js';
+import { cx, omit, uid, useMergedRef } from './internal.js';
 import { IconButton } from './IconButton.js';
 import { useModal } from './useModal.js';
 import type { DialogProps, DrawerProps } from './types.js';
@@ -93,6 +93,26 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
   });
   if (!modal.ready) return null;
   const side = props.side === 'left' ? 'left' : 'right';
+  /* 5.9 (Chamber-OS 70): other attributes (id, data-*, aria-*) go on the panel; the dialog semantics stay AURA's. */
+  const rest = omit(props, [
+    'open',
+    'onClose',
+    'side',
+    'size',
+    'title',
+    'description',
+    'children',
+    'footer',
+    'dismissible',
+    'dismissOnScrim',
+    'autoFocus',
+    'aria-label',
+    'aria-describedby',
+    'aria-labelledby',
+    'className',
+    'closeLabel',
+    'closeProps',
+  ]);
   const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
   return createPortal(
     <div className="aura-dialog-layer aura-drawer-layer" data-density={density} onKeyDown={modal.onKeyDown}>
@@ -109,12 +129,13 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
         aria-hidden={true}
       />
       <div
+        {...rest}
         ref={merged}
         role="dialog"
         aria-modal={true}
-        aria-labelledby={props.title ? titleId : undefined}
+        aria-labelledby={props.title ? titleId : props['aria-labelledby']}
         aria-label={props.title ? undefined : props['aria-label']}
-        aria-describedby={props.description ? descId : undefined}
+        aria-describedby={cx(props.description ? descId : '', props['aria-describedby']) || undefined}
         tabIndex={-1}
         className={cx('aura-drawer', 'aura-drawer--' + side, 'aura-drawer--' + (props.size || 'md'), props.className)}
       >
@@ -127,7 +148,18 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
             ) : (
               <span style={{ flex: 1 }} />
             )}
-            {props.dismissible !== false ? <IconButton icon={<IconX />} label={t.close} onClick={close} /> : null}
+            {props.dismissible !== false ? (
+              <IconButton
+                {...props.closeProps}
+                icon={<IconX />}
+                label={props.closeLabel || t.close}
+                onClick={function (e: React.MouseEvent<HTMLButtonElement>) {
+                  const own = props.closeProps && props.closeProps.onClick;
+                  if (own) own(e);
+                  if (!e.defaultPrevented) close();
+                }}
+              />
+            ) : null}
           </div>
         ) : null}
         {props.description ? (

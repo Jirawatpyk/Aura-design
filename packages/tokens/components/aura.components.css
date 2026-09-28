@@ -623,6 +623,7 @@ a.aura-tab { text-decoration: none; }
   font-size: 11px; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums;
 }
 .aura-tabs__panel { padding-top: var(--aura-space-6); outline: none; }
+.aura-tabs__panel[hidden] { display: none; }
 .aura-tabs__panel:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-sm); }
 
 /* ---------- SideNav ---------- */

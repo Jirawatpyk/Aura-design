@@ -47,6 +47,19 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const shell = renderToString(React.createElement(A.AppShell, { mainId: 'main-content' }, 'x'));
     if (!/<main[^>]*tabindex="-1"/.test(shell)) { console.log(label, 'AppShell main tabindex:', shell); fail++; }
   }
+  /* 5.9 (Chamber-OS 71): keepMounted renders every panel, the inactive ones hidden; per-tab attributes reach the tab. */
+  {
+    const tabs = [
+      { id: 'card', label: 'Card', content: 'C', tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'tab-card' } },
+      { id: 'pp', label: 'PromptPay', content: 'P' },
+    ];
+    const kept = renderToString(React.createElement(A.Tabs, { label: 'Method', tabs, keepMounted: true }));
+    const panels = kept.match(/role="tabpanel"[^>]*/g) || [];
+    if (panels.length !== 2 || /hidden/.test(panels[0]!) || !/hidden/.test(panels[1]!)) { console.log(label, 'keepMounted panels:', panels); fail++; }
+    if (!/data-testid="tab-card"[^>]*role="tab"|role="tab"[^>]*data-testid="tab-card"/.test(kept) || !/aria-label="Card — switch payment method"/.test(kept)) { console.log(label, 'tabProps:', kept); fail++; }
+    const plain = renderToString(React.createElement(A.Tabs, { label: 'Method', tabs }));
+    if ((plain.match(/role="tabpanel"/g) || []).length !== 1) { console.log(label, 'default Tabs should render one panel'); fail++; }
+  }
   /* 5.8 (Chamber-OS 66, 68, 69): /server display components give the root's HTML; attributes reach the root. */
   {
     const { renderToStaticMarkup: m } = require('react-dom/server');

@@ -143,7 +143,7 @@ test.describe('Feedback & overlays', () => {
 
 test.describe('Layout', () => {
   test('tabs move with arrow keys', async ({ page }) => {
-    await story(page, 'aura-layout--tabs-story');
+    await story(page, 'aura-layout--tabs');
     await page.getByRole('tab', { name: 'Overview' }).focus();
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('tab', { name: /Changes/ })).toHaveAttribute('aria-selected', 'true');
@@ -2643,5 +2643,109 @@ test.describe('5.9: preparing for 6.0', () => {
     await expect(page.getByRole('navigation', { name: 'เลขหน้า' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'ปิด' })).toBeVisible();
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});
+
+test.describe('5.9: Chamber-OS addendum 9', () => {
+  test('70: Drawer attributes on the panel; the close button says what it closes; modal behaviour unchanged', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-9--drawer-attributes');
+    const open = page.getByRole('button', { name: 'Pay invoice' });
+    await open.click();
+    const panel = page.getByTestId('pay-sheet-content');
+    await expect(panel).toHaveClass(/aura-drawer/);
+    await expect(panel).toHaveAttribute('id', 'pay-sheet');
+    await expect(panel).toHaveAttribute('role', 'dialog');
+    await expect(panel).toHaveAttribute('aria-modal', 'true');
+    const close = page.getByTestId('pay-sheet-close');
+    await expect(close).toHaveAccessibleName('Close payment drawer');
+    await expect(close).toHaveAttribute('title', 'Close payment drawer');
+    /* Focus starts in the body, Tab stays inside, Escape closes, focus returns to the opener. */
+    await expect(page.getByLabel('Name on card')).toBeFocused();
+    for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
+    expect(await panel.evaluate((p) => p.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(panel).toHaveCount(0);
+    await expect(open).toBeFocused();
+    /* The scrim and the close button still close it. */
+    await open.click();
+    await page.getByTestId('pay-sheet-close').click();
+    await expect(page.getByTestId('pay-sheet-content')).toHaveCount(0);
+    await open.click();
+    await page.locator('.aura-scrim').click({ position: { x: 10, y: 10 } });
+    await expect(page.getByTestId('pay-sheet-content')).toHaveCount(0);
+    await open.click();
+    expect(await axeScan(page, '.aura-drawer')).toEqual([]);
+  });
+
+  test('71: kept-mounted panels, manual activation, per-tab attributes', async ({ page }) => {
+    await story(page, 'aura-new-in-5-9--payment-tabs');
+    const card = page.getByTestId('method-card');
+    await expect(card).toHaveAccessibleName('Card — switch payment method');
+    await expect(card).toHaveAttribute('role', 'tab');
+    /* Keep the card panel's node and what was typed in it across a switch. */
+    const input = page.getByTestId('card-input');
+    await input.fill('4242 4242');
+    await input.evaluate((el) => ((window as unknown as { __cardInput: Element }).__cardInput = el));
+    const panels = page.getByRole('tabpanel', { includeHidden: true });
+    await expect(panels).toHaveCount(3);
+    /* Manual: arrows move focus and the tab stop, never the selection. */
+    await card.focus();
+    await page.keyboard.press('ArrowRight');
+    const pp = page.getByTestId('method-promptpay');
+    await expect(pp).toBeFocused();
+    await expect(pp).toHaveAttribute('tabindex', '0');
+    await expect(card).toHaveAttribute('tabindex', '-1');
+    await expect(card).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('End');
+    await expect(page.getByRole('tab', { name: 'Bank transfer' })).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(card).toBeFocused();
+    await expect(page.getByTestId('changes')).toHaveText('Changes 0');
+    /* Enter selects; the card panel is hidden but still the same node. */
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter');
+    await expect(pp).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('changes')).toHaveText('Changes 1');
+    await expect(page.getByText('Scan the QR code')).toBeVisible();
+    await expect(input).toBeHidden();
+    /* Space and click select too; back on Card the input is the same element with its value. */
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Space');
+    await expect(page.getByRole('tab', { name: 'Bank transfer' })).toHaveAttribute('aria-selected', 'true');
+    await card.click();
+    await expect(input).toBeVisible();
+    await expect(input).toHaveValue('4242 4242');
+    expect(await input.evaluate((el) => el === (window as unknown as { __cardInput: Element }).__cardInput)).toBe(true);
+    /* Enter on the tab that is already selected starts nothing. */
+    await card.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('changes')).toHaveText('Changes 3');
+    /* A press without a click (dragged off) focuses a tab; the arrows move from there. */
+    const transfer = page.getByRole('tab', { name: 'Bank transfer' });
+    const box = (await transfer.boundingBox())!;
+    await page.mouse.move(box.x + 5, box.y + 5);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 5, box.y + 200);
+    await page.mouse.up();
+    await expect(transfer).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(pp).toBeFocused();
+    await expect(page.getByTestId('changes')).toHaveText('Changes 3');
+    /* Leaving the list puts the tab stop back on the selected tab. */
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Tab');
+    await expect(card).toHaveAttribute('tabindex', '0');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('71: default Tabs still select with the arrows and render one panel', async ({ page }) => {
+    await story(page, 'aura-layout--tabs');
+    const tabs = page.getByRole('tab');
+    await tabs.first().focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tabpanel', { includeHidden: true })).toHaveCount(1);
   });
 });

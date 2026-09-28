@@ -124,3 +124,27 @@ export function Prep60() {
     </Aura.AuraProvider>
   );
 }
+
+/* 5.9 (Chamber-OS 70, 71): attributes on the Drawer panel and its close button; per-tab attributes, keepMounted, manual. */
+export function Addendum9({ open, label }: { open: boolean; label: string | undefined }) {
+  return (
+    <>
+      <Aura.Drawer
+        open={open}
+        onClose={() => {}}
+        title="Pay"
+        id="pay"
+        data-testid="pay-sheet-content"
+        aria-describedby={undefined}
+        closeLabel={label}
+        closeProps={{ 'data-testid': 'pay-sheet-close', onClick: (e) => e.preventDefault() }}
+      />
+      <Aura.Tabs
+        label="Method"
+        keepMounted
+        activation="manual"
+        tabs={[{ id: 'card', label: 'Card', tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'method-card' } }]}
+      />
+    </>
+  );
+}

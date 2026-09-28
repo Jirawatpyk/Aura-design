@@ -47,3 +47,71 @@ export const LocalePack: StoryObj = {
     </Aura.AuraProvider>
   ),
 };
+
+/* 70 (Chamber-OS addendum 9): test ids and attributes on the drawer panel, and a close button that says what it closes. */
+export const DrawerAttributes: StoryObj = {
+  render: () => {
+    const [open, setOpen] = React.useState(false);
+    return (
+      <div>
+        <Aura.Button onClick={() => setOpen(true)}>Pay invoice</Aura.Button>
+        <Aura.Drawer
+          open={open}
+          onClose={() => setOpen(false)}
+          title="Pay INV-1042"
+          data-testid="pay-sheet-content"
+          id="pay-sheet"
+          closeLabel="Close payment drawer"
+          closeProps={{ 'data-testid': 'pay-sheet-close' }}
+        >
+          <Aura.TextField label="Name on card" />
+        </Aura.Drawer>
+      </div>
+    );
+  },
+};
+
+/* 71: a payment-method tablist — panels stay mounted (a card iframe keeps its state), arrows move focus without
+ * selecting (selecting starts a payment), and each tab carries its own test id and full name. */
+export const PaymentTabs: StoryObj = {
+  render: () => {
+    const [method, setMethod] = React.useState('card');
+    const [changes, setChanges] = React.useState(0);
+    return (
+      <Aura.Stack gap={3} style={{ maxWidth: 480 }}>
+        <Aura.Tabs
+          label="Payment method"
+          value={method}
+          onChange={(id) => {
+            setMethod(id);
+            setChanges((n) => n + 1);
+          }}
+          keepMounted
+          activation="manual"
+          tabs={[
+            {
+              id: 'card',
+              label: 'Card',
+              tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'method-card' },
+              content: <Aura.TextField label="Card number" data-testid="card-input" />,
+            },
+            {
+              id: 'promptpay',
+              label: 'PromptPay',
+              tabProps: { 'aria-label': 'PromptPay — switch payment method', 'data-testid': 'method-promptpay' },
+              content: <p className="aura-text-body">Scan the QR code with your banking app.</p>,
+            },
+            {
+              id: 'transfer',
+              label: 'Bank transfer',
+              content: <p className="aura-text-body">Account 123-4-56789-0</p>,
+            },
+          ]}
+        />
+        <p className="aura-text-body" data-testid="changes">
+          Changes {changes}
+        </p>
+      </Aura.Stack>
+    );
+  },
+};

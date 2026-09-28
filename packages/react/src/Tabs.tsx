@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx, uid, useMaybeControlled } from './internal.js';
+import { cx, devWarnOnce, omit, uid, useMaybeControlled } from './internal.js';
 import { useLinkComponent } from './locale.js';
 import type { TabItem, TabsProps } from './types.js';
 
@@ -31,6 +31,22 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
     firstOn ||
     items[0];
   const Link = useLinkComponent(props.linkComponent);
+  /* 5.9 (Chamber-OS 71): with manual activation the arrows move focus, not the selection; the roving tab stop follows
+   * focus and goes back to the selected tab when focus leaves the list. */
+  const manual = props.activation === 'manual';
+  const [focusId, setFocusId] = React.useState<string | null>(null);
+  items.forEach(function (t: TabItem) {
+    const al = t.tabProps && t.tabProps['aria-label'];
+    if (al && al.toLowerCase().indexOf(String(t.label).toLowerCase()) !== 0)
+      devWarnOnce(
+        'tab-label-in-name',
+        'Tabs: tabProps aria-label "' +
+          al +
+          '" should start with the visible label "' +
+          t.label +
+          '" so voice control finds the tab (WCAG 2.5.3 Label in Name).',
+      );
+  });
   /* Section tabs that are routes (4.19): links in a nav, the current one marked as the page, no panels. Links are
    * reached with Tab (not arrows) — they're navigation, not a tab widget. */
   if (asLinks)
@@ -53,17 +69,37 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
                 </span>
               ) : null,
             ];
+            /* A link or a span: drop the attributes that only mean something on a button. */
+            const own = omit(t.tabProps || {}, [
+              'type',
+              'disabled',
+              'form',
+              'formAction',
+              'formEncType',
+              'formMethod',
+              'formNoValidate',
+              'formTarget',
+              'name',
+              'value',
+            ]);
             return t.disabled ? (
-              <span key={t.id} className="aura-tab is-disabled" aria-disabled={true}>
+              <span
+                {...omit(own, ['onClick'])}
+                key={t.id}
+                className={cx('aura-tab is-disabled', own.className)}
+                aria-disabled={true}
+              >
                 {inner}
               </span>
             ) : (
               <Link
+                {...own}
                 key={t.id}
                 href={t.href}
-                className={cx('aura-tab', on && 'is-active')}
+                className={cx('aura-tab', on && 'is-active', own.className)}
                 aria-current={on ? 'page' : undefined}
-                onClick={function (e: React.MouseEvent) {
+                onClick={function (e: React.MouseEvent<HTMLButtonElement>) {
+                  if (own.onClick) own.onClick(e);
                   /* A new-tab click (modifier or middle button) leaves this page as it is. */
                   if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                   st[1](t.id);
@@ -81,20 +117,40 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
       return !t.disabled;
     });
     const t = enabled[(i + enabled.length) % enabled.length];
-    st[1](t.id);
+    if (manual) setFocusId(t.id);
+    else st[1](t.id);
     if (refs.current[t.id]) refs.current[t.id]!.focus();
   }
+  /* The tab holding the tab stop: the focused one while moving manually, else the selected one. */
+  const stop =
+    (manual &&
+      focusId &&
+      items.filter(function (t: TabItem) {
+        return t.id === focusId && !t.disabled;
+      })[0]) ||
+    current;
   return (
     <div ref={ref} className={cx('aura-tabs', props.className)}>
       <div
         role="tablist"
         aria-label={props.label}
         className="aura-tabs__list"
+        onBlur={
+          manual
+            ? function (e: React.FocusEvent<HTMLDivElement>) {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusId(null);
+              }
+            : undefined
+        }
         onKeyDown={function (e: React.KeyboardEvent) {
           const enabled = items.filter(function (t: TabItem) {
               return !t.disabled;
             }),
-            i = enabled.indexOf(current);
+            /* Move from the tab that has focus (after a press without a click it can differ from the tab stop). */
+            focused = enabled.filter(function (t: TabItem) {
+              return refs.current[t.id] === e.target;
+            })[0],
+            i = enabled.indexOf((focused || stop) as TabItem);
           if (e.key === 'ArrowRight') {
             e.preventDefault();
             go(i + 1);
@@ -112,21 +168,35 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
       >
         {items.map(function (t: TabItem) {
           const on = current && t.id === current.id;
+          const own = t.tabProps || {};
           return (
             <button
+              {...own}
               key={t.id}
               type="button"
               role="tab"
               id={base + '-tab-' + t.id}
               aria-selected={on}
               aria-controls={base + '-panel-' + t.id}
-              tabIndex={on ? 0 : -1}
+              tabIndex={stop && t.id === stop.id ? 0 : -1}
               disabled={t.disabled}
               ref={function (el: HTMLButtonElement | null): void {
                 refs.current[t.id] = el;
               }}
-              className={cx('aura-tab', on && 'is-active')}
-              onClick={function () {
+              className={cx('aura-tab', on && 'is-active', own.className)}
+              onFocus={
+                manual
+                  ? function (e: React.FocusEvent<HTMLButtonElement>) {
+                      if (own.onFocus) own.onFocus(e);
+                      setFocusId(t.id);
+                    }
+                  : own.onFocus
+              }
+              onClick={function (e: React.MouseEvent<HTMLButtonElement>) {
+                if (own.onClick) own.onClick(e);
+                if (e.defaultPrevented) return;
+                /* Manual: choosing the tab that is already selected does nothing (no second payment started). */
+                if (manual && current && t.id === current.id) return;
                 st[1](t.id);
               }}
             >
@@ -137,7 +207,26 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
           );
         })}
       </div>
-      {current && current.content !== undefined ? (
+      {props.keepMounted ? (
+        /* 5.9: every panel stays in the DOM (same node across switches); the inactive ones are hidden. */
+        items.map(function (t: TabItem) {
+          if (t.content === undefined) return null;
+          const on = current && t.id === current.id;
+          return (
+            <div
+              key={t.id}
+              role="tabpanel"
+              id={base + '-panel-' + t.id}
+              aria-labelledby={base + '-tab-' + t.id}
+              tabIndex={0}
+              hidden={!on}
+              className="aura-tabs__panel"
+            >
+              {t.content}
+            </div>
+          );
+        })
+      ) : current && current.content !== undefined ? (
         <div
           role="tabpanel"
           id={base + '-panel-' + current.id}
