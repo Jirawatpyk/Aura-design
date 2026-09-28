@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.10.1 — fixes from a new project
+
+- **Switch**: a disabled switch that is on ("always on", enforced by policy) no longer fades into the same grey as an off one. Disabled rows, on or off, now look alike and stay readable: the label turns `aura-fg-secondary`, the description (often the reason it's locked) keeps its colour, the row shows a not-allowed cursor, and only the switch fades — off to the disabled opacity, on to 0.75, at least 3:1 apart in both themes. In forced colours a locked switch is `GrayText`. Use it instead of a Badge for settings people can see but not change.
+- **Tag**: the remove button is named from the words inside any children — `<Tag onRemove={…}><strong>Acme</strong> AB</Tag>` is "Remove Acme AB" (was "Remove "). With no text at all (an icon only), a dev notice asks for `removeLabel`.
+- **SideNav** (docs): an item's `badge` takes any element, so a fault or warning is a toned Badge — `badge: <Badge tone="danger">Fault</Badge>`; `count` stays a neutral number.
+
 ## 5.10 — Chamber-OS addendum 10 (adopting 5.9)
 
 - **Tabs `variant="segmented"`** (item 72): the tab list as a pill track with the selected tab raised — SegmentedControl's look — keeping every Tabs behaviour (tab / tabpanel roles, `keepMounted`, `activation`, `tabProps`). `fullWidth` stretches the track and shares it equally. Tabs are 44px on touch screens, the list doesn't scroll so the focus ring is never clipped, and in forced colours the selected tab gets a `Highlight` outline. Default (`underline`) output is unchanged.

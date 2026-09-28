@@ -94,3 +94,46 @@ export const DisabledMenuItems: StoryObj = {
     );
   },
 };
+
+/* 5.10.1: a switch that is locked on still reads as on; a Tag with rich children names its remove button; a nav
+ * item flags a fault with a toned Badge. */
+export const LockedSwitchRichTagNavBadge: StoryObj = {
+  render: () => (
+    <Aura.Stack gap={5} style={{ maxWidth: 520 }}>
+      <Aura.Stack gap={3}>
+        <Aura.Switch
+          label="Two-factor sign-in"
+          description="Required for admins"
+          checked
+          disabled
+          data-testid="sw-on"
+        />
+        <Aura.Switch label="Sign-in alerts" checked={false} disabled />
+        <Aura.Switch label="Weekly digest" defaultChecked />
+      </Aura.Stack>
+      <Aura.Stack direction="row" gap={2}>
+        <Aura.Tag onRemove={() => {}}>
+          <strong>Acme</strong> AB
+        </Aura.Tag>
+        <Aura.Tag onRemove={() => {}} removeLabel="Remove filter: status">
+          <span>Status: Paid</span>
+        </Aura.Tag>
+      </Aura.Stack>
+      <div style={{ display: 'flex', height: 200 }}>
+        <Aura.SideNav
+          defaultValue="devices"
+          items={[
+            { id: 'devices', label: 'Devices', icon: 'server', count: 12 },
+            {
+              id: 'faults',
+              label: 'Faults',
+              icon: 'triangle-alert',
+              badge: <Aura.Badge tone="danger">Fault</Aura.Badge>,
+            },
+            { id: 'updates', label: 'Updates', icon: 'download', badge: <Aura.Badge tone="warning">3</Aura.Badge> },
+          ]}
+        />
+      </div>
+    </Aura.Stack>
+  ),
+};

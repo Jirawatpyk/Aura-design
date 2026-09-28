@@ -47,6 +47,11 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const shell = renderToString(React.createElement(A.AppShell, { mainId: 'main-content' }, 'x'));
     if (!/<main[^>]*tabindex="-1"/.test(shell)) { console.log(label, 'AppShell main tabindex:', shell); fail++; }
   }
+  /* 5.10.1: a Tag's remove button is named from rich children. */
+  {
+    const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
+    if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
+  }
   /* 5.9 (Chamber-OS 71): keepMounted renders every panel, the inactive ones hidden; per-tab attributes reach the tab. */
   {
     const tabs = [

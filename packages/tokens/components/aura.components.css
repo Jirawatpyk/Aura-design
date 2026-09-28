@@ -466,7 +466,13 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-radio-group.is-invalid .aura-radio:not(:checked) { border-color: var(--aura-border-danger); }
 
 .aura-switch-row { display: flex; align-items: flex-start; gap: var(--aura-space-3); font-family: var(--font-sans); }
-.aura-switch-row.is-disabled { opacity: var(--aura-disabled-opacity); }
+/* 5.10.1: disabled rows, on or off, are treated alike and stay readable — the label turns secondary, the description
+ * keeps its colour (often the reason it's locked) — and only the switch fades: off to the disabled opacity, on to 0.75,
+ * ≥3:1 apart in both themes, so "locked on" never looks like "off". */
+.aura-switch-row.is-disabled { cursor: not-allowed; }
+.aura-switch-row.is-disabled .aura-choice__label { color: var(--aura-fg-secondary); cursor: not-allowed; }
+.aura-switch:disabled { opacity: var(--aura-disabled-opacity); }
+.aura-switch.is-on:disabled { opacity: 0.75; }
 .aura-switch {
   position: relative; flex: none; box-sizing: border-box; margin: 0; padding: 0;
   width: var(--aura-switch-width); height: var(--aura-switch-height); border-radius: var(--aura-radius-full);
@@ -1601,6 +1607,11 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-switch__thumb { background: CanvasText; forced-color-adjust: none; }
   .aura-switch.is-on { background: Highlight; forced-color-adjust: none; }
   .aura-switch.is-on .aura-switch__thumb { background: HighlightText; }
+  .aura-switch:disabled, .aura-switch.is-on:disabled { border-color: GrayText; opacity: 1; }
+  .aura-switch:disabled .aura-switch__thumb { background: GrayText; }
+  .aura-switch.is-on:disabled { background: GrayText; }
+  .aura-switch.is-on:disabled .aura-switch__thumb { background: Canvas; }
+  .aura-switch-row.is-disabled .aura-choice__label { color: GrayText; }
   .aura-progress__track, .aura-upload__bar { border: 1px solid CanvasText; }
   .aura-progress__bar, .aura-upload__bar > span { background: Highlight; forced-color-adjust: none; }
   .aura-segmented__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }

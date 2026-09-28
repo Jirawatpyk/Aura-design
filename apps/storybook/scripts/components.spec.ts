@@ -2874,3 +2874,74 @@ test.describe('5.10: Chamber-OS addendum 10', () => {
     expect(await axeScan(page, '.aura-menu')).toEqual([]);
   });
 });
+
+test.describe('5.10.1: fixes from a new project', () => {
+  test('a disabled switch that is on reads as on; rich Tag children name the remove button; toned nav badges', async ({
+    page,
+  }) => {
+    for (const theme of ['light', 'dark']) {
+      await story(page, 'aura-new-in-5-10--locked-switch-rich-tag-nav-badge', theme);
+      const [on, off] = [
+        page.getByRole('switch', { name: 'Two-factor sign-in' }),
+        page.getByRole('switch', { name: 'Sign-in alerts' }),
+      ];
+      await expect(on).toBeDisabled();
+      await expect(on).toHaveAttribute('aria-checked', 'true');
+      /* Sample each track away from its thumb: on (thumb right) at the left end, off (thumb left) at the right end. */
+      const sample = async (loc: import('@playwright/test').Locator, side: 'left' | 'right') => {
+        const box = (await loc.boundingBox())!;
+        const png = await page.screenshot({
+          clip: {
+            x: side === 'left' ? box.x + 2 : box.x + box.width - 4,
+            y: box.y + box.height / 2 - 1,
+            width: 2,
+            height: 2,
+          },
+        });
+        return page.evaluate(async (b64) => {
+          const img = new Image();
+          img.src = 'data:image/png;base64,' + b64;
+          await img.decode();
+          const c = document.createElement('canvas');
+          c.width = c.height = 2;
+          const x = c.getContext('2d')!;
+          x.drawImage(img, 0, 0);
+          return Array.from(x.getImageData(0, 0, 1, 1).data.slice(0, 3));
+        }, png.toString('base64'));
+      };
+      const lum = (c: number[]) =>
+        c
+          .map((v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+          .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i]!, 0);
+      const [a, b] = [lum(await sample(on, 'left')), lum(await sample(off, 'right'))];
+      expect((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), theme).toBeGreaterThanOrEqual(3);
+    }
+    /* Disabled rows look alike whether on or off: readable text, secondary label, only the switch fades. */
+    const rows = await page.locator('.aura-switch-row.is-disabled').evaluateAll((els) =>
+      els.map((r) => ({
+        opacity: getComputedStyle(r).opacity,
+        label: getComputedStyle(r.querySelector('.aura-choice__label')!).color,
+      })),
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual(rows[1]);
+    expect(rows[0]!.opacity).toBe('1');
+    /* Forced colours: a locked-on switch is GrayText, not the enabled Highlight. */
+    await page.emulateMedia({ forcedColors: 'active' });
+    expect(
+      await page
+        .getByRole('switch', { name: 'Two-factor sign-in' })
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).not.toBe(
+      await page.getByRole('switch', { name: 'Weekly digest' }).evaluate((el) => getComputedStyle(el).backgroundColor),
+    );
+    expect(
+      await page.getByRole('switch', { name: 'Two-factor sign-in' }).evaluate((el) => getComputedStyle(el).opacity),
+    ).toBe('1');
+    await page.emulateMedia({ forcedColors: 'none' });
+    await expect(page.getByRole('button', { name: 'Remove Acme AB' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Remove filter: status' })).toBeVisible();
+    await expect(page.locator('.aura-nav .aura-badge--danger')).toHaveText('Fault');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

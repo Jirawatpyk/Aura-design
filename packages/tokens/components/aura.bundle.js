@@ -3883,6 +3883,16 @@ window.Aura = (() => {
 
   // src/Tag.tsx
   var React24 = __toESM(require_react(), 1);
+  function textOf(node) {
+    if (node == null || typeof node === "boolean") return "";
+    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (Array.isArray(node)) return node.map(textOf).join("");
+    if (React24.isValidElement(node)) {
+      const p = node.props;
+      return p["aria-hidden"] === true || p["aria-hidden"] === "true" ? "" : textOf(p.children);
+    }
+    return "";
+  }
   var Tag = React24.forwardRef(function Tag2(props, ref) {
     const t = useStrings();
     const selectable = props.onClick != null || props.selected != null;
@@ -3906,12 +3916,18 @@ window.Aura = (() => {
         inner[1]
       );
     }
+    const name = props.onRemove && !props.removeLabel ? textOf(props.children).replace(/\s+/g, " ").trim() : "";
+    if (props.onRemove && !props.disabled && !props.removeLabel && !name)
+      devWarnOnce(
+        "tag-remove-label",
+        'Tag: the remove button has no name \u2014 its children have no text. Pass removeLabel (e.g. "Remove Acme AB").'
+      );
     return /* @__PURE__ */ React24.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? /* @__PURE__ */ React24.createElement(
       "button",
       {
         type: "button",
         className: "aura-tag__remove",
-        "aria-label": props.removeLabel || t.remove(typeof props.children === "string" ? props.children : ""),
+        "aria-label": props.removeLabel || t.remove(name),
         onClick: props.onRemove
       },
       /* @__PURE__ */ React24.createElement(Icon, { name: /* @__PURE__ */ React24.createElement(IconX, null), size: 12 })
