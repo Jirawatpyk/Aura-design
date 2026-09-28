@@ -176,3 +176,20 @@ export function Addendum11({ hint, auto }: { hint: string | undefined; auto: boo
 }
 // @ts-expect-error rowHeight takes only 'auto' (a number would be a fixed height; use the density token for that)
 export const badRowHeight: Aura.DataTableProps['rowHeight'] = 56;
+
+/* 5.12 (Chamber-OS 79): FilterSelect and FilterBar searchGrow; undefined allowed, onChange gets the value. */
+export function Addendum12({ status, all }: { status: string | undefined; all: string | undefined }) {
+  const [v, setV] = React.useState('all');
+  return (
+    <Aura.FilterBar search="" onSearchChange={() => {}} searchGrow={undefined}>
+      <Aura.FilterSelect label="Status" allLabel={all} options={['all', 'active']} value={v} onChange={setV} />
+      <Aura.FilterSelect label="Plan" value={status} defaultValue={undefined} name="plan" disabled={undefined}>
+        <option value="">All plans</option>
+      </Aura.FilterSelect>
+    </Aura.FilterBar>
+  );
+}
+// @ts-expect-error a FilterSelect needs its name (label)
+export const noLabel = <Aura.FilterSelect options={['a']} />;
+// @ts-expect-error onChange gets the value, not an event
+export const eventHandler = <Aura.FilterSelect label="S" onChange={(e: React.ChangeEvent<HTMLSelectElement>) => e} />;

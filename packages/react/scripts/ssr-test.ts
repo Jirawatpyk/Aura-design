@@ -52,6 +52,36 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.12 (Chamber-OS 79): FilterSelect's server HTML is its face with a real, named <select> over it; searchGrow. */
+  {
+    const opts = [{ value: 'all', label: 'All statuses' }, { value: 'active', label: 'Active' }];
+    const all = renderToString(React.createElement(A.FilterSelect, { id: 'st', label: 'Status', allLabel: 'All', options: opts, value: 'all', onChange: () => {} }));
+    const act = renderToString(React.createElement(A.FilterSelect, { id: 'st', label: 'Status', allLabel: 'All', options: opts, defaultValue: 'active' }));
+    const face = (html: string) => (html.match(/<span class="aura-filterselect__face" aria-hidden="true">([\s\S]*?)<svg/) || [])[1] || '';
+    const text = (html: string) => face(html).replace(/<[^>]+>/g, '|').replace(/\|+/g, '|');
+    if (text(all) !== '|Status|All|All statuses|' || text(act) !== '|Status|Active|') { console.log(label, 'FilterSelect face:', text(all), text(act)); fail++; }
+    if (!/<select[^>]*aria-label="Status"[^>]*class="aura-filterselect__native"|<select[^>]*class="aura-filterselect__native"[^>]*aria-label="Status"/.test(all) || /aura-field|<label/.test(all)) { console.log(label, 'FilterSelect select:', all); fail++; }
+    const kids = renderToString(
+      React.createElement(A.FilterSelect, { label: 'Kind', allLabel: 'All', defaultValue: 'b' },
+        React.createElement('option', { value: '' }, 'All kinds'),
+        React.createElement('optgroup', { label: 'G' }, React.createElement('option', { value: 'b' }, 'Bra', 'vo')),
+      ),
+    );
+    const kidsAll = renderToString(
+      React.createElement(A.FilterSelect, { label: 'Kind', allLabel: 'All' }, React.createElement('option', { value: '' }, 'All kinds'), React.createElement('option', { value: 'b' }, 'Bravo')),
+    );
+    const frag = renderToString(
+      React.createElement(A.FilterSelect, { label: 'Kind', defaultValue: 'b' }, React.createElement(React.Fragment, null, React.createElement('option', { value: 'a' }, 'Alpha'), React.createElement('option', { value: 'b' }, 'Bravo'))),
+    );
+    const skip = renderToString(
+      React.createElement(A.FilterSelect, { label: 'Kind', allLabel: 'All' }, React.createElement('option', { value: '', disabled: true }, 'Pick'), React.createElement('option', { value: 'a' }, 'Alpha')),
+    );
+    if (text(frag) !== '|Kind|Bravo|' || text(skip) !== '|Kind|Alpha|') { console.log(label, 'FilterSelect fragment / disabled first:', text(frag), text(skip)); fail++; }
+    if (text(kids) !== '|Kind|Bravo|' || text(kidsAll) !== '|Kind|All|All kinds|') { console.log(label, 'FilterSelect <option> children face:', text(kids), text(kidsAll)); fail++; }
+    const grow = renderToString(React.createElement(A.FilterBar, { onSearchChange: () => {}, searchGrow: true }));
+    const plainBar = renderToString(React.createElement(A.FilterBar, { onSearchChange: () => {} }));
+    if (!/class="aura-filterbar aura-filterbar--grow"/.test(grow) || /--grow/.test(plainBar)) { console.log(label, 'FilterBar searchGrow:', grow); fail++; }
+  }
   /* 5.11 (Chamber-OS 75, 76, 78): row box names, merged describedby, auto row height — default output unchanged. */
   {
     const rows = [{ id: 'M-1', company: 'Acme AB' }];

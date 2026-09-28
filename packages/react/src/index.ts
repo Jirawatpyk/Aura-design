@@ -10,6 +10,7 @@ export { Field } from './Field.js';
 export { TextField } from './TextField.js';
 export { Textarea } from './Textarea.js';
 export { Select } from './Select.js';
+export { FilterSelect } from './FilterSelect.js';
 export { RadioGroup } from './RadioGroup.js';
 export { Switch } from './Switch.js';
 export { Combobox, defaultFilter as comboboxFilter } from './Combobox.js';

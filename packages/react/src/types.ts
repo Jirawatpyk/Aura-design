@@ -482,6 +482,9 @@ export interface FilterBarProps {
   actions?: React.ReactNode | undefined;
   /** Accessible name of the region. Default "Filters". */
   label?: string | undefined;
+  /** The search takes all the room the controls leave in its row, instead of stopping at 360px with the count and
+   * actions pushed to the end (5.12). */
+  searchGrow?: boolean | undefined;
   className?: string | undefined;
 }
 /** One command in the palette. */
@@ -544,6 +547,23 @@ export interface SelectProps
   /** Shown in fg-tertiary on the closed field until something is chosen; not listed as a choice. */
   placeholder?: string | undefined;
   icon?: IconInput | undefined;
+}
+/** A compact filter for FilterBar (5.12): "Status All ▾", as wide as its words. */
+export interface FilterSelectProps extends Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  'onChange' | 'value' | 'defaultValue' | 'multiple' | 'size' | 'placeholder' | 'required' | 'children'
+> {
+  /** The filter's name: shown first on the face ("Status") and its accessible name. */
+  label: string;
+  /** The choices; the first is the "all" choice. Or pass `<option>` children. */
+  options?: SelectOption[] | undefined;
+  children?: React.ReactNode | undefined;
+  value?: string | undefined;
+  defaultValue?: string | undefined;
+  onChange?: ((value: string) => void) | undefined;
+  /** A shorter word the face shows while the first option is chosen ("All" for "All statuses"). The list and screen
+   * readers keep the option's own text. */
+  allLabel?: string | undefined;
 }
 export type ChoiceOption =
   string | { value: string; label: string; description?: string | undefined; disabled?: boolean | undefined };

@@ -401,6 +401,9 @@ export interface FilterBarProps {
 	actions?: React$1.ReactNode | undefined;
 	/** Accessible name of the region. Default "Filters". */
 	label?: string | undefined;
+	/** The search takes all the room the controls leave in its row, instead of stopping at 360px with the count and
+	 * actions pushed to the end (5.12). */
+	searchGrow?: boolean | undefined;
 	className?: string | undefined;
 }
 /** One command in the palette. */
@@ -466,6 +469,20 @@ export interface SelectProps extends Omit<FieldProps, "label">, Omit<React$1.Sel
 	/** Shown in fg-tertiary on the closed field until something is chosen; not listed as a choice. */
 	placeholder?: string | undefined;
 	icon?: IconInput | undefined;
+}
+/** A compact filter for FilterBar (5.12): "Status All ▾", as wide as its words. */
+export interface FilterSelectProps extends Omit<React$1.SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value" | "defaultValue" | "multiple" | "size" | "placeholder" | "required" | "children"> {
+	/** The filter's name: shown first on the face ("Status") and its accessible name. */
+	label: string;
+	/** The choices; the first is the "all" choice. Or pass `<option>` children. */
+	options?: SelectOption[] | undefined;
+	children?: React$1.ReactNode | undefined;
+	value?: string | undefined;
+	defaultValue?: string | undefined;
+	onChange?: ((value: string) => void) | undefined;
+	/** A shorter word the face shows while the first option is chosen ("All" for "All statuses"). The list and screen
+	 * readers keep the option's own text. */
+	allLabel?: string | undefined;
 }
 export type ChoiceOption = string | {
 	value: string;
@@ -1338,6 +1355,9 @@ export declare const TextField: React$1.ForwardRefExoticComponent<TextFieldProps
 export declare const Textarea: React$1.ForwardRefExoticComponent<TextareaProps & React$1.RefAttributes<HTMLTextAreaElement>>;
 /** A select field: a button that opens an AURA list (5.3), over a real <select> that keeps forms, refs and events. */
 export declare const Select: React$1.ForwardRefExoticComponent<SelectProps & React$1.RefAttributes<HTMLSelectElement>>;
+/** A compact filter for FilterBar (5.12): a small button reading "Status All ▾" that opens Select's list. The name
+ * is the accessible name, the chosen option its value; forms, refs and the keyboard work as in Select. */
+export declare const FilterSelect: React$1.ForwardRefExoticComponent<FilterSelectProps & React$1.RefAttributes<HTMLSelectElement>>;
 export declare const RadioGroup: React$1.ForwardRefExoticComponent<RadioGroupProps & React$1.RefAttributes<HTMLFieldSetElement>>;
 export declare const Switch: React$1.ForwardRefExoticComponent<SwitchProps & React$1.RefAttributes<HTMLButtonElement>>;
 /** One value, or with `multiple` any number (chips). Two call signatures so value/onChange are typed for each. */

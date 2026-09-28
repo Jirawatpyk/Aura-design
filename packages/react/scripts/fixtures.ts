@@ -50,6 +50,15 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     TextField: h(A.TextField, { label: 'ชื่อลูกค้า', hint: 'ชื่อ–นามสกุล' }),
     Textarea: h(A.Textarea, { label: 'Notes' }),
     Select: h(A.Select, { label: 'Category', options: ['Product', 'Service'] }),
+    FilterSelect: h(A.FilterSelect, {
+      label: 'Status',
+      allLabel: 'All',
+      options: [
+        { value: 'all', label: 'All statuses' },
+        { value: 'active', label: 'Active' },
+      ],
+      defaultValue: 'all',
+    }),
     RadioGroup: h(A.RadioGroup, { label: 'Frequency', options: ['Once', 'Weekly'], defaultValue: 'Once' }),
     Switch: h(A.Switch, { label: 'Notify' }),
     Combobox: h(A.Combobox, {
@@ -202,6 +211,12 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       resultCount: 312,
       actions: h(A.Button, { variant: 'secondary' }, 'Export'),
     }),
+    FilterBarGrow: h(
+      A.FilterBar,
+      { search: '', onSearchChange: noop, searchGrow: true },
+      h(A.FilterSelect, { label: 'Plan', allLabel: 'All', options: ['All plans', 'Gold'], value: 'Gold', onChange: noop }),
+      h(A.Tag, { selected: false, onClick: noop }, 'Unpaid'),
+    ),
     Command: h(A.Command, {
       open: true,
       onOpenChange: noop,

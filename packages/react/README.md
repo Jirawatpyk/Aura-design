@@ -74,9 +74,9 @@ export default function Root() {
 | `dist/styles.css`     | Component CSS (no font import).                                                                                                                                                                            |
 | `dist/index.d.ts`     | Types for every component and helper, generated from the TypeScript sources (one file).                                                                                                                    |
 
-## Components (59)
+## Components (60)
 
-Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu (link, danger and radio items), ActionBar, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Table (+ THead, TBody, TFoot, Tr, Th, Td — static tables), FilterBar, Stat · Navigation: Command (⌘K palette), BottomNav · Layout: AppShell, Container, Stack, Grid, Separator, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
+Actions: Button (`ghost`, `size="sm"`), IconButton, Menu, DropdownMenu (link, danger and radio items), ActionBar, Tag · Forms: TextField, PasswordField, Textarea, NumberField, Select, FilterSelect, RadioGroup, Checkbox, Switch, SegmentedControl, Combobox (one value, or `multiple`), FileUpload (+ `formatBytes`) · Dates & times: DatePicker, DateRangePicker, Calendar, TimePicker (+ `useFormatDate`, `formatDate`, `parseDate`, `parseTime`) · Feedback: Alert, FormErrorSummary, Toaster/`toast()` (+ `.success/.error/.warning/.info/.loading`), Tooltip, StatusPill, Badge, Progress, Skeleton, EmptyState · Overlays: Dialog, Drawer, Popover · Data: DataTable, Table (+ THead, TBody, TFoot, Tr, Th, Td — static tables), FilterBar, Stat · Navigation: Command (⌘K palette), BottomNav · Layout: AppShell, Container, Stack, Grid, Separator, Accordion, Pagination, Card, Tabs, Stepper, SideNav, Breadcrumb, Avatar, Surface, Icon · Theme: ColorSchemeToggle, ColorSchemeScript, `useColorScheme`, ThemeStyle/`createTheme` · Hooks: `useBreakpoint`, `useResponsive`, `breakpoints`, `useAuraLocale`, `useDensity`.
 
 ## Router links, Swedish, motion
 
@@ -185,6 +185,19 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Menu items**: `href` (through `linkComponent`), `tone: 'danger'`, and `type: 'radio'` with `group` / `checked` (menuitemradio in a labelled group).
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
+
+## 5.12 — Chamber-OS addendum 12 (compact filters)
+
+- **FilterSelect** (item 79): a filter for `FilterBar` drawn as one small button — "Status All ▾" — as wide as its words, so several filters and a toggle `Tag` share a row, three and a Tag even at 375px. It is Select underneath: it opens the same AURA list (on phones too, as Select does since 5.3), with the same keys (arrows, typing, Enter, Escape), `name` in a form and a real `<select>` before hydration (with JavaScript off a choice still posts with the form, but the face keeps the server's value). `onChange` gets the value, so with react-hook-form use a `Controller` (`render={({ field }) => <FilterSelect label="Plan" {...field} options={plans} />}`), not `register`. `label` is the filter's name and its accessible name; screen readers hear the chosen option as the value. The first option is the "all" choice: `allLabel` is the shorter word its face shows ("All" for "All statuses"). A long value ("Diamond Partnership") shows in full and the button moves to the next row instead of cutting it. Right to left, the list opens from the face's right edge.
+  ```tsx
+  <FilterBar search={q} onSearchChange={setQ} searchGrow>
+    <FilterSelect label="Status" allLabel="All" options={statuses} value={status} onChange={setStatus} />
+    <FilterSelect label="Plan" allLabel="All" options={plans} value={plan} onChange={setPlan} />
+    <Tag selected={unpaid} onClick={() => setUnpaid(!unpaid)}>Unpaid</Tag>
+  </FilterBar>
+  ```
+- **FilterBar `searchGrow`**: the search takes all the room the controls leave in its row instead of stopping at 360px (no CSS override needed). Filters in a bar with FilterSelects sit 8px apart instead of 12px.
+- **Select**: a list wider than its field stays on screen, and in a right-to-left page the list is right-to-left too.
 
 ## 5.11 — Chamber-OS addendum 11 (member directory)
 

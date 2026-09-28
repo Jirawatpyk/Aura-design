@@ -10,7 +10,18 @@ import { IconCheck, IconChevronDown } from './icons.js';
 const h = React.createElement;
 
 type Item = { value: string; label: string; disabled: boolean; group: string | null; index: number };
-type Pos = { left: number; width: number; top?: number | undefined; bottom?: number | undefined; maxHeight: number };
+/* 5.12: FilterSelect is this component with a compact face ("Status All ▾"); these are its own props. */
+export const FILTER_KEY = '__auraFilter';
+export type FilterFace = { name: string; allLabel?: string | undefined };
+type Shown = { label: string; full: string; empty: boolean };
+type Pos = {
+  left: number;
+  width: number;
+  top?: number | undefined;
+  bottom?: number | undefined;
+  maxHeight: number;
+  rtl: boolean;
+};
 
 /* What stays on the hidden <select> (the form's view of the field); everything else a caller passes — style, data-*,
  * title, pointer and key handlers — goes to the button people see and use. onFocus/onKeyDown/onClick are composed
@@ -52,10 +63,38 @@ function readItems(el: HTMLSelectElement | null): Item[] {
   }) as Item[];
 }
 /* What the closed field shows before the browser has rendered the <select> (server HTML, first paint). */
-function initialLabel(props: SelectProps): { label: string; empty: boolean } {
-  const opts = (props.options || []).map(function (o: SelectOption) {
-    return typeof o === 'object' ? o : { value: o, label: o };
+function textOf(n: React.ReactNode): string {
+  if (n == null || typeof n === 'boolean') return '';
+  if (typeof n === 'string' || typeof n === 'number') return String(n);
+  if (Array.isArray(n)) return n.map(textOf).join('');
+  return React.isValidElement(n) ? textOf((n.props as { children?: React.ReactNode }).children) : '';
+}
+/* <option> / <optgroup> children, read like `options` (5.12: a filter's face shows the value in server HTML too). */
+type Opt = { value: string; label: string; disabled?: boolean | undefined };
+function childOptions(children: React.ReactNode, off?: boolean): Opt[] {
+  const out: Opt[] = [];
+  React.Children.forEach(children, function (c) {
+    if (!React.isValidElement(c)) return;
+    const p = c.props as { value?: unknown; disabled?: boolean; children?: React.ReactNode };
+    if (c.type === 'optgroup' || c.type === React.Fragment)
+      out.push.apply(out, childOptions(p.children, off || (c.type === 'optgroup' && !!p.disabled)));
+    else if (c.type === 'option') {
+      const label = textOf(p.children);
+      out.push({ value: p.value != null ? String(p.value) : label, label: label, disabled: off || !!p.disabled });
+    }
   });
+  return out;
+}
+function initialLabel(props: SelectProps, filter: FilterFace | undefined): Shown {
+  const opts: Opt[] = (props.options || [])
+    .map(function (o: SelectOption): Opt {
+      return typeof o === 'object' ? o : { value: o, label: o };
+    })
+    .concat(childOptions(props.children));
+  /* With no value the browser selects the first option that isn't disabled. */
+  const first = opts.filter(function (o) {
+    return !o.disabled;
+  })[0];
   const v =
     props.value !== undefined && props.value !== null
       ? String(props.value)
@@ -63,21 +102,27 @@ function initialLabel(props: SelectProps): { label: string; empty: boolean } {
         ? String(props.defaultValue)
         : props.placeholder
           ? ''
-          : opts[0]
-            ? opts[0].value
+          : first
+            ? first.value
             : '';
   const hit = opts.filter(function (o) {
     return o.value === v;
   })[0];
-  if (hit) return { label: hit.label, empty: false };
-  return { label: props.placeholder || '', empty: true };
+  if (hit)
+    return {
+      label: filter && filter.allLabel && opts[0] && hit.value === opts[0].value ? filter.allLabel : hit.label,
+      full: hit.label,
+      empty: false,
+    };
+  return { label: props.placeholder || '', full: props.placeholder || '', empty: true };
 }
 
 /** A select field: a button that opens an AURA list (5.3), over a real <select> that keeps forms, refs and events. */
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(props, ref) {
   const auto = uid(),
     id = props.id || auto;
-  const rest = omit(props, FIELD_KEYS.concat(['children'])) as Record<string, unknown>;
+  const filter = (props as Record<string, unknown>)[FILTER_KEY] as FilterFace | undefined;
+  const rest = omit(props, FIELD_KEYS.concat(['children', FILTER_KEY])) as Record<string, unknown>;
   const opts = (props.options || []).map(function (o: SelectOption) {
     const v: Exclude<SelectOption, string> = typeof o === 'object' ? o : { value: o, label: o };
     return (
@@ -103,7 +148,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   const density = useDensity();
   /* Dev only, after mount: a label elsewhere pointing at the id, or a title, names it too. */
   React.useEffect(function () {
-    if (props.label || props['aria-label'] || props['aria-labelledby'] || props.title) return;
+    if (filter || props.label || props['aria-label'] || props['aria-labelledby'] || props.title) return;
     if (document.querySelector('label[for="' + id.replace(/["\\]/g, '\\$&') + '"]')) return;
     devWarnOnce(
       'select-name',
@@ -115,7 +160,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
     trigRef = React.useRef<HTMLButtonElement | null>(null),
     listRef = React.useRef<HTMLDivElement | null>(null);
   const shown = React.useState(function () {
-    return initialLabel(props);
+    return initialLabel(props, filter);
   });
   const openState = React.useState(false),
     open = openState[0];
@@ -124,6 +169,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   const items = React.useState<Item[]>([]);
   const pos = React.useState<Pos | null>(null);
   const typed = React.useRef({ text: '', at: 0 });
+  const allLabel = React.useRef<string | undefined>(undefined);
+  allLabel.current = filter ? filter.allLabel : undefined;
 
   /* Keep the closed field in step with the <select> however its value changes: a pick, React (controlled value),
    * react-hook-form's reset()/setValue() (which set .value with no event), or a test's selectOption(). */
@@ -131,9 +178,12 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
     const el = selRef.current;
     if (!el) return;
     const o = el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
-    const next = o ? { label: o.textContent || '', empty: o.value === '' } : { label: '', empty: true };
+    const text = o ? o.textContent || '' : '';
+    /* A filter's first option is its "all" choice: the face may show a shorter word for it (allLabel). */
+    const short = allLabel.current && el.selectedIndex === 0 ? allLabel.current : text;
+    const next: Shown = o ? { label: short, full: text, empty: o.value === '' } : { label: '', full: '', empty: true };
     shown[1](function (cur) {
-      return cur.label === next.label && cur.empty === next.empty ? cur : next;
+      return cur.label === next.label && cur.full === next.full && cur.empty === next.empty ? cur : next;
     });
   }, []);
   const hook = React.useCallback(
@@ -348,12 +398,19 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           above = r.top - 8,
           want = listRef.current ? listRef.current.scrollHeight : 320,
           up = below < Math.min(want, 200) && above > below;
+        /* A list wider than its field (a compact filter face) starts at the field's start edge — the right one in
+         * RTL — and stays on screen. */
+        const lw = listRef.current ? Math.max(r.width, listRef.current.offsetWidth) : r.width;
+        const rtl = getComputedStyle(t).direction === 'rtl';
+        const left =
+          lw <= r.width ? r.left : Math.max(8, Math.min(rtl ? r.right - lw : r.left, window.innerWidth - lw - 8));
         pos[1]({
-          left: r.left,
+          left: left,
           width: r.width,
           top: up ? undefined : r.bottom + 4,
           bottom: up ? window.innerHeight - r.top + 4 : undefined,
           maxHeight: Math.min(320, (up ? above : below) - 4),
+          rtl: rtl,
         });
       }
       place();
@@ -388,22 +445,68 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
 
   const described =
     [describedBy(id, props), rest['aria-describedby'] as string | undefined].filter(Boolean).join(' ') || undefined;
-  const field = (child: React.ReactNode) => (
-    <Field
-      id={id}
-      labelId={native ? undefined : id + '-label' /* the label points at the button (id); the <select> is id-select */}
-      label={props.label}
-      hint={props.hint}
-      error={props.error}
-      required={props.required}
-      optional={props.optional}
-      disabled={props.disabled}
-      className={props.className}
-    >
-      {child}
-    </Field>
-  );
+  const field = (child: React.ReactNode) =>
+    filter ? (
+      child
+    ) : (
+      <Field
+        id={id}
+        labelId={
+          native ? undefined : id + '-label' /* the label points at the button (id); the <select> is id-select */
+        }
+        label={props.label}
+        hint={props.hint}
+        error={props.error}
+        required={props.required}
+        optional={props.optional}
+        disabled={props.disabled}
+        className={props.className}
+      >
+        {child}
+      </Field>
+    );
 
+  /* A filter's face: the name, the value (a short word for the "all" choice), a chevron — as wide as its words.
+   * The full option text is what screen readers hear as the value. */
+  const nameId = id + '-name';
+  const face = filter ? (
+    <>
+      {/* Hidden from the value screen readers read out; still the button's name through aria-labelledby. */}
+      <span id={nameId} className="aura-filterselect__name" aria-hidden={true}>
+        {filter.name}
+      </span>
+      <span className="aura-filterselect__value" aria-hidden={shown[0].label !== shown[0].full || undefined}>
+        {shown[0].label || ' '}
+      </span>
+      {shown[0].label !== shown[0].full ? <span className="aura-sr-only">{shown[0].full}</span> : null}
+      <Icon name={<IconChevronDown />} className="aura-filterselect__chevron" />
+    </>
+  ) : null;
+
+  /* Before hydration, a filter is its face with the real <select> laid over it, invisible: the same box before
+   * and after hydration, and a working control with JavaScript off (the choice is posted with the form, though the
+   * face keeps showing the server's value until JavaScript runs; a pick made before hydration shows once it does). */
+  if (!live && filter)
+    return (
+      <div className={cx('aura-filterselect', props.disabled && 'is-disabled', props.className)}>
+        <span className="aura-filterselect__face" aria-hidden={true} style={props.style}>
+          {face}
+        </span>
+        {h(
+          'select',
+          Object.assign(extra, omit(rest, ['style']), {
+            ref: selMerged,
+            id: id,
+            className: 'aura-filterselect__native',
+            'aria-label':
+              (rest['aria-label'] as string | undefined) || (rest['aria-labelledby'] ? undefined : filter.name),
+            'aria-describedby': described,
+          }),
+          opts,
+          props.children,
+        )}
+      </div>
+    );
   /* Before hydration, and for a list box: the real <select> as the control (what 5.2 rendered). */
   if (!live)
     return field(
@@ -431,7 +534,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   const optId = function (i: number) {
     return id + '-opt-' + i;
   };
-  const labelledBy = (rest['aria-labelledby'] as string | undefined) || (props.label ? labelId : undefined);
+  const labelledBy =
+    (rest['aria-labelledby'] as string | undefined) ||
+    (filter && !rest['aria-label'] ? nameId : props.label ? labelId : undefined);
   const selIndex = selRef.current ? selRef.current.selectedIndex : -1;
   const option = function (it: Item) {
     const sel = selIndex === it.index;
@@ -480,6 +585,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         <div
           ref={listRef}
           data-density={density}
+          /* The list lives in <body>: it takes the field's reading direction with it. */
+          dir={pos[0] ? (pos[0].rtl ? 'rtl' : 'ltr') : undefined}
           className="aura-combo__popover aura-select__popover"
           style={
             pos[0]
@@ -524,10 +631,17 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
     userClick = rest.onClick as ((e: React.MouseEvent<HTMLElement>) => void) | undefined;
   return field(
     <div
-      className={cx('aura-input aura-select aura-select--custom', props.icon && 'has-icon', open && 'is-open')}
+      className={cx(
+        filter ? 'aura-filterselect' : 'aura-input',
+        'aura-select aura-select--custom',
+        props.icon && 'has-icon',
+        open && 'is-open',
+        filter && props.disabled && 'is-disabled',
+        filter && props.className,
+      )}
       data-invalid={props.error ? '' : undefined}
     >
-      {props.icon ? <Icon name={props.icon} className="aura-input__icon" /> : null}
+      {props.icon && !filter ? <Icon name={props.icon} className="aura-input__icon" /> : null}
       {/* The real <select>: form value, name, required, ref, onChange, react-hook-form register and test helpers
        * (selectOption) all work on it. Invisible, out of the Tab order and hidden from screen readers — the button
        * below is the control people use. It sits over the button so a browser's "please select" bubble points there. */}
@@ -563,7 +677,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         role="combobox"
         /* Not a form control of its own: form.elements.namedItem(name or id) still finds only the <select>. */
         form={id + '-no-form'}
-        className="aura-input__control aura-select__trigger"
+        className={filter ? 'aura-select__trigger aura-filterselect__face' : 'aura-input__control aura-select__trigger'}
         disabled={props.disabled}
         tabIndex={rest.tabIndex as number | undefined}
         aria-haspopup="listbox"
@@ -572,7 +686,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         aria-activedescendant={open && active >= 0 ? optId(active) : undefined}
         id={id}
         aria-label={rest['aria-label'] as string | undefined}
-        aria-labelledby={rest['aria-labelledby'] as string | undefined}
+        aria-labelledby={
+          (rest['aria-labelledby'] as string | undefined) || (filter && !rest['aria-label'] ? nameId : undefined)
+        }
         aria-required={props.required || undefined}
         aria-invalid={props.error ? true : undefined}
         aria-describedby={described}
@@ -596,11 +712,13 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           if (selRef.current) selRef.current.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
         }}
       >
-        <span id={id + '-value'} className={cx('aura-select__value', shown[0].empty && 'is-placeholder')}>
-          {shown[0].label || ' '}
-        </span>
+        {face || (
+          <span id={id + '-value'} className={cx('aura-select__value', shown[0].empty && 'is-placeholder')}>
+            {shown[0].label || ' '}
+          </span>
+        )}
       </button>
-      <Icon name={<IconChevronDown />} className="aura-select__chevron" />
+      {filter ? null : <Icon name={<IconChevronDown />} className="aura-select__chevron" />}
       {popup}
     </div>,
   );

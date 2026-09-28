@@ -3109,3 +3109,121 @@ test.describe('5.11: Chamber-OS addendum 11', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.12: Chamber-OS addendum 12', () => {
+  const faces = (page: Page) =>
+    page.locator('.aura-filterselect, .aura-tag').evaluateAll((els) =>
+      els.map((e) => {
+        const r = e.getBoundingClientRect();
+        const v = e.querySelector('.aura-filterselect__value');
+        return {
+          text: v ? e.querySelector('.aura-filterselect__name')!.textContent + ' ' + v.textContent : e.textContent,
+          top: Math.round((r.top + r.bottom) / 2) /* the row a face sits in: faces and Tags differ in height */,
+          left: r.left,
+          right: r.right,
+          clipped: v ? v.scrollWidth > v.clientWidth + 0.5 || v.getBoundingClientRect().height > 24 : false,
+        };
+      }),
+    );
+
+  test('FilterSelect reads "Status All", is named by its filter, fits a phone row and wraps whole', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await story(page, 'aura-new-in-5-12--filter-selects');
+    await expect(page.getByRole('region', { name: 'Member filters' })).toMatchAriaSnapshot(`
+      - searchbox "Search members"
+      - combobox "Status": All statuses
+      - combobox "Plan": All plans
+      - combobox "Type": All types
+      - button "Unpaid"
+    `);
+    /* Three filters and a Tag on one row at 375px, each as wide as its words. */
+    let row = await faces(page);
+    expect(row.map((f) => f.text)).toEqual(['Status All', 'Plan All', 'Type All', 'Unpaid']);
+    expect(new Set(row.map((f) => f.top)).size).toBe(1);
+    /* Keyboard as Select: Enter opens the list, arrows move, Enter picks, focus stays on the face. */
+    const plan = page.getByRole('combobox', { name: 'Plan' });
+    await plan.focus();
+    await page.keyboard.press('Enter');
+    await expect(plan).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('listbox', { name: 'Plan' })).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(plan).toBeFocused();
+    await expect(page.getByTestId('filter-state')).toHaveText('all · diamond · all · any · —');
+    /* The long value shows in full; the next filter moves to the next row instead. Nothing leaves the screen. */
+    row = await faces(page);
+    expect(row[1]).toMatchObject({ text: 'Plan Diamond Partnership', clipped: false });
+    expect(row[2]!.top).toBeGreaterThan(row[1]!.top);
+    for (const f of row) expect(f.right).toBeLessThanOrEqual(375 - 16 + 0.5);
+    await expect(plan).toHaveAccessibleName('Plan');
+    await expect(page.getByRole('region', { name: 'Member filters' })).toMatchAriaSnapshot(
+      `- combobox "Plan": Diamond Partnership`,
+    );
+    /* Focus ring on keyboard focus only. */
+    const ring = (name: string) =>
+      page.getByRole('combobox', { name }).evaluate((el) => getComputedStyle(el).outlineStyle);
+    await page.getByRole('combobox', { name: 'Status' }).click();
+    await expect(page.getByRole('combobox', { name: 'Status' })).toBeFocused();
+    expect(await ring('Status')).toBe('none'); /* a click shows no ring */
+    await page.keyboard.press('Escape');
+    await page.getByRole('searchbox').focus();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('combobox', { name: 'Status' })).toBeFocused();
+    expect(await ring('Status')).toBe('solid');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('FilterSelect is right to left with its list; searchGrow fills the row', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await story(page, 'aura-new-in-5-12--filter-selects-rtl');
+    const status = page.getByRole('combobox', { name: 'Status' });
+    const xs = await status.evaluate((el) => {
+      const x = (s: string) => el.querySelector(s)!.getBoundingClientRect().left;
+      return [x('.aura-filterselect__name'), x('.aura-filterselect__value'), x('.aura-filterselect__chevron')];
+    });
+    expect(xs[0]).toBeGreaterThan(xs[1]!); /* name, then value, then chevron — from the right */
+    expect(xs[1]).toBeGreaterThan(xs[2]!);
+    await status.click();
+    const list = page.locator('.aura-select__popover');
+    await expect(list).toHaveAttribute('dir', 'rtl');
+    const [f, l] = [(await status.boundingBox())!, (await list.boundingBox())!];
+    expect(Math.abs(f.x + f.width - (l.x + l.width))).toBeLessThanOrEqual(1); /* aligned to the face's start edge */
+    await page.keyboard.press('Escape');
+    /* searchGrow: the search takes the room the filters leave (default stops at 360px). */
+    const search = (await page.locator('.aura-filterbar__search').boundingBox())!;
+    const bar = (await page.locator('.aura-filterbar__row').boundingBox())!;
+    const lastFilter = (await page.locator('.aura-tag').boundingBox())!;
+    expect(search.width).toBeGreaterThan(360);
+    expect(search.x + search.width).toBeCloseTo(
+      bar.x + bar.width,
+      0,
+    ); /* it reaches the row's end (RTL: left is the end) */
+    expect(lastFilter.x).toBeCloseTo(bar.x, 0);
+    await expect(page.locator('.aura-filterbar__spacer')).toBeHidden();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('Select: a list wider than its field stays on screen; a right-to-left field gets a right-to-left list', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 800, height: 700 });
+    await story(page, 'aura-new-in-5-12--select-list-placement');
+    const list = page.locator('.aura-select__popover');
+    const ltr = page.getByTestId('narrow-ltr');
+    await ltr.click();
+    let [f, l] = [(await ltr.boundingBox())!, (await list.boundingBox())!];
+    expect(l.width).toBeGreaterThan(f.width + 40);
+    expect(l.x + l.width).toBeLessThanOrEqual(800 - 8 + 0.5); /* moved left to stay on screen */
+    await expect(list).toHaveAttribute('dir', 'ltr');
+    await page.keyboard.press('Escape');
+    const rtl = page.getByTestId('narrow-rtl');
+    await rtl.click();
+    [f, l] = [(await rtl.boundingBox())!, (await list.boundingBox())!];
+    await expect(list).toHaveAttribute('dir', 'rtl');
+    expect(l.width).toBeGreaterThan(f.width + 40);
+    expect(Math.abs(f.x + f.width - (l.x + l.width))).toBeLessThanOrEqual(1); /* from the field's right edge */
+    await page.keyboard.press('Escape');
+  });
+});

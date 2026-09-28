@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Aura","components":[{"name":"Icon"},{"name":"Button"},{"name":"IconButton"},{"name":"Menu"},{"name":"DropdownMenu"},{"name":"Checkbox"},{"name":"StatusPill"},{"name":"TextField"},{"name":"Textarea"},{"name":"Select"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Combobox"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"Calendar"},{"name":"Alert"},{"name":"Toaster"},{"name":"PasswordField"},{"name":"FormErrorSummary"},{"name":"FilterBar"},{"name":"Command"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Drawer"},{"name":"DataTable"},{"name":"Card"},{"name":"Tabs"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"Stack"},{"name":"Grid"},{"name":"Container"},{"name":"AppShell"},{"name":"ActionBar"},{"name":"Separator"},{"name":"Table"},{"name":"Tr"},{"name":"Th"},{"name":"Td"},{"name":"BottomNav"},{"name":"Surface"},{"name":"Stat"},{"name":"TimePicker"},{"name":"FileUpload"},{"name":"ColorSchemeScript"},{"name":"ColorSchemeToggle"},{"name":"Badge"},{"name":"Tag"},{"name":"Progress"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Pagination"},{"name":"Accordion"},{"name":"Popover"},{"name":"NumberField"},{"name":"Stepper"},{"name":"SegmentedControl"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Aura","components":[{"name":"Icon"},{"name":"Button"},{"name":"IconButton"},{"name":"Menu"},{"name":"DropdownMenu"},{"name":"Checkbox"},{"name":"StatusPill"},{"name":"TextField"},{"name":"Textarea"},{"name":"Select"},{"name":"FilterSelect"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Combobox"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"Calendar"},{"name":"Alert"},{"name":"Toaster"},{"name":"PasswordField"},{"name":"FormErrorSummary"},{"name":"FilterBar"},{"name":"Command"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Drawer"},{"name":"DataTable"},{"name":"Card"},{"name":"Tabs"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"Stack"},{"name":"Grid"},{"name":"Container"},{"name":"AppShell"},{"name":"ActionBar"},{"name":"Separator"},{"name":"Table"},{"name":"Tr"},{"name":"Th"},{"name":"Td"},{"name":"BottomNav"},{"name":"Surface"},{"name":"Stat"},{"name":"TimePicker"},{"name":"FileUpload"},{"name":"ColorSchemeScript"},{"name":"ColorSchemeToggle"},{"name":"Badge"},{"name":"Tag"},{"name":"Progress"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Pagination"},{"name":"Accordion"},{"name":"Popover"},{"name":"NumberField"},{"name":"Stepper"},{"name":"SegmentedControl"}]} */
 window.Aura = (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
@@ -78,6 +78,7 @@ window.Aura = (() => {
     Field: () => Field,
     FileUpload: () => FileUpload,
     FilterBar: () => FilterBar,
+    FilterSelect: () => FilterSelect,
     FormErrorSummary: () => FormErrorSummary,
     Grid: () => Grid,
     ICONS: () => ICONS,
@@ -1654,6 +1655,7 @@ window.Aura = (() => {
   var React15 = __toESM(require_react(), 1);
   var import_react_dom2 = __toESM(require_react_dom(), 1);
   var h4 = React15.createElement;
+  var FILTER_KEY = "__auraFilter";
   var FORM_KEYS = ["name", "form", "value", "defaultValue", "disabled", "autoComplete", "onInput", "onInvalid"];
   var HANDLED_KEYS = FORM_KEYS.concat([
     "onChange",
@@ -1687,20 +1689,49 @@ window.Aura = (() => {
       };
     });
   }
-  function initialLabel(props) {
+  function textOf(n3) {
+    if (n3 == null || typeof n3 === "boolean") return "";
+    if (typeof n3 === "string" || typeof n3 === "number") return String(n3);
+    if (Array.isArray(n3)) return n3.map(textOf).join("");
+    return React15.isValidElement(n3) ? textOf(n3.props.children) : "";
+  }
+  function childOptions(children, off) {
+    const out = [];
+    React15.Children.forEach(children, function(c) {
+      if (!React15.isValidElement(c)) return;
+      const p = c.props;
+      if (c.type === "optgroup" || c.type === React15.Fragment)
+        out.push.apply(out, childOptions(p.children, off || c.type === "optgroup" && !!p.disabled));
+      else if (c.type === "option") {
+        const label = textOf(p.children);
+        out.push({ value: p.value != null ? String(p.value) : label, label, disabled: off || !!p.disabled });
+      }
+    });
+    return out;
+  }
+  function initialLabel(props, filter) {
     const opts = (props.options || []).map(function(o) {
       return typeof o === "object" ? o : { value: o, label: o };
-    });
-    const v = props.value !== void 0 && props.value !== null ? String(props.value) : props.defaultValue !== void 0 && props.defaultValue !== null ? String(props.defaultValue) : props.placeholder ? "" : opts[0] ? opts[0].value : "";
+    }).concat(childOptions(props.children));
+    const first = opts.filter(function(o) {
+      return !o.disabled;
+    })[0];
+    const v = props.value !== void 0 && props.value !== null ? String(props.value) : props.defaultValue !== void 0 && props.defaultValue !== null ? String(props.defaultValue) : props.placeholder ? "" : first ? first.value : "";
     const hit = opts.filter(function(o) {
       return o.value === v;
     })[0];
-    if (hit) return { label: hit.label, empty: false };
-    return { label: props.placeholder || "", empty: true };
+    if (hit)
+      return {
+        label: filter && filter.allLabel && opts[0] && hit.value === opts[0].value ? filter.allLabel : hit.label,
+        full: hit.label,
+        empty: false
+      };
+    return { label: props.placeholder || "", full: props.placeholder || "", empty: true };
   }
   var Select = React15.forwardRef(function Select2(props, ref) {
     const auto = uid(), id = props.id || auto;
-    const rest = omit(props, FIELD_KEYS.concat(["children"]));
+    const filter = props[FILTER_KEY];
+    const rest = omit(props, FIELD_KEYS.concat(["children", FILTER_KEY]));
     const opts = (props.options || []).map(function(o) {
       const v = typeof o === "object" ? o : { value: o, label: o };
       return /* @__PURE__ */ React15.createElement("option", { key: v.value, value: v.value, disabled: v.disabled }, v.label);
@@ -1715,7 +1746,7 @@ window.Aura = (() => {
     const live = !native && mounted;
     const density = useDensity();
     React15.useEffect(function() {
-      if (props.label || props["aria-label"] || props["aria-labelledby"] || props.title) return;
+      if (filter || props.label || props["aria-label"] || props["aria-labelledby"] || props.title) return;
       if (document.querySelector('label[for="' + id.replace(/["\\]/g, "\\$&") + '"]')) return;
       devWarnOnce(
         "select-name",
@@ -1724,20 +1755,24 @@ window.Aura = (() => {
     }, []);
     const selRef = React15.useRef(null), trigRef = React15.useRef(null), listRef = React15.useRef(null);
     const shown = React15.useState(function() {
-      return initialLabel(props);
+      return initialLabel(props, filter);
     });
     const openState = React15.useState(false), open = openState[0];
     const activeState = React15.useState(-1), active = activeState[0];
     const items2 = React15.useState([]);
     const pos = React15.useState(null);
     const typed = React15.useRef({ text: "", at: 0 });
+    const allLabel = React15.useRef(void 0);
+    allLabel.current = filter ? filter.allLabel : void 0;
     const sync = React15.useCallback(function() {
       const el = selRef.current;
       if (!el) return;
       const o = el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
-      const next = o ? { label: o.textContent || "", empty: o.value === "" } : { label: "", empty: true };
+      const text2 = o ? o.textContent || "" : "";
+      const short = allLabel.current && el.selectedIndex === 0 ? allLabel.current : text2;
+      const next = o ? { label: short, full: text2, empty: o.value === "" } : { label: "", full: "", empty: true };
       shown[1](function(cur) {
-        return cur.label === next.label && cur.empty === next.empty ? cur : next;
+        return cur.label === next.label && cur.full === next.full && cur.empty === next.empty ? cur : next;
       });
     }, []);
     const hook = React15.useCallback(
@@ -1928,12 +1963,16 @@ window.Aura = (() => {
           const t = trigRef.current && trigRef.current.parentElement;
           if (!t) return;
           const r = t.getBoundingClientRect(), below2 = window.innerHeight - r.bottom - 8, above = r.top - 8, want = listRef.current ? listRef.current.scrollHeight : 320, up = below2 < Math.min(want, 200) && above > below2;
+          const lw = listRef.current ? Math.max(r.width, listRef.current.offsetWidth) : r.width;
+          const rtl = getComputedStyle(t).direction === "rtl";
+          const left = lw <= r.width ? r.left : Math.max(8, Math.min(rtl ? r.right - lw : r.left, window.innerWidth - lw - 8));
           pos[1]({
-            left: r.left,
+            left,
             width: r.width,
             top: up ? void 0 : r.bottom + 4,
             bottom: up ? window.innerHeight - r.top + 4 : void 0,
-            maxHeight: Math.min(320, (up ? above : below2) - 4)
+            maxHeight: Math.min(320, (up ? above : below2) - 4),
+            rtl
           });
         }
         place();
@@ -1966,7 +2005,7 @@ window.Aura = (() => {
       [open, active, pos[0] != null]
     );
     const described = [describedBy(id, props), rest["aria-describedby"]].filter(Boolean).join(" ") || void 0;
-    const field = (child) => /* @__PURE__ */ React15.createElement(
+    const field = (child) => filter ? child : /* @__PURE__ */ React15.createElement(
       Field,
       {
         id,
@@ -1981,6 +2020,21 @@ window.Aura = (() => {
       },
       child
     );
+    const nameId = id + "-name";
+    const face = filter ? /* @__PURE__ */ React15.createElement(React15.Fragment, null, /* @__PURE__ */ React15.createElement("span", { id: nameId, className: "aura-filterselect__name", "aria-hidden": true }, filter.name), /* @__PURE__ */ React15.createElement("span", { className: "aura-filterselect__value", "aria-hidden": shown[0].label !== shown[0].full || void 0 }, shown[0].label || " "), shown[0].label !== shown[0].full ? /* @__PURE__ */ React15.createElement("span", { className: "aura-sr-only" }, shown[0].full) : null, /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-filterselect__chevron" })) : null;
+    if (!live && filter)
+      return /* @__PURE__ */ React15.createElement("div", { className: cx("aura-filterselect", props.disabled && "is-disabled", props.className) }, /* @__PURE__ */ React15.createElement("span", { className: "aura-filterselect__face", "aria-hidden": true, style: props.style }, face), h4(
+        "select",
+        Object.assign(extra, omit(rest, ["style"]), {
+          ref: selMerged,
+          id,
+          className: "aura-filterselect__native",
+          "aria-label": rest["aria-label"] || (rest["aria-labelledby"] ? void 0 : filter.name),
+          "aria-describedby": described
+        }),
+        opts,
+        props.children
+      ));
     if (!live)
       return field(
         /* @__PURE__ */ React15.createElement("div", { className: cx("aura-input aura-select", props.icon && "has-icon") }, props.icon ? /* @__PURE__ */ React15.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, h4(
@@ -2001,7 +2055,7 @@ window.Aura = (() => {
     const optId = function(i) {
       return id + "-opt-" + i;
     };
-    const labelledBy = rest["aria-labelledby"] || (props.label ? labelId : void 0);
+    const labelledBy = rest["aria-labelledby"] || (filter && !rest["aria-label"] ? nameId : props.label ? labelId : void 0);
     const selIndex = selRef.current ? selRef.current.selectedIndex : -1;
     const option = function(it) {
       const sel = selIndex === it.index;
@@ -2047,6 +2101,7 @@ window.Aura = (() => {
         {
           ref: listRef,
           "data-density": density,
+          dir: pos[0] ? pos[0].rtl ? "rtl" : "ltr" : void 0,
           className: "aura-combo__popover aura-select__popover",
           style: pos[0] ? {
             left: pos[0].left,
@@ -2079,10 +2134,17 @@ window.Aura = (() => {
       /* @__PURE__ */ React15.createElement(
         "div",
         {
-          className: cx("aura-input aura-select aura-select--custom", props.icon && "has-icon", open && "is-open"),
+          className: cx(
+            filter ? "aura-filterselect" : "aura-input",
+            "aura-select aura-select--custom",
+            props.icon && "has-icon",
+            open && "is-open",
+            filter && props.disabled && "is-disabled",
+            filter && props.className
+          ),
           "data-invalid": props.error ? "" : void 0
         },
-        props.icon ? /* @__PURE__ */ React15.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null,
+        props.icon && !filter ? /* @__PURE__ */ React15.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null,
         h4(
           "select",
           Object.assign(extra, pick(rest, FORM_KEYS), {
@@ -2116,7 +2178,7 @@ window.Aura = (() => {
             type: "button",
             role: "combobox",
             form: id + "-no-form",
-            className: "aura-input__control aura-select__trigger",
+            className: filter ? "aura-select__trigger aura-filterselect__face" : "aura-input__control aura-select__trigger",
             disabled: props.disabled,
             tabIndex: rest.tabIndex,
             "aria-haspopup": "listbox",
@@ -2125,7 +2187,7 @@ window.Aura = (() => {
             "aria-activedescendant": open && active >= 0 ? optId(active) : void 0,
             id,
             "aria-label": rest["aria-label"],
-            "aria-labelledby": rest["aria-labelledby"],
+            "aria-labelledby": rest["aria-labelledby"] || (filter && !rest["aria-label"] ? nameId : void 0),
             "aria-required": props.required || void 0,
             "aria-invalid": props.error ? true : void 0,
             "aria-describedby": described,
@@ -2148,17 +2210,30 @@ window.Aura = (() => {
               if (selRef.current) selRef.current.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
             }
           },
-          /* @__PURE__ */ React15.createElement("span", { id: id + "-value", className: cx("aura-select__value", shown[0].empty && "is-placeholder") }, shown[0].label || " ")
+          face || /* @__PURE__ */ React15.createElement("span", { id: id + "-value", className: cx("aura-select__value", shown[0].empty && "is-placeholder") }, shown[0].label || " ")
         ),
-        /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-select__chevron" }),
+        filter ? null : /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-select__chevron" }),
         popup
       )
     );
   });
 
-  // src/RadioGroup.tsx
+  // src/FilterSelect.tsx
   var React16 = __toESM(require_react(), 1);
-  var RadioGroup = React16.forwardRef(function RadioGroup2(props, ref) {
+  var FilterSelect = React16.forwardRef(function FilterSelect2(props, ref) {
+    const onChange = props.onChange;
+    const pass = Object.assign(omit(props, ["label", "allLabel", "onChange"]), {
+      [FILTER_KEY]: { name: props.label, allLabel: props.allLabel },
+      onChange: onChange ? function(e) {
+        onChange(e.target.value);
+      } : void 0
+    });
+    return /* @__PURE__ */ React16.createElement(Select, { ...pass, ref });
+  });
+
+  // src/RadioGroup.tsx
+  var React17 = __toESM(require_react(), 1);
+  var RadioGroup = React17.forwardRef(function RadioGroup2(props, ref) {
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(
       props.value,
@@ -2166,7 +2241,7 @@ window.Aura = (() => {
       props.onChange
     );
     const name = props.name || id;
-    const setRef = React16.useCallback(
+    const setRef = React17.useCallback(
       function(el) {
         if (el)
           el.focus = function(opts) {
@@ -2178,7 +2253,7 @@ window.Aura = (() => {
       },
       [ref]
     );
-    return /* @__PURE__ */ React16.createElement(
+    return /* @__PURE__ */ React17.createElement(
       "fieldset",
       {
         ref: setRef,
@@ -2187,10 +2262,10 @@ window.Aura = (() => {
         "aria-invalid": props.error ? true : void 0,
         disabled: props.disabled
       },
-      props.label ? /* @__PURE__ */ React16.createElement("legend", { className: "aura-field__label" }, props.label, props.required ? /* @__PURE__ */ React16.createElement("span", { className: "aura-field__req", "aria-hidden": true }, " *") : null) : null,
-      /* @__PURE__ */ React16.createElement("div", { className: cx("aura-radio-group__list", props.orientation === "horizontal" && "is-horizontal") }, (props.options || []).map(function(o) {
+      props.label ? /* @__PURE__ */ React17.createElement("legend", { className: "aura-field__label" }, props.label, props.required ? /* @__PURE__ */ React17.createElement("span", { className: "aura-field__req", "aria-hidden": true }, " *") : null) : null,
+      /* @__PURE__ */ React17.createElement("div", { className: cx("aura-radio-group__list", props.orientation === "horizontal" && "is-horizontal") }, (props.options || []).map(function(o) {
         const v = typeof o === "object" ? o : { value: o, label: o };
-        return /* @__PURE__ */ React16.createElement("label", { key: v.value, className: cx("aura-choice", v.disabled && "is-disabled") }, /* @__PURE__ */ React16.createElement(
+        return /* @__PURE__ */ React17.createElement("label", { key: v.value, className: cx("aura-choice", v.disabled && "is-disabled") }, /* @__PURE__ */ React17.createElement(
           "input",
           {
             type: "radio",
@@ -2204,19 +2279,19 @@ window.Aura = (() => {
               st[1](v.value);
             }
           }
-        ), /* @__PURE__ */ React16.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React16.createElement("span", { className: "aura-choice__label" }, v.label), v.description ? /* @__PURE__ */ React16.createElement("span", { className: "aura-choice__desc" }, v.description) : null));
+        ), /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__label" }, v.label), v.description ? /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__desc" }, v.description) : null));
       })),
-      props.error ? /* @__PURE__ */ React16.createElement("p", { className: "aura-field__error", id: id + "-error" }, /* @__PURE__ */ React16.createElement(Icon, { name: /* @__PURE__ */ React16.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React16.createElement("p", { className: "aura-field__hint", id: id + "-hint" }, props.hint) : null
+      props.error ? /* @__PURE__ */ React17.createElement("p", { className: "aura-field__error", id: id + "-error" }, /* @__PURE__ */ React17.createElement(Icon, { name: /* @__PURE__ */ React17.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React17.createElement("p", { className: "aura-field__hint", id: id + "-hint" }, props.hint) : null
     );
   });
 
   // src/Switch.tsx
-  var React17 = __toESM(require_react(), 1);
-  var Switch = React17.forwardRef(function Switch2(props, ref) {
+  var React18 = __toESM(require_react(), 1);
+  var Switch = React18.forwardRef(function Switch2(props, ref) {
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
     const on = !!st[0];
-    return /* @__PURE__ */ React17.createElement(
+    return /* @__PURE__ */ React18.createElement(
       "div",
       {
         className: cx("aura-switch-row", props.disabled && "is-disabled", props.className),
@@ -2226,7 +2301,7 @@ window.Aura = (() => {
           st[1](!on);
         }
       },
-      /* @__PURE__ */ React17.createElement(
+      /* @__PURE__ */ React18.createElement(
         "button",
         {
           ref,
@@ -2243,14 +2318,14 @@ window.Aura = (() => {
             st[1](!on);
           }
         },
-        /* @__PURE__ */ React17.createElement("span", { className: "aura-switch__thumb" })
+        /* @__PURE__ */ React18.createElement("span", { className: "aura-switch__thumb" })
       ),
-      props.label ? /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React17.createElement("label", { className: "aura-choice__label", id: id + "-label", htmlFor: id }, props.label), props.description ? /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__desc", id: id + "-desc" }, props.description) : null) : props.description ? /* @__PURE__ */ React17.createElement("span", { className: "aura-sr-only", id: id + "-desc" }, props.description) : null
+      props.label ? /* @__PURE__ */ React18.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React18.createElement("label", { className: "aura-choice__label", id: id + "-label", htmlFor: id }, props.label), props.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-choice__desc", id: id + "-desc" }, props.description) : null) : props.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-sr-only", id: id + "-desc" }, props.description) : null
     );
   });
 
   // src/Combobox.tsx
-  var React18 = __toESM(require_react(), 1);
+  var React19 = __toESM(require_react(), 1);
   var import_react_dom3 = __toESM(require_react_dom(), 1);
   function norm(s) {
     return String(s == null ? "" : s).normalize("NFC").toLocaleLowerCase("th");
@@ -2265,7 +2340,7 @@ window.Aura = (() => {
       return norm(k).indexOf(q) >= 0;
     });
   }
-  var Combobox = React18.forwardRef(
+  var Combobox = React19.forwardRef(
     function Combobox2(all, ref) {
       const props = all;
       const multi = all.multiple === true;
@@ -2300,11 +2375,11 @@ window.Aura = (() => {
           return o.value === v;
         })[0];
       }).filter(Boolean) : [];
-      const openState = React18.useState(false), open = openState[0], setOpen = openState[1];
-      const qState = React18.useState(null), query = qState[0], setQuery = qState[1];
-      const aState = React18.useState(0), active = aState[0], setActive = aState[1];
-      const posState = React18.useState(null);
-      const inputRef = React18.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React18.useRef(null), listRef = React18.useRef(null);
+      const openState = React19.useState(false), open = openState[0], setOpen = openState[1];
+      const qState = React19.useState(null), query = qState[0], setQuery = qState[1];
+      const aState = React19.useState(0), active = aState[0], setActive = aState[1];
+      const posState = React19.useState(null);
+      const inputRef = React19.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React19.useRef(null), listRef = React19.useRef(null);
       const mounted = useMounted();
       const limit = props.limit || 200;
       const filter = props.filter || defaultFilter;
@@ -2332,7 +2407,7 @@ window.Aura = (() => {
         },
         [open, shown.length, values.length]
       );
-      React18.useEffect(
+      React19.useEffect(
         function() {
           if (!open) return;
           function outside(e) {
@@ -2354,7 +2429,7 @@ window.Aura = (() => {
         },
         [open]
       );
-      React18.useEffect(
+      React19.useEffect(
         function() {
           if (!open || !listRef.current) return;
           const el = listRef.current.querySelector('[data-idx="' + activeIdx + '"]');
@@ -2435,7 +2510,7 @@ window.Aura = (() => {
         return id + "-opt-" + i;
       };
       const list = open && mounted && posState[0] ? (0, import_react_dom3.createPortal)(
-        /* @__PURE__ */ React18.createElement("div", { ref: listRef, "data-density": density, className: "aura-combo__popover", style: posState[0] }, live.length ? /* @__PURE__ */ React18.createElement(
+        /* @__PURE__ */ React19.createElement("div", { ref: listRef, "data-density": density, className: "aura-combo__popover", style: posState[0] }, live.length ? /* @__PURE__ */ React19.createElement(
           "ul",
           {
             id: listId,
@@ -2447,7 +2522,7 @@ window.Aura = (() => {
           live.map(function(o, i) {
             const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
             const blocked = o.disabled || multi && full && !isSel;
-            return /* @__PURE__ */ React18.createElement(
+            return /* @__PURE__ */ React19.createElement(
               "li",
               {
                 key: o.value,
@@ -2472,15 +2547,15 @@ window.Aura = (() => {
                   if (activeIdx !== i) setActive(i);
                 }
               },
-              o.icon ? /* @__PURE__ */ React18.createElement(Icon, { name: o.icon }) : null,
-              /* @__PURE__ */ React18.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React18.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
-              isSel ? /* @__PURE__ */ React18.createElement(Icon, { name: /* @__PURE__ */ React18.createElement(IconCheck, null), className: "aura-combo__check" }) : null
+              o.icon ? /* @__PURE__ */ React19.createElement(Icon, { name: o.icon }) : null,
+              /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
+              isSel ? /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconCheck, null), className: "aura-combo__check" }) : null
             );
           })
-        ) : null, props.loading || !live.length || more ? /* @__PURE__ */ React18.createElement("div", { className: "aura-combo__list", role: "status" }, props.loading ? /* @__PURE__ */ React18.createElement("div", { className: "aura-combo__note" }, /* @__PURE__ */ React18.createElement(Icon, { name: /* @__PURE__ */ React18.createElement(IconLoaderCircle, null), className: "aura-spin" }), props.loadingText || t.searching) : !live.length ? /* @__PURE__ */ React18.createElement("div", { className: "aura-combo__note" }, props.emptyText || t.noMatches) : /* @__PURE__ */ React18.createElement("div", { className: "aura-combo__note" }, t.keepTyping((props.options || []).length))) : null),
+        ) : null, props.loading || !live.length || more ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__list", role: "status" }, props.loading ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconLoaderCircle, null), className: "aura-spin" }), props.loadingText || t.searching) : !live.length ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, props.emptyText || t.noMatches) : /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, t.keepTyping((props.options || []).length))) : null),
         document.body
       ) : null;
-      return /* @__PURE__ */ React18.createElement(
+      return /* @__PURE__ */ React19.createElement(
         Field,
         {
           id,
@@ -2492,8 +2567,8 @@ window.Aura = (() => {
           disabled: props.disabled,
           className: props.className
         },
-        /* @__PURE__ */ React18.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open", multi && "is-multi") }, /* @__PURE__ */ React18.createElement(Icon, { name: props.icon || /* @__PURE__ */ React18.createElement(IconSearch, null), className: "aura-input__icon" }), multi && picked.length ? /* @__PURE__ */ React18.createElement("span", { className: "aura-combo__chips" }, picked.map(function(o) {
-          return /* @__PURE__ */ React18.createElement("span", { key: o.value, className: "aura-combo__chip" }, /* @__PURE__ */ React18.createElement("span", { className: "aura-combo__chip-label" }, o.label), props.disabled || props.readOnly ? null : /* @__PURE__ */ React18.createElement(
+        /* @__PURE__ */ React19.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open", multi && "is-multi") }, /* @__PURE__ */ React19.createElement(Icon, { name: props.icon || /* @__PURE__ */ React19.createElement(IconSearch, null), className: "aura-input__icon" }), multi && picked.length ? /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__chips" }, picked.map(function(o) {
+          return /* @__PURE__ */ React19.createElement("span", { key: o.value, className: "aura-combo__chip" }, /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__chip-label" }, o.label), props.disabled || props.readOnly ? null : /* @__PURE__ */ React19.createElement(
             "button",
             {
               type: "button",
@@ -2512,13 +2587,13 @@ window.Aura = (() => {
                 if (inputRef.current) inputRef.current.focus();
               }
             },
-            /* @__PURE__ */ React18.createElement(Icon, { name: /* @__PURE__ */ React18.createElement(IconX, null) })
+            /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconX, null) })
           ));
-        })) : null, multi ? /* @__PURE__ */ React18.createElement("span", { id: summaryId, className: "aura-sr-only" }, picked.length ? t.selectedCount(picked.length) + ": " + picked.map(function(o) {
+        })) : null, multi ? /* @__PURE__ */ React19.createElement("span", { id: summaryId, className: "aura-sr-only" }, picked.length ? t.selectedCount(picked.length) + ": " + picked.map(function(o) {
           return o.label;
         }).join(", ") : "") : null, props.name ? multi ? values.map(function(v) {
-          return /* @__PURE__ */ React18.createElement("input", { key: v, type: "hidden", name: props.name, value: v });
-        }) : /* @__PURE__ */ React18.createElement("input", { type: "hidden", name: props.name, value: value == null ? "" : value }) : null, /* @__PURE__ */ React18.createElement(
+          return /* @__PURE__ */ React19.createElement("input", { key: v, type: "hidden", name: props.name, value: v });
+        }) : /* @__PURE__ */ React19.createElement("input", { type: "hidden", name: props.name, value: value == null ? "" : value }) : null, /* @__PURE__ */ React19.createElement(
           "input",
           {
             ref: inputMerged,
@@ -2554,7 +2629,7 @@ window.Aura = (() => {
               }, 0);
             }
           }
-        ), props.clearable !== false && values.length && !props.disabled && !props.readOnly ? /* @__PURE__ */ React18.createElement(
+        ), props.clearable !== false && values.length && !props.disabled && !props.readOnly ? /* @__PURE__ */ React19.createElement(
           "button",
           {
             type: "button",
@@ -2567,8 +2642,8 @@ window.Aura = (() => {
               if (inputRef.current) inputRef.current.focus();
             }
           },
-          /* @__PURE__ */ React18.createElement(Icon, { name: /* @__PURE__ */ React18.createElement(IconX, null) })
-        ) : null, /* @__PURE__ */ React18.createElement(
+          /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconX, null) })
+        ) : null, /* @__PURE__ */ React19.createElement(
           "button",
           {
             type: "button",
@@ -2586,7 +2661,7 @@ window.Aura = (() => {
               }
             }
           },
-          /* @__PURE__ */ React18.createElement(Icon, { name: /* @__PURE__ */ React18.createElement(IconChevronDown, null) })
+          /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconChevronDown, null) })
         )),
         list
       );
@@ -2594,7 +2669,7 @@ window.Aura = (() => {
   );
 
   // src/DatePicker.tsx
-  var React19 = __toESM(require_react(), 1);
+  var React20 = __toESM(require_react(), 1);
   var import_react_dom4 = __toESM(require_react_dom(), 1);
 
   // src/dates.ts
@@ -2778,7 +2853,7 @@ window.Aura = (() => {
   // src/DatePicker.tsx
   function useFormatDate() {
     const ctx = useAuraLocale(), locale = ctx.locale || "en", calendar = ctx.calendar;
-    return React19.useCallback(
+    return React20.useCallback(
       function(iso, opts) {
         const o = opts || {}, loc = o.locale || locale;
         return formatDate(
@@ -2799,7 +2874,7 @@ window.Aura = (() => {
     if (hi && fromISO(hi) && iso > hi) return false;
     return !(o.isDateDisabled && o.isDateDisabled(iso));
   }
-  var Calendar = React19.forwardRef(function Calendar2(props, ref) {
+  var Calendar = React20.forwardRef(function Calendar2(props, ref) {
     const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), tag = localeTag(locale, calendar);
     const weekStart = props.weekStartsOn == null ? locale === "sv" ? 1 : 0 : props.weekStartsOn;
     const given = props.today && fromISO(props.today) ? props.today : null, zone = props.timeZone || ctx.timeZone;
@@ -2814,7 +2889,7 @@ window.Aura = (() => {
     function select(iso) {
       if (props.onSelect) props.onSelect(iso);
     }
-    const focusState = React19.useState(function() {
+    const focusState = React20.useState(function() {
       const d0 = fromISO(props.focus) || start || today;
       if (!disabledAt(d0)) return d0;
       for (let i = 1; i <= 366; i++) {
@@ -2824,21 +2899,21 @@ window.Aura = (() => {
       return d0;
     });
     const focusDate = focusState[0], setFocus = focusState[1];
-    const viewState = React19.useState("days"), view = viewState[0], setView = viewState[1];
-    const hoverState = React19.useState(null);
-    const gridRef = React19.useRef(null), gridMerged = useMergedRef(ref, gridRef), moved = React19.useRef(false);
+    const viewState = React20.useState("days"), view = viewState[0], setView = viewState[1];
+    const hoverState = React20.useState(null);
+    const gridRef = React20.useRef(null), gridMerged = useMergedRef(ref, gridRef), moved = React20.useRef(false);
     const th2 = locale === "th";
     const dt = dateText(locale);
     function disabled(d) {
       return disabledAt(d);
     }
-    React19.useEffect(function() {
+    React20.useEffect(function() {
       if (!moved.current) return;
       moved.current = false;
       const el = gridRef.current && gridRef.current.querySelector('[data-date="' + toISO(focusDate) + '"]');
       if (el) el.focus();
     });
-    React19.useEffect(
+    React20.useEffect(
       function() {
         if (props.autoFocus === false) return;
         const el = gridRef.current && gridRef.current.querySelector('[tabindex="0"]');
@@ -2893,16 +2968,16 @@ window.Aura = (() => {
       const yr = focusDate.getFullYear(), base = yr - yr % 12;
       const years = [];
       for (let y = base; y < base + 12; y++) years.push(y);
-      return /* @__PURE__ */ React19.createElement("div", { className: "aura-cal", ref: gridMerged, key: gridKey }, /* @__PURE__ */ React19.createElement("div", { className: "aura-cal__head" }, /* @__PURE__ */ React19.createElement(
+      return /* @__PURE__ */ React20.createElement("div", { className: "aura-cal", ref: gridMerged, key: gridKey }, /* @__PURE__ */ React20.createElement("div", { className: "aura-cal__head" }, /* @__PURE__ */ React20.createElement(
         IconButton,
         {
-          icon: /* @__PURE__ */ React19.createElement(IconChevronLeft, null),
+          icon: /* @__PURE__ */ React20.createElement(IconChevronLeft, null),
           label: dt.prevYears,
           onClick: function() {
             setFocus(new Date(yr - 12, focusDate.getMonth(), 1));
           }
         }
-      ), /* @__PURE__ */ React19.createElement(
+      ), /* @__PURE__ */ React20.createElement(
         "button",
         {
           type: "button",
@@ -2912,18 +2987,18 @@ window.Aura = (() => {
           }
         },
         fmt(tag, { year: "numeric" }, new Date(base, 0, 1)).replace(ERA, "") + " \u2013 " + fmt(tag, { year: "numeric" }, new Date(base + 11, 0, 1)).replace(ERA, "")
-      ), /* @__PURE__ */ React19.createElement(
+      ), /* @__PURE__ */ React20.createElement(
         IconButton,
         {
-          icon: /* @__PURE__ */ React19.createElement(IconChevronRight, null),
+          icon: /* @__PURE__ */ React20.createElement(IconChevronRight, null),
           label: dt.nextYears,
           onClick: function() {
             setFocus(new Date(yr + 12, focusDate.getMonth(), 1));
           }
         }
-      )), /* @__PURE__ */ React19.createElement("div", { className: "aura-cal__years" }, years.map(function(y) {
+      )), /* @__PURE__ */ React20.createElement("div", { className: "aura-cal__years" }, years.map(function(y) {
         const d = new Date(y, focusDate.getMonth(), 1);
-        return /* @__PURE__ */ React19.createElement(
+        return /* @__PURE__ */ React20.createElement(
           "button",
           {
             key: y,
@@ -2940,16 +3015,16 @@ window.Aura = (() => {
         );
       })));
     }
-    return /* @__PURE__ */ React19.createElement("div", { className: "aura-cal", ref: gridMerged, key: gridKey }, /* @__PURE__ */ React19.createElement("div", { className: "aura-cal__head" }, /* @__PURE__ */ React19.createElement(
+    return /* @__PURE__ */ React20.createElement("div", { className: "aura-cal", ref: gridMerged, key: gridKey }, /* @__PURE__ */ React20.createElement("div", { className: "aura-cal__head" }, /* @__PURE__ */ React20.createElement(
       IconButton,
       {
-        icon: /* @__PURE__ */ React19.createElement(IconChevronLeft, null),
+        icon: /* @__PURE__ */ React20.createElement(IconChevronLeft, null),
         label: dt.prevMonth,
         onClick: function() {
           setFocus(addMonths(focusDate, -1));
         }
       }
-    ), /* @__PURE__ */ React19.createElement(
+    ), /* @__PURE__ */ React20.createElement(
       "button",
       {
         type: "button",
@@ -2960,19 +3035,19 @@ window.Aura = (() => {
         }
       },
       monthTitle,
-      /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconChevronDown, null), size: 14 })
-    ), /* @__PURE__ */ React19.createElement(
+      /* @__PURE__ */ React20.createElement(Icon, { name: /* @__PURE__ */ React20.createElement(IconChevronDown, null), size: 14 })
+    ), /* @__PURE__ */ React20.createElement(
       IconButton,
       {
-        icon: /* @__PURE__ */ React19.createElement(IconChevronRight, null),
+        icon: /* @__PURE__ */ React20.createElement(IconChevronRight, null),
         label: dt.nextMonth,
         onClick: function() {
           setFocus(addMonths(focusDate, 1));
         }
       }
-    )), /* @__PURE__ */ React19.createElement("table", { role: "grid", className: "aura-cal__grid", "aria-label": monthTitle }, /* @__PURE__ */ React19.createElement("thead", null, /* @__PURE__ */ React19.createElement("tr", null, weekdayNames.map(function(n3, i) {
-      return /* @__PURE__ */ React19.createElement("th", { key: i, scope: "col", abbr: n3.long }, /* @__PURE__ */ React19.createElement("span", { "aria-hidden": true }, n3.short));
-    }))), /* @__PURE__ */ React19.createElement(
+    )), /* @__PURE__ */ React20.createElement("table", { role: "grid", className: "aura-cal__grid", "aria-label": monthTitle }, /* @__PURE__ */ React20.createElement("thead", null, /* @__PURE__ */ React20.createElement("tr", null, weekdayNames.map(function(n3, i) {
+      return /* @__PURE__ */ React20.createElement("th", { key: i, scope: "col", abbr: n3.long }, /* @__PURE__ */ React20.createElement("span", { "aria-hidden": true }, n3.short));
+    }))), /* @__PURE__ */ React20.createElement(
       "tbody",
       {
         onMouseLeave: function() {
@@ -2980,11 +3055,11 @@ window.Aura = (() => {
         }
       },
       weeks.map(function(wk, wi) {
-        return /* @__PURE__ */ React19.createElement("tr", { key: wi }, wk.map(function(d) {
+        return /* @__PURE__ */ React20.createElement("tr", { key: wi }, wk.map(function(d) {
           const iso = toISO(d), out = d.getMonth() !== focusDate.getMonth(), dis = disabled(d);
           const isStart = same(d, start), isEnd = same(d, end) || !end && props.range && same(d, hover) && start;
           const sel = isStart || same(d, end);
-          return /* @__PURE__ */ React19.createElement(
+          return /* @__PURE__ */ React20.createElement(
             "td",
             {
               key: iso,
@@ -2996,7 +3071,7 @@ window.Aura = (() => {
                 props.range && isEnd && start && "is-range-end"
               )
             },
-            /* @__PURE__ */ React19.createElement(
+            /* @__PURE__ */ React20.createElement(
               "button",
               {
                 type: "button",
@@ -3029,7 +3104,7 @@ window.Aura = (() => {
           );
         }));
       })
-    )), props.footer === false ? null : /* @__PURE__ */ React19.createElement("div", { className: "aura-cal__foot" }, /* @__PURE__ */ React19.createElement(
+    )), props.footer === false ? null : /* @__PURE__ */ React20.createElement("div", { className: "aura-cal__foot" }, /* @__PURE__ */ React20.createElement(
       "button",
       {
         type: "button",
@@ -3041,11 +3116,11 @@ window.Aura = (() => {
         }
       },
       dt.today
-    ), props.onClear ? /* @__PURE__ */ React19.createElement("button", { type: "button", className: "aura-cal__link", onClick: props.onClear }, dt.clear) : null));
+    ), props.onClear ? /* @__PURE__ */ React20.createElement("button", { type: "button", className: "aura-cal__link", onClick: props.onClear }, dt.clear) : null));
   });
   function useCalendarPopover(boxRef) {
-    const openState = React19.useState(false), open = openState[0], setOpen = openState[1];
-    const pos = React19.useState(null), popRef = React19.useRef(null), mounted = useMounted();
+    const openState = React20.useState(false), open = openState[0], setOpen = openState[1];
+    const pos = React20.useState(null), popRef = React20.useRef(null), mounted = useMounted();
     function place() {
       if (!boxRef.current) return;
       const el = popRef.current, r = boxRef.current.getBoundingClientRect(), W = el ? el.offsetWidth : 320, H = el ? el.offsetHeight : 380;
@@ -3059,7 +3134,7 @@ window.Aura = (() => {
       },
       [open, !!pos[0]]
     );
-    React19.useEffect(
+    React20.useEffect(
       function() {
         if (!open) return;
         function outside(e) {
@@ -3081,8 +3156,8 @@ window.Aura = (() => {
     return { open, setOpen, pos: pos[0], popRef, mounted };
   }
   function DateField(props) {
-    const editState = React19.useState(null), editing = editState[0], setEditing = editState[1];
-    return /* @__PURE__ */ React19.createElement(
+    const editState = React20.useState(null), editing = editState[0], setEditing = editState[1];
+    return /* @__PURE__ */ React20.createElement(
       Field,
       {
         id: props.id,
@@ -3094,7 +3169,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React19.createElement("div", { ref: props.boxRef, className: cx("aura-input aura-date", props.open && "is-open") }, /* @__PURE__ */ React19.createElement(
+      /* @__PURE__ */ React20.createElement("div", { ref: props.boxRef, className: cx("aura-input aura-date", props.open && "is-open") }, /* @__PURE__ */ React20.createElement(
         "input",
         {
           ref: props.inputRef,
@@ -3133,7 +3208,7 @@ window.Aura = (() => {
             }
           }
         }
-      ), props.clearable !== false && props.hasValue && !props.disabled ? /* @__PURE__ */ React19.createElement(
+      ), props.clearable !== false && props.hasValue && !props.disabled ? /* @__PURE__ */ React20.createElement(
         "button",
         {
           type: "button",
@@ -3142,8 +3217,8 @@ window.Aura = (() => {
           "aria-label": props.clearLabel,
           onClick: props.onClear
         },
-        /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconX, null) })
-      ) : null, /* @__PURE__ */ React19.createElement(
+        /* @__PURE__ */ React20.createElement(Icon, { name: /* @__PURE__ */ React20.createElement(IconX, null) })
+      ) : null, /* @__PURE__ */ React20.createElement(
         "button",
         {
           type: "button",
@@ -3157,11 +3232,11 @@ window.Aura = (() => {
             props.onToggle(!props.open);
           }
         },
-        /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconCalendar, null) })
+        /* @__PURE__ */ React20.createElement(Icon, { name: /* @__PURE__ */ React20.createElement(IconCalendar, null) })
       ))
     );
   }
-  var DatePicker = React19.forwardRef(function DatePicker2(props, ref) {
+  var DatePicker = React20.forwardRef(function DatePicker2(props, ref) {
     const auto = uid(), id = props.id || auto, dialogId = id + "-cal";
     const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), dt = dateText(locale);
     const st = useMaybeControlled(
@@ -3169,7 +3244,7 @@ window.Aura = (() => {
       props.defaultValue == null ? null : props.defaultValue,
       props.onChange
     );
-    const boxRef = React19.useRef(null), inputRef = React19.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+    const boxRef = React20.useRef(null), inputRef = React20.useRef(null), inputMerged = useMergedRef(ref, inputRef);
     const pop = useCalendarPopover(boxRef);
     const limits = {
       min: props.min,
@@ -3178,8 +3253,8 @@ window.Aura = (() => {
       timeZone: props.timeZone || ctx.timeZone,
       isDateDisabled: props.isDateDisabled
     };
-    const bad = React19.useState(null);
-    React19.useEffect(
+    const bad = React20.useState(null);
+    React20.useEffect(
       function() {
         bad[1](null);
       },
@@ -3201,7 +3276,7 @@ window.Aura = (() => {
       if (inputRef.current) inputRef.current.focus();
     }
     const cal = pop.open && pop.mounted && pop.pos ? (0, import_react_dom4.createPortal)(
-      /* @__PURE__ */ React19.createElement(
+      /* @__PURE__ */ React20.createElement(
         "div",
         {
           ref: pop.popRef,
@@ -3218,7 +3293,7 @@ window.Aura = (() => {
             } else trapTab(e, pop.popRef.current);
           }
         },
-        /* @__PURE__ */ React19.createElement(
+        /* @__PURE__ */ React20.createElement(
           Calendar,
           {
             locale,
@@ -3241,7 +3316,7 @@ window.Aura = (() => {
       ),
       document.body
     ) : null;
-    return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(
+    return /* @__PURE__ */ React20.createElement(React20.Fragment, null, /* @__PURE__ */ React20.createElement(
       DateField,
       {
         id,
@@ -3276,7 +3351,7 @@ window.Aura = (() => {
       }
     ), cal);
   });
-  var DateRangePicker = React19.forwardRef(
+  var DateRangePicker = React20.forwardRef(
     function DateRangePicker2(props, ref) {
       const auto = uid(), id = props.id || auto, dialogId = id + "-cal";
       const ctx = useAuraLocale(), locale = props.locale || ctx.locale || "en", calendar = props.calendar || ctx.calendar || defaultCalendar(locale), dt = dateText(locale);
@@ -3286,8 +3361,8 @@ window.Aura = (() => {
         props.onChange
       );
       const v = st[0] || { start: null, end: null };
-      const draft = React19.useState(null);
-      const boxRef = React19.useRef(null), inputRef = React19.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+      const draft = React20.useState(null);
+      const boxRef = React20.useRef(null), inputRef = React20.useRef(null), inputMerged = useMergedRef(ref, inputRef);
       const pop = useCalendarPopover(boxRef);
       const limits = {
         min: props.min,
@@ -3302,8 +3377,8 @@ window.Aura = (() => {
         if (!r.end) return formatDate(r.start, o) + " \u2013";
         return formatDate(r.start, o) + " \u2013 " + formatDate(r.end, o);
       }
-      const bad = React19.useState(null);
-      React19.useEffect(
+      const bad = React20.useState(null);
+      React20.useEffect(
         function() {
           bad[1](null);
         },
@@ -3336,7 +3411,7 @@ window.Aura = (() => {
         close();
       }
       const cal = pop.open && pop.mounted && pop.pos ? (0, import_react_dom4.createPortal)(
-        /* @__PURE__ */ React19.createElement(
+        /* @__PURE__ */ React20.createElement(
           "div",
           {
             ref: pop.popRef,
@@ -3353,8 +3428,8 @@ window.Aura = (() => {
               } else trapTab(e, pop.popRef.current);
             }
           },
-          /* @__PURE__ */ React19.createElement("p", { className: "aura-cal__hint", "aria-live": "polite" }, draft[0] ? dt.chooseEnd : dt.chooseStart),
-          /* @__PURE__ */ React19.createElement(
+          /* @__PURE__ */ React20.createElement("p", { className: "aura-cal__hint", "aria-live": "polite" }, draft[0] ? dt.chooseEnd : dt.chooseStart),
+          /* @__PURE__ */ React20.createElement(
             Calendar,
             {
               range: true,
@@ -3375,7 +3450,7 @@ window.Aura = (() => {
         ),
         document.body
       ) : null;
-      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(
+      return /* @__PURE__ */ React20.createElement(React20.Fragment, null, /* @__PURE__ */ React20.createElement(
         DateField,
         {
           id,
@@ -3414,18 +3489,18 @@ window.Aura = (() => {
   );
 
   // src/Alert.tsx
-  var React20 = __toESM(require_react(), 1);
-  var Alert = React20.forwardRef(function Alert2(props, ref) {
+  var React21 = __toESM(require_react(), 1);
+  var Alert = React21.forwardRef(function Alert2(props, ref) {
     const t = useStrings();
     return alertElement(
       props,
       ref,
-      props.onDismiss ? /* @__PURE__ */ React20.createElement(IconButton, { icon: /* @__PURE__ */ React20.createElement(IconX, null), label: t.dismiss, className: "aura-alert__close", onClick: props.onDismiss }) : null
+      props.onDismiss ? /* @__PURE__ */ React21.createElement(IconButton, { icon: /* @__PURE__ */ React21.createElement(IconX, null), label: t.dismiss, className: "aura-alert__close", onClick: props.onDismiss }) : null
     );
   });
 
   // src/Toaster.tsx
-  var React21 = __toESM(require_react(), 1);
+  var React22 = __toESM(require_react(), 1);
   var import_react_dom5 = __toESM(require_react_dom(), 1);
   var MAX_VISIBLE = 3;
   var toastState = {
@@ -3501,8 +3576,8 @@ window.Aura = (() => {
   function ToastItem(props) {
     const str = useStrings();
     const Link = useLinkComponent();
-    const node = React21.useRef(null);
-    const origin = React21.useRef(null);
+    const node = React22.useRef(null);
+    const origin = React22.useRef(null);
     useIsoLayoutEffect(function() {
       origin.current = outsideToaster(document.activeElement);
       const el = node.current;
@@ -3518,8 +3593,8 @@ window.Aura = (() => {
         }, 0);
       };
     }, []);
-    const t = props.toast, timer = React21.useRef(null), left = React21.useRef(t.duration || 5e3), since = React21.useRef(0);
-    const hover = React21.useRef(false), focused = React21.useRef(false);
+    const t = props.toast, timer = React22.useRef(null), left = React22.useRef(t.duration || 5e3), since = React22.useRef(0);
+    const hover = React22.useRef(false), focused = React22.useRef(false);
     function syncFocus() {
       if (focused.current && !(node.current && node.current.contains(document.activeElement))) focused.current = false;
     }
@@ -3541,7 +3616,7 @@ window.Aura = (() => {
         left.current -= Date.now() - since.current;
       }
     }
-    React21.useEffect(
+    React22.useEffect(
       function() {
         if (timer.current) clearTimeout(timer.current);
         timer.current = null;
@@ -3560,7 +3635,7 @@ window.Aura = (() => {
       if (a.onClick) a.onClick();
       if (a.dismiss !== false) toast.dismiss(t.id);
     }
-    return /* @__PURE__ */ React21.createElement(
+    return /* @__PURE__ */ React22.createElement(
       "div",
       {
         ref: node,
@@ -3597,16 +3672,16 @@ window.Aura = (() => {
           resume();
         }
       },
-      /* @__PURE__ */ React21.createElement(
+      /* @__PURE__ */ React22.createElement(
         Icon,
         {
-          name: t.loading ? /* @__PURE__ */ React21.createElement(IconLoaderCircle, null) : React21.createElement(ALERT_ICON[t.tone] || IconInfo),
+          name: t.loading ? /* @__PURE__ */ React22.createElement(IconLoaderCircle, null) : React22.createElement(ALERT_ICON[t.tone] || IconInfo),
           className: cx("aura-toast__icon", t.loading && "aura-spin")
         }
       ),
-      /* @__PURE__ */ React21.createElement("div", { className: "aura-toast__body" }, /* @__PURE__ */ React21.createElement("p", { className: "aura-toast__title" }, t.title), rich ? /* @__PURE__ */ React21.createElement("div", { className: "aura-toast__text" }, t.description) : null),
-      actions.length ? /* @__PURE__ */ React21.createElement("div", { className: "aura-toast__actions" }, actions.map(function(a, i) {
-        return a.href ? /* @__PURE__ */ React21.createElement(
+      /* @__PURE__ */ React22.createElement("div", { className: "aura-toast__body" }, /* @__PURE__ */ React22.createElement("p", { className: "aura-toast__title" }, t.title), rich ? /* @__PURE__ */ React22.createElement("div", { className: "aura-toast__text" }, t.description) : null),
+      actions.length ? /* @__PURE__ */ React22.createElement("div", { className: "aura-toast__actions" }, actions.map(function(a, i) {
+        return a.href ? /* @__PURE__ */ React22.createElement(
           Link,
           {
             key: i,
@@ -3618,7 +3693,7 @@ window.Aura = (() => {
             }
           },
           a.label
-        ) : /* @__PURE__ */ React21.createElement(
+        ) : /* @__PURE__ */ React22.createElement(
           "button",
           {
             key: i,
@@ -3631,10 +3706,10 @@ window.Aura = (() => {
           a.label
         );
       })) : null,
-      /* @__PURE__ */ React21.createElement(
+      /* @__PURE__ */ React22.createElement(
         IconButton,
         {
-          icon: /* @__PURE__ */ React21.createElement(IconX, null),
+          icon: /* @__PURE__ */ React22.createElement(IconX, null),
           label: str.dismissToast,
           className: "aura-toast__close",
           onClick: function() {
@@ -3662,8 +3737,8 @@ window.Aura = (() => {
   function Toaster(props = {}) {
     const t = useStrings();
     const mounted = useMounted();
-    const s = React21.useState(toastState.list);
-    React21.useEffect(function() {
+    const s = React22.useState(toastState.list);
+    React22.useEffect(function() {
       toastState.subs.push(s[1]);
       s[1](toastState.list.slice());
       return function() {
@@ -3672,9 +3747,9 @@ window.Aura = (() => {
         });
       };
     }, []);
-    const region = React21.useRef(null);
+    const region = React22.useRef(null);
     const hotkey = props.hotkey === void 0 ? "Alt+T" : props.hotkey;
-    React21.useEffect(
+    React22.useEffect(
       function() {
         if (!hotkey) return;
         const match = hotkeyMatcher(hotkey);
@@ -3705,7 +3780,7 @@ window.Aura = (() => {
     const pos = props.position || "bottom";
     const offset = props.offset;
     return (0, import_react_dom5.createPortal)(
-      /* @__PURE__ */ React21.createElement(
+      /* @__PURE__ */ React22.createElement(
         "div",
         {
           ref: region,
@@ -3717,7 +3792,7 @@ window.Aura = (() => {
           "aria-keyshortcuts": hotkey || void 0
         },
         s[0].map(function(t2) {
-          return /* @__PURE__ */ React21.createElement(ToastItem, { key: t2.id, toast: t2 });
+          return /* @__PURE__ */ React22.createElement(ToastItem, { key: t2.id, toast: t2 });
         })
       ),
       document.body
@@ -3725,12 +3800,12 @@ window.Aura = (() => {
   }
 
   // src/PasswordField.tsx
-  var React22 = __toESM(require_react(), 1);
-  var PasswordField = React22.forwardRef(function PasswordField2(props, ref) {
+  var React23 = __toESM(require_react(), 1);
+  var PasswordField = React23.forwardRef(function PasswordField2(props, ref) {
     const t = useStrings();
-    const shown = React22.useState(false);
+    const shown = React23.useState(false);
     const rest = omit(props, ["toggle", "className"]);
-    return /* @__PURE__ */ React22.createElement(
+    return /* @__PURE__ */ React23.createElement(
       TextField,
       {
         autoComplete: "current-password",
@@ -3740,10 +3815,10 @@ window.Aura = (() => {
         spellCheck: false,
         autoCapitalize: "none",
         className: cx("aura-password", props.className),
-        suffix: props.toggle === false ? void 0 : /* @__PURE__ */ React22.createElement(
+        suffix: props.toggle === false ? void 0 : /* @__PURE__ */ React23.createElement(
           IconButton,
           {
-            icon: shown[0] ? /* @__PURE__ */ React22.createElement(IconEyeOff, null) : /* @__PURE__ */ React22.createElement(IconEye, null),
+            icon: shown[0] ? /* @__PURE__ */ React23.createElement(IconEyeOff, null) : /* @__PURE__ */ React23.createElement(IconEye, null),
             label: t.showPassword,
             "aria-pressed": shown[0],
             disabled: props.disabled,
@@ -3757,7 +3832,7 @@ window.Aura = (() => {
   });
 
   // src/FormErrorSummary.tsx
-  var React23 = __toESM(require_react(), 1);
+  var React24 = __toESM(require_react(), 1);
   function items(errors) {
     if (Array.isArray(errors)) return errors;
     const out = [];
@@ -3786,16 +3861,16 @@ window.Aura = (() => {
     }
     return named;
   }
-  var FormErrorSummary = React23.forwardRef(
+  var FormErrorSummary = React24.forwardRef(
     function FormErrorSummary2(props, ref) {
       const t = useStrings();
       const auto = uid(), id = props.id || auto;
       const list = items(props.errors);
-      const box = React23.useRef(null);
+      const box = React24.useRef(null);
       const keyed = props.focusKey !== void 0;
-      const lastKey = React23.useRef(null), armed = React23.useRef(false), hadErrors = React23.useRef(false);
+      const lastKey = React24.useRef(null), armed = React24.useRef(false), hadErrors = React24.useRef(false);
       const has = list.length > 0;
-      React23.useEffect(
+      React24.useEffect(
         function() {
           const appeared = has && !hadErrors.current;
           hadErrors.current = has;
@@ -3819,7 +3894,7 @@ window.Aura = (() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [has, props.focusKey, keyed]
       );
-      React23.useEffect(
+      React24.useEffect(
         function() {
           if (!keyed) return;
           function disarm() {
@@ -3838,7 +3913,7 @@ window.Aura = (() => {
         [keyed]
       );
       if (!list.length) return null;
-      return /* @__PURE__ */ React23.createElement(
+      return /* @__PURE__ */ React24.createElement(
         "div",
         {
           ref: function(el) {
@@ -3852,9 +3927,9 @@ window.Aura = (() => {
           "aria-labelledby": id + "-title",
           className: cx("aura-alert aura-alert--danger aura-error-summary", props.className)
         },
-        /* @__PURE__ */ React23.createElement(Icon, { name: /* @__PURE__ */ React23.createElement(IconCircleAlert, null), className: "aura-alert__icon" }),
-        /* @__PURE__ */ React23.createElement("div", { className: "aura-alert__body" }, /* @__PURE__ */ React23.createElement("h2", { className: "aura-alert__title", id: id + "-title" }, props.title || t.errorSummary(list.length)), /* @__PURE__ */ React23.createElement("ul", { className: "aura-error-summary__list" }, list.map(function(e) {
-          return /* @__PURE__ */ React23.createElement("li", { key: e.field }, /* @__PURE__ */ React23.createElement(
+        /* @__PURE__ */ React24.createElement(Icon, { name: /* @__PURE__ */ React24.createElement(IconCircleAlert, null), className: "aura-alert__icon" }),
+        /* @__PURE__ */ React24.createElement("div", { className: "aura-alert__body" }, /* @__PURE__ */ React24.createElement("h2", { className: "aura-alert__title", id: id + "-title" }, props.title || t.errorSummary(list.length)), /* @__PURE__ */ React24.createElement("ul", { className: "aura-error-summary__list" }, list.map(function(e) {
+          return /* @__PURE__ */ React24.createElement("li", { key: e.field }, /* @__PURE__ */ React24.createElement(
             "a",
             {
               href: "#" + e.field,
@@ -3879,30 +3954,30 @@ window.Aura = (() => {
   );
 
   // src/FilterBar.tsx
-  var React25 = __toESM(require_react(), 1);
+  var React26 = __toESM(require_react(), 1);
 
   // src/Tag.tsx
-  var React24 = __toESM(require_react(), 1);
-  function textOf(node) {
+  var React25 = __toESM(require_react(), 1);
+  function textOf2(node) {
     if (node == null || typeof node === "boolean") return "";
     if (typeof node === "string" || typeof node === "number") return String(node);
-    if (Array.isArray(node)) return node.map(textOf).join("");
-    if (React24.isValidElement(node)) {
+    if (Array.isArray(node)) return node.map(textOf2).join("");
+    if (React25.isValidElement(node)) {
       const p = node.props;
-      return p["aria-hidden"] === true || p["aria-hidden"] === "true" ? "" : textOf(p.children);
+      return p["aria-hidden"] === true || p["aria-hidden"] === "true" ? "" : textOf2(p.children);
     }
     return "";
   }
-  var Tag = React24.forwardRef(function Tag2(props, ref) {
+  var Tag = React25.forwardRef(function Tag2(props, ref) {
     const t = useStrings();
     const selectable = props.onClick != null || props.selected != null;
     const rest = omit(props, ["onRemove", "selected", "icon", "className", "children", "disabled", "removeLabel"]);
     const inner = [
-      props.icon ? /* @__PURE__ */ React24.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
-      /* @__PURE__ */ React24.createElement("span", { key: "t", className: "aura-tag__text" }, props.children)
+      props.icon ? /* @__PURE__ */ React25.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
+      /* @__PURE__ */ React25.createElement("span", { key: "t", className: "aura-tag__text" }, props.children)
     ];
     if (selectable) {
-      return /* @__PURE__ */ React24.createElement(
+      return /* @__PURE__ */ React25.createElement(
         "button",
         {
           ...rest,
@@ -3912,17 +3987,17 @@ window.Aura = (() => {
           disabled: props.disabled,
           className: cx("aura-tag is-selectable", props.selected && "is-selected", props.className)
         },
-        props.selected ? /* @__PURE__ */ React24.createElement(Icon, { name: /* @__PURE__ */ React24.createElement(IconCheck, null), size: 14 }) : inner[0],
+        props.selected ? /* @__PURE__ */ React25.createElement(Icon, { name: /* @__PURE__ */ React25.createElement(IconCheck, null), size: 14 }) : inner[0],
         inner[1]
       );
     }
-    const name = props.onRemove && !props.removeLabel ? textOf(props.children).replace(/\s+/g, " ").trim() : "";
+    const name = props.onRemove && !props.removeLabel ? textOf2(props.children).replace(/\s+/g, " ").trim() : "";
     if (props.onRemove && !props.disabled && !props.removeLabel && !name)
       devWarnOnce(
         "tag-remove-label",
         'Tag: the remove button has no name \u2014 its children have no text. Pass removeLabel (e.g. "Remove Acme AB").'
       );
-    return /* @__PURE__ */ React24.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? /* @__PURE__ */ React24.createElement(
+    return /* @__PURE__ */ React25.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? /* @__PURE__ */ React25.createElement(
       "button",
       {
         type: "button",
@@ -3930,21 +4005,21 @@ window.Aura = (() => {
         "aria-label": props.removeLabel || t.remove(name),
         onClick: props.onRemove
       },
-      /* @__PURE__ */ React24.createElement(Icon, { name: /* @__PURE__ */ React24.createElement(IconX, null), size: 12 })
+      /* @__PURE__ */ React25.createElement(Icon, { name: /* @__PURE__ */ React25.createElement(IconX, null), size: 12 })
     ) : null);
   });
 
   // src/FilterBar.tsx
-  var FilterBar = React25.forwardRef(function FilterBar2(props, ref) {
+  var FilterBar = React26.forwardRef(function FilterBar2(props, ref) {
     const t = useStrings();
     const id = uid();
     const hasSearch = !!props.onSearchChange;
-    const draft = React25.useState(props.search || "");
-    const timer = React25.useRef(null);
-    const sent = React25.useRef(props.search || "");
-    const onChange = React25.useRef(props.onSearchChange);
+    const draft = React26.useState(props.search || "");
+    const timer = React26.useRef(null);
+    const sent = React26.useRef(props.search || "");
+    const onChange = React26.useRef(props.onSearchChange);
     onChange.current = props.onSearchChange;
-    React25.useEffect(
+    React26.useEffect(
       function() {
         if ((props.search || "") !== sent.current) {
           sent.current = props.search || "";
@@ -3953,7 +4028,7 @@ window.Aura = (() => {
       },
       [props.search]
     );
-    React25.useEffect(function() {
+    React26.useEffect(function() {
       return function() {
         if (timer.current) clearTimeout(timer.current);
       };
@@ -3978,15 +4053,15 @@ window.Aura = (() => {
     const filters = props.filters || [];
     const anything = filters.length > 0 || !!(props.search || draft[0]);
     const count = props.resultCount == null ? null : typeof props.resultCount === "number" ? t.results(props.resultCount) : props.resultCount;
-    return /* @__PURE__ */ React25.createElement(
+    return /* @__PURE__ */ React26.createElement(
       "div",
       {
         ref,
         role: "region",
         "aria-label": props.label || t.filters,
-        className: cx("aura-filterbar", props.className)
+        className: cx("aura-filterbar", props.searchGrow && "aura-filterbar--grow", props.className)
       },
-      /* @__PURE__ */ React25.createElement("div", { className: "aura-filterbar__row" }, hasSearch ? /* @__PURE__ */ React25.createElement("div", { className: "aura-input has-icon aura-filterbar__search" }, /* @__PURE__ */ React25.createElement(Icon, { name: /* @__PURE__ */ React25.createElement(IconSearch, null), className: "aura-input__icon" }), /* @__PURE__ */ React25.createElement(
+      /* @__PURE__ */ React26.createElement("div", { className: "aura-filterbar__row" }, hasSearch ? /* @__PURE__ */ React26.createElement("div", { className: "aura-input has-icon aura-filterbar__search" }, /* @__PURE__ */ React26.createElement(Icon, { name: /* @__PURE__ */ React26.createElement(IconSearch, null), className: "aura-input__icon" }), /* @__PURE__ */ React26.createElement(
         "input",
         {
           id,
@@ -4007,10 +4082,10 @@ window.Aura = (() => {
             }
           }
         }
-      ), draft[0] ? /* @__PURE__ */ React25.createElement(
+      ), draft[0] ? /* @__PURE__ */ React26.createElement(
         IconButton,
         {
-          icon: /* @__PURE__ */ React25.createElement(IconX, null),
+          icon: /* @__PURE__ */ React26.createElement(IconX, null),
           label: t.clear((props.searchLabel || t.search).toLowerCase()),
           className: "aura-filterbar__clear-search",
           onClick: function() {
@@ -4018,10 +4093,10 @@ window.Aura = (() => {
             send("");
           }
         }
-      ) : null) : null, props.children ? /* @__PURE__ */ React25.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React25.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React25.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React25.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
-      filters.length || props.onClearAll && anything ? /* @__PURE__ */ React25.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
-        return /* @__PURE__ */ React25.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);
-      }), props.onClearAll && anything ? /* @__PURE__ */ React25.createElement(
+      ) : null) : null, props.children ? /* @__PURE__ */ React26.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React26.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React26.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React26.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
+      filters.length || props.onClearAll && anything ? /* @__PURE__ */ React26.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
+        return /* @__PURE__ */ React26.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);
+      }), props.onClearAll && anything ? /* @__PURE__ */ React26.createElement(
         "button",
         {
           type: "button",
@@ -4039,11 +4114,11 @@ window.Aura = (() => {
   });
 
   // src/Command.tsx
-  var React27 = __toESM(require_react(), 1);
+  var React28 = __toESM(require_react(), 1);
   var import_react_dom6 = __toESM(require_react_dom(), 1);
 
   // src/useModal.tsx
-  var React26 = __toESM(require_react(), 1);
+  var React27 = __toESM(require_react(), 1);
   var locks = 0;
   var savedOverflow = "";
   function lockScroll() {
@@ -4070,9 +4145,9 @@ window.Aura = (() => {
   }
   function useModal(open, ref, opts) {
     const mounted = useMounted();
-    const prev = React26.useRef(null);
+    const prev = React27.useRef(null);
     const o = opts || {};
-    React26.useEffect(
+    React27.useEffect(
       function() {
         if (!open || !mounted) return;
         prev.current = document.activeElement;
@@ -4130,21 +4205,21 @@ window.Aura = (() => {
     const t = useStrings();
     const density = useDensity();
     const id = uid(), listId = id + "-list";
-    const box = React27.useRef(null);
-    const input = React27.useRef(null);
-    const qState = React27.useState(""), act = React27.useState(null);
+    const box = React28.useRef(null);
+    const input = React28.useRef(null);
+    const qState = React28.useState(""), act = React28.useState(null);
     const query = props.query !== void 0 ? props.query : qState[0];
     function setQuery(v) {
       if (props.query === void 0) qState[1](v);
       if (props.onQueryChange) props.onQueryChange(v);
     }
-    const openRef = React27.useRef(props.open);
+    const openRef = React28.useRef(props.open);
     openRef.current = props.open;
     const close = function() {
       props.onOpenChange(false);
     };
     const modal = useModal(props.open, box, { onEscape: close });
-    React27.useEffect(
+    React28.useEffect(
       function() {
         if (props.hotkey === false) return;
         function onKey2(e) {
@@ -4160,7 +4235,7 @@ window.Aura = (() => {
       },
       [props.hotkey, props.onOpenChange]
     );
-    React27.useEffect(
+    React28.useEffect(
       function() {
         if (!props.open) {
           if (query) setQuery("");
@@ -4200,7 +4275,7 @@ window.Aura = (() => {
     const optId = function(i2) {
       return id + "-o" + i2;
     };
-    React27.useEffect(
+    React28.useEffect(
       function() {
         if (!box.current || active < 0) return;
         const el = box.current.querySelector("#" + CSS.escape(optId(active)));
@@ -4245,7 +4320,7 @@ window.Aura = (() => {
     if (!modal.ready) return null;
     let i = -1;
     return (0, import_react_dom6.createPortal)(
-      /* @__PURE__ */ React27.createElement(
+      /* @__PURE__ */ React28.createElement(
         "div",
         {
           className: "aura-dialog-layer aura-command-layer",
@@ -4255,8 +4330,8 @@ window.Aura = (() => {
             e.stopPropagation();
           }
         },
-        /* @__PURE__ */ React27.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }),
-        /* @__PURE__ */ React27.createElement(
+        /* @__PURE__ */ React28.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }),
+        /* @__PURE__ */ React28.createElement(
           "div",
           {
             ref: box,
@@ -4266,7 +4341,7 @@ window.Aura = (() => {
             tabIndex: -1,
             className: cx("aura-command", props.className)
           },
-          /* @__PURE__ */ React27.createElement("div", { className: "aura-command__search" }, /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconSearch, null), className: "aura-command__search-icon" }), /* @__PURE__ */ React27.createElement(
+          /* @__PURE__ */ React28.createElement("div", { className: "aura-command__search" }, /* @__PURE__ */ React28.createElement(Icon, { name: /* @__PURE__ */ React28.createElement(IconSearch, null), className: "aura-command__search-icon" }), /* @__PURE__ */ React28.createElement(
             "input",
             {
               ref: input,
@@ -4289,8 +4364,8 @@ window.Aura = (() => {
               },
               onKeyDown: onKey
             }
-          ), /* @__PURE__ */ React27.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
-          /* @__PURE__ */ React27.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React27.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconLoaderCircle, null), className: "aura-spin" }), t.searching) : null, !flat2.length ? props.loading ? null : /* @__PURE__ */ React27.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React27.createElement(
+          ), /* @__PURE__ */ React28.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
+          /* @__PURE__ */ React28.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React28.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React28.createElement(Icon, { name: /* @__PURE__ */ React28.createElement(IconLoaderCircle, null), className: "aura-spin" }), t.searching) : null, !flat2.length ? props.loading ? null : /* @__PURE__ */ React28.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React28.createElement(
             "div",
             {
               id: listId,
@@ -4300,7 +4375,7 @@ window.Aura = (() => {
             },
             groups.map(function(g, gi) {
               const gid = id + "-g" + gi;
-              return /* @__PURE__ */ React27.createElement(
+              return /* @__PURE__ */ React28.createElement(
                 "div",
                 {
                   key: g.name || gi,
@@ -4308,11 +4383,11 @@ window.Aura = (() => {
                   "aria-labelledby": g.name ? gid : void 0,
                   className: "aura-command__group"
                 },
-                g.name ? /* @__PURE__ */ React27.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
+                g.name ? /* @__PURE__ */ React28.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
                 g.items.map(function(it) {
                   i++;
                   const n3 = i;
-                  return /* @__PURE__ */ React27.createElement(
+                  return /* @__PURE__ */ React28.createElement(
                     "div",
                     {
                       key: it.id,
@@ -4335,16 +4410,16 @@ window.Aura = (() => {
                         run(it);
                       }
                     },
-                    it.icon ? /* @__PURE__ */ React27.createElement(Icon, { name: it.icon }) : null,
-                    /* @__PURE__ */ React27.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React27.createElement("span", { className: "aura-command__label" }, it.label), it.description ? /* @__PURE__ */ React27.createElement("span", { className: "aura-command__desc" }, it.description) : null),
-                    it.shortcut ? /* @__PURE__ */ React27.createElement("kbd", { className: "aura-command__kbd" }, it.shortcut) : null
+                    it.icon ? /* @__PURE__ */ React28.createElement(Icon, { name: it.icon }) : null,
+                    /* @__PURE__ */ React28.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React28.createElement("span", { className: "aura-command__label" }, it.label), it.description ? /* @__PURE__ */ React28.createElement("span", { className: "aura-command__desc" }, it.description) : null),
+                    it.shortcut ? /* @__PURE__ */ React28.createElement("kbd", { className: "aura-command__kbd" }, it.shortcut) : null
                   );
                 })
               );
             })
           )),
-          /* @__PURE__ */ React27.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat2.length ? t.noMatches : props.loading === false && query ? t.results(flat2.length) : ""),
-          /* @__PURE__ */ React27.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React27.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
+          /* @__PURE__ */ React28.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat2.length ? t.noMatches : props.loading === false && query ? t.results(flat2.length) : ""),
+          /* @__PURE__ */ React28.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React28.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
         )
       ),
       document.body
@@ -4352,12 +4427,12 @@ window.Aura = (() => {
   }
 
   // src/Tooltip.tsx
-  var React28 = __toESM(require_react(), 1);
+  var React29 = __toESM(require_react(), 1);
   var import_react_dom7 = __toESM(require_react_dom(), 1);
-  var Tooltip = React28.forwardRef(function Tooltip2(props, ref) {
-    const id = uid(), st = React28.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
-    const anchor = React28.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip = React28.useRef(null), timer = React28.useRef(void 0);
-    const pos = React28.useState(null), mounted = useMounted();
+  var Tooltip = React29.forwardRef(function Tooltip2(props, ref) {
+    const id = uid(), st = React29.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
+    const anchor = React29.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip = React29.useRef(null), timer = React29.useRef(void 0);
+    const pos = React29.useState(null), mounted = useMounted();
     function show2(now) {
       clearTimeout(timer.current);
       timer.current = setTimeout(
@@ -4377,7 +4452,7 @@ window.Aura = (() => {
         set(false);
       }, 120);
     }
-    React28.useEffect(function() {
+    React29.useEffect(function() {
       return function() {
         clearTimeout(timer.current);
       };
@@ -4421,7 +4496,7 @@ window.Aura = (() => {
       },
       [open, mounted]
     );
-    React28.useEffect(
+    React29.useEffect(
       function() {
         if (!open) return;
         function esc(e) {
@@ -4434,8 +4509,8 @@ window.Aura = (() => {
       },
       [open]
     );
-    const child = React28.Children.only(props.children);
-    const trigger = /* @__PURE__ */ React28.createElement(
+    const child = React29.Children.only(props.children);
+    const trigger = /* @__PURE__ */ React29.createElement(
       "span",
       {
         ref: anchorMerged,
@@ -4449,10 +4524,10 @@ window.Aura = (() => {
         },
         onBlur: hide
       },
-      React28.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
+      React29.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
     );
-    return /* @__PURE__ */ React28.createElement(React28.Fragment, null, trigger, open && mounted ? (0, import_react_dom7.createPortal)(
-      /* @__PURE__ */ React28.createElement(
+    return /* @__PURE__ */ React29.createElement(React29.Fragment, null, trigger, open && mounted ? (0, import_react_dom7.createPortal)(
+      /* @__PURE__ */ React29.createElement(
         "div",
         {
           ref: tip,
@@ -4472,12 +4547,12 @@ window.Aura = (() => {
   });
 
   // src/Dialog.tsx
-  var React29 = __toESM(require_react(), 1);
+  var React30 = __toESM(require_react(), 1);
   var import_react_dom8 = __toESM(require_react_dom(), 1);
-  var Dialog = React29.forwardRef(function Dialog2(props, ref) {
+  var Dialog = React30.forwardRef(function Dialog2(props, ref) {
     const t = useStrings();
     const density = useDensity();
-    const own = React29.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+    const own = React30.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
     function close() {
       if (props.dismissible !== false && props.onClose) props.onClose();
     }
@@ -4490,7 +4565,7 @@ window.Aura = (() => {
     });
     if (!modal.ready) return null;
     return (0, import_react_dom8.createPortal)(
-      /* @__PURE__ */ React29.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React29.createElement(
+      /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React30.createElement(
         "div",
         {
           className: "aura-scrim",
@@ -4500,7 +4575,7 @@ window.Aura = (() => {
           },
           "aria-hidden": true
         }
-      ), /* @__PURE__ */ React29.createElement(
+      ), /* @__PURE__ */ React30.createElement(
         "div",
         {
           ref: merged,
@@ -4511,18 +4586,18 @@ window.Aura = (() => {
           tabIndex: -1,
           className: cx("aura-dialog", "aura-dialog--" + (props.size || "md"), props.className)
         },
-        /* @__PURE__ */ React29.createElement("div", { className: "aura-dialog__head" }, /* @__PURE__ */ React29.createElement("h2", { className: "aura-dialog__title", id: titleId }, props.title), props.dismissible !== false ? /* @__PURE__ */ React29.createElement(IconButton, { icon: /* @__PURE__ */ React29.createElement(IconX, null), label: t.close, className: "aura-dialog__close", onClick: close }) : null),
-        props.description ? /* @__PURE__ */ React29.createElement("p", { className: "aura-dialog__desc", id: descId }, props.description) : null,
-        props.children ? /* @__PURE__ */ React29.createElement("div", { className: "aura-dialog__body" }, props.children) : null,
-        props.footer ? /* @__PURE__ */ React29.createElement("div", { className: "aura-dialog__foot" }, props.footer) : null
+        /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__head" }, /* @__PURE__ */ React30.createElement("h2", { className: "aura-dialog__title", id: titleId }, props.title), props.dismissible !== false ? /* @__PURE__ */ React30.createElement(IconButton, { icon: /* @__PURE__ */ React30.createElement(IconX, null), label: t.close, className: "aura-dialog__close", onClick: close }) : null),
+        props.description ? /* @__PURE__ */ React30.createElement("p", { className: "aura-dialog__desc", id: descId }, props.description) : null,
+        props.children ? /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__body" }, props.children) : null,
+        props.footer ? /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__foot" }, props.footer) : null
       )),
       document.body
     );
   });
-  var Drawer = React29.forwardRef(function Drawer2(props, ref) {
+  var Drawer = React30.forwardRef(function Drawer2(props, ref) {
     const t = useStrings();
     const density = useDensity();
-    const own = React29.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+    const own = React30.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
     function close() {
       if (props.dismissible !== false && props.onClose) props.onClose();
     }
@@ -4555,7 +4630,7 @@ window.Aura = (() => {
     ]);
     const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
     return (0, import_react_dom8.createPortal)(
-      /* @__PURE__ */ React29.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React29.createElement(
+      /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React30.createElement(
         "div",
         {
           className: "aura-scrim",
@@ -4565,7 +4640,7 @@ window.Aura = (() => {
           } : void 0,
           "aria-hidden": true
         }
-      ), /* @__PURE__ */ React29.createElement(
+      ), /* @__PURE__ */ React30.createElement(
         "div",
         {
           ...rest,
@@ -4578,11 +4653,11 @@ window.Aura = (() => {
           tabIndex: -1,
           className: cx("aura-drawer", "aura-drawer--" + side, "aura-drawer--" + (props.size || "md"), props.className)
         },
-        props.title || props.dismissible !== false ? /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__head" }, props.title ? /* @__PURE__ */ React29.createElement("h2", { className: "aura-drawer__title", id: titleId }, props.title) : /* @__PURE__ */ React29.createElement("span", { style: { flex: 1 } }), props.dismissible !== false ? /* @__PURE__ */ React29.createElement(
+        props.title || props.dismissible !== false ? /* @__PURE__ */ React30.createElement("div", { className: "aura-drawer__head" }, props.title ? /* @__PURE__ */ React30.createElement("h2", { className: "aura-drawer__title", id: titleId }, props.title) : /* @__PURE__ */ React30.createElement("span", { style: { flex: 1 } }), props.dismissible !== false ? /* @__PURE__ */ React30.createElement(
           IconButton,
           {
             ...props.closeProps,
-            icon: /* @__PURE__ */ React29.createElement(IconX, null),
+            icon: /* @__PURE__ */ React30.createElement(IconX, null),
             label: props.closeLabel || t.close,
             onClick: function(e) {
               const own2 = props.closeProps && props.closeProps.onClick;
@@ -4591,16 +4666,16 @@ window.Aura = (() => {
             }
           }
         ) : null) : null,
-        props.description ? /* @__PURE__ */ React29.createElement("p", { className: "aura-drawer__desc", id: descId }, props.description) : null,
-        /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__body" }, props.children),
-        props.footer ? /* @__PURE__ */ React29.createElement("div", { className: "aura-drawer__foot" }, props.footer) : null
+        props.description ? /* @__PURE__ */ React30.createElement("p", { className: "aura-drawer__desc", id: descId }, props.description) : null,
+        /* @__PURE__ */ React30.createElement("div", { className: "aura-drawer__body" }, props.children),
+        props.footer ? /* @__PURE__ */ React30.createElement("div", { className: "aura-drawer__foot" }, props.footer) : null
       )),
       document.body
     );
   });
 
   // src/DataTable.tsx
-  var React30 = __toESM(require_react(), 1);
+  var React31 = __toESM(require_react(), 1);
   var import_react_dom9 = __toESM(require_react_dom(), 1);
   var BP = { sm: 640, md: 768, lg: 1024, xl: 1280 };
   var DEFAULT_COLUMNS = [
@@ -4623,7 +4698,7 @@ window.Aura = (() => {
   var ROW_H_DEFAULT = 48;
   var OVERSCAN = 8;
   var FLEX_MIN = 160;
-  var DataTableImpl = React30.forwardRef(function DataTable(props, ref) {
+  var DataTableImpl = React31.forwardRef(function DataTable(props, ref) {
     const t = useStrings();
     const columns = props.columns || DEFAULT_COLUMNS;
     const byKey = {};
@@ -4662,7 +4737,7 @@ window.Aura = (() => {
     const droppedSig = selState[0].length === selected.length ? "" : "#" + selState[0].filter(function(k) {
       return rejected[String(k)];
     }).join("\0") + "#" + selected.join("\0");
-    React30.useEffect(
+    React31.useEffect(
       function() {
         if (droppedSig !== "") setSelected(selected);
       },
@@ -4699,19 +4774,19 @@ window.Aura = (() => {
       }),
       props.onPinnedColumnsChange
     );
-    const widthState = React30.useState({});
+    const widthState = React31.useState({});
     const widths = widthState[0], setWidths = widthState[1];
-    const activeState = React30.useState({ r: 1, c: 0 });
-    const scrollState = React30.useState(0);
+    const activeState = React31.useState({ r: 1, c: 0 });
+    const scrollState = React31.useState(0);
     const scrollTop = scrollState[0], setScrollTop = scrollState[1];
-    const scrolledX = React30.useState(false);
-    const menuState = React30.useState(null);
+    const scrolledX = React31.useState(false);
+    const menuState = React31.useState(null);
     const menu = menuState[0], setMenu = menuState[1];
-    const dragState = React30.useState(null);
+    const dragState = React31.useState(null);
     const drag = dragState[0], setDrag = dragState[1];
-    const gridRef = React30.useRef(null);
-    const wrapRef = React30.useRef(null), wrapMerged = useMergedRef(ref, wrapRef);
-    const boxWidth = React30.useState(null);
+    const gridRef = React31.useRef(null);
+    const wrapRef = React31.useRef(null), wrapMerged = useMergedRef(ref, wrapRef);
+    const boxWidth = React31.useState(null);
     const measure = !!props.stackBelow || columns.some(function(c) {
       return c.hideBelow != null;
     });
@@ -4721,7 +4796,7 @@ window.Aura = (() => {
         return px != null && a.indexOf(px) === i;
       }).length
     );
-    React30.useEffect(
+    React31.useEffect(
       function() {
         if (!measure || !wrapRef.current || typeof ResizeObserver === "undefined") return;
         const ro = new ResizeObserver(function(en) {
@@ -4766,8 +4841,8 @@ window.Aura = (() => {
       const px = hidePx(c);
       return px != null && below(boxWidth[0], px);
     }
-    const scrollRef = React30.useRef(null);
-    const tipState = React30.useState(null), tip = tipState[0], setTip = tipState[1];
+    const scrollRef = React31.useRef(null);
+    const tipState = React31.useState(null), tip = tipState[0], setTip = tipState[1];
     function showFull(e) {
       const el = e.target.closest ? e.target.closest(".aura-table__td") : null;
       if (!el || el.scrollWidth <= el.clientWidth + 1 || el.querySelector("button, input, .aura-pill"))
@@ -4779,7 +4854,7 @@ window.Aura = (() => {
       setTip(null);
     }
     const tipEl = tip && typeof document !== "undefined" ? (0, import_react_dom9.createPortal)(
-      /* @__PURE__ */ React30.createElement(
+      /* @__PURE__ */ React31.createElement(
         "div",
         {
           className: "aura-tooltip aura-tooltip--above",
@@ -4790,7 +4865,7 @@ window.Aura = (() => {
       ),
       document.body
     ) : null;
-    const rowH = React30.useState(ROW_H_DEFAULT);
+    const rowH = React31.useState(ROW_H_DEFAULT);
     const ROW_H = rowH[0];
     useIsoLayoutEffect(function() {
       const el = wrapRef.current;
@@ -4798,8 +4873,8 @@ window.Aura = (() => {
       const v = parseFloat(getComputedStyle(el).getPropertyValue("--aura-table-row-height"));
       if (v > 0 && v !== rowH[0]) rowH[1](v);
     });
-    const pending = React30.useRef(null);
-    const resizing = React30.useRef(false);
+    const pending = React31.useRef(null);
+    const resizing = React31.useRef(false);
     useIsoLayoutEffect(function() {
       if (!gridRef.current) return;
       const els = gridRef.current.querySelectorAll(
@@ -4883,7 +4958,7 @@ window.Aura = (() => {
       return s;
     }
     const sortCol = sort && sort.key ? byKey[sort.key] : void 0;
-    const view = React30.useMemo(
+    const view = React31.useMemo(
       function() {
         if (manual || !sort || !sort.key || !byKey[sort.key]) return rows;
         const col = byKey[sort.key];
@@ -4925,8 +5000,8 @@ window.Aura = (() => {
     const pageRows = pageSize && !manual ? view.slice(first, first + pageSize) : view;
     const canSortAny = !busy && (manual ? total > 1 : rows.length > 1);
     const shownTotal = manual && props.totalRows == null ? first + rows.length : total;
-    const prevCount = React30.useRef(pageCount);
-    React30.useEffect(
+    const prevCount = React31.useRef(pageCount);
+    React31.useEffect(
       function() {
         if (busy) return;
         const before = prevCount.current;
@@ -4940,9 +5015,9 @@ window.Aura = (() => {
       [pageState[0], page, busy, pageCount]
     );
     const linkPaging = !!props.getPageHref && !props.onPageChange && !oneCallback;
-    const prevLink = React30.useRef(null), nextLink = React30.useRef(null), jumpLink = React30.useRef(null);
-    const jumpState = React30.useState(null);
-    React30.useEffect(
+    const prevLink = React31.useRef(null), nextLink = React31.useRef(null), jumpLink = React31.useRef(null);
+    const jumpState = React31.useState(null);
+    React31.useEffect(
       function() {
         if (jumpState[0] == null) return;
         if (jumpLink.current) jumpLink.current.click();
@@ -4993,7 +5068,7 @@ window.Aura = (() => {
       );
     }
     function rowLinkWrap(r, content) {
-      return rowHref ? /* @__PURE__ */ React30.createElement(Link, { href: rowHref(r), className: "aura-table__row-link" }, content) : content;
+      return rowHref ? /* @__PURE__ */ React31.createElement(Link, { href: rowHref(r), className: "aura-table__row-link" }, content) : content;
     }
     const height = props.height || 0;
     const autoRows = props.rowHeight === "auto" && !height;
@@ -5024,7 +5099,7 @@ window.Aura = (() => {
       if (!activeRendered) return r === 0 && c === ac ? 0 : -1;
       return r === ar && c === ac ? 0 : -1;
     }
-    React30.useEffect(function() {
+    React31.useEffect(function() {
       const p = pending.current;
       if (!p || !gridRef.current) return;
       let c = p.c;
@@ -5224,14 +5299,14 @@ window.Aura = (() => {
         items2.push(
           {
             label: t.sortAsc,
-            icon: /* @__PURE__ */ React30.createElement(IconArrowUp, null),
+            icon: /* @__PURE__ */ React31.createElement(IconArrowUp, null),
             onSelect: function() {
               applySort({ key: c.key, dir: "asc" });
             }
           },
           {
             label: t.sortDesc,
-            icon: /* @__PURE__ */ React30.createElement(IconArrowDown, null),
+            icon: /* @__PURE__ */ React31.createElement(IconArrowDown, null),
             onSelect: function() {
               applySort({ key: c.key, dir: "desc" });
             }
@@ -5241,7 +5316,7 @@ window.Aura = (() => {
       if (c.width != null)
         items2.push({
           label: isPinned(c) ? t.unpin : t.pin,
-          icon: isPinned(c) ? /* @__PURE__ */ React30.createElement(IconPinOff, null) : /* @__PURE__ */ React30.createElement(IconPin, null),
+          icon: isPinned(c) ? /* @__PURE__ */ React31.createElement(IconPinOff, null) : /* @__PURE__ */ React31.createElement(IconPin, null),
           onSelect: function() {
             togglePin(c.key);
           }
@@ -5250,7 +5325,7 @@ window.Aura = (() => {
         items2.push(
           {
             label: t.moveLeft,
-            icon: /* @__PURE__ */ React30.createElement(IconArrowLeft, null),
+            icon: /* @__PURE__ */ React31.createElement(IconArrowLeft, null),
             disabled: gi <= 0,
             onSelect: function() {
               moveCol(c.key, -1);
@@ -5258,7 +5333,7 @@ window.Aura = (() => {
           },
           {
             label: t.moveRight,
-            icon: /* @__PURE__ */ React30.createElement(IconArrowRight, null),
+            icon: /* @__PURE__ */ React31.createElement(IconArrowRight, null),
             disabled: gi >= group.length - 1,
             onSelect: function() {
               moveCol(c.key, 1);
@@ -5269,7 +5344,7 @@ window.Aura = (() => {
         { separator: true },
         {
           label: t.hideColumn,
-          icon: /* @__PURE__ */ React30.createElement(IconEyeOff, null),
+          icon: /* @__PURE__ */ React31.createElement(IconEyeOff, null),
           disabled: shown.length <= 1,
           onSelect: function() {
             setHidden(c.key, true);
@@ -5290,7 +5365,7 @@ window.Aura = (() => {
             setHidden(k, on);
           }
         };
-      }).concat([{ separator: true }, { label: t.resetColumns, icon: /* @__PURE__ */ React30.createElement(IconRotateCcw, null), onSelect: resetColumns }]);
+      }).concat([{ separator: true }, { label: t.resetColumns, icon: /* @__PURE__ */ React31.createElement(IconRotateCcw, null), onSelect: resetColumns }]);
     }
     function openMenu(kind, key, anchor, rc) {
       setMenu({ kind, key, anchor, rc });
@@ -5366,10 +5441,10 @@ window.Aura = (() => {
         e.stopPropagation();
       }
     }
-    const head = [/* @__PURE__ */ React30.createElement("span", { key: "__gl", className: "aura-table__gutter", "aria-hidden": true })];
+    const head = [/* @__PURE__ */ React31.createElement("span", { key: "__gl", className: "aura-table__gutter", "aria-hidden": true })];
     if (selectable)
       head.push(
-        /* @__PURE__ */ React30.createElement(
+        /* @__PURE__ */ React31.createElement(
           "span",
           {
             key: "__sel",
@@ -5383,7 +5458,7 @@ window.Aura = (() => {
               activeState[1]({ r: 0, c: 0 });
             }
           },
-          pageKeys.length ? /* @__PURE__ */ React30.createElement(
+          pageKeys.length ? /* @__PURE__ */ React31.createElement(
             Checkbox,
             {
               hideLabel: true,
@@ -5394,7 +5469,7 @@ window.Aura = (() => {
               onChange: toggleAll
             }
           ) : null,
-          pageKeys.length ? /* @__PURE__ */ React30.createElement("span", { className: "aura-table__sel-text" }, nSel ? t.selectedCount(nSel) : t.selectAll) : /* @__PURE__ */ React30.createElement("span", { className: "aura-sr-only" }, t.selectRows)
+          pageKeys.length ? /* @__PURE__ */ React31.createElement("span", { className: "aura-table__sel-text" }, nSel ? t.selectedCount(nSel) : t.selectAll) : /* @__PURE__ */ React31.createElement("span", { className: "aura-sr-only" }, t.selectRows)
         )
       );
     vis.forEach(function(c, i) {
@@ -5404,7 +5479,7 @@ window.Aura = (() => {
       const ariaSort = isSorted && canSort ? sort.dir === "desc" ? "descending" : "ascending" : canSort ? "none" : void 0;
       const pin = isPinned(c), edge = pin && i === nPinned - 1;
       head.push(
-        /* @__PURE__ */ React30.createElement(
+        /* @__PURE__ */ React31.createElement(
           "span",
           {
             key: c.key,
@@ -5454,7 +5529,7 @@ window.Aura = (() => {
               setDrag(null);
             }
           },
-          /* @__PURE__ */ React30.createElement("span", { className: "aura-table__th-inner" }, canSort ? /* @__PURE__ */ React30.createElement(
+          /* @__PURE__ */ React31.createElement("span", { className: "aura-table__th-inner" }, canSort ? /* @__PURE__ */ React31.createElement(
             "button",
             {
               type: "button",
@@ -5466,14 +5541,14 @@ window.Aura = (() => {
               }
             },
             c.label,
-            /* @__PURE__ */ React30.createElement(
+            /* @__PURE__ */ React31.createElement(
               Icon,
               {
-                name: isSorted ? sort.dir === "desc" ? /* @__PURE__ */ React30.createElement(IconArrowDown, null) : /* @__PURE__ */ React30.createElement(IconArrowUp, null) : /* @__PURE__ */ React30.createElement(IconArrowUpDown, null),
+                name: isSorted ? sort.dir === "desc" ? /* @__PURE__ */ React31.createElement(IconArrowDown, null) : /* @__PURE__ */ React31.createElement(IconArrowUp, null) : /* @__PURE__ */ React31.createElement(IconArrowUpDown, null),
                 size: 12
               }
             )
-          ) : /* @__PURE__ */ React30.createElement("span", { className: cx("aura-table__th-label", !c.label && "aura-sr-only") }, c.label || (c.actions ? t.actions : c.key)), pin ? /* @__PURE__ */ React30.createElement(Icon, { name: /* @__PURE__ */ React30.createElement(IconPin, null), size: 12, className: "aura-table__pin-icon", label: t.pinned }) : null, controls ? /* @__PURE__ */ React30.createElement(
+          ) : /* @__PURE__ */ React31.createElement("span", { className: cx("aura-table__th-label", !c.label && "aura-sr-only") }, c.label || (c.actions ? t.actions : c.key)), pin ? /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconPin, null), size: 12, className: "aura-table__pin-icon", label: t.pinned }) : null, controls ? /* @__PURE__ */ React31.createElement(
             "button",
             {
               type: "button",
@@ -5487,9 +5562,9 @@ window.Aura = (() => {
                 openMenu("col", c.key, e.currentTarget, { r: 0, c: ci });
               }
             },
-            /* @__PURE__ */ React30.createElement(Icon, { name: /* @__PURE__ */ React30.createElement(IconEllipsis, null) })
+            /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconEllipsis, null) })
           ) : null),
-          canResize(c) ? /* @__PURE__ */ React30.createElement(
+          canResize(c) ? /* @__PURE__ */ React31.createElement(
             "span",
             {
               className: "aura-table__resize",
@@ -5511,7 +5586,7 @@ window.Aura = (() => {
       );
     });
     head.push(
-      /* @__PURE__ */ React30.createElement(
+      /* @__PURE__ */ React31.createElement(
         "span",
         {
           key: "__gr",
@@ -5522,15 +5597,15 @@ window.Aura = (() => {
     );
     function cellContent(c, r) {
       const v = r[c.key];
-      return c.render ? c.render(r) : c.pill ? /* @__PURE__ */ React30.createElement(StatusPill, { ...{ tone: c.tones && c.tones[v] } }, v) : v;
+      return c.render ? c.render(r) : c.pill ? /* @__PURE__ */ React31.createElement(StatusPill, { ...{ tone: c.tones && c.tones[v] } }, v) : v;
     }
     function rowCells(r, i, k, isSel) {
       const ri = i + 1;
       const selLabel = selectable && canSelect(r) ? props.rowSelectLabel && props.rowSelectLabel(r) || t.selectRow(k) : void 0;
-      const cells = [/* @__PURE__ */ React30.createElement("span", { key: "__gl", className: "aura-table__gutter", "aria-hidden": true })];
+      const cells = [/* @__PURE__ */ React31.createElement("span", { key: "__gl", className: "aura-table__gutter", "aria-hidden": true })];
       if (selectable)
         cells.push(
-          /* @__PURE__ */ React30.createElement(
+          /* @__PURE__ */ React31.createElement(
             "span",
             {
               key: "__sel",
@@ -5544,7 +5619,7 @@ window.Aura = (() => {
                 if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
               }
             },
-            canSelect(r) ? /* @__PURE__ */ React30.createElement(
+            canSelect(r) ? /* @__PURE__ */ React31.createElement(
               Checkbox,
               {
                 hideLabel: true,
@@ -5561,7 +5636,7 @@ window.Aura = (() => {
       vis.forEach(function(c, j) {
         const ci = j + (selectable ? 1 : 0), v = r[c.key], pin = isPinned(c);
         cells.push(
-          /* @__PURE__ */ React30.createElement(
+          /* @__PURE__ */ React31.createElement(
             "span",
             {
               key: c.key,
@@ -5583,13 +5658,13 @@ window.Aura = (() => {
                 if (activeState[0].r !== ri || activeState[0].c !== ci) activeState[1]({ r: ri, c: ci });
               }
             },
-            autoRows ? /* @__PURE__ */ React30.createElement("span", { className: "aura-table__cell" }, j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)) : j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)
+            autoRows ? /* @__PURE__ */ React31.createElement("span", { className: "aura-table__cell" }, j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)) : j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)
           )
         );
       });
-      if (hasFields) cells.push(/* @__PURE__ */ React30.createElement("span", { key: "__br", className: "aura-table__break", "aria-hidden": true }));
+      if (hasFields) cells.push(/* @__PURE__ */ React31.createElement("span", { key: "__br", className: "aura-table__break", "aria-hidden": true }));
       cells.push(
-        /* @__PURE__ */ React30.createElement(
+        /* @__PURE__ */ React31.createElement(
           "span",
           {
             key: "__gr",
@@ -5606,14 +5681,14 @@ window.Aura = (() => {
       const n3 = pageSize || props.skeletonRows || 5;
       const skRows = body = [];
       for (let i = 0; i < n3; i++) {
-        const sk = [/* @__PURE__ */ React30.createElement("span", { key: "__gl", className: "aura-table__gutter" })];
+        const sk = [/* @__PURE__ */ React31.createElement("span", { key: "__gl", className: "aura-table__gutter" })];
         if (selectable)
           sk.push(
-            /* @__PURE__ */ React30.createElement("span", { key: "__sel", className: cx("aura-table__sel", nPinned && "is-pinned") }, /* @__PURE__ */ React30.createElement("span", { className: "aura-skel aura-skel--box" }))
+            /* @__PURE__ */ React31.createElement("span", { key: "__sel", className: cx("aura-table__sel", nPinned && "is-pinned") }, /* @__PURE__ */ React31.createElement("span", { className: "aura-skel aura-skel--box" }))
           );
         vis.forEach(function(c, j) {
           sk.push(
-            /* @__PURE__ */ React30.createElement(
+            /* @__PURE__ */ React31.createElement(
               "span",
               {
                 key: c.key,
@@ -5622,7 +5697,7 @@ window.Aura = (() => {
                 ...cardAttrs(c, j),
                 "data-label": void 0
               },
-              /* @__PURE__ */ React30.createElement(
+              /* @__PURE__ */ React31.createElement(
                 "span",
                 {
                   className: cx("aura-skel", c.pill && "aura-skel--pill"),
@@ -5632,28 +5707,28 @@ window.Aura = (() => {
             )
           );
         });
-        if (hasFields) sk.push(/* @__PURE__ */ React30.createElement("span", { key: "__br", className: "aura-table__break" }));
+        if (hasFields) sk.push(/* @__PURE__ */ React31.createElement("span", { key: "__br", className: "aura-table__break" }));
         sk.push(
-          /* @__PURE__ */ React30.createElement("span", { key: "__gr", className: cx("aura-table__gutter aura-table__gutter--end", controls && "has-picker") })
+          /* @__PURE__ */ React31.createElement("span", { key: "__gr", className: cx("aura-table__gutter aura-table__gutter--end", controls && "has-picker") })
         );
         skRows.push(
-          /* @__PURE__ */ React30.createElement("div", { key: "sk" + i, className: "aura-table__row aura-table__row--skeleton", "aria-hidden": true, style: rowStyle }, sk)
+          /* @__PURE__ */ React31.createElement("div", { key: "sk" + i, className: "aura-table__row aura-table__row--skeleton", "aria-hidden": true, style: rowStyle }, sk)
         );
       }
     } else if (!rows.length) {
       const em = props.empty || {};
-      body = /* @__PURE__ */ React30.createElement("div", { className: "aura-table__empty", role: "row" }, /* @__PURE__ */ React30.createElement("div", { role: "gridcell" }, /* @__PURE__ */ React30.createElement("span", { className: "aura-table__empty-icon" }, /* @__PURE__ */ React30.createElement(Icon, { name: em.icon || /* @__PURE__ */ React30.createElement(IconInbox, null), size: "lg" })), /* @__PURE__ */ React30.createElement("p", { className: "aura-table__empty-title" }, em.title || t.empty), em.description ? /* @__PURE__ */ React30.createElement("p", { className: "aura-table__empty-text" }, em.description) : null, em.action ? /* @__PURE__ */ React30.createElement("div", { className: "aura-table__empty-action" }, em.action) : null));
+      body = /* @__PURE__ */ React31.createElement("div", { className: "aura-table__empty", role: "row" }, /* @__PURE__ */ React31.createElement("div", { role: "gridcell" }, /* @__PURE__ */ React31.createElement("span", { className: "aura-table__empty-icon" }, /* @__PURE__ */ React31.createElement(Icon, { name: em.icon || /* @__PURE__ */ React31.createElement(IconInbox, null), size: "lg" })), /* @__PURE__ */ React31.createElement("p", { className: "aura-table__empty-title" }, em.title || t.empty), em.description ? /* @__PURE__ */ React31.createElement("p", { className: "aura-table__empty-text" }, em.description) : null, em.action ? /* @__PURE__ */ React31.createElement("div", { className: "aura-table__empty-action" }, em.action) : null));
     } else {
       const bodyRows = body = [];
       if (virtual && start > 0)
         bodyRows.push(
-          /* @__PURE__ */ React30.createElement("div", { key: "__top", className: "aura-table__spacer", style: { height: start * ROW_H + "px" }, "aria-hidden": true })
+          /* @__PURE__ */ React31.createElement("div", { key: "__top", className: "aura-table__spacer", style: { height: start * ROW_H + "px" }, "aria-hidden": true })
         );
       for (let ri = start; ri < end; ri++) {
         (function(r, i) {
           const k = r[rowKey], isSel = !!selSet[k];
           bodyRows.push(
-            /* @__PURE__ */ React30.createElement(
+            /* @__PURE__ */ React31.createElement(
               "div",
               {
                 key: k,
@@ -5681,7 +5756,7 @@ window.Aura = (() => {
       }
       if (virtual && end < pageRows.length)
         bodyRows.push(
-          /* @__PURE__ */ React30.createElement(
+          /* @__PURE__ */ React31.createElement(
             "div",
             {
               key: "__bot",
@@ -5694,9 +5769,9 @@ window.Aura = (() => {
     }
     let foot = null;
     function pagerButton(dir) {
-      const p = page + dir, off = busy || (dir < 0 ? page <= 1 : page >= pageCount), label = dir < 0 ? t.prevPage : t.nextPage, icon = dir < 0 ? /* @__PURE__ */ React30.createElement(IconChevronLeft, null) : /* @__PURE__ */ React30.createElement(IconChevronRight, null);
+      const p = page + dir, off = busy || (dir < 0 ? page <= 1 : page >= pageCount), label = dir < 0 ? t.prevPage : t.nextPage, icon = dir < 0 ? /* @__PURE__ */ React31.createElement(IconChevronLeft, null) : /* @__PURE__ */ React31.createElement(IconChevronRight, null);
       if (props.getPageHref && !off)
-        return /* @__PURE__ */ React30.createElement(
+        return /* @__PURE__ */ React31.createElement(
           Link,
           {
             ref: dir < 0 ? prevLink : nextLink,
@@ -5711,9 +5786,9 @@ window.Aura = (() => {
               }
             }
           },
-          /* @__PURE__ */ React30.createElement(Icon, { name: icon })
+          /* @__PURE__ */ React31.createElement(Icon, { name: icon })
         );
-      return /* @__PURE__ */ React30.createElement(
+      return /* @__PURE__ */ React31.createElement(
         IconButton,
         {
           icon,
@@ -5728,11 +5803,11 @@ window.Aura = (() => {
     const openTotal = manual && props.totalRows == null && !!pageSize && rows.length >= pageSize;
     if (pageSize && (rows.length || busy || page > 1)) {
       const from = rows.length ? first + 1 : 0, to = manual ? first + rows.length : Math.min(first + pageSize, view.length);
-      foot = /* @__PURE__ */ React30.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React30.createElement("span", { "aria-live": "polite" }, busy ? t.loading : openTotal ? t.rangeOpen(from, to) : t.range(from, to, shownTotal)), /* @__PURE__ */ React30.createElement("span", { className: "aura-table__pager" }, /* @__PURE__ */ React30.createElement("span", null, openTotal ? t.pageOpen(page) : t.page(page, pageCount)), pagerButton(-1), pagerButton(1)));
+      foot = /* @__PURE__ */ React31.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React31.createElement("span", { "aria-live": "polite" }, busy ? t.loading : openTotal ? t.rangeOpen(from, to) : t.range(from, to, shownTotal)), /* @__PURE__ */ React31.createElement("span", { className: "aura-table__pager" }, /* @__PURE__ */ React31.createElement("span", null, openTotal ? t.pageOpen(page) : t.page(page, pageCount)), pagerButton(-1), pagerButton(1)));
     } else if (height && rows.length && !loading) {
-      foot = /* @__PURE__ */ React30.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React30.createElement("span", null, t.rowCount(shownTotal)), selectable && selected.length ? /* @__PURE__ */ React30.createElement("span", null, t.selectedCount(selected.length)) : /* @__PURE__ */ React30.createElement("span", null));
+      foot = /* @__PURE__ */ React31.createElement("div", { className: "aura-table__foot" }, /* @__PURE__ */ React31.createElement("span", null, t.rowCount(shownTotal)), selectable && selected.length ? /* @__PURE__ */ React31.createElement("span", null, t.selectedCount(selected.length)) : /* @__PURE__ */ React31.createElement("span", null));
     }
-    const totalRow = props.footer && rows.length && !loading ? /* @__PURE__ */ React30.createElement(
+    const totalRow = props.footer && rows.length && !loading ? /* @__PURE__ */ React31.createElement(
       "div",
       {
         role: "row",
@@ -5741,8 +5816,8 @@ window.Aura = (() => {
         className: cx("aura-table__row aura-table__total", props.stickyFooter && "is-sticky"),
         style: rowStyle
       },
-      /* @__PURE__ */ React30.createElement("span", { className: "aura-table__gutter", "aria-hidden": true }),
-      selectable ? /* @__PURE__ */ React30.createElement(
+      /* @__PURE__ */ React31.createElement("span", { className: "aura-table__gutter", "aria-hidden": true }),
+      selectable ? /* @__PURE__ */ React31.createElement(
         "span",
         {
           role: "gridcell",
@@ -5757,7 +5832,7 @@ window.Aura = (() => {
       ) : null,
       vis.map(function(c, j) {
         const pin = isPinned(c), ci = j + (selectable ? 1 : 0);
-        return /* @__PURE__ */ React30.createElement(
+        return /* @__PURE__ */ React31.createElement(
           "span",
           {
             key: c.key,
@@ -5783,8 +5858,8 @@ window.Aura = (() => {
           props.footer[c.key]
         );
       }),
-      hasFields ? /* @__PURE__ */ React30.createElement("span", { className: "aura-table__break", "aria-hidden": true }) : null,
-      /* @__PURE__ */ React30.createElement(
+      hasFields ? /* @__PURE__ */ React31.createElement("span", { className: "aura-table__break", "aria-hidden": true }) : null,
+      /* @__PURE__ */ React31.createElement(
         "span",
         {
           className: cx("aura-table__gutter aura-table__gutter--end", controls && "has-picker"),
@@ -5798,7 +5873,7 @@ window.Aura = (() => {
       scrollPaddingBottom: stickyTotal ? ROW_H + "px" : void 0
     };
     if (height) scrollStyle["--aura-table-h"] = height + "px";
-    const gridEl = /* @__PURE__ */ React30.createElement(
+    const gridEl = /* @__PURE__ */ React31.createElement(
       "div",
       {
         ref: levels.length ? wrapRef : wrapMerged,
@@ -5812,8 +5887,8 @@ window.Aura = (() => {
         ),
         style: levels.length ? { ["--aura-q-back"]: String(levels[levels.length - 1].px / Q) } : void 0
       },
-      refreshing ? /* @__PURE__ */ React30.createElement("span", { className: "aura-table__busy-bar", "aria-hidden": true }) : null,
-      /* @__PURE__ */ React30.createElement(
+      refreshing ? /* @__PURE__ */ React31.createElement("span", { className: "aura-table__busy-bar", "aria-hidden": true }) : null,
+      /* @__PURE__ */ React31.createElement(
         "div",
         {
           ref: function(el) {
@@ -5842,7 +5917,7 @@ window.Aura = (() => {
             if (sx !== scrolledX[0]) scrolledX[1](sx);
           }
         },
-        /* @__PURE__ */ React30.createElement(
+        /* @__PURE__ */ React31.createElement(
           "div",
           {
             className: cx("aura-table__head", selectable && nRows > 0 && !busy && "has-select-all"),
@@ -5855,11 +5930,11 @@ window.Aura = (() => {
         body,
         totalRow
       ),
-      busy ? /* @__PURE__ */ React30.createElement("span", { className: "aura-sr-only", role: "status" }, t.loadingRows) : null,
-      controls ? /* @__PURE__ */ React30.createElement("div", { className: "aura-table__picker" }, /* @__PURE__ */ React30.createElement(
+      busy ? /* @__PURE__ */ React31.createElement("span", { className: "aura-sr-only", role: "status" }, t.loadingRows) : null,
+      controls ? /* @__PURE__ */ React31.createElement("div", { className: "aura-table__picker" }, /* @__PURE__ */ React31.createElement(
         IconButton,
         {
-          icon: /* @__PURE__ */ React30.createElement(IconColumns3, null),
+          icon: /* @__PURE__ */ React31.createElement(IconColumns3, null),
           label: t.showHideColumns,
           "aria-haspopup": "menu",
           onClick: function(e) {
@@ -5868,7 +5943,7 @@ window.Aura = (() => {
         }
       )) : null,
       foot,
-      menu ? /* @__PURE__ */ React30.createElement(
+      menu ? /* @__PURE__ */ React31.createElement(
         Menu,
         {
           anchor: menu.anchor,
@@ -5878,13 +5953,13 @@ window.Aura = (() => {
         }
       ) : null,
       tipEl,
-      jumpState[0] != null && props.getPageHref ? /* @__PURE__ */ React30.createElement(Link, { ref: jumpLink, href: props.getPageHref(jumpState[0]), hidden: true, tabIndex: -1, "aria-hidden": true }) : null
+      jumpState[0] != null && props.getPageHref ? /* @__PURE__ */ React31.createElement(Link, { ref: jumpLink, href: props.getPageHref(jumpState[0]), hidden: true, tabIndex: -1, "aria-hidden": true }) : null
     );
     if (!levels.length) return gridEl;
     let out = gridEl;
     for (let i = levels.length - 1; i >= 0; i--) {
       const prev = i === 0 ? Q : levels[i - 1].px;
-      out = /* @__PURE__ */ React30.createElement(
+      out = /* @__PURE__ */ React31.createElement(
         "div",
         {
           className: cx("aura-table-q", "aura-table-q--" + levels[i].name),
@@ -5893,19 +5968,19 @@ window.Aura = (() => {
         out
       );
     }
-    return /* @__PURE__ */ React30.createElement("div", { ref, className: cx("aura-table-box", props.className) }, out);
+    return /* @__PURE__ */ React31.createElement("div", { ref, className: cx("aura-table-box", props.className) }, out);
   });
   var DataTable2 = DataTableImpl;
 
   // src/Card.tsx
-  var React31 = __toESM(require_react(), 1);
-  var Card = React31.forwardRef(function Card2(props, ref) {
+  var React32 = __toESM(require_react(), 1);
+  var Card = React32.forwardRef(function Card2(props, ref) {
     return cardElement(props, ref);
   });
 
   // src/Tabs.tsx
-  var React32 = __toESM(require_react(), 1);
-  var Tabs = React32.forwardRef(function Tabs2(props, ref) {
+  var React33 = __toESM(require_react(), 1);
+  var Tabs = React33.forwardRef(function Tabs2(props, ref) {
     const items2 = props.tabs || [], base = uid();
     const asLinks = items2.length > 0 && items2.every(function(t) {
       return !!t.href;
@@ -5919,7 +5994,7 @@ window.Aura = (() => {
       props.onChange
     );
     const cur = asLinks && "value" in props ? props.value : st[0];
-    const refs = React32.useRef({});
+    const refs = React33.useRef({});
     const current2 = items2.filter(function(t) {
       return t.id === cur;
     })[0] || firstOn || items2[0];
@@ -5931,7 +6006,7 @@ window.Aura = (() => {
       return cx("aura-tab", on && "is-active", seg && "aura-segmented__option", seg && on && "is-selected", extra);
     };
     const rootCls = cx("aura-tabs", seg && "aura-tabs--segmented");
-    const [focusId, setFocusId] = React32.useState(null);
+    const [focusId, setFocusId] = React33.useState(null);
     items2.forEach(function(t) {
       const al = t.tabProps && t.tabProps["aria-label"];
       if (al && al.toLowerCase().indexOf(String(t.label).toLowerCase()) !== 0)
@@ -5941,19 +6016,19 @@ window.Aura = (() => {
         );
     });
     if (asLinks)
-      return /* @__PURE__ */ React32.createElement(
+      return /* @__PURE__ */ React33.createElement(
         "nav",
         {
           ref,
           "aria-label": props.label,
           className: cx(rootCls, "aura-tabs--links", props.className)
         },
-        /* @__PURE__ */ React32.createElement("div", { className: listCls }, items2.map(function(t) {
+        /* @__PURE__ */ React33.createElement("div", { className: listCls }, items2.map(function(t) {
           const on = t.id === cur;
           const inner = [
-            t.icon ? /* @__PURE__ */ React32.createElement(Icon, { key: "i", name: t.icon }) : null,
+            t.icon ? /* @__PURE__ */ React33.createElement(Icon, { key: "i", name: t.icon }) : null,
             t.label,
-            t.count != null ? /* @__PURE__ */ React32.createElement("span", { key: "c", className: "aura-tab__count" }, t.count) : null
+            t.count != null ? /* @__PURE__ */ React33.createElement("span", { key: "c", className: "aura-tab__count" }, t.count) : null
           ];
           const own = omit(t.tabProps || {}, [
             "type",
@@ -5967,7 +6042,7 @@ window.Aura = (() => {
             "name",
             "value"
           ]);
-          return t.disabled ? /* @__PURE__ */ React32.createElement(
+          return t.disabled ? /* @__PURE__ */ React33.createElement(
             "span",
             {
               ...omit(own, ["onClick"]),
@@ -5976,7 +6051,7 @@ window.Aura = (() => {
               "aria-disabled": true
             },
             inner
-          ) : /* @__PURE__ */ React32.createElement(
+          ) : /* @__PURE__ */ React33.createElement(
             Link,
             {
               ...own,
@@ -6006,7 +6081,7 @@ window.Aura = (() => {
     const stop = manual && focusId && items2.filter(function(t) {
       return t.id === focusId && !t.disabled;
     })[0] || current2;
-    return /* @__PURE__ */ React32.createElement("div", { ref, className: cx(rootCls, props.className) }, /* @__PURE__ */ React32.createElement(
+    return /* @__PURE__ */ React33.createElement("div", { ref, className: cx(rootCls, props.className) }, /* @__PURE__ */ React33.createElement(
       "div",
       {
         role: "tablist",
@@ -6039,7 +6114,7 @@ window.Aura = (() => {
       items2.map(function(t) {
         const on = current2 && t.id === current2.id;
         const own = t.tabProps || {};
-        return /* @__PURE__ */ React32.createElement(
+        return /* @__PURE__ */ React33.createElement(
           "button",
           {
             ...own,
@@ -6066,9 +6141,9 @@ window.Aura = (() => {
               st[1](t.id);
             }
           },
-          t.icon ? /* @__PURE__ */ React32.createElement(Icon, { name: t.icon }) : null,
+          t.icon ? /* @__PURE__ */ React33.createElement(Icon, { name: t.icon }) : null,
           t.label,
-          t.count != null ? /* @__PURE__ */ React32.createElement("span", { className: "aura-tab__count" }, t.count) : null
+          t.count != null ? /* @__PURE__ */ React33.createElement("span", { className: "aura-tab__count" }, t.count) : null
         );
       })
     ), props.keepMounted ? (
@@ -6076,7 +6151,7 @@ window.Aura = (() => {
       items2.map(function(t) {
         if (t.content === void 0) return null;
         const on = current2 && t.id === current2.id;
-        return /* @__PURE__ */ React32.createElement(
+        return /* @__PURE__ */ React33.createElement(
           "div",
           {
             key: t.id,
@@ -6090,7 +6165,7 @@ window.Aura = (() => {
           t.content
         );
       })
-    ) : current2 && current2.content !== void 0 ? /* @__PURE__ */ React32.createElement(
+    ) : current2 && current2.content !== void 0 ? /* @__PURE__ */ React33.createElement(
       "div",
       {
         role: "tabpanel",
@@ -6104,14 +6179,14 @@ window.Aura = (() => {
   });
 
   // src/SideNav.tsx
-  var React33 = __toESM(require_react(), 1);
+  var React34 = __toESM(require_react(), 1);
   var import_react_dom10 = __toESM(require_react_dom(), 1);
   function contains(it, id) {
     return !!id && !!it.children && it.children.some(function(c) {
       return c.id === id || contains(c, id);
     });
   }
-  var SideNav = React33.forwardRef(function SideNav2(props, ref) {
+  var SideNav = React34.forwardRef(function SideNav2(props, ref) {
     const t = useStrings();
     const Link = useLinkComponent(props.linkComponent);
     const base = uid();
@@ -6123,14 +6198,14 @@ window.Aura = (() => {
     const active = st[0];
     const col = useMaybeControlled(props.collapsed, !!props.defaultCollapsed, props.onCollapsedChange);
     const collapsed = col[0];
-    const tipState = React33.useState(null), tip = tipState[0], setTip = tipState[1];
-    React33.useEffect(
+    const tipState = React34.useState(null), tip = tipState[0], setTip = tipState[1];
+    React34.useEffect(
       function() {
         if (!collapsed) setTip(null);
       },
       [collapsed]
     );
-    React33.useEffect(
+    React34.useEffect(
       function() {
         if (!tip) return;
         function esc(e) {
@@ -6155,12 +6230,12 @@ window.Aura = (() => {
       return { onMouseEnter: show2, onFocus: show2, onMouseLeave: hide, onBlur: hide };
     }
     const sections = props.sections || [{ items: props.items || [] }];
-    const openState = React33.useState({}), toggled = openState[0], setToggled = openState[1];
+    const openState = React34.useState({}), toggled = openState[0], setToggled = openState[1];
     function isOpen(it) {
       if (toggled[it.id] != null) return toggled[it.id];
       return !!it.defaultOpen || contains(it, active);
     }
-    React33.useEffect(
+    React34.useEffect(
       function() {
         if (!active) return;
         const next = {};
@@ -6182,7 +6257,7 @@ window.Aura = (() => {
       },
       [active]
     );
-    const navRef = React33.useRef(null);
+    const navRef = React34.useRef(null);
     function onKeyDown(e) {
       const k = e.key;
       if (k !== "ArrowDown" && k !== "ArrowUp" && k !== "Home" && k !== "End") return;
@@ -6201,12 +6276,12 @@ window.Aura = (() => {
     function inner(it, group, open) {
       const marked = it.count != null && it.count > 0 || it.badge != null;
       return [
-        it.icon ? /* @__PURE__ */ React33.createElement(Icon, { key: "i", name: it.icon }) : collapsed ? /* @__PURE__ */ React33.createElement("span", { key: "i", className: "aura-nav__initial", "aria-hidden": "true" }, it.label.charAt(0)) : null,
-        collapsed && marked ? /* @__PURE__ */ React33.createElement("span", { key: "d", className: "aura-nav__dot", "aria-hidden": "true" }) : null,
-        /* @__PURE__ */ React33.createElement("span", { key: "l", className: "aura-nav__label" }, it.label),
-        it.badge != null ? /* @__PURE__ */ React33.createElement("span", { key: "b", className: "aura-nav__badge" }, it.badge) : null,
-        it.count != null ? /* @__PURE__ */ React33.createElement("span", { key: "c", className: "aura-nav__count" }, it.count) : null,
-        group ? /* @__PURE__ */ React33.createElement(Icon, { key: "g", name: /* @__PURE__ */ React33.createElement(IconChevronDown, null), className: cx("aura-nav__chevron", open && "is-open") }) : null
+        it.icon ? /* @__PURE__ */ React34.createElement(Icon, { key: "i", name: it.icon }) : collapsed ? /* @__PURE__ */ React34.createElement("span", { key: "i", className: "aura-nav__initial", "aria-hidden": "true" }, it.label.charAt(0)) : null,
+        collapsed && marked ? /* @__PURE__ */ React34.createElement("span", { key: "d", className: "aura-nav__dot", "aria-hidden": "true" }) : null,
+        /* @__PURE__ */ React34.createElement("span", { key: "l", className: "aura-nav__label" }, it.label),
+        it.badge != null ? /* @__PURE__ */ React34.createElement("span", { key: "b", className: "aura-nav__badge" }, it.badge) : null,
+        it.count != null ? /* @__PURE__ */ React34.createElement("span", { key: "c", className: "aura-nav__count" }, it.count) : null,
+        group ? /* @__PURE__ */ React34.createElement(Icon, { key: "g", name: /* @__PURE__ */ React34.createElement(IconChevronDown, null), className: cx("aura-nav__chevron", open && "is-open") }) : null
       ];
     }
     function item(it, depth) {
@@ -6214,7 +6289,7 @@ window.Aura = (() => {
         const open = !collapsed && isOpen(it);
         const listId = base + "-" + it.id;
         const holdsActive = contains(it, active);
-        return /* @__PURE__ */ React33.createElement("li", { key: it.id, className: "aura-nav__group" }, /* @__PURE__ */ React33.createElement(
+        return /* @__PURE__ */ React34.createElement("li", { key: it.id, className: "aura-nav__group" }, /* @__PURE__ */ React34.createElement(
           "button",
           {
             type: "button",
@@ -6243,7 +6318,7 @@ window.Aura = (() => {
             }
           },
           inner(it, true, open)
-        ), /* @__PURE__ */ React33.createElement("ul", { id: listId, className: "aura-nav__list aura-nav__sub", hidden: !open }, it.children.map(function(c) {
+        ), /* @__PURE__ */ React34.createElement("ul", { id: listId, className: "aura-nav__list aura-nav__sub", hidden: !open }, it.children.map(function(c) {
           return item(c, depth + 1);
         })));
       }
@@ -6259,9 +6334,9 @@ window.Aura = (() => {
           st[1](it.id);
         }
       };
-      return /* @__PURE__ */ React33.createElement("li", { key: it.id }, it.href ? /* @__PURE__ */ React33.createElement(Link, { href: it.href, ...common }, inner(it, false, false)) : /* @__PURE__ */ React33.createElement("button", { type: "button", ...common }, inner(it, false, false)));
+      return /* @__PURE__ */ React34.createElement("li", { key: it.id }, it.href ? /* @__PURE__ */ React34.createElement(Link, { href: it.href, ...common }, inner(it, false, false)) : /* @__PURE__ */ React34.createElement("button", { type: "button", ...common }, inner(it, false, false)));
     }
-    return /* @__PURE__ */ React33.createElement(
+    return /* @__PURE__ */ React34.createElement(
       "nav",
       {
         ref: function(el) {
@@ -6279,17 +6354,17 @@ window.Aura = (() => {
         "aria-label": props.label || t.mainNav,
         onKeyDown
       },
-      props.header ? /* @__PURE__ */ React33.createElement("div", { className: "aura-nav__header" }, props.header) : null,
-      /* @__PURE__ */ React33.createElement("div", { className: "aura-nav__scroll" }, sections.map(function(s, i) {
-        return /* @__PURE__ */ React33.createElement("div", { key: i, className: "aura-nav__section" }, s.title ? /* @__PURE__ */ React33.createElement("p", { className: "aura-nav__title" }, s.title) : null, /* @__PURE__ */ React33.createElement("ul", { className: "aura-nav__list" }, s.items.map(function(it) {
+      props.header ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__header" }, props.header) : null,
+      /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__scroll" }, sections.map(function(s, i) {
+        return /* @__PURE__ */ React34.createElement("div", { key: i, className: "aura-nav__section" }, s.title ? /* @__PURE__ */ React34.createElement("p", { className: "aura-nav__title" }, s.title) : null, /* @__PURE__ */ React34.createElement("ul", { className: "aura-nav__list" }, s.items.map(function(it) {
           return item(it, 0);
         })));
       })),
-      props.footer ? /* @__PURE__ */ React33.createElement("div", { className: "aura-nav__footer" }, props.footer) : null,
-      props.collapsible ? /* @__PURE__ */ React33.createElement("div", { className: "aura-nav__toggle" }, /* @__PURE__ */ React33.createElement(
+      props.footer ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__footer" }, props.footer) : null,
+      props.collapsible ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__toggle" }, /* @__PURE__ */ React34.createElement(
         IconButton,
         {
-          icon: collapsed ? /* @__PURE__ */ React33.createElement(IconPanelLeftOpen, null) : /* @__PURE__ */ React33.createElement(IconPanelLeftClose, null),
+          icon: collapsed ? /* @__PURE__ */ React34.createElement(IconPanelLeftOpen, null) : /* @__PURE__ */ React34.createElement(IconPanelLeftClose, null),
           label: collapsed ? t.expandNav : t.collapseNav,
           size: "md",
           onClick: function() {
@@ -6299,7 +6374,7 @@ window.Aura = (() => {
         }
       )) : null,
       tip && typeof document !== "undefined" ? (0, import_react_dom10.createPortal)(
-        /* @__PURE__ */ React33.createElement(
+        /* @__PURE__ */ React34.createElement(
           "div",
           {
             className: "aura-tooltip aura-tooltip--right",
@@ -6314,35 +6389,35 @@ window.Aura = (() => {
   });
 
   // src/Breadcrumb.tsx
-  var React34 = __toESM(require_react(), 1);
-  var Breadcrumb = React34.forwardRef(function Breadcrumb2(props, ref) {
+  var React35 = __toESM(require_react(), 1);
+  var Breadcrumb = React35.forwardRef(function Breadcrumb2(props, ref) {
     const t = useStrings();
     const Link = useLinkComponent(props.linkComponent);
     const items2 = props.items || [];
-    return /* @__PURE__ */ React34.createElement("nav", { ref, "aria-label": props.label || t.breadcrumb, className: cx("aura-crumbs", props.className) }, /* @__PURE__ */ React34.createElement("ol", null, items2.map(function(it, i) {
+    return /* @__PURE__ */ React35.createElement("nav", { ref, "aria-label": props.label || t.breadcrumb, className: cx("aura-crumbs", props.className) }, /* @__PURE__ */ React35.createElement("ol", null, items2.map(function(it, i) {
       const last = i === items2.length - 1;
-      return /* @__PURE__ */ React34.createElement("li", { key: i }, last ? /* @__PURE__ */ React34.createElement("span", { "aria-current": "page", className: "aura-crumbs__current" }, it.label) : it.href ? /* @__PURE__ */ React34.createElement(Link, { href: it.href, onClick: it.onClick }, it.label) : it.onClick ? /* @__PURE__ */ React34.createElement("button", { type: "button", onClick: it.onClick }, it.label) : (
+      return /* @__PURE__ */ React35.createElement("li", { key: i }, last ? /* @__PURE__ */ React35.createElement("span", { "aria-current": "page", className: "aura-crumbs__current" }, it.label) : it.href ? /* @__PURE__ */ React35.createElement(Link, { href: it.href, onClick: it.onClick }, it.label) : it.onClick ? /* @__PURE__ */ React35.createElement("button", { type: "button", onClick: it.onClick }, it.label) : (
         /* 5.7: a segment with no page and no action is text, not a button that does nothing. */
-        /* @__PURE__ */ React34.createElement("span", { className: "aura-crumbs__text" }, it.label)
-      ), last ? null : /* @__PURE__ */ React34.createElement(Icon, { name: /* @__PURE__ */ React34.createElement(IconChevronRight, null), size: 12, className: "aura-crumbs__sep" }));
+        /* @__PURE__ */ React35.createElement("span", { className: "aura-crumbs__text" }, it.label)
+      ), last ? null : /* @__PURE__ */ React35.createElement(Icon, { name: /* @__PURE__ */ React35.createElement(IconChevronRight, null), size: 12, className: "aura-crumbs__sep" }));
     })));
   });
 
   // src/Avatar.tsx
-  var React35 = __toESM(require_react(), 1);
+  var React36 = __toESM(require_react(), 1);
   var AVATAR_TONES = ["progress", "ready", "neutral", "warning"];
   function initials(name) {
     const parts = String(name || "?").trim().split(/\s+/);
     return ((parts[0] || "?")[0] + (parts.length > 1 ? parts[parts.length - 1][0] : parts[0][1] || "")).toUpperCase();
   }
-  var Avatar = React35.forwardRef(function Avatar2(props, ref) {
-    const size = props.size || "md", errState = React35.useState(null);
+  var Avatar = React36.forwardRef(function Avatar2(props, ref) {
+    const size = props.size || "md", errState = React36.useState(null);
     let hash = 0;
     String(props.name || "").split("").forEach(function(ch) {
       hash = hash * 31 + ch.charCodeAt(0) >>> 0;
     });
     const tone2 = AVATAR_TONES[hash % AVATAR_TONES.length];
-    return /* @__PURE__ */ React35.createElement(
+    return /* @__PURE__ */ React36.createElement(
       "span",
       {
         ref,
@@ -6350,7 +6425,7 @@ window.Aura = (() => {
         role: "img",
         "aria-label": props.name + (props.status ? ", " + props.status : "")
       },
-      props.src && errState[0] !== props.src ? /* @__PURE__ */ React35.createElement(
+      props.src && errState[0] !== props.src ? /* @__PURE__ */ React36.createElement(
         "img",
         {
           key: props.src,
@@ -6360,16 +6435,16 @@ window.Aura = (() => {
             errState[1](props.src || null);
           }
         }
-      ) : /* @__PURE__ */ React35.createElement("span", { "aria-hidden": true }, initials(props.name)),
-      props.status === "online" ? /* @__PURE__ */ React35.createElement("span", { className: "aura-avatar__status", "aria-hidden": true }) : null
+      ) : /* @__PURE__ */ React36.createElement("span", { "aria-hidden": true }, initials(props.name)),
+      props.status === "online" ? /* @__PURE__ */ React36.createElement("span", { className: "aura-avatar__status", "aria-hidden": true }) : null
     );
   });
 
   // src/Stack.tsx
-  var React37 = __toESM(require_react(), 1);
+  var React38 = __toESM(require_react(), 1);
 
   // src/responsive.tsx
-  var React36 = __toESM(require_react(), 1);
+  var React37 = __toESM(require_react(), 1);
 
   // src/breakpoints.ts
   var breakpoints = { sm: 640, md: 768, lg: 1024, xl: 1280 };
@@ -6377,7 +6452,7 @@ window.Aura = (() => {
   // src/responsive.tsx
   var ORDER = ["base", "sm", "md", "lg", "xl"];
   function useBreakpoint() {
-    return React36.useSyncExternalStore(subscribe, current, function() {
+    return React37.useSyncExternalStore(subscribe, current, function() {
       return "lg";
     });
   }
@@ -6417,8 +6492,8 @@ window.Aura = (() => {
   };
 
   // src/Stack.tsx
-  var h5 = React37.createElement;
-  var Stack = React37.forwardRef(function Stack2(props, ref) {
+  var h5 = React38.createElement;
+  var Stack = React38.forwardRef(function Stack2(props, ref) {
     const style = Object.assign(
       {},
       respVars("aura-stack-dir", props.direction || "column"),
@@ -6432,9 +6507,9 @@ window.Aura = (() => {
   });
 
   // src/Grid.tsx
-  var React38 = __toESM(require_react(), 1);
-  var h6 = React38.createElement;
-  var Grid = React38.forwardRef(function Grid2(props, ref) {
+  var React39 = __toESM(require_react(), 1);
+  var h6 = React39.createElement;
+  var Grid = React39.forwardRef(function Grid2(props, ref) {
     const style = Object.assign(
       {},
       respVars("aura-grid-gap", props.gap == null ? 6 : props.gap, space),
@@ -6449,9 +6524,9 @@ window.Aura = (() => {
   });
 
   // src/Container.tsx
-  var React39 = __toESM(require_react(), 1);
-  var h7 = React39.createElement;
-  var Container = React39.forwardRef(function Container2(props, ref) {
+  var React40 = __toESM(require_react(), 1);
+  var h7 = React40.createElement;
+  var Container = React40.forwardRef(function Container2(props, ref) {
     return h7(
       props.as || "div",
       {
@@ -6464,27 +6539,27 @@ window.Aura = (() => {
   });
 
   // src/AppShell.tsx
-  var React40 = __toESM(require_react(), 1);
-  var AppShell = React40.forwardRef(function AppShell2(props, ref) {
+  var React41 = __toESM(require_react(), 1);
+  var AppShell = React41.forwardRef(function AppShell2(props, ref) {
     const t = useStrings();
     const bp = useBreakpoint();
     const wide = bp === "lg" || bp === "xl";
-    const st = React40.useState(false), open = st[0], setOpen = st[1];
-    React40.useEffect(
+    const st = React41.useState(false), open = st[0], setOpen = st[1];
+    React41.useEffect(
       function() {
         if (wide) setOpen(false);
       },
       [wide]
     );
-    const navEl = props.nav && React40.isValidElement(props.nav) ? props.nav : null;
+    const navEl = props.nav && React41.isValidElement(props.nav) ? props.nav : null;
     const shared = !!navEl && navEl.props.value === void 0 && (navEl.props.defaultValue !== void 0 || navEl.props.sections !== void 0 || navEl.props.items !== void 0);
-    const navState = React40.useState(navEl ? navEl.props.defaultValue : void 0);
+    const navState = React41.useState(navEl ? navEl.props.defaultValue : void 0);
     function onNav(id) {
       if (shared) navState[1](id);
       if (navEl && navEl.props.onChange) navEl.props.onChange(id);
     }
-    const deskNav = navEl && shared ? React40.cloneElement(navEl, { value: navState[0], onChange: onNav }) : props.nav;
-    const drawerNav = navEl ? React40.cloneElement(navEl, {
+    const deskNav = navEl && shared ? React41.cloneElement(navEl, { value: navState[0], onChange: onNav }) : props.nav;
+    const drawerNav = navEl ? React41.cloneElement(navEl, {
       value: shared ? navState[0] : navEl.props.value,
       onChange: function(id) {
         onNav(id);
@@ -6494,7 +6569,7 @@ window.Aura = (() => {
       collapsed: false,
       collapsible: false
     }) : props.nav;
-    return /* @__PURE__ */ React40.createElement("div", { ref, className: cx("aura-shell", props.bottomNav && "aura-shell--bottomnav", props.className) }, props.nav ? /* @__PURE__ */ React40.createElement("div", { className: "aura-shell__nav" }, deskNav) : null, props.nav ? /* @__PURE__ */ React40.createElement(
+    return /* @__PURE__ */ React41.createElement("div", { ref, className: cx("aura-shell", props.bottomNav && "aura-shell--bottomnav", props.className) }, props.nav ? /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__nav" }, deskNav) : null, props.nav ? /* @__PURE__ */ React41.createElement(
       Drawer,
       {
         open,
@@ -6507,11 +6582,11 @@ window.Aura = (() => {
         dismissible: true
       },
       drawerNav
-    ) : null, /* @__PURE__ */ React40.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React40.createElement("header", { className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React40.createElement(
+    ) : null, /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React41.createElement("header", { className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React41.createElement(
       IconButton,
       {
         className: "aura-shell__menu",
-        icon: /* @__PURE__ */ React40.createElement(IconMenu, null),
+        icon: /* @__PURE__ */ React41.createElement(IconMenu, null),
         label: props.menuLabel || t.openNav,
         size: "md",
         onClick: function() {
@@ -6519,18 +6594,18 @@ window.Aura = (() => {
         },
         "aria-expanded": open
       }
-    ) : null, /* @__PURE__ */ React40.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React40.createElement("main", { className: "aura-shell__content", id: props.mainId || "main", tabIndex: -1 }, props.children), props.bottomNav || null));
+    ) : null, /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React41.createElement("main", { className: "aura-shell__content", id: props.mainId || "main", tabIndex: -1 }, props.children), props.bottomNav || null));
   });
 
   // src/ActionBar.tsx
-  var React41 = __toESM(require_react(), 1);
-  var ActionBar = React41.forwardRef(function ActionBar2(props, ref) {
+  var React42 = __toESM(require_react(), 1);
+  var ActionBar = React42.forwardRef(function ActionBar2(props, ref) {
     const t = useStrings();
     const bulk = props.selected != null;
     const idle = bulk && !props.selected;
     const count = bulk && props.selected ? t.selectedCount(props.selected) : null;
-    const cameFrom = React41.useRef(null);
-    const own = React41.useRef(null);
+    const cameFrom = React42.useRef(null);
+    const own = React42.useRef(null);
     function clear() {
       props.onClearSelection();
       setTimeout(function() {
@@ -6539,7 +6614,7 @@ window.Aura = (() => {
         if ((!a || a === document.body || !a.isConnected) && back && back.isConnected) back.focus();
       }, 0);
     }
-    return /* @__PURE__ */ React41.createElement(
+    return /* @__PURE__ */ React42.createElement(
       "div",
       {
         ref: function(el) {
@@ -6560,16 +6635,16 @@ window.Aura = (() => {
           props.className
         )
       },
-      /* @__PURE__ */ React41.createElement("div", { className: "aura-actionbar__inner" }, /* @__PURE__ */ React41.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle ? /* @__PURE__ */ React41.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React41.createElement(Button, { variant: "ghost", size: "sm", onClick: clear }, t.clear()) : null, props.children) : null)
+      /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__inner" }, /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React42.createElement(Button, { variant: "ghost", size: "sm", onClick: clear }, t.clear()) : null, props.children) : null)
     );
   });
 
   // src/Separator.tsx
-  var React42 = __toESM(require_react(), 1);
-  var Separator = React42.forwardRef(function Separator2(props, ref) {
+  var React43 = __toESM(require_react(), 1);
+  var Separator = React43.forwardRef(function Separator2(props, ref) {
     const vertical = props.orientation === "vertical";
     const decorative = props.decorative !== false;
-    return /* @__PURE__ */ React42.createElement(
+    return /* @__PURE__ */ React43.createElement(
       "div",
       {
         ref,
@@ -6582,13 +6657,13 @@ window.Aura = (() => {
   });
 
   // src/Table.tsx
-  var React43 = __toESM(require_react(), 1);
-  var StackLabels = React43.createContext(null);
-  var ColumnIndex = React43.createContext(-1);
+  var React44 = __toESM(require_react(), 1);
+  var StackLabels = React44.createContext(null);
+  var ColumnIndex = React44.createContext(-1);
   function flat(children) {
     const out = [];
-    React43.Children.toArray(children).forEach(function(c) {
-      if (React43.isValidElement(c) && c.type === React43.Fragment)
+    React44.Children.toArray(children).forEach(function(c) {
+      if (React44.isValidElement(c) && c.type === React44.Fragment)
         out.push.apply(out, flat(c.props.children));
       else out.push(c);
     });
@@ -6602,7 +6677,7 @@ window.Aura = (() => {
       });
       return parts.length ? parts.join("") : void 0;
     }
-    if (React43.isValidElement(node)) {
+    if (React44.isValidElement(node)) {
       const p = node.props;
       if (p["aria-hidden"] === true || p["aria-hidden"] === "true") return void 0;
       return text(p.children);
@@ -6612,13 +6687,13 @@ window.Aura = (() => {
   function headerLabels(children) {
     let out = [];
     flat(children).forEach(function(c) {
-      if (out.length || !React43.isValidElement(c) || c.type !== THead) return;
+      if (out.length || !React44.isValidElement(c) || c.type !== THead) return;
       const row = flat(c.props.children).find(function(r) {
-        return React43.isValidElement(r);
+        return React44.isValidElement(r);
       });
       if (!row) return;
       flat(row.props.children).forEach(function(cell) {
-        if (!React43.isValidElement(cell)) return;
+        if (!React44.isValidElement(cell)) return;
         const p = cell.props;
         const t = text(p.children);
         const label = p.label != null ? p.label : t != null ? t.replace(/\s+/g, " ").trim() || void 0 : void 0;
@@ -6628,7 +6703,7 @@ window.Aura = (() => {
     });
     return out;
   }
-  var Table = React43.forwardRef(function Table2(props, ref) {
+  var Table = React44.forwardRef(function Table2(props, ref) {
     const { caption, captionHidden, density, stackBelow, className, children, ...rest } = props;
     const labels = stackBelow ? headerLabels(children) : null;
     if (labels && !labels.length)
@@ -6636,10 +6711,10 @@ window.Aura = (() => {
         "tbl-stack-labels",
         "Table stackBelow: no THead > Tr > Th found among its children, so cells have no labels. Pass `label` on each Td."
       );
-    const outer = React43.useContext(StackLabels);
+    const outer = React44.useContext(StackLabels);
     const capId = uid();
-    const wrap = React43.useRef(null);
-    const sc = React43.useState(false), scrolls = sc[0];
+    const wrap = React44.useRef(null);
+    const sc = React44.useState(false), scrolls = sc[0];
     useIsoLayoutEffect(function() {
       const el = wrap.current;
       if (!el || typeof ResizeObserver === "undefined") return;
@@ -6653,7 +6728,7 @@ window.Aura = (() => {
         ro.disconnect();
       };
     }, []);
-    return /* @__PURE__ */ React43.createElement(
+    return /* @__PURE__ */ React44.createElement(
       "div",
       {
         ref: wrap,
@@ -6664,7 +6739,7 @@ window.Aura = (() => {
         "aria-labelledby": scrolls && caption != null ? capId : void 0,
         "aria-label": scrolls && caption == null ? rest["aria-label"] : void 0
       },
-      /* @__PURE__ */ React43.createElement(
+      /* @__PURE__ */ React44.createElement(
         "table",
         {
           ref,
@@ -6672,16 +6747,16 @@ window.Aura = (() => {
           role: stackBelow ? "table" : void 0,
           ...rest
         },
-        caption != null ? /* @__PURE__ */ React43.createElement("caption", { id: capId, className: cx("aura-tbl__caption", captionHidden && "aura-sr-only") }, caption) : null,
-        labels ? /* @__PURE__ */ React43.createElement(StackLabels.Provider, { value: labels }, children) : outer ? /* @__PURE__ */ React43.createElement(StackLabels.Provider, { value: null }, children) : children
+        caption != null ? /* @__PURE__ */ React44.createElement("caption", { id: capId, className: cx("aura-tbl__caption", captionHidden && "aura-sr-only") }, caption) : null,
+        labels ? /* @__PURE__ */ React44.createElement(StackLabels.Provider, { value: labels }, children) : outer ? /* @__PURE__ */ React44.createElement(StackLabels.Provider, { value: null }, children) : children
       )
     );
   });
   function section(tag, cls) {
-    const C = React43.forwardRef(function TableSection(props, ref) {
+    const C = React44.forwardRef(function TableSection(props, ref) {
       const { className, ...rest } = props;
-      const stacked = React43.useContext(StackLabels) != null;
-      return React43.createElement(
+      const stacked = React44.useContext(StackLabels) != null;
+      return React44.createElement(
         tag,
         Object.assign({ ref, className: cx(cls, className), role: stacked ? "rowgroup" : void 0 }, rest)
       );
@@ -6694,14 +6769,14 @@ window.Aura = (() => {
   TBody.displayName = "TBody";
   var TFoot = section("tfoot", "aura-tbl__foot");
   TFoot.displayName = "TFoot";
-  var Tr = React43.forwardRef(function Tr2(props, ref) {
+  var Tr = React44.forwardRef(function Tr2(props, ref) {
     const { className, children, ...rest } = props;
-    const stacked = React43.useContext(StackLabels) != null;
+    const stacked = React44.useContext(StackLabels) != null;
     let col = 0;
-    return /* @__PURE__ */ React43.createElement("tr", { ref, className: cx("aura-tbl__row", className), role: stacked ? "row" : void 0, ...rest }, stacked ? flat(children).map(function(c) {
+    return /* @__PURE__ */ React44.createElement("tr", { ref, className: cx("aura-tbl__row", className), role: stacked ? "row" : void 0, ...rest }, stacked ? flat(children).map(function(c) {
       const at = col;
-      if (React43.isValidElement(c)) col += Math.max(1, Number(c.props.colSpan) || 1);
-      return /* @__PURE__ */ React43.createElement(ColumnIndex.Provider, { key: React43.isValidElement(c) && c.key != null ? c.key : at, value: at }, c);
+      if (React44.isValidElement(c)) col += Math.max(1, Number(c.props.colSpan) || 1);
+      return /* @__PURE__ */ React44.createElement(ColumnIndex.Provider, { key: React44.isValidElement(c) && c.key != null ? c.key : at, value: at }, c);
     }) : children);
   });
   function cellClass(base, p) {
@@ -6715,10 +6790,10 @@ window.Aura = (() => {
       p.className
     );
   }
-  var Th = React43.forwardRef(function Th2(props, ref) {
+  var Th = React44.forwardRef(function Th2(props, ref) {
     const { align, numeric, mono, className, scope, label, ...rest } = props;
-    const stacked = React43.useContext(StackLabels) != null;
-    return /* @__PURE__ */ React43.createElement(
+    const stacked = React44.useContext(StackLabels) != null;
+    return /* @__PURE__ */ React44.createElement(
       "th",
       {
         ref,
@@ -6729,11 +6804,11 @@ window.Aura = (() => {
       }
     );
   });
-  var Td = React43.forwardRef(function Td2(props, ref) {
+  var Td = React44.forwardRef(function Td2(props, ref) {
     const { align, numeric, mono, className, scope, label, ...rest } = props;
-    const labels = React43.useContext(StackLabels), col = React43.useContext(ColumnIndex);
+    const labels = React44.useContext(StackLabels), col = React44.useContext(ColumnIndex);
     const shown = labels ? label != null ? label : col >= 0 ? labels[col] : void 0 : void 0;
-    return /* @__PURE__ */ React43.createElement(
+    return /* @__PURE__ */ React44.createElement(
       "td",
       {
         ref,
@@ -6746,8 +6821,8 @@ window.Aura = (() => {
   });
 
   // src/BottomNav.tsx
-  var React44 = __toESM(require_react(), 1);
-  var BottomNav = React44.forwardRef(function BottomNav2(props, ref) {
+  var React45 = __toESM(require_react(), 1);
+  var BottomNav = React45.forwardRef(function BottomNav2(props, ref) {
     const t = useStrings();
     const Link = useLinkComponent(props.linkComponent);
     const st = useMaybeControlled(
@@ -6757,14 +6832,14 @@ window.Aura = (() => {
     );
     const active = st[0];
     const hide = props.hideFrom === false ? "always" : "below-" + (props.hideFrom || "lg");
-    return /* @__PURE__ */ React44.createElement(React44.Fragment, null, /* @__PURE__ */ React44.createElement("div", { className: cx("aura-bottomnav-spacer", "aura-bottomnav--" + hide), "aria-hidden": "true" }), /* @__PURE__ */ React44.createElement(
+    return /* @__PURE__ */ React45.createElement(React45.Fragment, null, /* @__PURE__ */ React45.createElement("div", { className: cx("aura-bottomnav-spacer", "aura-bottomnav--" + hide), "aria-hidden": "true" }), /* @__PURE__ */ React45.createElement(
       "nav",
       {
         ref,
         className: cx("aura-bottomnav", "aura-bottomnav--" + hide, props.className),
         "aria-label": props.label || t.mainNav
       },
-      /* @__PURE__ */ React44.createElement("ul", { className: "aura-bottomnav__list" }, props.items.map(function(it) {
+      /* @__PURE__ */ React45.createElement("ul", { className: "aura-bottomnav__list" }, props.items.map(function(it) {
         const on = active === it.id;
         const count = it.count != null && it.count > 0 ? it.count > 99 ? "99+" : String(it.count) : null;
         const suffix = count || it.badge && it.badgeLabel ? " (" + (count || it.badgeLabel) + ")" : "";
@@ -6780,19 +6855,19 @@ window.Aura = (() => {
           }
         };
         const inner = [
-          /* @__PURE__ */ React44.createElement("span", { key: "i", className: "aura-bottomnav__icon" }, /* @__PURE__ */ React44.createElement(Icon, { name: it.icon, size: "md" }), count ? /* @__PURE__ */ React44.createElement("span", { className: "aura-bottomnav__count", "aria-hidden": "true" }, count) : it.badge ? /* @__PURE__ */ React44.createElement("span", { className: "aura-bottomnav__dot", "aria-hidden": "true" }) : null),
-          /* @__PURE__ */ React44.createElement("span", { key: "l", className: "aura-bottomnav__label" }, it.label),
-          suffix && !it.ariaLabel ? /* @__PURE__ */ React44.createElement("span", { key: "s", className: "aura-sr-only" }, suffix) : null
+          /* @__PURE__ */ React45.createElement("span", { key: "i", className: "aura-bottomnav__icon" }, /* @__PURE__ */ React45.createElement(Icon, { name: it.icon, size: "md" }), count ? /* @__PURE__ */ React45.createElement("span", { className: "aura-bottomnav__count", "aria-hidden": "true" }, count) : it.badge ? /* @__PURE__ */ React45.createElement("span", { className: "aura-bottomnav__dot", "aria-hidden": "true" }) : null),
+          /* @__PURE__ */ React45.createElement("span", { key: "l", className: "aura-bottomnav__label" }, it.label),
+          suffix && !it.ariaLabel ? /* @__PURE__ */ React45.createElement("span", { key: "s", className: "aura-sr-only" }, suffix) : null
         ];
-        return /* @__PURE__ */ React44.createElement("li", { key: it.id, className: "aura-bottomnav__cell" }, it.href ? /* @__PURE__ */ React44.createElement(Link, { href: it.href, ...common }, inner) : /* @__PURE__ */ React44.createElement("button", { type: "button", ...common }, inner));
+        return /* @__PURE__ */ React45.createElement("li", { key: it.id, className: "aura-bottomnav__cell" }, it.href ? /* @__PURE__ */ React45.createElement(Link, { href: it.href, ...common }, inner) : /* @__PURE__ */ React45.createElement("button", { type: "button", ...common }, inner));
       }))
     ));
   });
 
   // src/Surface.tsx
-  var React45 = __toESM(require_react(), 1);
-  var h8 = React45.createElement;
-  var Surface = React45.forwardRef(function Surface2(props, ref) {
+  var React46 = __toESM(require_react(), 1);
+  var h8 = React46.createElement;
+  var Surface = React46.forwardRef(function Surface2(props, ref) {
     const t = props.texture || "mesh";
     const rest = omit(props, ["texture", "className", "children", "as"]);
     return h8(
@@ -6813,8 +6888,8 @@ window.Aura = (() => {
   });
 
   // src/Stat.tsx
-  var React46 = __toESM(require_react(), 1);
-  var Stat = React46.forwardRef(function Stat2(props, ref) {
+  var React47 = __toESM(require_react(), 1);
+  var Stat = React47.forwardRef(function Stat2(props, ref) {
     const ch = props.change;
     const dir = ch && (ch.direction || "flat");
     const tone2 = ch && (ch.tone || (dir === "up" ? "positive" : dir === "down" ? "negative" : "neutral"));
@@ -6823,7 +6898,7 @@ window.Aura = (() => {
     const numeric = typeof v === "number" || typeof v === "string" && /\d/.test(v) && /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, ""));
     const Tag3 = props.href ? Link : props.onClick ? "button" : "div";
     const interactive = !!(props.href || props.onClick);
-    return /* @__PURE__ */ React46.createElement(
+    return /* @__PURE__ */ React47.createElement(
       Tag3,
       {
         ref,
@@ -6833,20 +6908,20 @@ window.Aura = (() => {
         type: Tag3 === "button" ? "button" : void 0,
         "aria-busy": props.loading || void 0
       },
-      /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__head" }, /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React46.createElement(Icon, { name: props.icon })) : null),
-      props.loading ? /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__value" }, /* @__PURE__ */ React46.createElement("span", { className: "aura-skel aura-stat__skel" })) : /* @__PURE__ */ React46.createElement("span", { className: cx("aura-stat__value", numeric && "is-numeric") }, props.value, props.unit ? /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__unit" }, props.unit) : null),
-      ch && !props.loading || props.caption ? /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__foot" }, ch && !props.loading ? /* @__PURE__ */ React46.createElement("span", { className: cx("aura-stat__change", "is-" + tone2) }, /* @__PURE__ */ React46.createElement(
+      /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__head" }, /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React47.createElement(Icon, { name: props.icon })) : null),
+      props.loading ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__value" }, /* @__PURE__ */ React47.createElement("span", { className: "aura-skel aura-stat__skel" })) : /* @__PURE__ */ React47.createElement("span", { className: cx("aura-stat__value", numeric && "is-numeric") }, props.value, props.unit ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__unit" }, props.unit) : null),
+      ch && !props.loading || props.caption ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__foot" }, ch && !props.loading ? /* @__PURE__ */ React47.createElement("span", { className: cx("aura-stat__change", "is-" + tone2) }, /* @__PURE__ */ React47.createElement(
         Icon,
         {
-          name: dir === "up" ? /* @__PURE__ */ React46.createElement(IconTrendingUp, null) : dir === "down" ? /* @__PURE__ */ React46.createElement(IconTrendingDown, null) : /* @__PURE__ */ React46.createElement(IconMinus, null),
+          name: dir === "up" ? /* @__PURE__ */ React47.createElement(IconTrendingUp, null) : dir === "down" ? /* @__PURE__ */ React47.createElement(IconTrendingDown, null) : /* @__PURE__ */ React47.createElement(IconMinus, null),
           size: 14
         }
-      ), /* @__PURE__ */ React46.createElement("span", null, ch.value)) : null, ch && ch.label && !props.loading ? /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__caption" }, ch.label) : null, props.caption ? /* @__PURE__ */ React46.createElement("span", { className: "aura-stat__caption" }, props.caption) : null) : null
+      ), /* @__PURE__ */ React47.createElement("span", null, ch.value)) : null, ch && ch.label && !props.loading ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__caption" }, ch.label) : null, props.caption ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__caption" }, props.caption) : null) : null
     );
   });
 
   // src/TimePicker.tsx
-  var React47 = __toESM(require_react(), 1);
+  var React48 = __toESM(require_react(), 1);
   var import_react_dom11 = __toESM(require_react_dom(), 1);
 
   // src/text.ts
@@ -6888,7 +6963,7 @@ window.Aura = (() => {
   function fromMin(n3) {
     return pad3(Math.floor(n3 / 60)) + ":" + pad3(n3 % 60);
   }
-  var TimePicker = React47.forwardRef(function TimePicker2(props, ref) {
+  var TimePicker = React48.forwardRef(function TimePicker2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto, listId = id + "-list";
     const st = useMaybeControlled(
@@ -6898,7 +6973,7 @@ window.Aura = (() => {
     );
     const value = st[0];
     const step = props.step || 30, lo = toMin(props.min) != null ? toMin(props.min) : 0, hi = toMin(props.max) != null ? toMin(props.max) : 24 * 60 - 1;
-    const slots = React47.useMemo(
+    const slots = React48.useMemo(
       function() {
         const out = [];
         for (let m = lo; m <= hi; m += step) out.push(fromMin(m));
@@ -6910,12 +6985,12 @@ window.Aura = (() => {
       const n3 = toMin(v);
       return n3 == null || n3 < lo || n3 > hi || props.isTimeDisabled && props.isTimeDisabled(v);
     }
-    const openState = React47.useState(false), open = openState[0], setOpen = openState[1];
-    const editState = React47.useState(null), editing = editState[0], setEditing = editState[1];
-    const aState = React47.useState(0), active = aState[0], setActive = aState[1];
-    const errState = React47.useState(null);
-    const pos = React47.useState(null);
-    const boxRef = React47.useRef(null), inputRef = React47.useRef(null), listRef = React47.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+    const openState = React48.useState(false), open = openState[0], setOpen = openState[1];
+    const editState = React48.useState(null), editing = editState[0], setEditing = editState[1];
+    const aState = React48.useState(0), active = aState[0], setActive = aState[1];
+    const errState = React48.useState(null);
+    const pos = React48.useState(null);
+    const boxRef = React48.useRef(null), inputRef = React48.useRef(null), listRef = React48.useRef(null), inputMerged = useMergedRef(ref, inputRef);
     const mounted = useMounted();
     function nearest(v) {
       const n3 = toMin(v);
@@ -6943,7 +7018,7 @@ window.Aura = (() => {
       },
       [open]
     );
-    React47.useEffect(
+    React48.useEffect(
       function() {
         if (!open) return;
         function outside(e) {
@@ -6965,7 +7040,7 @@ window.Aura = (() => {
       },
       [open]
     );
-    React47.useEffect(
+    React48.useEffect(
       function() {
         if (!open || !listRef.current) return;
         const el = listRef.current.querySelector('[data-idx="' + active + '"]');
@@ -7064,9 +7139,9 @@ window.Aura = (() => {
     }
     const error = errState[0] || props.error;
     const list = open && mounted && pos[0] ? (0, import_react_dom11.createPortal)(
-      /* @__PURE__ */ React47.createElement("div", { ref: listRef, className: "aura-combo__popover aura-time__popover", style: pos[0] }, /* @__PURE__ */ React47.createElement("ul", { id: listId, role: "listbox", "aria-label": props.label, className: "aura-combo__list" }, slots.map(function(s, i) {
+      /* @__PURE__ */ React48.createElement("div", { ref: listRef, className: "aura-combo__popover aura-time__popover", style: pos[0] }, /* @__PURE__ */ React48.createElement("ul", { id: listId, role: "listbox", "aria-label": props.label, className: "aura-combo__list" }, slots.map(function(s, i) {
         const dis = blocked(s), sel = s === value;
-        return /* @__PURE__ */ React47.createElement(
+        return /* @__PURE__ */ React48.createElement(
           "li",
           {
             key: s,
@@ -7091,13 +7166,13 @@ window.Aura = (() => {
               if (active !== i) setActive(i);
             }
           },
-          /* @__PURE__ */ React47.createElement("span", { className: "aura-combo__label" }, s),
-          sel ? /* @__PURE__ */ React47.createElement(Icon, { name: /* @__PURE__ */ React47.createElement(IconCheck, null), className: "aura-combo__check" }) : null
+          /* @__PURE__ */ React48.createElement("span", { className: "aura-combo__label" }, s),
+          sel ? /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconCheck, null), className: "aura-combo__check" }) : null
         );
       }))),
       document.body
     ) : null;
-    return /* @__PURE__ */ React47.createElement(
+    return /* @__PURE__ */ React48.createElement(
       Field,
       {
         id,
@@ -7109,7 +7184,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React47.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo aura-time has-icon", open && "is-open") }, /* @__PURE__ */ React47.createElement(Icon, { name: /* @__PURE__ */ React47.createElement(IconClock, null), className: "aura-input__icon" }), /* @__PURE__ */ React47.createElement(
+      /* @__PURE__ */ React48.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo aura-time has-icon", open && "is-open") }, /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconClock, null), className: "aura-input__icon" }), /* @__PURE__ */ React48.createElement(
         "input",
         {
           ref: inputMerged,
@@ -7149,7 +7224,7 @@ window.Aura = (() => {
             }, 0);
           }
         }
-      ), props.clearable !== false && value != null && !props.disabled ? /* @__PURE__ */ React47.createElement(
+      ), props.clearable !== false && value != null && !props.disabled ? /* @__PURE__ */ React48.createElement(
         "button",
         {
           type: "button",
@@ -7162,8 +7237,8 @@ window.Aura = (() => {
             if (inputRef.current) inputRef.current.focus();
           }
         },
-        /* @__PURE__ */ React47.createElement(Icon, { name: /* @__PURE__ */ React47.createElement(IconX, null) })
-      ) : null, /* @__PURE__ */ React47.createElement(
+        /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconX, null) })
+      ) : null, /* @__PURE__ */ React48.createElement(
         "button",
         {
           type: "button",
@@ -7181,14 +7256,14 @@ window.Aura = (() => {
             }
           }
         },
-        /* @__PURE__ */ React47.createElement(Icon, { name: /* @__PURE__ */ React47.createElement(IconChevronDown, null) })
+        /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconChevronDown, null) })
       )),
       list
     );
   });
 
   // src/FileUpload.tsx
-  var React48 = __toESM(require_react(), 1);
+  var React49 = __toESM(require_react(), 1);
   function matches(file, accept) {
     if (!accept) return true;
     const name = (file.name || "").toLowerCase(), type = (file.type || "").toLowerCase();
@@ -7212,24 +7287,24 @@ window.Aura = (() => {
     }).join(", ");
   }
   var seq = 0;
-  var FileUpload = React48.forwardRef(function FileUpload2(props, ref) {
+  var FileUpload = React49.forwardRef(function FileUpload2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.value, props.defaultValue || [], props.onChange);
     const items2 = st[0] || [];
-    const dragState = React48.useState(false), over = dragState[0];
-    const inputRef = React48.useRef(null), inputMerged = useMergedRef(ref, inputRef);
-    const urls = React48.useRef({});
+    const dragState = React49.useState(false), over = dragState[0];
+    const inputRef = React49.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+    const urls = React49.useRef({});
     const maxFiles = props.multiple ? props.maxFiles : 1;
     const note = t.accepts(describeAccept(props.accept, t), props.maxSize ? formatBytes(props.maxSize) : "");
-    React48.useEffect(function() {
+    React49.useEffect(function() {
       return function() {
         Object.keys(urls.current).forEach(function(k) {
           URL.revokeObjectURL(urls.current[k]);
         });
       };
     }, []);
-    React48.useEffect(
+    React49.useEffect(
       function() {
         const el = inputRef.current;
         if (!el || !props.name || typeof DataTransfer === "undefined") return;
@@ -7289,7 +7364,7 @@ window.Aura = (() => {
       if (inputRef.current) inputRef.current.focus();
     }
     const error = props.error;
-    return /* @__PURE__ */ React48.createElement(
+    return /* @__PURE__ */ React49.createElement(
       Field,
       {
         id,
@@ -7301,7 +7376,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React48.createElement(
+      /* @__PURE__ */ React49.createElement(
         "div",
         {
           className: cx("aura-upload", over && "is-over", props.disabled && "is-disabled", error && "is-invalid"),
@@ -7322,9 +7397,9 @@ window.Aura = (() => {
             add(e.dataTransfer && e.dataTransfer.files);
           }
         },
-        /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconCloudUpload, null), size: "lg", className: "aura-upload__icon" }),
-        /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__text" }, t.dropFiles, " "),
-        /* @__PURE__ */ React48.createElement(
+        /* @__PURE__ */ React49.createElement(Icon, { name: /* @__PURE__ */ React49.createElement(IconCloudUpload, null), size: "lg", className: "aura-upload__icon" }),
+        /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__text" }, t.dropFiles, " "),
+        /* @__PURE__ */ React49.createElement(
           "input",
           {
             ref: inputMerged,
@@ -7346,12 +7421,12 @@ window.Aura = (() => {
             }
           }
         ),
-        /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__browse", "aria-hidden": true }, props.multiple ? t.browse : t.browseOne),
-        note ? /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__note", id: id + "-note" }, note) : null
+        /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__browse", "aria-hidden": true }, props.multiple ? t.browse : t.browseOne),
+        note ? /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__note", id: id + "-note" }, note) : null
       ),
-      items2.length ? /* @__PURE__ */ React48.createElement("ul", { className: "aura-upload__list", "aria-live": "polite" }, items2.map(function(it) {
+      items2.length ? /* @__PURE__ */ React49.createElement("ul", { className: "aura-upload__list", "aria-live": "polite" }, items2.map(function(it) {
         const src = thumb(it);
-        return /* @__PURE__ */ React48.createElement("li", { key: it.id, className: cx("aura-upload__item", it.error && "is-error") }, src ? /* @__PURE__ */ React48.createElement("img", { className: "aura-upload__thumb", src, alt: "" }) : /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__thumb is-icon", "aria-hidden": true }, /* @__PURE__ */ React48.createElement(Icon, { name: /^image\//.test(it.type || "") ? /* @__PURE__ */ React48.createElement(IconImage, null) : /* @__PURE__ */ React48.createElement(IconFile, null), size: "md" })), /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__meta" }, it.url && !it.error ? /* @__PURE__ */ React48.createElement("a", { className: "aura-upload__name", href: it.url, target: "_blank", rel: "noreferrer" }, it.name) : /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__name" }, it.name), /* @__PURE__ */ React48.createElement("span", { className: "aura-upload__sub" }, it.error ? /* @__PURE__ */ React48.createElement(React48.Fragment, null, /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconCircleAlert, null), size: 12 }), it.error) : it.status === "uploading" ? t.uploading + (it.progress != null ? " " + Math.round(it.progress) + "%" : "") : it.status === "done" ? /* @__PURE__ */ React48.createElement(React48.Fragment, null, /* @__PURE__ */ React48.createElement(Icon, { name: /* @__PURE__ */ React48.createElement(IconCircleCheck, null), size: 12 }), formatBytes(it.size)) : formatBytes(it.size)), it.status === "uploading" ? /* @__PURE__ */ React48.createElement(
+        return /* @__PURE__ */ React49.createElement("li", { key: it.id, className: cx("aura-upload__item", it.error && "is-error") }, src ? /* @__PURE__ */ React49.createElement("img", { className: "aura-upload__thumb", src, alt: "" }) : /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__thumb is-icon", "aria-hidden": true }, /* @__PURE__ */ React49.createElement(Icon, { name: /^image\//.test(it.type || "") ? /* @__PURE__ */ React49.createElement(IconImage, null) : /* @__PURE__ */ React49.createElement(IconFile, null), size: "md" })), /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__meta" }, it.url && !it.error ? /* @__PURE__ */ React49.createElement("a", { className: "aura-upload__name", href: it.url, target: "_blank", rel: "noreferrer" }, it.name) : /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__name" }, it.name), /* @__PURE__ */ React49.createElement("span", { className: "aura-upload__sub" }, it.error ? /* @__PURE__ */ React49.createElement(React49.Fragment, null, /* @__PURE__ */ React49.createElement(Icon, { name: /* @__PURE__ */ React49.createElement(IconCircleAlert, null), size: 12 }), it.error) : it.status === "uploading" ? t.uploading + (it.progress != null ? " " + Math.round(it.progress) + "%" : "") : it.status === "done" ? /* @__PURE__ */ React49.createElement(React49.Fragment, null, /* @__PURE__ */ React49.createElement(Icon, { name: /* @__PURE__ */ React49.createElement(IconCircleCheck, null), size: 12 }), formatBytes(it.size)) : formatBytes(it.size)), it.status === "uploading" ? /* @__PURE__ */ React49.createElement(
           "span",
           {
             className: "aura-upload__bar",
@@ -7361,11 +7436,11 @@ window.Aura = (() => {
             "aria-valuemax": 100,
             "aria-valuenow": it.progress != null ? Math.round(it.progress) : void 0
           },
-          /* @__PURE__ */ React48.createElement("span", { style: { width: (it.progress || 0) + "%" } })
-        ) : null), /* @__PURE__ */ React48.createElement(
+          /* @__PURE__ */ React49.createElement("span", { style: { width: (it.progress || 0) + "%" } })
+        ) : null), /* @__PURE__ */ React49.createElement(
           IconButton,
           {
-            icon: /* @__PURE__ */ React48.createElement(IconX, null),
+            icon: /* @__PURE__ */ React49.createElement(IconX, null),
             label: t.remove(it.name),
             onClick: function() {
               remove(it);
@@ -7650,9 +7725,9 @@ window.Aura = (() => {
   }
 
   // src/ThemeStyle.tsx
-  var React49 = __toESM(require_react(), 1);
+  var React50 = __toESM(require_react(), 1);
   function ThemeStyle(props) {
-    const css = React49.useMemo(
+    const css = React50.useMemo(
       function() {
         try {
           return createTheme({
@@ -7669,11 +7744,11 @@ window.Aura = (() => {
       [props.brand, props.signal, props.primary, props.name, props.selector]
     );
     if (css === null) return null;
-    return /* @__PURE__ */ React49.createElement("style", { "data-aura-theme": props.name || props.brand, dangerouslySetInnerHTML: { __html: css } });
+    return /* @__PURE__ */ React50.createElement("style", { "data-aura-theme": props.name || props.brand, dangerouslySetInnerHTML: { __html: css } });
   }
 
   // src/colorScheme.tsx
-  var React50 = __toESM(require_react(), 1);
+  var React51 = __toESM(require_react(), 1);
 
   // src/colorSchemeScript.ts
   var DEFAULT_KEY = "aura-color-scheme";
@@ -7690,7 +7765,7 @@ window.Aura = (() => {
 
   // src/colorScheme.tsx
   function ColorSchemeScript(props) {
-    return /* @__PURE__ */ React50.createElement(
+    return /* @__PURE__ */ React51.createElement(
       "script",
       {
         "data-aura-color-scheme": "",
@@ -7715,7 +7790,7 @@ window.Aura = (() => {
   function useColorScheme(options) {
     const key = options && options.storageKey || DEFAULT_KEY;
     const fallback = options && options.defaultScheme || "system";
-    const subscribe2 = React50.useCallback(
+    const subscribe2 = React51.useCallback(
       function(cb) {
         const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
         function onSystem() {
@@ -7737,7 +7812,7 @@ window.Aura = (() => {
       },
       [fallback, key]
     );
-    const snapshot = React50.useSyncExternalStore(
+    const snapshot = React51.useSyncExternalStore(
       subscribe2,
       function() {
         const s = readScheme(fallback);
@@ -7748,7 +7823,7 @@ window.Aura = (() => {
       }
     );
     const parts = snapshot.split("|");
-    const setScheme = React50.useCallback(
+    const setScheme = React51.useCallback(
       function(next) {
         if (!valid(next)) return;
         try {
@@ -7767,14 +7842,14 @@ window.Aura = (() => {
     const cs = useColorScheme(props);
     const names = { light: t.schemeLight, dark: t.schemeDark, system: t.schemeSystem };
     const label = props.label || t.colorScheme;
-    return /* @__PURE__ */ React50.createElement(
+    return /* @__PURE__ */ React51.createElement(
       DropdownMenu,
       {
         label,
-        trigger: /* @__PURE__ */ React50.createElement(
+        trigger: /* @__PURE__ */ React51.createElement(
           IconButton,
           {
-            icon: cs.resolved === "dark" ? /* @__PURE__ */ React50.createElement(IconMoon, null) : /* @__PURE__ */ React50.createElement(IconSun, null),
+            icon: cs.resolved === "dark" ? /* @__PURE__ */ React51.createElement(IconMoon, null) : /* @__PURE__ */ React51.createElement(IconSun, null),
             label: label + ": " + names[cs.scheme]
           }
         ),
@@ -7792,19 +7867,19 @@ window.Aura = (() => {
   }
 
   // src/Badge.tsx
-  var React51 = __toESM(require_react(), 1);
-  var Badge = React51.forwardRef(function Badge2(props, ref) {
+  var React52 = __toESM(require_react(), 1);
+  var Badge = React52.forwardRef(function Badge2(props, ref) {
     return badgeElement(props, ref);
   });
 
   // src/Progress.tsx
-  var React52 = __toESM(require_react(), 1);
-  var Progress = React52.forwardRef(function Progress2(props, ref) {
+  var React53 = __toESM(require_react(), 1);
+  var Progress = React53.forwardRef(function Progress2(props, ref) {
     const auto = uid(), id = props.id || auto;
     const max = props.max || 100, det = props.value != null;
     const pct = det ? Math.max(0, Math.min(100, props.value / max * 100)) : 0;
     const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + "%" : null;
-    return /* @__PURE__ */ React52.createElement(
+    return /* @__PURE__ */ React53.createElement(
       "div",
       {
         ref,
@@ -7815,8 +7890,8 @@ window.Aura = (() => {
           props.className
         )
       },
-      props.label || props.showValue && shown ? /* @__PURE__ */ React52.createElement("div", { className: "aura-progress__head" }, props.label ? /* @__PURE__ */ React52.createElement("span", { className: "aura-progress__label", id: id + "-label" }, props.label) : /* @__PURE__ */ React52.createElement("span", null), props.showValue && shown ? /* @__PURE__ */ React52.createElement("span", { className: "aura-progress__value" }, shown) : null) : null,
-      /* @__PURE__ */ React52.createElement(
+      props.label || props.showValue && shown ? /* @__PURE__ */ React53.createElement("div", { className: "aura-progress__head" }, props.label ? /* @__PURE__ */ React53.createElement("span", { className: "aura-progress__label", id: id + "-label" }, props.label) : /* @__PURE__ */ React53.createElement("span", null), props.showValue && shown ? /* @__PURE__ */ React53.createElement("span", { className: "aura-progress__value" }, shown) : null) : null,
+      /* @__PURE__ */ React53.createElement(
         "div",
         {
           className: cx("aura-progress__track", !det && "is-indeterminate"),
@@ -7828,21 +7903,21 @@ window.Aura = (() => {
           "aria-valuenow": det ? props.value : void 0,
           "aria-valuetext": det && props.valueLabel != null ? String(props.valueLabel) : void 0
         },
-        /* @__PURE__ */ React52.createElement("span", { className: "aura-progress__bar", style: det ? { width: pct + "%" } : void 0 })
+        /* @__PURE__ */ React53.createElement("span", { className: "aura-progress__bar", style: det ? { width: pct + "%" } : void 0 })
       ),
-      props.hint ? /* @__PURE__ */ React52.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
+      props.hint ? /* @__PURE__ */ React53.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
     );
   });
 
   // src/Skeleton.tsx
-  var React53 = __toESM(require_react(), 1);
-  var Skeleton = React53.forwardRef(function Skeleton2(props, ref) {
+  var React54 = __toESM(require_react(), 1);
+  var Skeleton = React54.forwardRef(function Skeleton2(props, ref) {
     const v = props.variant || "text";
     if (v === "text" && (props.lines || 1) > 1) {
       const n3 = props.lines, rows = [];
       for (let i = 0; i < n3; i++)
-        rows.push(/* @__PURE__ */ React53.createElement("span", { key: i, className: "aura-skel aura-skel--text", style: { width: i === n3 - 1 ? "60%" : "100%" } }));
-      return /* @__PURE__ */ React53.createElement(
+        rows.push(/* @__PURE__ */ React54.createElement("span", { key: i, className: "aura-skel aura-skel--text", style: { width: i === n3 - 1 ? "60%" : "100%" } }));
+      return /* @__PURE__ */ React54.createElement(
         "span",
         {
           ref,
@@ -7860,17 +7935,17 @@ window.Aura = (() => {
     if (v === "circle") {
       style.width = style.height = props.size || props.width || 40;
     }
-    return /* @__PURE__ */ React53.createElement("span", { ref, "aria-hidden": true, className: cx("aura-skel", "aura-skel--" + v, props.className), style });
+    return /* @__PURE__ */ React54.createElement("span", { ref, "aria-hidden": true, className: cx("aura-skel", "aura-skel--" + v, props.className), style });
   });
 
   // src/EmptyState.tsx
-  var React54 = __toESM(require_react(), 1);
-  var EmptyState = React54.forwardRef(function EmptyState2(props, ref) {
+  var React55 = __toESM(require_react(), 1);
+  var EmptyState = React55.forwardRef(function EmptyState2(props, ref) {
     return emptyStateElement(props, ref);
   });
 
   // src/Pagination.tsx
-  var React55 = __toESM(require_react(), 1);
+  var React56 = __toESM(require_react(), 1);
   function pageList(page, count, sib) {
     let out = [], lo = Math.max(2, page - sib), hi = Math.min(count - 1, page + sib);
     if (page - sib <= 3) {
@@ -7890,7 +7965,7 @@ window.Aura = (() => {
     if (count > 1) out.push(count);
     return out;
   }
-  var Pagination = React55.forwardRef(function Pagination2(props, ref) {
+  var Pagination = React56.forwardRef(function Pagination2(props, ref) {
     const t = useStrings();
     const count = Math.max(1, props.pageCount || 1);
     const st = useMaybeControlled(props.page, props.defaultPage || 1, props.onChange);
@@ -7909,7 +7984,7 @@ window.Aura = (() => {
         },
         extra
       );
-      return link ? /* @__PURE__ */ React55.createElement(
+      return link ? /* @__PURE__ */ React56.createElement(
         Link,
         {
           href: link(p),
@@ -7922,7 +7997,7 @@ window.Aura = (() => {
           ...common
         },
         label
-      ) : /* @__PURE__ */ React55.createElement(
+      ) : /* @__PURE__ */ React56.createElement(
         "button",
         {
           type: "button",
@@ -7936,7 +8011,7 @@ window.Aura = (() => {
     }
     function arrow(p, icon, label, rel, disabled) {
       if (!link || disabled)
-        return /* @__PURE__ */ React55.createElement(
+        return /* @__PURE__ */ React56.createElement(
           IconButton,
           {
             icon,
@@ -7947,7 +8022,7 @@ window.Aura = (() => {
             }
           }
         );
-      return /* @__PURE__ */ React55.createElement(
+      return /* @__PURE__ */ React56.createElement(
         Link,
         {
           href: link(p),
@@ -7962,17 +8037,17 @@ window.Aura = (() => {
             }
           }
         },
-        /* @__PURE__ */ React55.createElement(Icon, { name: icon, size: "sm" })
+        /* @__PURE__ */ React56.createElement(Icon, { name: icon, size: "sm" })
       );
     }
-    return /* @__PURE__ */ React55.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, arrow(page - 1, /* @__PURE__ */ React55.createElement(IconChevronLeft, null), t.prevPage, "prev", page <= 1), /* @__PURE__ */ React55.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
-      return typeof p === "number" ? /* @__PURE__ */ React55.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React55.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
-    })), /* @__PURE__ */ React55.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), arrow(page + 1, /* @__PURE__ */ React55.createElement(IconChevronRight, null), t.nextPage, "next", page >= count));
+    return /* @__PURE__ */ React56.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, arrow(page - 1, /* @__PURE__ */ React56.createElement(IconChevronLeft, null), t.prevPage, "prev", page <= 1), /* @__PURE__ */ React56.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
+      return typeof p === "number" ? /* @__PURE__ */ React56.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React56.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
+    })), /* @__PURE__ */ React56.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), arrow(page + 1, /* @__PURE__ */ React56.createElement(IconChevronRight, null), t.nextPage, "next", page >= count));
   });
 
   // src/Accordion.tsx
-  var React56 = __toESM(require_react(), 1);
-  var Accordion = React56.forwardRef(function Accordion2(props, ref) {
+  var React57 = __toESM(require_react(), 1);
+  var Accordion = React57.forwardRef(function Accordion2(props, ref) {
     const auto = uid(), base = props.id || auto;
     const multiple = props.type === "multiple";
     const st = useMaybeControlled(
@@ -8010,9 +8085,9 @@ window.Aura = (() => {
         n3.focus();
       }
     }
-    return /* @__PURE__ */ React56.createElement("div", { ref, className: cx("aura-accordion", props.className), onKeyDown: onKey }, items2.map(function(it) {
+    return /* @__PURE__ */ React57.createElement("div", { ref, className: cx("aura-accordion", props.className), onKeyDown: onKey }, items2.map(function(it) {
       const on = open.indexOf(it.id) >= 0, bid = base + "-btn-" + it.id, pid = base + "-panel-" + it.id;
-      return /* @__PURE__ */ React56.createElement("div", { key: it.id, className: cx("aura-accordion__item", on && "is-open") }, /* @__PURE__ */ React56.createElement(HT, { className: "aura-accordion__heading" }, /* @__PURE__ */ React56.createElement(
+      return /* @__PURE__ */ React57.createElement("div", { key: it.id, className: cx("aura-accordion__item", on && "is-open") }, /* @__PURE__ */ React57.createElement(HT, { className: "aura-accordion__heading" }, /* @__PURE__ */ React57.createElement(
         "button",
         {
           type: "button",
@@ -8024,15 +8099,15 @@ window.Aura = (() => {
             toggle(it.id);
           }
         },
-        it.icon ? /* @__PURE__ */ React56.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
-        /* @__PURE__ */ React56.createElement("span", { className: "aura-accordion__title" }, it.title, it.description ? /* @__PURE__ */ React56.createElement("span", { className: "aura-accordion__desc" }, it.description) : null),
-        /* @__PURE__ */ React56.createElement(Icon, { name: /* @__PURE__ */ React56.createElement(IconChevronDown, null), className: "aura-accordion__chevron" })
-      )), /* @__PURE__ */ React56.createElement("div", { id: pid, role: "region", "aria-labelledby": bid, className: "aura-accordion__panel", hidden: !on }, it.content));
+        it.icon ? /* @__PURE__ */ React57.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
+        /* @__PURE__ */ React57.createElement("span", { className: "aura-accordion__title" }, it.title, it.description ? /* @__PURE__ */ React57.createElement("span", { className: "aura-accordion__desc" }, it.description) : null),
+        /* @__PURE__ */ React57.createElement(Icon, { name: /* @__PURE__ */ React57.createElement(IconChevronDown, null), className: "aura-accordion__chevron" })
+      )), /* @__PURE__ */ React57.createElement("div", { id: pid, role: "region", "aria-labelledby": bid, className: "aura-accordion__panel", hidden: !on }, it.content));
     }));
   });
 
   // src/Popover.tsx
-  var React57 = __toESM(require_react(), 1);
+  var React58 = __toESM(require_react(), 1);
   var import_react_dom12 = __toESM(require_react_dom(), 1);
   function position(anchor, pop, placement) {
     const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.scrollHeight, vw = window.innerWidth, vh = window.innerHeight, gap = 6;
@@ -8050,15 +8125,15 @@ window.Aura = (() => {
     const left = align === "end" ? r.right - pw : align === "center" ? r.left + r.width / 2 - pw / 2 : r.left;
     return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side, maxHeight };
   }
-  var Popover = React57.forwardRef(function Popover2(props, ref) {
+  var Popover = React58.forwardRef(function Popover2(props, ref) {
     const t = useStrings();
     const density = useDensity();
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.open, !!props.defaultOpen, props.onOpenChange);
     const open = !!st[0];
-    const wrap = React57.useRef(null), pop = React57.useRef(null), popMerged = useMergedRef(ref, pop);
-    const pos = React57.useState(null), mounted = useMounted();
-    const inTree = React57.useRef(false);
+    const wrap = React58.useRef(null), pop = React58.useRef(null), popMerged = useMergedRef(ref, pop);
+    const pos = React58.useState(null), mounted = useMounted();
+    const inTree = React58.useRef(false);
     function trigger() {
       return wrap.current && (wrap.current.querySelector('button, [role="button"], a, input') || wrap.current.firstElementChild);
     }
@@ -8085,7 +8160,7 @@ window.Aura = (() => {
       },
       [open, mounted, props.placement]
     );
-    React57.useEffect(
+    React58.useEffect(
       function() {
         if (!open || !mounted) return;
         if (props.autoFocus !== false && pop.current) {
@@ -8110,9 +8185,9 @@ window.Aura = (() => {
       },
       [open, mounted]
     );
-    const child = React57.Children.only(props.trigger);
+    const child = React58.Children.only(props.trigger);
     const panel = open && mounted ? (0, import_react_dom12.createPortal)(
-      /* @__PURE__ */ React57.createElement(
+      /* @__PURE__ */ React58.createElement(
         "div",
         {
           ref: popMerged,
@@ -8142,17 +8217,17 @@ window.Aura = (() => {
             } else trapTab(e, pop.current);
           }
         },
-        props.title ? /* @__PURE__ */ React57.createElement("div", { className: "aura-popover__head" }, /* @__PURE__ */ React57.createElement("p", { className: "aura-popover__title", id: id + "-title" }, props.title), /* @__PURE__ */ React57.createElement(
+        props.title ? /* @__PURE__ */ React58.createElement("div", { className: "aura-popover__head" }, /* @__PURE__ */ React58.createElement("p", { className: "aura-popover__title", id: id + "-title" }, props.title), /* @__PURE__ */ React58.createElement(
           IconButton,
           {
-            icon: /* @__PURE__ */ React57.createElement(IconX, null),
+            icon: /* @__PURE__ */ React58.createElement(IconX, null),
             label: t.close,
             onClick: function() {
               close(true);
             }
           }
         )) : null,
-        /* @__PURE__ */ React57.createElement("div", { className: "aura-popover__body" }, typeof props.children === "function" ? props.children({
+        /* @__PURE__ */ React58.createElement("div", { className: "aura-popover__body" }, typeof props.children === "function" ? props.children({
           close: function() {
             close(true);
           }
@@ -8160,7 +8235,7 @@ window.Aura = (() => {
       ),
       document.body
     ) : null;
-    return /* @__PURE__ */ React57.createElement("span", { ref: wrap, className: "aura-popover-anchor" }, React57.cloneElement(child, {
+    return /* @__PURE__ */ React58.createElement("span", { ref: wrap, className: "aura-popover-anchor" }, React58.cloneElement(child, {
       onClick: function(e) {
         if (child.props.onClick) child.props.onClick(e);
         st[1](!open);
@@ -8172,7 +8247,7 @@ window.Aura = (() => {
   });
 
   // src/NumberField.tsx
-  var React58 = __toESM(require_react(), 1);
+  var React59 = __toESM(require_react(), 1);
   function decimalsOf(n3) {
     const s = String(n3);
     const i = s.indexOf(".");
@@ -8185,7 +8260,7 @@ window.Aura = (() => {
     if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
     return Number(s);
   }
-  var NumberField = React58.forwardRef(function NumberField2(props, ref) {
+  var NumberField = React59.forwardRef(function NumberField2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto;
     const step = props.step || 1;
@@ -8196,7 +8271,7 @@ window.Aura = (() => {
       props.onChange
     );
     const value = st[0], setValue = st[1];
-    const draftState = React58.useState(null), draft = draftState[0], setDraft = draftState[1];
+    const draftState = React59.useState(null), draft = draftState[0], setDraft = draftState[1];
     function fmt2(n3) {
       if (n3 == null || isNaN(n3)) return "";
       return n3.toLocaleString("en", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -8245,7 +8320,7 @@ window.Aura = (() => {
     };
     const valueText = value == null ? void 0 : [affixText(props.prefix), fmt2(value), affixText(props.suffix)].join(" ").trim();
     const stepper = props.stepper !== false && !props.readOnly;
-    return /* @__PURE__ */ React58.createElement(
+    return /* @__PURE__ */ React59.createElement(
       Field,
       {
         id,
@@ -8257,7 +8332,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React58.createElement("div", { className: cx("aura-input aura-number", stepper && "has-stepper") }, props.prefix != null ? /* @__PURE__ */ React58.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.prefix) : null, /* @__PURE__ */ React58.createElement(
+      /* @__PURE__ */ React59.createElement("div", { className: cx("aura-input aura-number", stepper && "has-stepper") }, props.prefix != null ? /* @__PURE__ */ React59.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.prefix) : null, /* @__PURE__ */ React59.createElement(
         "input",
         {
           ref,
@@ -8304,7 +8379,7 @@ window.Aura = (() => {
           },
           onKeyDown
         }
-      ), props.suffix != null ? /* @__PURE__ */ React58.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.suffix) : null, stepper ? /* @__PURE__ */ React58.createElement("span", { className: "aura-number__steps" }, /* @__PURE__ */ React58.createElement(
+      ), props.suffix != null ? /* @__PURE__ */ React59.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.suffix) : null, stepper ? /* @__PURE__ */ React59.createElement("span", { className: "aura-number__steps" }, /* @__PURE__ */ React59.createElement(
         "button",
         {
           type: "button",
@@ -8320,8 +8395,8 @@ window.Aura = (() => {
             nudge(-step);
           }
         },
-        /* @__PURE__ */ React58.createElement(Icon, { name: /* @__PURE__ */ React58.createElement(IconMinus, null) })
-      ), /* @__PURE__ */ React58.createElement(
+        /* @__PURE__ */ React59.createElement(Icon, { name: /* @__PURE__ */ React59.createElement(IconMinus, null) })
+      ), /* @__PURE__ */ React59.createElement(
         "button",
         {
           type: "button",
@@ -8337,14 +8412,14 @@ window.Aura = (() => {
             nudge(step);
           }
         },
-        /* @__PURE__ */ React58.createElement(Icon, { name: /* @__PURE__ */ React58.createElement(IconPlus, null) })
+        /* @__PURE__ */ React59.createElement(Icon, { name: /* @__PURE__ */ React59.createElement(IconPlus, null) })
       )) : null)
     );
   });
 
   // src/Stepper.tsx
-  var React59 = __toESM(require_react(), 1);
-  var Stepper = React59.forwardRef(function Stepper2(props, ref) {
+  var React60 = __toESM(require_react(), 1);
+  var Stepper = React60.forwardRef(function Stepper2(props, ref) {
     const t = useStrings();
     const steps = props.steps || [];
     let at = -1;
@@ -8354,26 +8429,26 @@ window.Aura = (() => {
     if (at < 0) at = 0;
     const vertical = props.orientation === "vertical";
     const cur = steps[at];
-    return /* @__PURE__ */ React59.createElement(
+    return /* @__PURE__ */ React60.createElement(
       "nav",
       {
         ref,
         "aria-label": props.label,
         className: cx("aura-stepper", vertical ? "aura-stepper--vertical" : "aura-stepper--horizontal", props.className)
       },
-      /* @__PURE__ */ React59.createElement("ol", { className: "aura-stepper__list" }, steps.map(function(s, i) {
+      /* @__PURE__ */ React60.createElement("ol", { className: "aura-stepper__list" }, steps.map(function(s, i) {
         const state = i < at ? "done" : i === at ? "current" : "upcoming";
-        const marker = /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, state === "done" ? /* @__PURE__ */ React59.createElement(Icon, { name: /* @__PURE__ */ React59.createElement(IconCheck, null) }) : i + 1);
-        const text2 = /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__text" }, /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__label" }, s.label, state === "done" ? /* @__PURE__ */ React59.createElement("span", { className: "aura-sr-only" }, ", " + t.stepDone) : null), s.description ? /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__desc" }, s.description) : null);
+        const marker = /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, state === "done" ? /* @__PURE__ */ React60.createElement(Icon, { name: /* @__PURE__ */ React60.createElement(IconCheck, null) }) : i + 1);
+        const text2 = /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__text" }, /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__label" }, s.label, state === "done" ? /* @__PURE__ */ React60.createElement("span", { className: "aura-sr-only" }, ", " + t.stepDone) : null), s.description ? /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__desc" }, s.description) : null);
         const clickable = state === "done" && !!props.onStepClick;
-        return /* @__PURE__ */ React59.createElement(
+        return /* @__PURE__ */ React60.createElement(
           "li",
           {
             key: s.id,
             className: cx("aura-stepper__item", "is-" + state),
             "aria-current": state === "current" ? "step" : void 0
           },
-          clickable ? /* @__PURE__ */ React59.createElement(
+          clickable ? /* @__PURE__ */ React60.createElement(
             "button",
             {
               type: "button",
@@ -8384,19 +8459,19 @@ window.Aura = (() => {
             },
             marker,
             text2
-          ) : /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__step" }, marker, text2)
+          ) : /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__step" }, marker, text2)
         );
       })),
-      !vertical && cur ? /* @__PURE__ */ React59.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length)), /* @__PURE__ */ React59.createElement("span", { className: "aura-stepper__compact-label" }, cur.label)) : null
+      !vertical && cur ? /* @__PURE__ */ React60.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length)), /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__compact-label" }, cur.label)) : null
     );
   });
 
   // src/SegmentedControl.tsx
-  var React60 = __toESM(require_react(), 1);
+  var React61 = __toESM(require_react(), 1);
   function toOpt2(o) {
     return typeof o === "object" ? o : { value: o, label: o };
   }
-  var SegmentedControl = React60.forwardRef(
+  var SegmentedControl = React61.forwardRef(
     function SegmentedControl2(props, ref) {
       const options = (props.options || []).map(toOpt2);
       const firstEnabled = options.filter(function(o) {
@@ -8409,7 +8484,7 @@ window.Aura = (() => {
       );
       const value = st[0], setValue = st[1];
       const auto = uid(), id = props.id || auto;
-      const refs = React60.useRef([]);
+      const refs = React61.useRef([]);
       const selIdx = options.findIndex(function(o) {
         return o.value === value;
       });
@@ -8442,7 +8517,7 @@ window.Aura = (() => {
           move(options.length, -1);
         }
       }
-      return /* @__PURE__ */ React60.createElement(
+      return /* @__PURE__ */ React61.createElement(
         "div",
         {
           ref,
@@ -8461,7 +8536,7 @@ window.Aura = (() => {
         options.map(function(o, i) {
           const on = o.value === value;
           const off = props.disabled || o.disabled;
-          return /* @__PURE__ */ React60.createElement(
+          return /* @__PURE__ */ React61.createElement(
             "button",
             {
               key: o.value,
@@ -8483,8 +8558,8 @@ window.Aura = (() => {
                 onKeyDown(e, i);
               }
             },
-            o.icon ? /* @__PURE__ */ React60.createElement(Icon, { name: o.icon }) : null,
-            o.iconOnly ? null : /* @__PURE__ */ React60.createElement("span", null, o.label)
+            o.icon ? /* @__PURE__ */ React61.createElement(Icon, { name: o.icon }) : null,
+            o.iconOnly ? null : /* @__PURE__ */ React61.createElement("span", null, o.label)
           );
         })
       );

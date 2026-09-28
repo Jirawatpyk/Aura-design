@@ -1363,6 +1363,37 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-filterbar__search { flex-basis: 100%; max-width: none; }
   .aura-filterbar__spacer { display: none; }
 }
+/* 5.12 searchGrow: the search fills what the controls leave. */
+.aura-filterbar--grow .aura-filterbar__search { max-width: none; }
+.aura-filterbar--grow .aura-filterbar__search ~ .aura-filterbar__spacer { display: none; }
+/* Compact filters sit closer together than full fields. */
+.aura-filterbar__controls:has(> .aura-filterselect) { gap: var(--aura-space-2); }
+
+/* 5.12 FilterSelect: a compact face — "Status All ▾" — as wide as its words, over Select's machinery and list. */
+.aura-filterselect { position: relative; display: inline-flex; width: fit-content; max-width: 100%; vertical-align: middle; font-family: var(--font-sans); }
+.aura-filterselect__face {
+  box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--aura-space-1); width: auto; max-width: 100%;
+  min-height: var(--aura-input-height); padding-block: 0; padding-inline: var(--aura-space-2) var(--aura-space-1);
+  background: var(--aura-bg-input); color: var(--aura-fg-primary);
+  border: 1px solid var(--aura-border-control); border-radius: var(--aura-radius-md);
+  font: inherit; font-size: 13px; line-height: 18px; text-align: start; cursor: pointer;
+  transition: border-color var(--aura-duration-fast) var(--aura-ease);
+}
+.aura-filterselect__face:hover { border-color: var(--aura-fg-secondary); }
+.aura-filterselect__name { flex: none; white-space: nowrap; color: var(--aura-fg-secondary); }
+.aura-filterselect__value { min-width: 0; font-weight: 500; overflow-wrap: anywhere; }
+.aura-filterselect__chevron { flex: none; width: 14px; height: 14px; color: var(--aura-fg-secondary); }
+.aura-filterselect.is-open .aura-filterselect__chevron { transform: rotate(180deg); }
+.aura-filterselect__face:focus-visible, .aura-filterselect:has(.aura-filterselect__native:focus-visible) .aura-filterselect__face {
+  outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-color: var(--aura-border-strong);
+}
+.aura-filterselect__face:focus { outline-style: none; }
+.aura-filterselect__face:focus-visible { outline-style: solid; }
+/* Before hydration: the real <select>, invisible, over the face (16px so iOS doesn't zoom when it opens). */
+.aura-filterselect__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; font-size: 16px; cursor: pointer; appearance: none; }
+.aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); cursor: not-allowed; }
+.aura-filterselect.is-disabled .aura-filterselect__native { cursor: not-allowed; }
+@media (forced-colors: active) { .aura-filterselect__face { border-color: ButtonText; } }
 
 /* Command palette: a search field over a grouped list, above everything else (it can open from a Dialog) */
 .aura-dialog-layer.aura-command-layer { z-index: var(--aura-z-menu); align-items: flex-start; padding: 12vh var(--aura-space-4) var(--aura-space-4); }
