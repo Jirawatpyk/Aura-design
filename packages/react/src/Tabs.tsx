@@ -34,6 +34,13 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
   /* 5.9 (Chamber-OS 71): with manual activation the arrows move focus, not the selection; the roving tab stop follows
    * focus and goes back to the selected tab when focus leaves the list. */
   const manual = props.activation === 'manual';
+  /* 5.10 (Chamber-OS 72): the segmented look reuses SegmentedControl's classes on the same DOM. */
+  const seg = props.variant === 'segmented';
+  const listCls = cx('aura-tabs__list', seg && 'aura-segmented', seg && props.fullWidth && 'is-full');
+  const tabCls = function (on: boolean | undefined, extra?: string) {
+    return cx('aura-tab', on && 'is-active', seg && 'aura-segmented__option', seg && on && 'is-selected', extra);
+  };
+  const rootCls = cx('aura-tabs', seg && 'aura-tabs--segmented');
   const [focusId, setFocusId] = React.useState<string | null>(null);
   items.forEach(function (t: TabItem) {
     const al = t.tabProps && t.tabProps['aria-label'];
@@ -54,9 +61,9 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
       <nav
         ref={ref as React.Ref<HTMLElement>}
         aria-label={props.label}
-        className={cx('aura-tabs aura-tabs--links', props.className)}
+        className={cx(rootCls, 'aura-tabs--links', props.className)}
       >
-        <div className="aura-tabs__list">
+        <div className={listCls}>
           {items.map(function (t: TabItem) {
             /* Only an exact match is the current page (5.0.1): a route with no tab of its own marks none. */
             const on = t.id === cur;
@@ -86,7 +93,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
               <span
                 {...omit(own, ['onClick'])}
                 key={t.id}
-                className={cx('aura-tab is-disabled', own.className)}
+                className={cx(tabCls(false), 'is-disabled', own.className)}
                 aria-disabled={true}
               >
                 {inner}
@@ -96,7 +103,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
                 {...own}
                 key={t.id}
                 href={t.href}
-                className={cx('aura-tab', on && 'is-active', own.className)}
+                className={tabCls(on, own.className)}
                 aria-current={on ? 'page' : undefined}
                 onClick={function (e: React.MouseEvent<HTMLButtonElement>) {
                   if (own.onClick) own.onClick(e);
@@ -130,11 +137,11 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
       })[0]) ||
     current;
   return (
-    <div ref={ref} className={cx('aura-tabs', props.className)}>
+    <div ref={ref} className={cx(rootCls, props.className)}>
       <div
         role="tablist"
         aria-label={props.label}
-        className="aura-tabs__list"
+        className={listCls}
         onBlur={
           manual
             ? function (e: React.FocusEvent<HTMLDivElement>) {
@@ -183,7 +190,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
               ref={function (el: HTMLButtonElement | null): void {
                 refs.current[t.id] = el;
               }}
-              className={cx('aura-tab', on && 'is-active', own.className)}
+              className={tabCls(on, own.className)}
               onFocus={
                 manual
                   ? function (e: React.FocusEvent<HTMLButtonElement>) {

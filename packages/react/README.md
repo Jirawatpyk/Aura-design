@@ -186,6 +186,15 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.10 — Chamber-OS addendum 10 (adopting 5.9)
+
+- **Tabs `variant="segmented"`** (item 72): the tab list as a pill track with the selected tab raised — SegmentedControl's look — keeping every Tabs behaviour (tab / tabpanel roles, `keepMounted`, `activation`, `tabProps`). `fullWidth` stretches the track and shares it equally. Tabs are 44px on touch screens, the list doesn't scroll so the focus ring is never clipped, and in forced colours the selected tab gets a `Highlight` outline. Default (`underline`) output is unchanged.
+  ```tsx
+  <Tabs label="Payment method" variant="segmented" fullWidth keepMounted activation="manual" … />
+  ```
+- **Disabled menu items stay reachable** (item 73): a disabled `MenuItem` is `aria-disabled` rather than a disabled button, so the arrow keys reach it and screen readers announce it as dimmed (WAI-ARIA APG); choosing it does nothing and keeps the menu open. `disabledReason` shows in place of the hint and is read with the item ("Again in 5 min"). A menu with nothing to focus takes focus itself, so Escape and Tab still close it and focus returns to the trigger. Enabled items are unchanged; tests that expected the arrows to skip a disabled item now land on it.
+- **SegmentedControl boundary** (item 74): measured again — the selected pill's inset edge (`aura-border-control`, zinc-500) is 4.6:1 against the light track (zinc-50) and 5.8:1 in dark; CI now measures the rendered edge in both themes (≥3:1). A value near 2.5:1 is zinc-400, dark mode's `aura-border-control`: check that the light page isn't picking up the dark tokens (a `.dark` / `data-theme="dark"` ancestor, or a theme override).
+
 ## 5.9 — Chamber-OS addendum 9 (pay sheet)
 
 - **Drawer** (item 70): other attributes (`id`, `data-*`, `aria-*`) go on the `.aura-drawer` panel; `closeLabel` names the close button and its tooltip after what it closes ("Close payment drawer" — pass it in the page's language); `closeProps` puts attributes on that button (`{ 'data-testid': 'pay-sheet-close' }`; its `onClick` runs first and can `preventDefault()` to keep the drawer open). Without them the output is as before; focus trap, Escape, scrim and focus return are unchanged.

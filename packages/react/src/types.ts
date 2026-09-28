@@ -359,7 +359,10 @@ export interface MenuItem {
   icon?: IconInput | undefined;
   /** Present = a checkable item (menuitemcheckbox). */
   checked?: boolean | undefined;
+  /** Dimmed and does nothing when chosen, but still reachable with the arrow keys and announced (5.10). */
   disabled?: boolean | undefined;
+  /** Why it's disabled ("You can resend in 5 minutes"): shown in place of the hint and read with the item. (5.10) */
+  disabledReason?: string | undefined;
   /** Keep the menu open after choosing (checkbox lists). */
   keepOpen?: boolean | undefined;
   /** Short right-aligned hint, e.g. a shortcut. */
@@ -695,6 +698,11 @@ export interface TabsProps {
   /** `auto` (default): arrow keys select as they move. `manual`: arrows, Home and End only move focus; Enter, Space
    * or a click selects — for tabs whose selection does work (loads data, starts a payment). (5.9) */
   activation?: 'auto' | 'manual' | undefined;
+  /** `underline` (default) or `segmented`: the tabs as a pill track with the selected one raised, like
+   * SegmentedControl, keeping every Tabs behaviour (panels, keepMounted, activation, tabProps). (5.10, Chamber-OS 72) */
+  variant?: 'underline' | 'segmented' | undefined;
+  /** With `variant="segmented"`: stretch the track to the full width, tabs sharing it equally. (5.10) */
+  fullWidth?: boolean | undefined;
 }
 export interface NavItem {
   id: string;

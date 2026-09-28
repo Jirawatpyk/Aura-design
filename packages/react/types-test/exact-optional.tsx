@@ -143,8 +143,13 @@ export function Addendum9({ open, label }: { open: boolean; label: string | unde
         label="Method"
         keepMounted
         activation="manual"
+        variant="segmented"
+        fullWidth
         tabs={[{ id: 'card', label: 'Card', tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'method-card' } }]}
       />
     </>
   );
 }
+
+/* 5.10 (Chamber-OS 73): a disabled menu item can say why. */
+export const addendum10Items: Aura.MenuItem[] = [{ label: 'Email me a copy', disabled: true, disabledReason: undefined }, { label: 'Resend', disabled: true, disabledReason: 'Again in 5 min' }];

@@ -6,6 +6,10 @@ import { useLinkComponent } from './locale.js';
 import type { MenuItem, MenuProps } from './types.js';
 import { IconCheck } from './icons.js';
 
+/* 5.10 (Chamber-OS 73): disabled items stay in the arrow-key order (aria-disabled, WAI-ARIA APG), so every item is
+ * reachable; a menu with no item at all takes focus itself, so Escape and Tab still close it. */
+const ITEMS = '[role^="menuitem"]';
+
 /** Popover list anchored to an element, rendered in a portal. */
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(props, ref) {
   const own = React.useRef<HTMLDivElement | null>(null),
@@ -15,7 +19,8 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     setPos = posState[1];
   const items = props.items || [];
   const mounted = useMounted();
-  const headerId = uid();
+  const headerId = uid(),
+    itemId = uid();
   const hasHeader = props.header != null && props.header !== false && props.header !== '';
   const Link = useLinkComponent(props.linkComponent);
   useIsoLayoutEffect(
@@ -51,8 +56,8 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       hadHeader.current = hasHeader;
       const a = document.activeElement;
       if (own.current && (!a || a === document.body)) {
-        const first = own.current.querySelector<HTMLElement>('[role^="menuitem"]:not([disabled])');
-        if (first) first.focus();
+        const first = own.current.querySelector<HTMLElement>(ITEMS);
+        (first || own.current.querySelector<HTMLElement>('[role="menu"]') || own.current).focus();
       }
     },
     [hasHeader],
@@ -60,8 +65,11 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
   React.useEffect(
     function () {
       if (!mounted) return;
-      const first = own.current && own.current.querySelector<HTMLElement>('[role^="menuitem"]:not([disabled])');
-      if (first && props.autoFocus !== false) first.focus();
+      const first = own.current && own.current.querySelector<HTMLElement>(ITEMS);
+      if (props.autoFocus !== false) {
+        if (first) first.focus();
+        else if (own.current) (own.current.querySelector<HTMLElement>('[role="menu"]') || own.current).focus();
+      }
       function outside(e: Event) {
         if (
           own.current &&
@@ -85,16 +93,19 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     [mounted],
   );
   function onKeyDown(e: React.KeyboardEvent) {
-    const list: HTMLElement[] = Array.prototype.slice.call(
-      own.current!.querySelectorAll('[role^="menuitem"]:not([disabled])'),
-    );
+    const list: HTMLElement[] = Array.prototype.slice.call(own.current!.querySelectorAll(ITEMS));
     const i = list.indexOf(document.activeElement as HTMLElement);
+    if (!list.length && e.key !== 'Escape' && e.key !== 'Tab') {
+      e.stopPropagation();
+      return;
+    }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       list[(i + 1) % list.length].focus();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      list[(i - 1 + list.length) % list.length].focus();
+      /* From the menu itself (a click on a separator focuses it), Up goes to the last item. */
+      list[i < 0 ? list.length - 1 : (i - 1 + list.length) % list.length].focus();
     } else if (e.key === 'Home') {
       e.preventDefault();
       list[0].focus();
@@ -151,6 +162,14 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       ) : null,
     ];
     const cls = cx('aura-menu__item', it.tone === 'danger' && 'aura-menu__item--danger');
+    const reasonId = it.disabled && it.disabledReason ? itemId + '-r' + i : undefined;
+    if (reasonId)
+      body[2] = (
+        /* Hidden from the name (it would be read twice); aria-describedby still reads it. */
+        <span key="h" id={reasonId} className="aura-menu__hint aura-menu__reason" aria-hidden={true}>
+          {it.disabledReason}
+        </span>
+      );
     if (it.href && !it.disabled)
       return (
         <Link
@@ -175,11 +194,14 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
         key={i}
         type="button"
         tabIndex={-1}
-        disabled={it.disabled}
+        aria-disabled={it.disabled ? true : undefined}
+        aria-describedby={reasonId}
         role={isRadio ? 'menuitemradio' : isCheck ? 'menuitemcheckbox' : 'menuitem'}
         aria-checked={isRadio || isCheck ? !!it.checked : undefined}
         className={cls}
         onClick={function () {
+          /* A disabled item is focusable and announced, but choosing it does nothing and the menu stays open. */
+          if (it.disabled) return;
           if (it.onSelect) it.onSelect();
           if (!it.keepOpen) props.onClose(true);
         }}
@@ -218,12 +240,20 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       >
         {props.header}
       </div>
-      <div role="menu" aria-label={props.label} aria-describedby={headerId} className="aura-menu__list">
+      <div role="menu" tabIndex={-1} aria-label={props.label} aria-describedby={headerId} className="aura-menu__list">
         {list}
       </div>
     </div>
   ) : (
-    <div ref={merged} role="menu" aria-label={props.label} className="aura-menu" onKeyDown={onKeyDown} style={style}>
+    <div
+      ref={merged}
+      role="menu"
+      tabIndex={-1}
+      aria-label={props.label}
+      className="aura-menu"
+      onKeyDown={onKeyDown}
+      style={style}
+    >
       {list}
     </div>
   );

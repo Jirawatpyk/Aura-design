@@ -20,7 +20,7 @@ export const DropdownMenu = React.forwardRef<HTMLSpanElement, DropdownMenuProps>
     function () {
       if (!anchor || !toLast.current || !menuRef.current) return;
       toLast.current = false;
-      const list = menuRef.current.querySelectorAll<HTMLElement>('[role^="menuitem"]:not([disabled])');
+      const list = menuRef.current.querySelectorAll<HTMLElement>('[role^="menuitem"]');
       if (list.length) list[list.length - 1].focus();
     },
     [anchor],

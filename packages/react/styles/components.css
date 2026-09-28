@@ -226,7 +226,13 @@ a.aura-btn { text-decoration: none; }
 }
 .aura-menu__item:hover, .aura-menu__item:focus { background: var(--aura-bg-surface-hover); outline: none; }
 .aura-menu__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
-.aura-menu__item:disabled { opacity: var(--aura-disabled-opacity); cursor: default; background: transparent; }
+.aura-menu__item:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
+/* 5.10: a disabled item is dimmed but focusable; its reason stays at full strength (it is the information). */
+.aura-menu__item[aria-disabled="true"] { cursor: default; }
+.aura-menu__item[aria-disabled="true"] > :not(.aura-menu__reason) { opacity: var(--aura-disabled-opacity); }
+.aura-menu__reason { padding-left: var(--aura-space-4); }
+.aura-menu__item:disabled, .aura-menu__item[aria-disabled="true"]:hover:not(:focus) { background: transparent; }
+.aura-menu:focus, .aura-menu__list:focus { outline: none; }
 .aura-menu__item .aura-icon { color: var(--aura-fg-secondary); }
 .aura-menu__label { flex: 1; }
 .aura-menu__blank { width: var(--aura-icon-sm); flex: none; }
@@ -1203,6 +1209,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-segmented--sm .aura-segmented__option { height: 24px; padding: 0 var(--aura-space-3); font-size: 12px; }
 .aura-segmented--sm .aura-segmented__option.is-icon { width: 28px; padding: 0; }
 .aura-segmented.is-disabled { opacity: var(--aura-disabled-opacity); }
+/* 5.10 (Chamber-OS 72): Tabs variant="segmented" — the tablist wears SegmentedControl's track and pills. The focus
+ * ring is drawn inside the pill, so neither the scrolling list (many tabs on a phone) nor the next pill can cover it;
+ * full-width tabs share the track but never shrink below their label (the track scrolls instead). The phone rule's
+ * wider tab gap doesn't apply. */
+.aura-tabs--segmented .aura-tabs__list.aura-segmented { gap: 2px; }
+.aura-tabs--segmented .aura-tabs__list.aura-segmented.is-full .aura-tab { min-width: max-content; }
+.aura-tabs--segmented .aura-tab.aura-segmented__option { margin-bottom: 0; }
+.aura-tabs--segmented .aura-tab.aura-segmented__option:focus-visible { border-radius: var(--aura-radius-full); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+.aura-tabs--segmented .aura-tab.aura-segmented__option:disabled,
+.aura-tabs--segmented .aura-tab.aura-segmented__option.is-disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
 
 /* A field inside a row Stack takes the remaining width (a search box beside its button). */
 .aura-stack > .aura-field { flex: 1 1 auto; min-width: 0; }
@@ -1590,4 +1606,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-segmented__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
   .aura-tab { border-bottom-color: Canvas; }
   .aura-tab.is-active { border-bottom-color: Highlight; }
+  /* 5.10: segmented tabs mark the selection with a border and focus with a dashed ring inside it, so a focused tab
+   * and the selected one never look alike (manual activation moves focus without selecting). */
+  .aura-tabs--segmented .aura-tab.aura-segmented__option.is-selected { outline: none; border: 2px solid Highlight; }
+  .aura-tabs--segmented .aura-tab.aura-segmented__option:focus-visible { outline: 2px dashed CanvasText; outline-offset: -5px; }
 }

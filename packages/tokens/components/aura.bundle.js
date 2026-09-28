@@ -1233,13 +1233,14 @@ window.Aura = (() => {
   // src/Menu.tsx
   var React8 = __toESM(require_react(), 1);
   var import_react_dom = __toESM(require_react_dom(), 1);
+  var ITEMS = '[role^="menuitem"]';
   var Menu = React8.forwardRef(function Menu2(props, ref) {
     const own = React8.useRef(null), merged = useMergedRef(ref, own);
     const posState = React8.useState(null);
     const pos = posState[0], setPos = posState[1];
     const items2 = props.items || [];
     const mounted = useMounted();
-    const headerId = uid();
+    const headerId = uid(), itemId = uid();
     const hasHeader = props.header != null && props.header !== false && props.header !== "";
     const Link = useLinkComponent(props.linkComponent);
     useIsoLayoutEffect(
@@ -1267,8 +1268,8 @@ window.Aura = (() => {
         hadHeader.current = hasHeader;
         const a = document.activeElement;
         if (own.current && (!a || a === document.body)) {
-          const first = own.current.querySelector('[role^="menuitem"]:not([disabled])');
-          if (first) first.focus();
+          const first = own.current.querySelector(ITEMS);
+          (first || own.current.querySelector('[role="menu"]') || own.current).focus();
         }
       },
       [hasHeader]
@@ -1276,8 +1277,11 @@ window.Aura = (() => {
     React8.useEffect(
       function() {
         if (!mounted) return;
-        const first = own.current && own.current.querySelector('[role^="menuitem"]:not([disabled])');
-        if (first && props.autoFocus !== false) first.focus();
+        const first = own.current && own.current.querySelector(ITEMS);
+        if (props.autoFocus !== false) {
+          if (first) first.focus();
+          else if (own.current) (own.current.querySelector('[role="menu"]') || own.current).focus();
+        }
         function outside(e) {
           if (own.current && !own.current.contains(e.target) && !(props.anchor && props.anchor.contains(e.target)))
             props.onClose(false);
@@ -1297,16 +1301,18 @@ window.Aura = (() => {
       [mounted]
     );
     function onKeyDown(e) {
-      const list2 = Array.prototype.slice.call(
-        own.current.querySelectorAll('[role^="menuitem"]:not([disabled])')
-      );
+      const list2 = Array.prototype.slice.call(own.current.querySelectorAll(ITEMS));
       const i = list2.indexOf(document.activeElement);
+      if (!list2.length && e.key !== "Escape" && e.key !== "Tab") {
+        e.stopPropagation();
+        return;
+      }
       if (e.key === "ArrowDown") {
         e.preventDefault();
         list2[(i + 1) % list2.length].focus();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        list2[(i - 1 + list2.length) % list2.length].focus();
+        list2[i < 0 ? list2.length - 1 : (i - 1 + list2.length) % list2.length].focus();
       } else if (e.key === "Home") {
         e.preventDefault();
         list2[0].focus();
@@ -1345,6 +1351,10 @@ window.Aura = (() => {
         it.hint ? /* @__PURE__ */ React8.createElement("span", { key: "h", className: "aura-menu__hint" }, it.hint) : null
       ];
       const cls = cx("aura-menu__item", it.tone === "danger" && "aura-menu__item--danger");
+      const reasonId = it.disabled && it.disabledReason ? itemId + "-r" + i : void 0;
+      if (reasonId)
+        body[2] = /* Hidden from the name (it would be read twice); aria-describedby still reads it. */
+        /* @__PURE__ */ React8.createElement("span", { key: "h", id: reasonId, className: "aura-menu__hint aura-menu__reason", "aria-hidden": true }, it.disabledReason);
       if (it.href && !it.disabled)
         return /* @__PURE__ */ React8.createElement(
           Link,
@@ -1369,11 +1379,13 @@ window.Aura = (() => {
           key: i,
           type: "button",
           tabIndex: -1,
-          disabled: it.disabled,
+          "aria-disabled": it.disabled ? true : void 0,
+          "aria-describedby": reasonId,
           role: isRadio ? "menuitemradio" : isCheck ? "menuitemcheckbox" : "menuitem",
           "aria-checked": isRadio || isCheck ? !!it.checked : void 0,
           className: cls,
           onClick: function() {
+            if (it.disabled) return;
             if (it.onSelect) it.onSelect();
             if (!it.keepOpen) props.onClose(true);
           }
@@ -1402,7 +1414,19 @@ window.Aura = (() => {
         }
       },
       props.header
-    ), /* @__PURE__ */ React8.createElement("div", { role: "menu", "aria-label": props.label, "aria-describedby": headerId, className: "aura-menu__list" }, list)) : /* @__PURE__ */ React8.createElement("div", { ref: merged, role: "menu", "aria-label": props.label, className: "aura-menu", onKeyDown, style }, list);
+    ), /* @__PURE__ */ React8.createElement("div", { role: "menu", tabIndex: -1, "aria-label": props.label, "aria-describedby": headerId, className: "aura-menu__list" }, list)) : /* @__PURE__ */ React8.createElement(
+      "div",
+      {
+        ref: merged,
+        role: "menu",
+        tabIndex: -1,
+        "aria-label": props.label,
+        className: "aura-menu",
+        onKeyDown,
+        style
+      },
+      list
+    );
     return mounted ? (0, import_react_dom.createPortal)(el, document.body) : null;
   });
 
@@ -1417,7 +1441,7 @@ window.Aura = (() => {
       function() {
         if (!anchor || !toLast.current || !menuRef.current) return;
         toLast.current = false;
-        const list = menuRef.current.querySelectorAll('[role^="menuitem"]:not([disabled])');
+        const list = menuRef.current.querySelectorAll('[role^="menuitem"]');
         if (list.length) list[list.length - 1].focus();
       },
       [anchor]
@@ -5876,6 +5900,12 @@ window.Aura = (() => {
     })[0] || firstOn || items2[0];
     const Link = useLinkComponent(props.linkComponent);
     const manual = props.activation === "manual";
+    const seg = props.variant === "segmented";
+    const listCls = cx("aura-tabs__list", seg && "aura-segmented", seg && props.fullWidth && "is-full");
+    const tabCls = function(on, extra) {
+      return cx("aura-tab", on && "is-active", seg && "aura-segmented__option", seg && on && "is-selected", extra);
+    };
+    const rootCls = cx("aura-tabs", seg && "aura-tabs--segmented");
     const [focusId, setFocusId] = React32.useState(null);
     items2.forEach(function(t) {
       const al = t.tabProps && t.tabProps["aria-label"];
@@ -5891,9 +5921,9 @@ window.Aura = (() => {
         {
           ref,
           "aria-label": props.label,
-          className: cx("aura-tabs aura-tabs--links", props.className)
+          className: cx(rootCls, "aura-tabs--links", props.className)
         },
-        /* @__PURE__ */ React32.createElement("div", { className: "aura-tabs__list" }, items2.map(function(t) {
+        /* @__PURE__ */ React32.createElement("div", { className: listCls }, items2.map(function(t) {
           const on = t.id === cur;
           const inner = [
             t.icon ? /* @__PURE__ */ React32.createElement(Icon, { key: "i", name: t.icon }) : null,
@@ -5917,7 +5947,7 @@ window.Aura = (() => {
             {
               ...omit(own, ["onClick"]),
               key: t.id,
-              className: cx("aura-tab is-disabled", own.className),
+              className: cx(tabCls(false), "is-disabled", own.className),
               "aria-disabled": true
             },
             inner
@@ -5927,7 +5957,7 @@ window.Aura = (() => {
               ...own,
               key: t.id,
               href: t.href,
-              className: cx("aura-tab", on && "is-active", own.className),
+              className: tabCls(on, own.className),
               "aria-current": on ? "page" : void 0,
               onClick: function(e) {
                 if (own.onClick) own.onClick(e);
@@ -5951,12 +5981,12 @@ window.Aura = (() => {
     const stop = manual && focusId && items2.filter(function(t) {
       return t.id === focusId && !t.disabled;
     })[0] || current2;
-    return /* @__PURE__ */ React32.createElement("div", { ref, className: cx("aura-tabs", props.className) }, /* @__PURE__ */ React32.createElement(
+    return /* @__PURE__ */ React32.createElement("div", { ref, className: cx(rootCls, props.className) }, /* @__PURE__ */ React32.createElement(
       "div",
       {
         role: "tablist",
         "aria-label": props.label,
-        className: "aura-tabs__list",
+        className: listCls,
         onBlur: manual ? function(e) {
           if (!e.currentTarget.contains(e.relatedTarget)) setFocusId(null);
         } : void 0,
@@ -5999,7 +6029,7 @@ window.Aura = (() => {
             ref: function(el) {
               refs.current[t.id] = el;
             },
-            className: cx("aura-tab", on && "is-active", own.className),
+            className: tabCls(on, own.className),
             onFocus: manual ? function(e) {
               if (own.onFocus) own.onFocus(e);
               setFocusId(t.id);

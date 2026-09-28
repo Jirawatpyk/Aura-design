@@ -58,6 +58,10 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (panels.length !== 2 || /hidden/.test(panels[0]!) || !/hidden/.test(panels[1]!)) { console.log(label, 'keepMounted panels:', panels); fail++; }
     if (!/data-testid="tab-card"[^>]*role="tab"|role="tab"[^>]*data-testid="tab-card"/.test(kept) || !/aria-label="Card — switch payment method"/.test(kept)) { console.log(label, 'tabProps:', kept); fail++; }
     const plain = renderToString(React.createElement(A.Tabs, { label: 'Method', tabs }));
+    /* 5.10 (Chamber-OS 72): the segmented look is classes on the same DOM; the default output has none of them. */
+    const seg = renderToString(React.createElement(A.Tabs, { label: 'Method', tabs, variant: 'segmented', fullWidth: true }));
+    if (!/class="aura-tabs aura-tabs--segmented"/.test(seg) || !/role="tablist"[^>]*class="aura-tabs__list aura-segmented is-full"|class="aura-tabs__list aura-segmented is-full"[^>]*role="tablist"/.test(seg) || !/aura-tab is-active aura-segmented__option is-selected/.test(seg)) { console.log(label, 'segmented Tabs:', seg); fail++; }
+    if (/segmented/.test(plain)) { console.log(label, 'default Tabs changed:', plain); fail++; }
     if ((plain.match(/role="tabpanel"/g) || []).length !== 1) { console.log(label, 'default Tabs should render one panel'); fail++; }
   }
   /* 5.8 (Chamber-OS 66, 68, 69): /server display components give the root's HTML; attributes reach the root. */

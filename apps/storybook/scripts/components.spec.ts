@@ -2749,3 +2749,128 @@ test.describe('5.9: Chamber-OS addendum 9', () => {
     await expect(page.getByRole('tabpanel', { includeHidden: true })).toHaveCount(1);
   });
 });
+
+test.describe('5.10: Chamber-OS addendum 10', () => {
+  test('72: segmented Tabs — same roles and keys, pill look, 44px on touch, ring not clipped, forced colours', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-10--segmented-tabs');
+    const list = page.getByRole('tablist', { name: 'Payment method' });
+    await expect(list).toHaveClass(/aura-segmented/);
+    await expect(list).toHaveClass(/is-full/);
+    const card = page.getByTestId('seg-card');
+    const pp = page.getByTestId('seg-promptpay');
+    await expect(card).toHaveAttribute('role', 'tab');
+    await expect(card).toHaveClass(/is-selected/);
+    await expect(page.getByRole('tabpanel', { includeHidden: true })).toHaveCount(2);
+    /* Full width: the two tabs share the track. */
+    const [lb, cb, pb] = [await list.boundingBox(), await card.boundingBox(), await pp.boundingBox()];
+    expect(Math.abs(cb!.width - pb!.width)).toBeLessThan(2);
+    expect(cb!.width + pb!.width).toBeGreaterThan(lb!.width - 12);
+    /* Manual activation still applies; Enter selects. */
+    await card.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(pp).toBeFocused();
+    await expect(card).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Enter');
+    await expect(pp).toHaveClass(/is-selected/);
+    /* The ring is drawn inside the pill (round), so the scrolling list and the next pill can't cover it. */
+    await page.keyboard.press('ArrowLeft');
+    await expect(card).toBeFocused();
+    const ring = await card.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return {
+        style: s.outlineStyle,
+        offset: parseFloat(s.outlineOffset),
+        width: parseFloat(s.outlineWidth),
+        radius: s.borderTopLeftRadius,
+      };
+    });
+    expect(ring.style).toBe('solid');
+    expect(ring.offset).toBeLessThanOrEqual(-ring.width);
+    expect(parseFloat(ring.radius)).toBeGreaterThan(100);
+    /* The selected pill's edge against the track: ≥3:1 in light and dark (SC 1.4.11). */
+    for (const theme of ['light', 'dark']) {
+      await story(page, 'aura-new-in-5-10--segmented-tabs', theme);
+      const ratio = await page.getByTestId('seg-card').evaluate((el) => {
+        const rgb = (c: string) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+        const lum = (c: number[]) =>
+          c
+            .map((v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+            .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i]!, 0);
+        const edge = rgb(getComputedStyle(el).boxShadow.split(')')[0] + ')');
+        const track = rgb(getComputedStyle(el.parentElement!).backgroundColor);
+        const [a, b] = [lum(edge), lum(track)];
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      });
+      expect(ratio, theme).toBeGreaterThanOrEqual(3);
+    }
+    /* Forced colours mark the selected tab. */
+    await page.emulateMedia({ forcedColors: 'active' });
+    await story(page, 'aura-new-in-5-10--segmented-tabs');
+    const fc = await page.getByTestId('seg-card').evaluate((el) => getComputedStyle(el).borderTopStyle);
+    expect(fc).toBe('solid');
+    /* A focused tab that isn't selected looks different: a dashed ring, no selection border. */
+    await page.getByTestId('seg-card').focus();
+    await page.keyboard.press('ArrowRight');
+    const f2 = await page
+      .getByTestId('seg-promptpay')
+      .evaluate((el) => ({ ring: getComputedStyle(el).outlineStyle, border: getComputedStyle(el).borderTopStyle }));
+    expect(f2).toEqual({ ring: 'dashed', border: 'none' });
+    await page.emulateMedia({ forcedColors: 'none' });
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('72: segmented tabs are 44px on a touch screen; many tabs scroll in the track, labels whole', async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 800 } });
+    const page = await ctx.newPage();
+    await story(page, 'aura-new-in-5-10--segmented-tabs');
+    expect((await page.getByTestId('seg-card').boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await story(page, 'aura-new-in-5-10--many-segmented-tabs');
+    const m = await page.evaluate(() => ({
+      page: document.documentElement.scrollWidth,
+      clipped: Array.from(document.querySelectorAll('.aura-tab')).filter((t) => t.scrollWidth > t.clientWidth + 1)
+        .length,
+    }));
+    expect(m.page).toBeLessThanOrEqual(390);
+    expect(m.clipped).toBe(0);
+    await ctx.close();
+  });
+
+  test('73: disabled menu items are reachable, announced, inert; an all-disabled menu still takes focus', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-10--disabled-menu-items');
+    const trigger = page.getByRole('button', { name: 'Invoice actions' });
+    await trigger.click();
+    const items = page.getByRole('menuitem');
+    await expect(items.first()).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    const email = page.getByRole('menuitem', { name: 'Email me a copy' });
+    await expect(email).toBeFocused();
+    await expect(email).toHaveAttribute('aria-disabled', 'true');
+    await expect(email).toHaveAccessibleDescription('Again in 5 min');
+    await expect(email).toHaveAccessibleName('Email me a copy');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Space');
+    await email.click({ force: true });
+    await expect(page.getByRole('menu')).toBeVisible();
+    await expect(page.getByTestId('menu-log')).toHaveText('none');
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitem', { name: 'View payments' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('menu-log')).toHaveText('payments');
+    /* A menu with one disabled item: focus goes in, Escape closes and returns focus to the trigger. */
+    const resend = page.getByRole('button', { name: 'Resend' });
+    await resend.click();
+    await expect(page.getByRole('menuitem', { name: 'Email me a copy' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(resend).toBeFocused();
+    await expect(page.getByTestId('menu-log')).toHaveText('payments');
+    await resend.click();
+    expect(await axeScan(page, '.aura-menu')).toEqual([]);
+  });
+});
