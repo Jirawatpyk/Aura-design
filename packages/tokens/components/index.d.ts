@@ -129,6 +129,9 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	isRowSelectable?: RowCallback<boolean, Row> | undefined;
 	/** Accessible name for a rejected row's empty cell, e.g. `(r) => 'Not awaiting review'` (5.6). */
 	rowSelectDisabledLabel?: RowCallback<string, Row> | undefined;
+	/** Accessible name for a row's checkbox (and its cell), e.g. `(r) => 'Select ' + r.company` (5.11). Default: the
+	 * `selectRow` string with the row key ("Select M-102"), also used when this returns an empty string. */
+	rowSelectLabel?: RowCallback<string, Row> | undefined;
 	/** Controlled selection (row keys); pair with onSelectionChange. */
 	selected?: Array<string | number> | undefined;
 	/** Initial selection when uncontrolled. */
@@ -175,6 +178,10 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	onRowActivate?: RowCallback<void, Row> | undefined;
 	/** Fixed height in px: sticky header, and only the rows in view are rendered. */
 	height?: number | undefined;
+	/** `'auto'` (5.11): rows grow to fit content that wraps (two badges, a long name); cells stay vertically centred and
+	 * rows keep at least the density's row height. Needs every row in the DOM, so it is ignored with `height`
+	 * (virtualized rows are one fixed height). Default: one fixed-height line per row, long text ends in an ellipsis. */
+	rowHeight?: "auto" | undefined;
 	/** Column menu on every header, drag-to-reorder, and the show/hide columns button. */
 	columnControls?: boolean | undefined;
 	/** Set false to keep column controls but turn off reordering. */
@@ -256,7 +263,7 @@ export interface CheckboxProps extends Omit<React$1.InputHTMLAttributes<HTMLInpu
 	hideLabel?: boolean | undefined;
 	/** The visible label beside the box. */
 	children?: React$1.ReactNode | undefined;
-	/** Second line under the visible label (needs an id to be linked). */
+	/** Second line under the visible label, linked by `aria-describedby` after any id you pass there (5.11). */
 	description?: React$1.ReactNode | undefined;
 	onChange?: ((checked: boolean) => void) | undefined;
 	disabled?: boolean | undefined;

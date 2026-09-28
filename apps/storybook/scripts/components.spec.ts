@@ -2948,3 +2948,164 @@ test.describe('5.10.1: fixes from a new project', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.11: Chamber-OS addendum 11', () => {
+  test('row boxes are named after their row and take clicks over 24×24, in the grid and in cards', async ({ page }) => {
+    await story(page, 'aura-new-in-5-11--selection-labels-and-targets');
+    await expect(page.locator('[data-testid=sel-cards] .aura-table--stacked')).toHaveCount(1);
+    await expect(page.locator('[data-testid=sel-grid] .aura-table--stacked')).toHaveCount(0);
+    for (const t of ['sel-grid', 'sel-cards']) {
+      const box = page.getByTestId(t);
+      /* 75: the gridcell and its checkbox carry the app's name; the default stays "Select row {key}". */
+      await expect(box.getByRole('checkbox', { name: 'Select Nordic Timber Oy', exact: true })).toHaveCount(1);
+      await expect(box.getByRole('gridcell', { name: 'Select Nordic Timber Oy', exact: true })).toHaveCount(1);
+      /* 77: every input is at least 24×24 around the 16px box it draws. */
+      const sizes = await box.locator('.aura-check__input').evaluateAll((els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect(),
+            d = e.nextElementSibling!.getBoundingClientRect();
+          return { w: r.width, h: r.height, dw: d.width, dh: d.height, dx: d.left - r.left, dy: d.top - r.top };
+        }),
+      );
+      expect(sizes).toHaveLength(4);
+      for (const s of sizes) {
+        expect(s.w, t).toBeGreaterThanOrEqual(24);
+        expect(s.h, t).toBeGreaterThanOrEqual(24);
+        expect([s.dw, s.dh, s.dx, s.dy], t).toEqual([16, 16, 4, 4]);
+      }
+      /* A click 3px outside the drawn box toggles it — the row box and the header's select-all. */
+      const row = box.getByRole('checkbox', { name: 'Select Acme AB', exact: true });
+      const drawn = (await row.locator('xpath=following-sibling::*[1]').boundingBox())!;
+      await page.mouse.click(drawn.x - 3, drawn.y + drawn.height / 2);
+      await expect(row).toBeChecked();
+      await page.mouse.click(drawn.x + drawn.width / 2, drawn.y + drawn.height + 3);
+      await expect(row).not.toBeChecked();
+      const all = box.getByRole('checkbox', { name: 'Select all rows' });
+      const hd = (await all.locator('xpath=following-sibling::*[1]').boundingBox())!;
+      await page.mouse.click(hd.x + hd.width + 3, hd.y + hd.height / 2);
+      await expect(all).toBeChecked();
+      await page.mouse.click(hd.x - 3, hd.y + hd.height / 2);
+      await expect(all).not.toBeChecked();
+    }
+    await expect(
+      page.getByTestId('sel-default').getByRole('checkbox', { name: 'Select M-102', exact: true }),
+    ).toHaveCount(1);
+    /* The wider input sits over the sticky gutter, but never over the sticky header, and not once the column has
+     * scrolled under the gutter. */
+    const sc = page.getByTestId('sel-scroll').locator('.aura-table__scroll');
+    const hit = (x: number, y: number) =>
+      page.evaluate(
+        ([x, y]) => {
+          const e = document.elementFromPoint(x!, y!)!;
+          return e.closest('.aura-table__head') ? 'head' : e.getAttribute('aria-label') || e.className;
+        },
+        [x, y],
+      );
+    const acme = page.getByTestId('sel-scroll').getByRole('checkbox', { name: 'Select Acme AB M-101', exact: true });
+    await page.getByTestId('sel-scroll').scrollIntoViewIfNeeded();
+    let d = (await acme.locator('xpath=following-sibling::*[1]').boundingBox())!;
+    expect(await hit(d.x - 3, d.y + d.height / 2)).toBe('Select Acme AB M-101');
+    await sc.evaluate((el) => el.scrollTo(0, 16));
+    await expect(sc.locator('xpath=..')).not.toHaveClass(/is-scrolled-x/);
+    d = (await acme.locator('xpath=following-sibling::*[1]').boundingBox())!;
+    const head = (await page.getByTestId('sel-scroll').locator('.aura-table__head').boundingBox())!;
+    expect(d.y - 4).toBeLessThan(head.y + head.height - 2); /* the row's input reaches under the header… */
+    expect(await hit(d.x + d.width / 2, head.y + head.height - 2)).toBe('head'); /* …which still takes the click */
+    await sc.evaluate((el) => el.scrollTo(12, 0));
+    await expect(sc.locator('xpath=..')).toHaveClass(/is-scrolled-x/);
+    d = (await acme.locator('xpath=following-sibling::*[1]').boundingBox())!;
+    expect(await hit(d.x - 2, d.y + d.height / 2)).toBe('aura-table__gutter');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('Checkbox keeps a passed aria-describedby and adds its description after it', async ({ page }) => {
+    await story(page, 'aura-new-in-5-11--checkbox-described-by');
+    const ids = await page
+      .locator('input[type=checkbox]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('aria-describedby')));
+    expect(ids).toEqual(['terms-hint terms-desc', null, 'terms-hint']);
+    await expect(page.getByRole('checkbox', { name: 'Email me the member newsletter' })).toHaveAccessibleDescription(
+      'You can withdraw consent at any time. We send one newsletter a month.',
+    );
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('rowHeight="auto": a cell that wraps grows its row, every cell stays centred; the default is one line', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-11--auto-row-height');
+    const measure = (t: string) =>
+      page
+        .getByTestId(t)
+        .locator('.aura-table__row[role=row]')
+        .evaluateAll((rows) =>
+          rows.map((row) => {
+            const rh = row.getBoundingClientRect().height;
+            const badges = Array.from(row.querySelectorAll('.aura-badge')).map((b) => b.getBoundingClientRect());
+            /* Each cell's content: equal space above and below (to the pixel) means centred. */
+            const off = Array.from(row.querySelectorAll('[role=gridcell]')).map((c) => {
+              const box = c.getBoundingClientRect();
+              const inner = (c.querySelector('.aura-table__cell, .aura-check') || c).getBoundingClientRect();
+              return {
+                full: Math.abs(box.height - (rh - 1)) <= 1,
+                skew: Math.abs(inner.top - box.top - (box.bottom - inner.bottom)),
+              };
+            });
+            return {
+              rh,
+              lines: badges.length > 1 ? new Set(badges.map((b) => Math.round(b.top))).size : 1,
+              gap: badges.length > 1 ? badges[1]!.top - badges[0]!.bottom : null,
+              off,
+            };
+          }),
+        );
+    const auto = await measure('auto-rows');
+    const fixed = await measure('fixed-rows');
+    /* Acme's two tags wrap onto two lines, apart, and the row grows; single-line rows keep the density height. */
+    expect(auto[0]!.lines).toBe(2);
+    expect(auto[0]!.gap).toBeGreaterThanOrEqual(2);
+    expect(auto[0]!.rh).toBeGreaterThan(fixed[0]!.rh);
+    expect(auto.slice(1).map((r) => r.rh)).toEqual(fixed.slice(1).map((r) => r.rh));
+    for (const r of auto)
+      for (const c of r.off) {
+        expect(c.full).toBe(true);
+        expect(c.skew).toBeLessThanOrEqual(1);
+      }
+    /* Default: every row one fixed height, the tags on one line (clipped with an ellipsis), no new classes. */
+    expect(new Set(fixed.map((r) => r.rh)).size).toBe(1);
+    expect(fixed[0]!.lines).toBe(1);
+    await expect(page.getByTestId('fixed-rows').locator('.aura-table__row--auto, .aura-table__cell')).toHaveCount(0);
+    /* The pinned ID cell covers the full row height, so nothing scrolls into view behind it. */
+    const pin = await page
+      .getByTestId('auto-rows')
+      .locator('.aura-table__row[role=row]')
+      .first()
+      .evaluate((row) => [
+        row.getBoundingClientRect().height,
+        row.querySelector('.is-pinned')!.getBoundingClientRect().height,
+      ]);
+    expect(pin[0]! - pin[1]!).toBeLessThanOrEqual(1);
+    /* Cards: rowHeight="auto" changes nothing — same card heights, fields still block with their labels above. */
+    const cards = (t: string) =>
+      page
+        .getByTestId(t)
+        .locator('.aura-table__row[role=row]')
+        .evaluateAll((rows) =>
+          rows.map((r) => [
+            Math.round(r.getBoundingClientRect().height),
+            getComputedStyle(r.querySelector('[data-card=field]')!).display,
+          ]),
+        );
+    await expect(page.locator('[data-testid$=-cards] .aura-table--stacked')).toHaveCount(2);
+    expect(await cards('auto-cards')).toEqual(await cards('fixed-cards'));
+    /* Compact density with a small Button and IconButton: rows that fit keep the 40px row height with auto rows. */
+    const heights = (t: string) =>
+      page
+        .getByTestId(t)
+        .locator('.aura-table__row[role=row]')
+        .evaluateAll((rows) => rows.map((r) => Math.round(r.getBoundingClientRect().height)));
+    expect(await heights('fixed-compact')).toEqual([40, 40, 40]);
+    expect(await heights('auto-compact')).toEqual([40, 40, 40]);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

@@ -153,3 +153,26 @@ export function Addendum9({ open, label }: { open: boolean; label: string | unde
 
 /* 5.10 (Chamber-OS 73): a disabled menu item can say why. */
 export const addendum10Items: Aura.MenuItem[] = [{ label: 'Email me a copy', disabled: true, disabledReason: undefined }, { label: 'Resend', disabled: true, disabledReason: 'Again in 5 min' }];
+
+/* 5.11 (Chamber-OS 75, 76, 78): row box names, a passed describedby on Checkbox, auto row height; undefined allowed. */
+export function Addendum11({ hint, auto }: { hint: string | undefined; auto: boolean }) {
+  type Member = { id: string; company: string };
+  const rows: Member[] = [{ id: 'M-1', company: 'Acme AB' }];
+  return (
+    <>
+      <Aura.DataTable<Member>
+        label="Members"
+        rows={rows}
+        selectable
+        rowSelectLabel={(r) => 'Select ' + r.company}
+        rowHeight={auto ? 'auto' : undefined}
+      />
+      <Aura.DataTable label="Members" rows={rows} rowSelectLabel={undefined} rowHeight={undefined} />
+      <Aura.Checkbox aria-describedby={hint} description="D">
+        Terms
+      </Aura.Checkbox>
+    </>
+  );
+}
+// @ts-expect-error rowHeight takes only 'auto' (a number would be a fixed height; use the density token for that)
+export const badRowHeight: Aura.DataTableProps['rowHeight'] = 56;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { useStrings, useAuraLocale, useLinkComponent } from './locale.js';
-import { cx, omit, useMaybeControlled, compare, useIsoLayoutEffect, useMergedRef } from './internal.js';
+import { cx, devWarnOnce, omit, useMaybeControlled, compare, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { Checkbox } from './Checkbox.js';
@@ -549,6 +549,13 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
 
   /* virtual window */
   const height = props.height || 0;
+  /* 5.11: rows grow with their content. Virtualized rows must be one fixed height, so `height` wins. */
+  const autoRows = props.rowHeight === 'auto' && !height;
+  if (props.rowHeight === 'auto' && height)
+    devWarnOnce(
+      'table-row-height-auto',
+      'DataTable `rowHeight="auto"` is ignored with `height`: virtualized rows are one fixed height. Drop `height` (and paginate) to let rows grow.',
+    );
   /* Cards have their own heights, so a stacked table renders every row of the page. */
   const virtual = !!height && !loading && pageRows.length > 0 && !stacked;
   /* A sticky totals row covers the bottom of the scroll area: keep focused rows above it (5.1.1). */
@@ -1151,6 +1158,8 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   }
   function rowCells(r: Row, i: number, k: RowKey, isSel: boolean): React.ReactElement[] {
     const ri = i + 1;
+    const selLabel =
+      selectable && canSelect(r) ? (props.rowSelectLabel && props.rowSelectLabel(r)) || t.selectRow(k) : undefined;
     const cells: React.ReactElement[] = [<span key="__gl" className="aura-table__gutter" aria-hidden={true} />];
     if (selectable)
       cells.push(
@@ -1162,7 +1171,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           tabIndex={tabFor(ri, 0)}
           data-rc={ri + ':0'}
           aria-label={
-            canSelect(r) ? t.selectRow(k) : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : undefined
+            canSelect(r) ? selLabel : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : undefined
           }
           onFocus={function (e: React.FocusEvent) {
             if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
@@ -1173,7 +1182,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
               hideLabel
               checked={isSel}
               tabIndex={-1}
-              label={t.selectRow(k)}
+              label={selLabel}
               onChange={function (on: boolean) {
                 toggle(k, on);
               }}
@@ -1194,6 +1203,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           data-rc={ri + ':' + ci}
           className={cx(
             'aura-table__td',
+            autoRows && 'aura-table__td--auto',
             c.mono && 'aura-table__mono',
             c.align === 'end' && 'is-end',
             pin && 'is-pinned',
@@ -1205,7 +1215,13 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             if (activeState[0].r !== ri || activeState[0].c !== ci) activeState[1]({ r: ri, c: ci });
           }}
         >
-          {j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)}
+          {autoRows ? (
+            <span className="aura-table__cell">{j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)}</span>
+          ) : j === 0 ? (
+            rowLinkWrap(r, cellContent(c, r))
+          ) : (
+            cellContent(c, r)
+          )}
         </span>,
       );
     });
@@ -1291,6 +1307,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             aria-selected={selectable && canSelect(r) ? isSel : undefined}
             className={cx(
               'aura-table__row',
+              autoRows && 'aura-table__row--auto',
               isSel && 'is-selected',
               (props.onRowActivate || rowHref) && 'is-actionable',
             )}

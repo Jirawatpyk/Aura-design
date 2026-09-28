@@ -1524,7 +1524,7 @@ window.Aura = (() => {
           checked: on,
           tabIndex: props.tabIndex,
           disabled: props.disabled,
-          "aria-describedby": descId,
+          "aria-describedby": cx(props["aria-describedby"], descId) || void 0,
           "aria-label": labelled ? void 0 : props.label,
           onChange: function(e) {
             st[1](e.target.checked);
@@ -4996,6 +4996,12 @@ window.Aura = (() => {
       return rowHref ? /* @__PURE__ */ React30.createElement(Link, { href: rowHref(r), className: "aura-table__row-link" }, content) : content;
     }
     const height = props.height || 0;
+    const autoRows = props.rowHeight === "auto" && !height;
+    if (props.rowHeight === "auto" && height)
+      devWarnOnce(
+        "table-row-height-auto",
+        'DataTable `rowHeight="auto"` is ignored with `height`: virtualized rows are one fixed height. Drop `height` (and paginate) to let rows grow.'
+      );
     const virtual = !!height && !loading && pageRows.length > 0 && !stacked;
     const stickyTotal = !!(props.footer && props.stickyFooter && rows.length && !loading);
     const bodyH = Math.max(ROW_H, height - ROW_H - (stickyTotal ? ROW_H : 0));
@@ -5520,6 +5526,7 @@ window.Aura = (() => {
     }
     function rowCells(r, i, k, isSel) {
       const ri = i + 1;
+      const selLabel = selectable && canSelect(r) ? props.rowSelectLabel && props.rowSelectLabel(r) || t.selectRow(k) : void 0;
       const cells = [/* @__PURE__ */ React30.createElement("span", { key: "__gl", className: "aura-table__gutter", "aria-hidden": true })];
       if (selectable)
         cells.push(
@@ -5532,7 +5539,7 @@ window.Aura = (() => {
               className: cx("aura-table__sel", nPinned && "is-pinned"),
               tabIndex: tabFor(ri, 0),
               "data-rc": ri + ":0",
-              "aria-label": canSelect(r) ? t.selectRow(k) : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : void 0,
+              "aria-label": canSelect(r) ? selLabel : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : void 0,
               onFocus: function(e) {
                 if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
               }
@@ -5543,7 +5550,7 @@ window.Aura = (() => {
                 hideLabel: true,
                 checked: isSel,
                 tabIndex: -1,
-                label: t.selectRow(k),
+                label: selLabel,
                 onChange: function(on) {
                   toggle(k, on);
                 }
@@ -5564,6 +5571,7 @@ window.Aura = (() => {
               "data-rc": ri + ":" + ci,
               className: cx(
                 "aura-table__td",
+                autoRows && "aura-table__td--auto",
                 c.mono && "aura-table__mono",
                 c.align === "end" && "is-end",
                 pin && "is-pinned",
@@ -5575,7 +5583,7 @@ window.Aura = (() => {
                 if (activeState[0].r !== ri || activeState[0].c !== ci) activeState[1]({ r: ri, c: ci });
               }
             },
-            j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)
+            autoRows ? /* @__PURE__ */ React30.createElement("span", { className: "aura-table__cell" }, j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)) : j === 0 ? rowLinkWrap(r, cellContent(c, r)) : cellContent(c, r)
           )
         );
       });
@@ -5654,6 +5662,7 @@ window.Aura = (() => {
                 "aria-selected": selectable && canSelect(r) ? isSel : void 0,
                 className: cx(
                   "aura-table__row",
+                  autoRows && "aura-table__row--auto",
                   isSel && "is-selected",
                   (props.onRowActivate || rowHref) && "is-actionable"
                 ),

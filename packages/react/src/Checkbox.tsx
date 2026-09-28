@@ -55,7 +55,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
         checked={on}
         tabIndex={props.tabIndex}
         disabled={props.disabled}
-        aria-describedby={descId}
+        aria-describedby={cx(props['aria-describedby'], descId) || undefined}
         aria-label={labelled ? undefined : props.label}
         onChange={function (e: React.ChangeEvent<HTMLInputElement>) {
           st[1](e.target.checked);

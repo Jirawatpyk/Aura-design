@@ -130,7 +130,21 @@ a.aura-btn { text-decoration: none; }
   box-sizing: border-box; height: 100%; line-height: calc(var(--aura-table-row-height) - 1px);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: var(--aura-space-4);
 }
-.aura-table__td .aura-pill, .aura-table__td .aura-dropdown, .aura-table__td > .aura-icon-btn, .aura-table__td > .aura-btn { vertical-align: middle; }
+/* 5.11 rowHeight="auto" (never virtualized): a row grows to fit what wraps in it; each cell centres its content.
+ * The padding only shows once content is taller than the row: a small Button or IconButton (32px), a pill or one line
+ * still fits the density's row height (7.5px above and below at 48px, 3.5px compact). */
+.aura-table__row--auto { height: auto; min-height: var(--aura-table-row-height); }
+.aura-table__td--auto {
+  --aura-cell-pad-y: clamp(0px, calc((var(--aura-table-row-height) - 1px - var(--aura-button-height-sm)) / 2), var(--aura-space-2));
+  display: flex; align-items: center; height: auto; line-height: 20px; white-space: normal;
+  padding-top: var(--aura-cell-pad-y); padding-bottom: var(--aura-cell-pad-y);
+}
+.aura-table__cell { flex: 1 1 auto; min-width: 0; overflow-wrap: break-word; }
+/* Badges and pills side by side keep apart when they wrap onto a second line. */
+.aura-table__cell > .aura-badge, .aura-table__cell > .aura-pill { vertical-align: middle; margin-top: 2px; margin-bottom: 2px; }
+.aura-table__cell > .aura-badge:not(:last-child), .aura-table__cell > .aura-pill:not(:last-child) { margin-inline-end: var(--aura-space-1); }
+.aura-table__td .aura-pill, .aura-table__td .aura-dropdown, .aura-table__td > .aura-icon-btn, .aura-table__td > .aura-btn,
+.aura-table__cell > .aura-icon-btn, .aura-table__cell > .aura-btn { vertical-align: middle; }
 .aura-table__th { position: relative; box-sizing: border-box; display: flex; align-items: center; padding-right: var(--aura-space-2); }
 /* Column sizes come from custom properties set per cell (4.20), so the card layout can override them. */
 .aura-table__th, .aura-table__td { flex: var(--aura-cell-flex, none); width: var(--aura-cell-w, auto); min-width: var(--aura-cell-min, 0); }
@@ -153,6 +167,10 @@ a.aura-btn { text-decoration: none; }
 
 /* Selection column */
 .aura-table__sel { width: var(--aura-table-select-width); flex: none; display: flex; align-items: center; background: inherit; }
+/* 5.11: the selection box's invisible input reaches 24×24 (WCAG 2.5.8) around the 16px box it draws. Its left edge
+ * overlaps the sticky 24px gutter, so it sits one layer up — unless the column has scrolled under that gutter. */
+.aura-table__sel .aura-check__input { inset: calc((var(--aura-icon-sm) - 24px) / 2); z-index: 2; }
+.aura-table.is-scrolled-x .aura-table__sel:not(.is-pinned) .aura-check__input { z-index: auto; }
 .aura-table__sel.is-pinned { position: sticky; left: var(--aura-space-6); z-index: 2; }
 
 /* Pinned columns */
@@ -1580,6 +1598,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     padding: 0; line-height: normal;
   }
   .aura-table__td[data-hide], .aura-table__head > .aura-table__th[data-hide] { display: block; }
+  /* 5.11: rowHeight="auto" leaves cards as they are. */
+  .aura-table__td--auto { display: block; white-space: nowrap; }
+  .aura-table__td--auto .aura-table__cell > .aura-badge, .aura-table__td--auto .aura-table__cell > .aura-pill { margin: 0; }
   .aura-table__spacer { display: none; }
   .aura-table__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';

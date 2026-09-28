@@ -186,6 +186,16 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.11 — Chamber-OS addendum 11 (member directory)
+
+- **DataTable `rowSelectLabel`** (item 75): names each row's checkbox after the row instead of its key — `rowSelectLabel={(r) => 'Select ' + r.company}` — in the grid and in cards. Without it (or when it returns an empty string) the name stays "Select {key}".
+- **Checkbox `aria-describedby`** (item 76): a passed id is kept and the description's own id added after it (`aria-describedby="hint"` + `description` → `"hint {id}-desc"`); with neither there is no attribute. Before, a passed `aria-describedby` was always dropped, with or without a description.
+- **Selection boxes take 24×24** (item 77): the header and row checkboxes in DataTable still draw 16px, but their invisible input reaches 24×24 (WCAG 2.5.8) in the grid and in cards, so a click just outside the box counts.
+- **DataTable `rowHeight="auto"`** (item 78): rows grow to fit what wraps — two badges, a long name — with every cell vertically centred. A row whose content fits keeps the density's height (a pill, one line of text, a small Button or IconButton); padding appears only around content taller than that. Badges and pills side by side keep apart when they wrap. Rows must all be in the DOM, so it's ignored with `height` (virtualized rows are one fixed height; a dev notice says so) — paginate instead. Cards are unchanged. Default: one fixed line per row, long text ends in an ellipsis.
+  ```tsx
+  <DataTable rows={members} rowHeight="auto" columns={[…, { key: 'tags', label: 'TAGS', width: 150, render: (r) => r.tags.map((t) => <Badge key={t}>{t}</Badge>) }]} />
+  ```
+
 ## 5.10.1 — fixes from a new project
 
 - **Switch**: a disabled switch that is on ("always on", enforced by policy) no longer fades into the same grey as an off one. Disabled rows, on or off, now look alike and stay readable: the label turns `aura-fg-secondary`, the description (often the reason it's locked) keeps its colour, the row shows a not-allowed cursor, and only the switch fades — off to the disabled opacity, on to 0.75, at least 3:1 apart in both themes. In forced colours a locked switch is `GrayText`. Use it instead of a Badge for settings people can see but not change.

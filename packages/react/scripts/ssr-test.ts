@@ -52,6 +52,28 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.11 (Chamber-OS 75, 76, 78): row box names, merged describedby, auto row height — default output unchanged. */
+  {
+    const rows = [{ id: 'M-1', company: 'Acme AB' }];
+    const columns = [{ key: 'id', label: 'ID', width: 96 }, { key: 'company', label: 'COMPANY' }];
+    const named = renderToString(React.createElement(A.DataTable, { label: 'M', rows, columns, selectable: true, rowSelectLabel: (r: { company: string }) => 'Select ' + r.company }));
+    if ((named.match(/aria-label="Select Acme AB"/g) || []).length !== 2 || /Select row M/.test(named)) { console.log(label, 'rowSelectLabel:', named); fail++; }
+    const blank = renderToString(React.createElement(A.DataTable, { label: 'M', rows, columns, selectable: true, rowSelectLabel: () => '' }));
+    if ((blank.match(/aria-label="Select M-1"/g) || []).length !== 2) { console.log(label, 'empty rowSelectLabel should fall back:', blank); fail++; }
+    const plain = renderToString(React.createElement(A.DataTable, { label: 'M', rows, columns, selectable: true }));
+    if (/--auto|aura-table__cell/.test(plain)) { console.log(label, 'default DataTable changed:', plain); fail++; }
+    const auto = renderToString(React.createElement(A.DataTable, { label: 'M', rows, columns, rowHeight: 'auto' }));
+    if (!/class="aura-table__row aura-table__row--auto"/.test(auto) || (auto.match(/class="aura-table__td aura-table__td--auto"/g) || []).length !== 2 || (auto.match(/<span class="aura-table__cell">/g) || []).length !== 2) { console.log(label, 'rowHeight auto:', auto); fail++; }
+    const w: string[] = [], ow = console.warn;
+    console.warn = (m: unknown) => w.push(String(m));
+    const virt = renderToString(React.createElement(A.DataTable, { label: 'M', rows, columns, rowHeight: 'auto', height: 300 }));
+    console.warn = ow;
+    if (/--auto|aura-table__cell/.test(virt) || !w.some((m) => /rowHeight="auto"` is ignored with `height`/.test(m))) { console.log(label, 'rowHeight auto + height:', w); fail++; }
+    const both = renderToString(React.createElement(A.Checkbox, { id: 'k', 'aria-describedby': 'hint', description: 'D' }, 'Terms'));
+    const own = renderToString(React.createElement(A.Checkbox, { id: 'k2', 'aria-describedby': 'hint' }, 'Terms'));
+    const none = renderToString(React.createElement(A.Checkbox, { id: 'k3' }, 'Terms'));
+    if (!/aria-describedby="hint k-desc"/.test(both) || !/aria-describedby="hint"/.test(own) || /aria-describedby/.test(none)) { console.log(label, 'Checkbox describedby:', both, own, none); fail++; }
+  }
   /* 5.9 (Chamber-OS 71): keepMounted renders every panel, the inactive ones hidden; per-tab attributes reach the tab. */
   {
     const tabs = [
