@@ -220,6 +220,8 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     [measure, levelShape],
   );
   const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
+  /* 5.13 (Chamber-OS 80): cards without the selection boxes; the selection itself is kept. */
+  const noCardSel = !!props.hideSelectionInCards && selectable;
   useIsoLayoutEffect(
     function () {
       if (measure && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
@@ -342,9 +344,48 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       return i > 0 && c.pill;
     })[0] || { key: '' }
   ).key;
-  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' {
-    return i === 0 ? 'title' : c.key === pillKey ? 'pill' : c.actions ? 'actions' : 'field';
+  /* 5.13 (Chamber-OS 80): a column may say where it goes in a card, or leave it; a declared title or pill replaces the
+   * automatic one. */
+  const ownTitle = vis.some(function (c: Col) {
+      return c.card === 'title';
+    }),
+    ownPill = vis.some(function (c: Col) {
+      return c.card === 'pill';
+    });
+  /* The automatic title: the first column, or — when it says where it goes (card: 'hide') — the first that doesn't. */
+  let autoTitle = -1;
+  if (!ownTitle)
+    for (let i = 0; i < vis.length; i++)
+      if (!vis[i].card && (i === 0 || !vis[i].actions)) {
+        autoTitle = i;
+        break;
+      }
+  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' | 'hide' {
+    if (c.card) return c.card;
+    if (i === autoTitle) return 'title';
+    if (c.key === pillKey && !ownPill) return 'pill';
+    return c.actions ? 'actions' : 'field';
   }
+  /* The fields' order in a card (cardOrder, else the grid's), as CSS `order` from 5 on — after the title line. */
+  const cardRank: Record<string, number> = {};
+  if (
+    vis.some(function (c: Col) {
+      return c.cardOrder != null;
+    })
+  )
+    vis
+      .map(function (c: Col, i: number) {
+        return { c: c, i: i, o: c.cardOrder != null ? c.cardOrder : i };
+      })
+      .filter(function (x) {
+        return cardPart(x.c, x.i) === 'field';
+      })
+      .sort(function (a, b) {
+        return a.o - b.o || a.i - b.i;
+      })
+      .forEach(function (x, n) {
+        cardRank[x.c.key] = n;
+      });
   function cardAttrs(c: Col, i: number): Record<string, string | undefined> {
     const part = cardPart(c, i),
       lv = hideLevel(c);
@@ -396,6 +437,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       s['--aura-cell-w'] = w + 'px';
     }
     if (isPinned(c)) s['--aura-cell-left'] = 'calc(var(--aura-space-6)' + selW + ' + ' + pinOffsets[c.key] + ')';
+    if (cardRank[c.key] != null) s['--aura-card-order'] = String(5 + cardRank[c.key]!);
     return s as React.CSSProperties;
   }
 
@@ -583,9 +625,43 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   function colAt(ci: number): Col | null {
     return selectable ? (ci === 0 ? null : vis[ci - 1]) : vis[ci];
   }
+  /* 5.13: columns a card leaves out (card: 'hide', and the boxes with hideSelectionInCards) while cards show. The
+   * tab stop and the arrow keys go to the nearest shown column instead. */
+  const cardHidden: boolean[] = [];
+  for (let ci = 0; ci < nCols; ci++) {
+    const col = colAt(ci);
+    cardHidden.push(stacked && (col ? cardPart(col, vis.indexOf(col)) === 'hide' : noCardSel));
+  }
+  function nearestShown(c: number, dir: number, ok: (cc: number) => boolean): number {
+    if (ok(c)) return c;
+    for (let d = 1; d < nCols; d++) {
+      const a = c + d * dir,
+        b = c - d * dir;
+      if (a >= 0 && a < nCols && ok(a)) return a;
+      if (b >= 0 && b < nCols && ok(b)) return b;
+    }
+    return c;
+  }
+  const acShown = nearestShown(ac, 1, function (cc) {
+    return !cardHidden[cc];
+  });
+  /* 5.13: a focused cell the cards leave out (the table just narrowed into cards) hands focus to the nearest shown
+   * one instead of dropping it to the page. */
+  const lastFocus = React.useRef<HTMLElement | null>(null);
+  React.useEffect(
+    function () {
+      const was = lastFocus.current,
+        g = gridRef.current;
+      if (!stacked || !was || !g || !g.contains(was) || was.getClientRects().length > 0) return;
+      if (document.activeElement && document.activeElement !== document.body && document.activeElement !== was) return;
+      const el = g.querySelector<HTMLElement>('[data-rc="' + Math.max(1, ar) + ':' + acShown + '"]');
+      if (el && el.getClientRects().length > 0) el.focus();
+    },
+    [stacked],
+  );
   function tabFor(r: number, c: number): number {
     if (!activeRendered) return r === 0 && c === ac ? 0 : -1;
-    return r === ar && c === ac ? 0 : -1;
+    return r === ar && c === acShown ? 0 : -1;
   }
 
   React.useEffect(function () {
@@ -611,29 +687,22 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       el.focus();
     }
   });
-  function focusCell(r: number, c: number) {
+  function focusCell(r: number, c: number, dir?: number) {
     r = Math.max(0, Math.min(r, lastR));
     c = Math.max(0, Math.min(c, nCols - 1));
     /* Cards: the header row is for screen readers only, except the select-all box. Keep focus on the cards. */
-    if (stacked && r === 0 && nRows > 0 && !(selectable && c === 0)) r = 1;
-    /* A cell the layout hides (a blank totals cell in the card layout) is skipped for the nearest shown one in the row
-     * (5.2), so the grid never parks its tab stop on something invisible. */
-    if (gridRef.current && r === T && hasTotal) {
+    if (stacked && r === 0 && nRows > 0 && (!(selectable && c === 0) || noCardSel)) r = 1;
+    /* A cell the layout hides (a blank totals cell in the card layout; 5.13: a column or the selection box a card
+     * leaves out) is skipped for the nearest shown one in the row (5.2), so the grid never parks its tab stop on
+     * something invisible. */
+    if (gridRef.current && ((r === T && hasTotal) || stacked)) {
       const shown = function (cc: number) {
+        if (cardHidden[cc]) return false;
         const e = gridRef.current!.querySelector<HTMLElement>('[data-rc="' + r + ':' + cc + '"]');
         return !!e && e.getClientRects().length > 0;
       };
-      if (!shown(c))
-        for (let d = 1; d < nCols; d++) {
-          if (c + d < nCols && shown(c + d)) {
-            c = c + d;
-            break;
-          }
-          if (c - d >= 0 && shown(c - d)) {
-            c = c - d;
-            break;
-          }
-        }
+      /* Look the way the key moves first (ArrowLeft, End: leftward), so a skipped cell never sends focus back. */
+      c = nearestShown(c, dir || 1, shown);
     }
     activeState[1]({ r: r, c: c });
     pending.current = { r: r, c: c };
@@ -937,7 +1006,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     )
       openMenu('col', col.key, target, { r: 0, c: c });
     else if (k === 'ArrowRight') focusCell(r, c + 1);
-    else if (k === 'ArrowLeft') focusCell(r, c - 1);
+    else if (k === 'ArrowLeft') focusCell(r, c - 1, -1);
     else if (k === 'ArrowDown') {
       if (r < lastR) focusCell(r + 1, c);
       else if (pageSize && page < pageCount && goPage(page + 1, { r: 1, c: c })) activeState[1]({ r: 1, c: c });
@@ -945,7 +1014,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       if (r > 1 || (r === 1 && !(pageSize && page > 1))) focusCell(r - 1, c);
       else if (r === 1 && goPage(page - 1, { r: pageSize, c: c })) activeState[1]({ r: pageSize, c: c });
     } else if (k === 'Home') focusCell(e.ctrlKey ? 1 : r, 0);
-    else if (k === 'End') focusCell(e.ctrlKey ? lastR : r, nCols - 1);
+    else if (k === 'End') focusCell(e.ctrlKey ? lastR : r, nCols - 1, -1);
     else if (k === 'PageDown') {
       if (pageSize) {
         if (goPage(page + 1, { r: 1, c: c })) activeState[1]({ r: 1, c: c });
@@ -967,7 +1036,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       } else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
       else if (r > 0 && k === ' ' && selectable) {
         /* Space on a row that can't be selected does nothing, but is still handled so the page doesn't scroll. */
-        if (canSelect(row)) toggle(row![rowKey], !selSet[row![rowKey]]);
+        if (canSelect(row) && !(stacked && noCardSel)) toggle(row![rowKey], !selSet[row![rowKey]]);
       } else if (
         r > 0 &&
         k === 'Enter' &&
@@ -1036,6 +1105,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         aria-colindex={ci + 1}
         style={cellStyle(c, i)}
         data-hide={hideLevel(c) ? String(hideLevel(c)) : undefined}
+        data-card={cardPart(c, i) === 'hide' ? 'hide' : undefined}
         tabIndex={tabFor(0, ci)}
         data-rc={'0:' + ci}
         className={cx(
@@ -1444,7 +1514,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
               )}
               style={cellStyle(c, j)}
               {...cardAttrs(c, j)}
-              data-label={j === 0 ? undefined : c.label || t.totals}
+              data-label={cardPart(c, j) === 'title' ? undefined : c.label || t.totals}
             >
               {props.footer![c.key]}
             </span>
@@ -1471,6 +1541,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       className={cx(
         'aura-table',
         stacked && 'aura-table--stacked',
+        noCardSel && 'aura-table--cards-nosel',
         scrolledX[0] && 'is-scrolled-x',
         refreshing && 'is-refreshing',
         !levels.length && props.className,
@@ -1490,8 +1561,17 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         className="aura-table__scroll"
         onMouseOver={showFull}
         onMouseLeave={hideFull}
-        onFocus={showFull}
-        onBlur={hideFull}
+        onFocus={function (e: React.FocusEvent<HTMLDivElement>) {
+          lastFocus.current = e.target as HTMLElement;
+          showFull(e);
+        }}
+        onBlur={function (e: React.FocusEvent<HTMLDivElement>) {
+          /* Leaving the grid (a cell still shown) forgets it: only a cell the cards hid gets focus handed on. */
+          const to = e.relatedTarget as Node | null;
+          if ((!to || !e.currentTarget.contains(to)) && (e.target as HTMLElement).getClientRects().length > 0)
+            lastFocus.current = null;
+          hideFull();
+        }}
         style={scrollStyle}
         role="grid"
         aria-label={props.label}

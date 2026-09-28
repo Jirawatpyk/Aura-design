@@ -211,10 +211,38 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       resultCount: 312,
       actions: h(A.Button, { variant: 'secondary' }, 'Export'),
     }),
+    EmptyStateDanger: h(A.EmptyState, {
+      tone: 'danger',
+      bordered: true,
+      title: 'Members couldn’t load',
+      'data-testid': 'err',
+    }),
+    TableSlots: h(
+      A.Table,
+      { caption: 'Queue', stackBelow: 'sm', align: 'middle', bordered: false },
+      h(A.THead, null, h(A.Tr, null, h(A.Th, null, 'Member'), h(A.Th, null, 'Type'), h(A.Th, null, 'Action'))),
+      h(
+        A.TBody,
+        null,
+        h(
+          A.Tr,
+          null,
+          h(A.Td, { card: 'title' }, 'Acme AB'),
+          h(A.Td, null, 'Plan upgrade'),
+          h(A.Td, { card: 'action' }, h(A.Button, { size: 'sm' }, 'Review')),
+        ),
+      ),
+    ),
     FilterBarGrow: h(
       A.FilterBar,
       { search: '', onSearchChange: noop, searchGrow: true },
-      h(A.FilterSelect, { label: 'Plan', allLabel: 'All', options: ['All plans', 'Gold'], value: 'Gold', onChange: noop }),
+      h(A.FilterSelect, {
+        label: 'Plan',
+        allLabel: 'All',
+        options: ['All plans', 'Gold'],
+        value: 'Gold',
+        onChange: noop,
+      }),
       h(A.Tag, { selected: false, onClick: noop }, 'Unpaid'),
     ),
     Command: h(A.Command, {

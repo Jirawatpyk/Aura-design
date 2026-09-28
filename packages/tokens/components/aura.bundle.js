@@ -675,11 +675,30 @@ window.Aura = (() => {
   }
   function emptyStateElement(props, ref) {
     const HT = "h" + (props.headingLevel || 3);
+    const rest = omit(props, [
+      "title",
+      "description",
+      "icon",
+      "action",
+      "size",
+      "bordered",
+      "headingLevel",
+      "tone",
+      "className",
+      "children"
+    ]);
     return /* @__PURE__ */ React4.createElement(
       "div",
       {
+        ...rest,
         ref,
-        className: cx("aura-empty", props.size === "sm" && "is-sm", props.bordered && "is-bordered", props.className)
+        className: cx(
+          "aura-empty",
+          props.size === "sm" && "is-sm",
+          props.bordered && "is-bordered",
+          props.tone === "danger" && "is-danger",
+          props.className
+        )
       },
       /* @__PURE__ */ React4.createElement("span", { className: "aura-empty__icon", "aria-hidden": true }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon || /* @__PURE__ */ React4.createElement(IconInbox, null), size: props.size === "sm" ? "md" : "lg" })),
       /* @__PURE__ */ React4.createElement(HT, { className: "aura-empty__title" }, props.title),
@@ -4811,6 +4830,7 @@ window.Aura = (() => {
       [measure, levelShape]
     );
     const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
+    const noCardSel = !!props.hideSelectionInCards && selectable;
     useIsoLayoutEffect(
       function() {
         if (measure && wrapRef.current) boxWidth[1](wrapRef.current.getBoundingClientRect().width);
@@ -4911,9 +4931,38 @@ window.Aura = (() => {
     const pillKey = (vis.filter(function(c, i) {
       return i > 0 && c.pill;
     })[0] || { key: "" }).key;
-    function cardPart(c, i) {
-      return i === 0 ? "title" : c.key === pillKey ? "pill" : c.actions ? "actions" : "field";
+    const ownTitle = vis.some(function(c) {
+      return c.card === "title";
+    }), ownPill = vis.some(function(c) {
+      return c.card === "pill";
+    });
+    let autoTitle = -1;
+    if (!ownTitle) {
+      for (let i = 0; i < vis.length; i++)
+        if (!vis[i].card && (i === 0 || !vis[i].actions)) {
+          autoTitle = i;
+          break;
+        }
     }
+    function cardPart(c, i) {
+      if (c.card) return c.card;
+      if (i === autoTitle) return "title";
+      if (c.key === pillKey && !ownPill) return "pill";
+      return c.actions ? "actions" : "field";
+    }
+    const cardRank = {};
+    if (vis.some(function(c) {
+      return c.cardOrder != null;
+    }))
+      vis.map(function(c, i) {
+        return { c, i, o: c.cardOrder != null ? c.cardOrder : i };
+      }).filter(function(x) {
+        return cardPart(x.c, x.i) === "field";
+      }).sort(function(a, b) {
+        return a.o - b.o || a.i - b.i;
+      }).forEach(function(x, n3) {
+        cardRank[x.c.key] = n3;
+      });
     function cardAttrs(c, i) {
       const part = cardPart(c, i), lv = hideLevel(c);
       return {
@@ -4955,6 +5004,7 @@ window.Aura = (() => {
         s["--aura-cell-w"] = w + "px";
       }
       if (isPinned(c)) s["--aura-cell-left"] = "calc(var(--aura-space-6)" + selW + " + " + pinOffsets[c.key] + ")";
+      if (cardRank[c.key] != null) s["--aura-card-order"] = String(5 + cardRank[c.key]);
       return s;
     }
     const sortCol = sort && sort.key ? byKey[sort.key] : void 0;
@@ -5095,9 +5145,37 @@ window.Aura = (() => {
     function colAt(ci) {
       return selectable ? ci === 0 ? null : vis[ci - 1] : vis[ci];
     }
+    const cardHidden = [];
+    for (let ci = 0; ci < nCols; ci++) {
+      const col = colAt(ci);
+      cardHidden.push(stacked && (col ? cardPart(col, vis.indexOf(col)) === "hide" : noCardSel));
+    }
+    function nearestShown(c, dir, ok) {
+      if (ok(c)) return c;
+      for (let d = 1; d < nCols; d++) {
+        const a = c + d * dir, b = c - d * dir;
+        if (a >= 0 && a < nCols && ok(a)) return a;
+        if (b >= 0 && b < nCols && ok(b)) return b;
+      }
+      return c;
+    }
+    const acShown = nearestShown(ac, 1, function(cc) {
+      return !cardHidden[cc];
+    });
+    const lastFocus = React31.useRef(null);
+    React31.useEffect(
+      function() {
+        const was = lastFocus.current, g = gridRef.current;
+        if (!stacked || !was || !g || !g.contains(was) || was.getClientRects().length > 0) return;
+        if (document.activeElement && document.activeElement !== document.body && document.activeElement !== was) return;
+        const el = g.querySelector('[data-rc="' + Math.max(1, ar) + ":" + acShown + '"]');
+        if (el && el.getClientRects().length > 0) el.focus();
+      },
+      [stacked]
+    );
     function tabFor(r, c) {
       if (!activeRendered) return r === 0 && c === ac ? 0 : -1;
-      return r === ar && c === ac ? 0 : -1;
+      return r === ar && c === acShown ? 0 : -1;
     }
     React31.useEffect(function() {
       const p = pending.current;
@@ -5121,26 +5199,17 @@ window.Aura = (() => {
         el.focus();
       }
     });
-    function focusCell(r, c) {
+    function focusCell(r, c, dir) {
       r = Math.max(0, Math.min(r, lastR));
       c = Math.max(0, Math.min(c, nCols - 1));
-      if (stacked && r === 0 && nRows > 0 && !(selectable && c === 0)) r = 1;
-      if (gridRef.current && r === T && hasTotal) {
+      if (stacked && r === 0 && nRows > 0 && (!(selectable && c === 0) || noCardSel)) r = 1;
+      if (gridRef.current && (r === T && hasTotal || stacked)) {
         const shown2 = function(cc) {
+          if (cardHidden[cc]) return false;
           const e = gridRef.current.querySelector('[data-rc="' + r + ":" + cc + '"]');
           return !!e && e.getClientRects().length > 0;
         };
-        if (!shown2(c))
-          for (let d = 1; d < nCols; d++) {
-            if (c + d < nCols && shown2(c + d)) {
-              c = c + d;
-              break;
-            }
-            if (c - d >= 0 && shown2(c - d)) {
-              c = c - d;
-              break;
-            }
-          }
+        c = nearestShown(c, dir || 1, shown2);
       }
       activeState[1]({ r, c });
       pending.current = { r, c };
@@ -5400,7 +5469,7 @@ window.Aura = (() => {
       } else if (r === 0 && col && (e.altKey && k === "ArrowDown" || k === "ContextMenu" || e.shiftKey && k === "F10") && controls)
         openMenu("col", col.key, target, { r: 0, c });
       else if (k === "ArrowRight") focusCell(r, c + 1);
-      else if (k === "ArrowLeft") focusCell(r, c - 1);
+      else if (k === "ArrowLeft") focusCell(r, c - 1, -1);
       else if (k === "ArrowDown") {
         if (r < lastR) focusCell(r + 1, c);
         else if (pageSize && page < pageCount && goPage(page + 1, { r: 1, c })) activeState[1]({ r: 1, c });
@@ -5408,7 +5477,7 @@ window.Aura = (() => {
         if (r > 1 || r === 1 && !(pageSize && page > 1)) focusCell(r - 1, c);
         else if (r === 1 && goPage(page - 1, { r: pageSize, c })) activeState[1]({ r: pageSize, c });
       } else if (k === "Home") focusCell(e.ctrlKey ? 1 : r, 0);
-      else if (k === "End") focusCell(e.ctrlKey ? lastR : r, nCols - 1);
+      else if (k === "End") focusCell(e.ctrlKey ? lastR : r, nCols - 1, -1);
       else if (k === "PageDown") {
         if (pageSize) {
           if (goPage(page + 1, { r: 1, c })) activeState[1]({ r: 1, c });
@@ -5428,7 +5497,7 @@ window.Aura = (() => {
           if (pageKeys.length) toggleAll();
         } else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
         else if (r > 0 && k === " " && selectable) {
-          if (canSelect(row)) toggle(row[rowKey], !selSet[row[rowKey]]);
+          if (canSelect(row) && !(stacked && noCardSel)) toggle(row[rowKey], !selSet[row[rowKey]]);
         } else if (r > 0 && k === "Enter" && rowHref && !target.querySelector("button, a[href]:not(.aura-table__row-link), input, select, textarea"))
           followRow(target.closest('[role="row"]'), e);
         else if (r > 0 && k === "Enter" && target.querySelector("button, a[href], input, select, textarea"))
@@ -5488,6 +5557,7 @@ window.Aura = (() => {
             "aria-colindex": ci + 1,
             style: cellStyle(c, i),
             "data-hide": hideLevel(c) ? String(hideLevel(c)) : void 0,
+            "data-card": cardPart(c, i) === "hide" ? "hide" : void 0,
             tabIndex: tabFor(0, ci),
             "data-rc": "0:" + ci,
             className: cx(
@@ -5853,7 +5923,7 @@ window.Aura = (() => {
             ),
             style: cellStyle(c, j),
             ...cardAttrs(c, j),
-            "data-label": j === 0 ? void 0 : c.label || t.totals
+            "data-label": cardPart(c, j) === "title" ? void 0 : c.label || t.totals
           },
           props.footer[c.key]
         );
@@ -5881,6 +5951,7 @@ window.Aura = (() => {
         className: cx(
           "aura-table",
           stacked && "aura-table--stacked",
+          noCardSel && "aura-table--cards-nosel",
           scrolledX[0] && "is-scrolled-x",
           refreshing && "is-refreshing",
           !levels.length && props.className
@@ -5898,8 +5969,16 @@ window.Aura = (() => {
           className: "aura-table__scroll",
           onMouseOver: showFull,
           onMouseLeave: hideFull,
-          onFocus: showFull,
-          onBlur: hideFull,
+          onFocus: function(e) {
+            lastFocus.current = e.target;
+            showFull(e);
+          },
+          onBlur: function(e) {
+            const to = e.relatedTarget;
+            if ((!to || !e.currentTarget.contains(to)) && e.target.getClientRects().length > 0)
+              lastFocus.current = null;
+            hideFull();
+          },
           style: scrollStyle,
           role: "grid",
           "aria-label": props.label,
@@ -6704,7 +6783,7 @@ window.Aura = (() => {
     return out;
   }
   var Table = React44.forwardRef(function Table2(props, ref) {
-    const { caption, captionHidden, density, stackBelow, className, children, ...rest } = props;
+    const { caption, captionHidden, density, stackBelow, align, bordered, className, children, ...rest } = props;
     const labels = stackBelow ? headerLabels(children) : null;
     if (labels && !labels.length)
       devWarnOnce(
@@ -6732,7 +6811,7 @@ window.Aura = (() => {
       "div",
       {
         ref: wrap,
-        className: cx("aura-tbl-wrap", stackBelow && "is-stackable"),
+        className: cx("aura-tbl-wrap", stackBelow && "is-stackable", bordered === false && "is-flush"),
         "data-density": density,
         tabIndex: scrolls ? 0 : void 0,
         role: scrolls && (caption != null || rest["aria-label"]) ? "region" : void 0,
@@ -6743,7 +6822,12 @@ window.Aura = (() => {
         "table",
         {
           ref,
-          className: cx("aura-tbl", stackBelow && "aura-tbl--stack-" + stackBelow, className),
+          className: cx(
+            "aura-tbl",
+            stackBelow && "aura-tbl--stack-" + stackBelow,
+            align === "middle" && "aura-tbl--middle",
+            className
+          ),
           role: stackBelow ? "table" : void 0,
           ...rest
         },
@@ -6791,7 +6875,7 @@ window.Aura = (() => {
     );
   }
   var Th = React44.forwardRef(function Th2(props, ref) {
-    const { align, numeric, mono, className, scope, label, ...rest } = props;
+    const { align, numeric, mono, className, scope, label, card, ...rest } = props;
     const stacked = React44.useContext(StackLabels) != null;
     return /* @__PURE__ */ React44.createElement(
       "th",
@@ -6800,14 +6884,16 @@ window.Aura = (() => {
         scope: scope || "col",
         className: cellClass("aura-tbl__th", props),
         role: stacked ? scope === "row" ? "rowheader" : "columnheader" : void 0,
+        "data-card": stacked && (card === "title" || card === "action") ? card : void 0,
         ...rest
       }
     );
   });
   var Td = React44.forwardRef(function Td2(props, ref) {
-    const { align, numeric, mono, className, scope, label, ...rest } = props;
+    const { align, numeric, mono, className, scope, label, card, ...rest } = props;
     const labels = React44.useContext(StackLabels), col = React44.useContext(ColumnIndex);
-    const shown = labels ? label != null ? label : col >= 0 ? labels[col] : void 0 : void 0;
+    const slot = labels && (card === "title" || card === "action") ? card : void 0;
+    const shown = labels && !slot ? label != null ? label : col >= 0 ? labels[col] : void 0 : void 0;
     return /* @__PURE__ */ React44.createElement(
       "td",
       {
@@ -6815,6 +6901,7 @@ window.Aura = (() => {
         className: cellClass("aura-tbl__td", props),
         role: labels ? "cell" : void 0,
         "data-label": shown || void 0,
+        "data-card": slot,
         ...rest
       }
     );

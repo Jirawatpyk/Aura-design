@@ -186,6 +186,21 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.13 — Chamber-OS addendum 13 (board parity)
+
+- **DataTable card options** (item 80): per column, `card: 'hide'` leaves it out of the stacked card (the grid keeps it), `card: 'title' | 'pill' | 'field'` places it (a declared title or pill replaces the automatic one; the automatic title is the first column without a `card` — normally the first column — skipping `actions` columns), and `cardOrder` orders the fields (lowest first; others sort by column index) without touching the grid's order. `hideSelectionInCards` drops the row boxes and the select-all line from the cards only; the selection is kept, and Space doesn't change it while cards show. Screen readers and arrow keys follow the grid's order and skip what the card leaves out (the tab stop too); each remaining field keeps its label; loading skeletons leave out the same columns. With `getRowHref`, the link is the first column's text, so hiding that column in cards leaves the card clickable but without a link to Tab to. All in CSS, so the server HTML is already right.
+  ```tsx
+  <DataTable stackBelow={640} hideSelectionInCards columns={[{ key: 'company', label: 'COMPANY' }, { key: 'flag', label: 'COUNTRY', card: 'hide' }, { key: 'id', label: 'MEMBER NO.', cardOrder: 1 }, …]} />
+  ```
+- **Table `align="middle"` and `bordered={false}`** (item 81): `middle` centres body and footer cells on their row (default `top`); `bordered={false}` drops the frame and the outer cells' side padding, so a table inside a Card lines up with its heading. Stacked rows keep their layout. `Table`'s type no longer accepts the obsolete HTML `align` attribute (`left | center | right`).
+- **EmptyState `tone="danger"`** (item 82): the danger tint, a danger-coloured icon and, with `bordered`, a solid danger frame — for "couldn't load". It stays quiet (no role); pass `role="alert"` to interrupt. EmptyState now passes `id`, `data-*`, `aria-*`, `role` and `style` to its root.
+- **FilterBar search filling the row** (item 83): that is 5.12's `searchGrow`; nothing new was needed.
+- **Td `card="title" | "action"`** (item 84; also on a row header, `Th scope="row"`): in a stacked Table row the title takes the first line without a label, the action sits at the end of that line at its natural size, and the other cells fall two to a line below. A long title wraps before the action. The desktop table is unchanged.
+  ```tsx
+  <Tr><Td card="title">{company} <span className="aura-table__mono">{no}</span></Td><Td>{type}</Td><Td>{date}</Td>
+    <Td card="action"><Button size="sm" variant="secondary">Review</Button></Td></Tr>
+  ```
+
 ## 5.12 — Chamber-OS addendum 12 (compact filters)
 
 - **FilterSelect** (item 79): a filter for `FilterBar` drawn as one small button — "Status All ▾" — as wide as its words, so several filters and a toggle `Tag` share a row, three and a Tag even at 375px. It is Select underneath: it opens the same AURA list (on phones too, as Select does since 5.3), with the same keys (arrows, typing, Enter, Escape), `name` in a form and a real `<select>` before hydration (with JavaScript off a choice still posts with the form, but the face keeps the server's value). `onChange` gets the value, so with react-hook-form use a `Controller` (`render={({ field }) => <FilterSelect label="Plan" {...field} options={plans} />}`), not `register`. `label` is the filter's name and its accessible name; screen readers hear the chosen option as the value. The first option is the "all" choice: `allLabel` is the shorter word its face shows ("All" for "All statuses"). A long value ("Diamond Partnership") shows in full and the button moves to the next row instead of cutting it. Right to left, the list opens from the face's right edge.

@@ -1083,6 +1083,10 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-empty__title { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
 .aura-empty__text { margin: 0; max-width: 44ch; font-size: 14px; line-height: 1.6; color: var(--aura-fg-secondary); }
 .aura-empty__action { margin-top: var(--aura-space-3); display: flex; gap: var(--aura-space-3); flex-wrap: wrap; justify-content: center; }
+/* 5.13 (Chamber-OS 82): tone="danger" — a load failure. */
+.aura-empty.is-danger { background: var(--aura-alert-danger-bg); border-radius: var(--aura-radius-lg); }
+.aura-empty.is-danger.is-bordered { border: 1px solid var(--aura-border-danger); }
+.aura-empty.is-danger .aura-empty__icon { background: var(--aura-bg-surface); color: var(--aura-fg-danger); }
 
 /* ---------- Pagination ---------- */
 .aura-pagination { display: flex; align-items: center; gap: var(--aura-space-1); font-family: var(--font-sans); font-size: 13px; }
@@ -1548,6 +1552,13 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl .is-numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .aura-tbl-wrap[data-density='compact'] .aura-tbl__th, .aura-tbl-wrap[data-density='compact'] .aura-tbl__td { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
 .aura-tbl-wrap:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
+/* 5.13 (Chamber-OS 81): align="middle" centres body and footer cells on their row; bordered={false} drops the frame and
+ * the outer cells' side padding, so the table lines up with what's around it (a Card's heading). */
+.aura-tbl--middle > .aura-tbl__body > .aura-tbl__row > *, .aura-tbl--middle > .aura-tbl__foot > .aura-tbl__row > * { vertical-align: middle; }
+.aura-tbl-wrap.is-flush { border: 0; border-radius: 0; background: transparent; }
+.aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :first-child { padding-inline-start: 0; }
+.aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :last-child { padding-inline-end: 0; }
+.aura-tbl-wrap.is-flush > .aura-tbl > .aura-tbl__caption { padding-inline: 0; }
 /* Stacked rows (5.8, Chamber-OS 67): below `stackBelow` (the table's own box: sm 640px, md 768px) each body row is a
  * card and each cell shows its column label. The column headers stay for screen readers (visually hidden) and the
  * table keeps explicit roles. The box is a size container, so it needs a width of its own. */
@@ -1562,6 +1573,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
   .aura-tbl--stack-md > * > .aura-tbl__row > * + * { margin-top: var(--aura-space-2); }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: 14px; font-weight: 600; }
+  /* 5.13 (Chamber-OS 84): a row with a title or action cell — title and action share the first line, fields two to a line under them. */
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) { display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: var(--aura-space-4); }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card])::after { content: ''; order: 3; flex: 0 0 100%; }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > * { order: 4; flex: 0 0 calc(50% - var(--aura-space-4) / 2); min-width: 0; margin-top: var(--aura-space-2); }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card] { margin-top: 0; }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='action'] { order: 2; flex: none; margin-inline-start: auto; }
+  .aura-tbl-wrap.is-flush > .aura-tbl--stack-md > .aura-tbl__caption { padding-inline: var(--aura-space-4); }
   .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
@@ -1577,6 +1596,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
   .aura-tbl--stack-sm > * > .aura-tbl__row > * + * { margin-top: var(--aura-space-2); }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: 14px; font-weight: 600; }
+  /* 5.13 (Chamber-OS 84): a row with a title or action cell — title and action share the first line, fields two to a line under them. */
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) { display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: var(--aura-space-4); }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card])::after { content: ''; order: 3; flex: 0 0 100%; }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > * { order: 4; flex: 0 0 calc(50% - var(--aura-space-4) / 2); min-width: 0; margin-top: var(--aura-space-2); }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card] { margin-top: 0; }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='action'] { order: 2; flex: none; margin-inline-start: auto; }
+  .aura-tbl-wrap.is-flush > .aura-tbl--stack-sm > .aura-tbl__caption { padding-inline: var(--aura-space-4); }
   .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
@@ -1629,6 +1656,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     padding: 0; line-height: normal;
   }
   .aura-table__td[data-hide], .aura-table__head > .aura-table__th[data-hide] { display: block; }
+  /* 5.13 (Chamber-OS 80): card: 'hide' leaves a column out of the card; cardOrder orders the fields. */
+  .aura-table__td[data-card='hide'], .aura-table__head > .aura-table__th[data-card='hide'],
+  .aura-table__row--skeleton .aura-table__td[data-card='hide'] { display: none; }
+  .aura-table__td[data-card='field'] { order: var(--aura-card-order, 5); }
+  /* hideSelectionInCards: no row boxes, no select-all line. */
+  .aura-table--cards-nosel .aura-table__row > .aura-table__sel { display: none; }
+  .aura-table--cards-nosel .aura-table__head { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); }
+  .aura-table--cards-nosel .aura-table__head > .aura-table__sel { display: none; }
   /* 5.11: rowHeight="auto" leaves cards as they are. */
   .aura-table__td--auto { display: block; white-space: nowrap; }
   .aura-table__td--auto .aura-table__cell > .aura-badge, .aura-table__td--auto .aura-table__cell > .aura-pill { margin: 0; }

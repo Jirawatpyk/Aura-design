@@ -89,6 +89,13 @@ export interface DataTableColumn<Row extends Record<string, any> = Record<string
 	hideBelow?: number | "sm" | "md" | "lg" | "xl" | undefined;
 	/** Row actions (a DropdownMenu or IconButton). In stacked cards it sits top-right instead of in the field list. Give it an empty label. */
 	actions?: boolean | undefined;
+	/** Its place in a stacked card (5.13): `'hide'` leaves it out of the card (the grid keeps it), `'title'` / `'pill'`
+	 * make it the card's title or the pill beside it (instead of the first column / first pill column), `'field'` a
+	 * label/value field. Default: today's rule. */
+	card?: "hide" | "field" | "title" | "pill" | undefined;
+	/** The order of fields in a stacked card (5.13), lowest first; the grid's column order is unchanged. Fields
+	 * without one sort by their column index (0-based). Screen readers and arrow keys follow the grid's order. */
+	cardOrder?: number | undefined;
 	/** `end` right-aligns header and cells (amounts, counts) and uses tabular figures. Default `start`. */
 	align?: "start" | "end" | undefined;
 }
@@ -178,6 +185,9 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	onRowActivate?: RowCallback<void, Row> | undefined;
 	/** Fixed height in px: sticky header, and only the rows in view are rendered. */
 	height?: number | undefined;
+	/** Stacked cards (`stackBelow`) without the row checkboxes and the select-all box (5.13). The grid keeps them and
+	 * the selection is kept; Space doesn't change it while the cards show. */
+	hideSelectionInCards?: boolean | undefined;
 	/** `'auto'` (5.11): rows grow to fit content that wraps (two badges, a long name); cells stay vertically centred and
 	 * rows keep at least the density's row height. Needs every row in the DOM, so it is ignored with `height`
 	 * (virtualized rows are one fixed height). Default: one fixed-height line per row, long text ends in an ellipsis. */
@@ -387,6 +397,7 @@ export interface FilterBarProps {
 	onSearchChange?: ((value: string) => void) | undefined;
 	/** ms to wait after the last keystroke. Default 300. */
 	searchDelay?: number | undefined;
+	/** The search field's name. Default "Search". */
 	searchLabel?: string | undefined;
 	searchPlaceholder?: string | undefined;
 	/** Filter controls beside the search: Select, SegmentedControl, a Popover of options… */
@@ -996,7 +1007,7 @@ export interface SeparatorProps {
 	spacing?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | undefined;
 	className?: string | undefined;
 }
-export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableElement>, "className"> {
+export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableElement>, "className" | "align"> {
 	/** The table's name (a `<caption>`). Give every table one; `captionHidden` keeps it for screen readers only. */
 	caption?: React$1.ReactNode | undefined;
 	captionHidden?: boolean | undefined;
@@ -1006,6 +1017,11 @@ export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableEl
 	 * cell shows its column's header as a label: a `Td`'s `label`, else the text of the matching `Th` in `THead`.
 	 * Done in CSS (a container query), so the server's HTML is already right; table semantics are kept. */
 	stackBelow?: "sm" | "md" | undefined;
+	/** `middle` centres every body and footer cell on its row (5.13); default `top`, so wrapped text starts level. */
+	align?: "top" | "middle" | undefined;
+	/** `false` (5.13) drops the frame — border, radius, background — and the outer cells' side padding, so the table
+	 * lines up with the content around it, e.g. flush inside a Card under its heading. Default `true`. */
+	bordered?: boolean | undefined;
 	className?: string | undefined;
 	children?: React$1.ReactNode | undefined;
 }
@@ -1026,6 +1042,10 @@ export interface TableCellProps extends Omit<React$1.TdHTMLAttributes<HTMLTableC
 	scope?: "col" | "row" | "colgroup" | "rowgroup" | undefined;
 	/** The label this cell shows when its table is stacked (`stackBelow`, 5.8). Default: the matching header's text. */
 	label?: string | undefined;
+	/** Its place in a stacked row (5.13), on a Td or a row header (`Th scope="row"`). `title` takes the first line,
+	 * without a label; `action` sits at the end of that line at its natural size; `field` (default) is a labelled field,
+	 * two to a line under them. */
+	card?: "title" | "action" | "field" | undefined;
 	className?: string | undefined;
 }
 export interface ActionBarProps {
@@ -1201,7 +1221,7 @@ export interface SkeletonProps {
 	size?: number | undefined;
 	className?: string | undefined;
 }
-export interface EmptyStateProps {
+export interface EmptyStateProps extends Omit<React$1.HTMLAttributes<HTMLDivElement>, "title" | "children"> {
 	title: React$1.ReactNode;
 	description?: React$1.ReactNode | undefined;
 	icon?: IconInput | undefined;
@@ -1209,6 +1229,9 @@ export interface EmptyStateProps {
 	action?: React$1.ReactNode | undefined;
 	size?: "sm" | "md" | undefined;
 	bordered?: boolean | undefined;
+	/** `danger` (5.13) for a failure — the data couldn't load: the danger tint, a danger-coloured icon, and a solid
+	 * danger frame with `bordered`. It stays quiet; pass `role="alert"` if it must interrupt. Default `neutral`. */
+	tone?: "neutral" | "danger" | undefined;
 	headingLevel?: 2 | 3 | 4 | 5 | 6 | undefined;
 	className?: string | undefined;
 }

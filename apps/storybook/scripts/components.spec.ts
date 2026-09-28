@@ -3227,3 +3227,283 @@ test.describe('5.12: Chamber-OS addendum 12', () => {
     await page.keyboard.press('Escape');
   });
 });
+
+test.describe('5.13: Chamber-OS addendum 13', () => {
+  const shown = (l: import('@playwright/test').Locator) =>
+    l.evaluateAll((els) => els.filter((e) => e.getClientRects().length > 0).length);
+
+  test('80: DataTable cards leave out columns and the boxes, and order their fields; the grid is unchanged', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await story(page, 'aura-new-in-5-13--data-table-card-options');
+    const grid = page.getByTestId('grid'),
+      cards = page.getByTestId('cards');
+    await expect(cards.locator('.aura-table--stacked')).toHaveCount(1);
+    await expect(grid.locator('.aura-table--stacked')).toHaveCount(0);
+    /* Grid: every column in its order, the boxes and the ⋯ menus. */
+    expect(await grid.locator('.aura-table__th').allTextContents()).toEqual([
+      'COMPANY',
+      'COUNTRY',
+      'ENGAGEMENT',
+      'PRIMARY CONTACT',
+      'PLAN',
+      'MEMBER NO.',
+      'Actions',
+    ]);
+    expect(await shown(grid.getByRole('checkbox'))).toBe(4);
+    expect(await shown(grid.getByRole('button', { name: /^More for/ }))).toBe(3);
+    /* Cards: no country, no ⋯, no boxes, no select-all line; fields in cardOrder, each with its label. */
+    expect(await shown(cards.locator('.aura-table__row').getByRole('checkbox'))).toBe(0);
+    expect(await shown(cards.getByRole('button', { name: /^More for/ }))).toBe(0);
+    expect(await shown(cards.locator('.aura-table__head'))).toBe(1); /* still there for screen readers… */
+    expect((await cards.locator('.aura-table__head').boundingBox())!.height).toBeLessThanOrEqual(1); /* …not seen */
+    const fields = await cards
+      .locator('[role=row]')
+      .nth(1)
+      .evaluate((row) =>
+        Array.from(row.querySelectorAll<HTMLElement>('[role=gridcell]'))
+          .filter((c) => c.getClientRects().length > 0)
+          .map((c) => ({ card: c.dataset.card, label: c.dataset.label, r: c.getBoundingClientRect() }))
+          .sort((a, b) => a.r.top - b.r.top || a.r.left - b.r.left)
+          .map((c) => (c.card === 'field' ? c.label : c.card)),
+      );
+    expect(fields).toEqual(['title', 'MEMBER NO.', 'PLAN', 'PRIMARY CONTACT', 'ENGAGEMENT']);
+    /* The selection is kept (M-102 still selected, shown in the grid), and Space on a card doesn't change it. */
+    await expect(cards.locator('[role=row][aria-selected=true]')).toHaveCount(1);
+    const card = cards.locator('[role=row]').nth(1).getByRole('gridcell').first();
+    await card.focus();
+    await page.keyboard.press('Space');
+    await expect(page.getByTestId('selected')).toHaveText('Selected: M-102');
+    /* Arrow keys skip what the card leaves out: from the title, Right lands on a visible cell. */
+    await page.keyboard.press('ArrowRight');
+    const focused = await page.evaluate(() => {
+      const a = document.activeElement as HTMLElement;
+      return { shown: a.getClientRects().length > 0, card: a.dataset.card };
+    });
+    expect(focused).toEqual({ shown: true, card: 'field' });
+    /* ArrowLeft past a left-out column lands on the one before it, not back where it started. */
+    await cards.locator('[data-rc="1:3"]').focus(); /* ENGAGEMENT; COUNTRY (1:2) is left out */
+    await page.keyboard.press('ArrowLeft');
+    await expect(cards.locator('[data-rc="1:1"]')).toBeFocused();
+    /* Tab reaches the cards: the grid's one tab stop is a shown cell, not the hidden box. */
+    await page.reload();
+    await page.waitForSelector('#storybook-root > *');
+    await grid.locator('[role=gridcell][tabindex="0"]').focus();
+    await page.keyboard.press('Tab');
+    const tabbed = await page.evaluate(() => {
+      const a = document.activeElement as HTMLElement;
+      return {
+        inCards: !!a.closest('[data-testid=cards]'),
+        shown: a.getClientRects().length > 0,
+        role: a.getAttribute('role'),
+      };
+    });
+    expect(tabbed).toEqual({ inCards: true, shown: true, role: 'gridcell' });
+    /* Narrowing into cards while a left-out cell has focus: focus moves to the nearest shown cell, not the page. */
+    await grid.locator('[data-rc="1:2"]').focus(); /* COUNTRY */
+    await page.setViewportSize({ width: 500, height: 900 });
+    await expect(grid.locator('.aura-table--stacked')).toHaveCount(1);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const a = document.activeElement as HTMLElement;
+          return !!a.closest('[data-testid=grid]') && a.getClientRects().length > 0;
+        }),
+      )
+      .toBe(true);
+    await page.setViewportSize({ width: 1100, height: 900 });
+    /* …but not after the person has left the table: click away, then narrow — focus stays on the page. */
+    await expect(grid.locator('.aura-table--stacked')).toHaveCount(0);
+    await grid.locator('[data-rc="1:2"]').focus();
+    await page.getByTestId('selected').click();
+    await page.setViewportSize({ width: 500, height: 900 });
+    await expect(grid.locator('.aura-table--stacked')).toHaveCount(1);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+    await page.setViewportSize({ width: 1100, height: 900 });
+    /* Loading: the skeleton cards leave out the same columns and boxes. */
+    const skel = await page
+      .getByTestId('cards-loading')
+      .locator('.aura-table__row--skeleton')
+      .evaluateAll((rows) =>
+        rows.map(
+          (r) =>
+            Array.from(r.children).filter((c) => c.getClientRects().length > 0 && !c.matches('.aura-table__break'))
+              .length,
+        ),
+      );
+    expect(skel).toEqual([5, 5]);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('81: Table align="middle" centres rows; bordered={false} lines up with its Card; stacked unchanged', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1000, height: 900 });
+    await story(page, 'aura-new-in-5-13--table-align-flush');
+    const flush = page.getByTestId('flush'),
+      framed = page.getByTestId('framed');
+    const box = (l: import('@playwright/test').Locator) =>
+      l.evaluate((e) => {
+        const r = e.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, mid: (r.top + r.bottom) / 2 };
+      });
+    /* Flush: no frame; the first and last cells meet the Card's content edges, under its heading. */
+    const wrap = await flush.locator('.aura-tbl-wrap').evaluate((e) => getComputedStyle(e).borderTopWidth);
+    expect(wrap).toBe('0px');
+    const title = await box(flush.locator('.aura-card__title'));
+    const firstCell = await box(flush.locator('.aura-tbl__td').first());
+    const text = await flush
+      .locator('.aura-tbl__td')
+      .first()
+      .evaluate((e) => {
+        const r = document.createRange();
+        r.selectNodeContents(e);
+        return r.getBoundingClientRect().left;
+      });
+    expect(Math.abs(text - title.left)).toBeLessThanOrEqual(1);
+    expect(firstCell.left).toBeCloseTo(title.left, 0);
+    /* Middle: the number sits level with the button beside it. Default: at the top of the row. */
+    const mid = async (scope: import('@playwright/test').Locator) => {
+      const n = await box(scope.locator('.aura-tbl__body .aura-tbl__td.is-numeric').first());
+      const b = await box(scope.locator('.aura-tbl__body .aura-btn').first());
+      const t = await scope
+        .locator('.aura-tbl__body .aura-tbl__td.is-numeric')
+        .first()
+        .evaluate((e) => {
+          const r = document.createRange();
+          r.selectNodeContents(e);
+          const x = r.getBoundingClientRect();
+          return (x.top + x.bottom) / 2;
+        });
+      return { rowMid: n.mid, text: t, button: b.mid };
+    };
+    const m = await mid(flush);
+    expect(Math.abs(m.text - m.rowMid)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.button - m.rowMid)).toBeLessThanOrEqual(1);
+    const d = await mid(framed);
+    expect(d.rowMid - d.text).toBeGreaterThan(8); /* default: top-aligned, as before */
+    expect(await framed.locator('.aura-tbl-wrap').evaluate((e) => getComputedStyle(e).borderTopWidth)).toBe('1px');
+    /* Stacked: the same cards with or without align. */
+    const cardsOf = (t: string) =>
+      page
+        .getByTestId(t)
+        .locator('.aura-tbl__td')
+        .evaluateAll((els) =>
+          els.map((e) => {
+            const r = e.getBoundingClientRect();
+            return [Math.round(r.top - e.closest('table')!.getBoundingClientRect().top), Math.round(r.height)];
+          }),
+        );
+    expect(await cardsOf('stacked-props')).toEqual(await cardsOf('stacked-plain'));
+    /* Frameless and stacked: the caption lines up with the stacked rows' text. */
+    const capLeft = await page
+      .getByTestId('stacked-flush')
+      .locator('caption')
+      .evaluate((e) => {
+        const r = document.createRange();
+        r.selectNodeContents(e);
+        return r.getBoundingClientRect().left;
+      });
+    const cellLeft = await page
+      .getByTestId('stacked-flush')
+      .locator('.aura-tbl__td')
+      .first()
+      .evaluate((e) => e.getBoundingClientRect().left);
+    expect(Math.abs(capLeft - cellLeft)).toBeLessThanOrEqual(1);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('82: EmptyState tone="danger" — danger tint, solid danger frame, danger icon; attributes reach the root', async ({
+    page,
+  }) => {
+    for (const theme of ['light', 'dark']) {
+      await story(page, 'aura-new-in-5-13--empty-state-danger', theme);
+      const want = await page.evaluate(() => {
+        const probe = document.createElement('div');
+        probe.style.cssText =
+          'background: var(--aura-alert-danger-bg); border: 1px solid var(--aura-border-danger); color: var(--aura-fg-danger)';
+        document.body.appendChild(probe);
+        const s = getComputedStyle(probe);
+        const out = { bg: s.backgroundColor, border: s.borderTopColor, fg: s.color };
+        probe.remove();
+        return out;
+      });
+      const got = await page.getByTestId('danger').evaluate((e) => {
+        const s = getComputedStyle(e),
+          i = getComputedStyle(e.querySelector('.aura-empty__icon')!);
+        return {
+          bg: s.backgroundColor,
+          border: s.borderTopColor,
+          style: s.borderTopStyle,
+          fg: i.color,
+          role: e.getAttribute('role'),
+        };
+      });
+      expect(got).toEqual({ bg: want.bg, border: want.border, style: 'solid', fg: want.fg, role: null });
+      expect(await page.getByTestId('danger-plain').evaluate((e) => getComputedStyle(e).borderTopStyle)).toBe('none');
+      const neutral = await page.getByTestId('neutral').evaluate((e) => {
+        const s = getComputedStyle(e);
+        return { style: s.borderTopStyle, bg: s.backgroundColor };
+      });
+      expect(neutral).toEqual({ style: 'dashed', bg: 'rgba(0, 0, 0, 0)' });
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    }
+  });
+
+  test('84: Table card slots — the title and the action share the first line, fields under them; desktop unchanged', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await story(page, 'aura-new-in-5-13--table-card-slots');
+    const phone = page.getByTestId('queue-phone');
+    for (const i of [0, 1]) {
+      const row = phone.locator('.aura-tbl__body .aura-tbl__row').nth(i);
+      const [title, action] = [
+        (await row.locator('[data-card=title]').boundingBox())!,
+        (await row.locator('[data-card=action]').boundingBox())!,
+      ];
+      const fields = await row.locator('.aura-tbl__td:not([data-card])').evaluateAll((els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect();
+          return { top: Math.round(r.top), left: Math.round(r.left) };
+        }),
+      );
+      await expect(row.locator('[data-card=title]')).not.toHaveAttribute('data-label');
+      expect(Math.abs(title.y - action.y)).toBeLessThanOrEqual(1); /* one line */
+      expect(title.x + title.width).toBeLessThanOrEqual(action.x + 0.5); /* a long title wraps before the action */
+      const rowBox = (await row.boundingBox())!;
+      expect(action.x + action.width).toBeCloseTo(rowBox.x + rowBox.width - 16, 0); /* at the line's end */
+      /* 8px under the first line, as between field lines; two fields to a line. */
+      const firstLine = Math.round(Math.max(title.y + title.height, action.y + action.height));
+      const f0 = (await row.locator('.aura-tbl__td:not([data-card])').first().boundingBox())!;
+      const f2 = (await row.locator('.aura-tbl__td:not([data-card])').nth(2).boundingBox())!;
+      expect(Math.round(f0.y) - firstLine).toBe(8);
+      expect(fields[0]!.top).toBe(fields[1]!.top);
+      expect(Math.round(f2.y - (f0.y + f0.height))).toBe(8);
+    }
+    /* Edge rows: a row header as the title; an action with no title still at the end; a lone title adds no space. */
+    const thRow = page.getByTestId('edge-th');
+    const [thT, thA] = [
+      (await thRow.locator('th').boundingBox())!,
+      (await thRow.locator('[data-card=action]').boundingBox())!,
+    ];
+    expect(Math.abs(thT.y - thA.y)).toBeLessThanOrEqual(1);
+    const aRow = (await page.getByTestId('edge-action').boundingBox())!;
+    const aBtn = (await page.getByTestId('edge-action').locator('[data-card=action]').boundingBox())!;
+    expect(aBtn.x + aBtn.width).toBeCloseTo(aRow.x + aRow.width - 16, 0);
+    const tRow = (await page.getByTestId('edge-title').boundingBox())!;
+    const tCell = (await page.getByTestId('edge-title').locator('td').boundingBox())!;
+    /* even padding (the top one includes the 1px divider above the row) */
+    expect(Math.abs(tRow.y + tRow.height - (tCell.y + tCell.height) - (tCell.y - tRow.y - 1))).toBeLessThanOrEqual(0.5);
+    expect(await axeScan(page, '[data-testid=queue-edges]')).toEqual([]);
+    /* Desktop: a plain table row, cells in their columns. */
+    const wide = await page
+      .getByTestId('queue-wide')
+      .locator('.aura-tbl__body .aura-tbl__td')
+      .evaluateAll((els) => els.map((e) => getComputedStyle(e).display));
+    expect(new Set(wide)).toEqual(new Set(['table-cell']));
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

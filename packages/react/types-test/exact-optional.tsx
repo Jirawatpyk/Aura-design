@@ -145,14 +145,23 @@ export function Addendum9({ open, label }: { open: boolean; label: string | unde
         activation="manual"
         variant="segmented"
         fullWidth
-        tabs={[{ id: 'card', label: 'Card', tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'method-card' } }]}
+        tabs={[
+          {
+            id: 'card',
+            label: 'Card',
+            tabProps: { 'aria-label': 'Card — switch payment method', 'data-testid': 'method-card' },
+          },
+        ]}
       />
     </>
   );
 }
 
 /* 5.10 (Chamber-OS 73): a disabled menu item can say why. */
-export const addendum10Items: Aura.MenuItem[] = [{ label: 'Email me a copy', disabled: true, disabledReason: undefined }, { label: 'Resend', disabled: true, disabledReason: 'Again in 5 min' }];
+export const addendum10Items: Aura.MenuItem[] = [
+  { label: 'Email me a copy', disabled: true, disabledReason: undefined },
+  { label: 'Resend', disabled: true, disabledReason: 'Again in 5 min' },
+];
 
 /* 5.11 (Chamber-OS 75, 76, 78): row box names, a passed describedby on Checkbox, auto row height; undefined allowed. */
 export function Addendum11({ hint, auto }: { hint: string | undefined; auto: boolean }) {
@@ -193,3 +202,38 @@ export function Addendum12({ status, all }: { status: string | undefined; all: s
 export const noLabel = <Aura.FilterSelect options={['a']} />;
 // @ts-expect-error onChange gets the value, not an event
 export const eventHandler = <Aura.FilterSelect label="S" onChange={(e: React.ChangeEvent<HTMLSelectElement>) => e} />;
+
+/* 5.13 (Chamber-OS 80–82, 84): card options, static Table align / bordered / card slots, EmptyState tone. */
+export function Addendum13({ o, flag }: { o: number | undefined; flag: boolean | undefined }) {
+  type Member = { id: string; company: string };
+  const rows: Member[] = [{ id: 'M-1', company: 'Acme' }];
+  return (
+    <>
+      <Aura.DataTable<Member>
+        label="Members"
+        rows={rows}
+        hideSelectionInCards={flag}
+        columns={[
+          { key: 'company', label: 'COMPANY', card: 'title' },
+          { key: 'id', label: 'NO.', card: undefined, cardOrder: o },
+        ]}
+      />
+      <Aura.Table caption="Q" align="middle" bordered={flag} stackBelow="sm">
+        <Aura.TBody>
+          <Aura.Tr>
+            <Aura.Td card="title">Acme</Aura.Td>
+            <Aura.Td card={undefined}>x</Aura.Td>
+            <Aura.Td card="action">
+              <Aura.Button size="sm">Review</Aura.Button>
+            </Aura.Td>
+          </Aura.Tr>
+        </Aura.TBody>
+      </Aura.Table>
+      <Aura.EmptyState tone="danger" bordered title="Failed" data-testid="err" id={undefined} />
+    </>
+  );
+}
+// @ts-expect-error card takes only 'hide' | 'field' | 'title' | 'pill'
+export const badCard: Aura.DataTableColumn = { key: 'x', label: 'X', card: 'actions' };
+// @ts-expect-error Table align is 'top' | 'middle' (the old HTML align attribute is not accepted)
+export const badAlign = <Aura.Table caption="Q" align="center" />;

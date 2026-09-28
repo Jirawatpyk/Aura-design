@@ -153,10 +153,30 @@ export function emptyStateElement(
   ref: React.Ref<HTMLDivElement> | undefined,
 ): React.ReactElement {
   const HT = ('h' + (props.headingLevel || 3)) as React.ElementType;
+  /* 5.13 (Chamber-OS 82): id, data-*, aria-*, role and style reach the root, like Card and Alert. */
+  const rest = omit(props, [
+    'title',
+    'description',
+    'icon',
+    'action',
+    'size',
+    'bordered',
+    'headingLevel',
+    'tone',
+    'className',
+    'children',
+  ]);
   return (
     <div
+      {...rest}
       ref={ref}
-      className={cx('aura-empty', props.size === 'sm' && 'is-sm', props.bordered && 'is-bordered', props.className)}
+      className={cx(
+        'aura-empty',
+        props.size === 'sm' && 'is-sm',
+        props.bordered && 'is-bordered',
+        props.tone === 'danger' && 'is-danger',
+        props.className,
+      )}
     >
       <span className="aura-empty__icon" aria-hidden={true}>
         <Icon name={props.icon || <IconInbox />} size={props.size === 'sm' ? 'md' : 'lg'} />

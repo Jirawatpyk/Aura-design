@@ -59,7 +59,7 @@ function headerLabels(children: React.ReactNode): Array<string | undefined> {
 
 /** A static table. Scrolls sideways inside its own box when it is wider than its container. */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Table(props, ref) {
-  const { caption, captionHidden, density, stackBelow, className, children, ...rest } = props;
+  const { caption, captionHidden, density, stackBelow, align, bordered, className, children, ...rest } = props;
   const labels = stackBelow ? headerLabels(children) : null;
   if (labels && !labels.length)
     devWarnOnce(
@@ -90,7 +90,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
   return (
     <div
       ref={wrap}
-      className={cx('aura-tbl-wrap', stackBelow && 'is-stackable')}
+      className={cx('aura-tbl-wrap', stackBelow && 'is-stackable', bordered === false && 'is-flush')}
       data-density={density}
       tabIndex={scrolls ? 0 : undefined}
       /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
@@ -100,7 +100,12 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     >
       <table
         ref={ref}
-        className={cx('aura-tbl', stackBelow && 'aura-tbl--stack-' + stackBelow, className)}
+        className={cx(
+          'aura-tbl',
+          stackBelow && 'aura-tbl--stack-' + stackBelow,
+          align === 'middle' && 'aura-tbl--middle',
+          className,
+        )}
         /* Stacked rows are display: block; explicit roles keep the table for screen readers (Safari drops it). */
         role={stackBelow ? 'table' : undefined}
         {...rest}
@@ -175,7 +180,7 @@ function cellClass(base: string, p: TableCellProps) {
 
 /** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
 export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Th(props, ref) {
-  const { align, numeric, mono, className, scope, label, ...rest } = props;
+  const { align, numeric, mono, className, scope, label, card, ...rest } = props;
   const stacked = React.useContext(StackLabels) != null;
   return (
     <th
@@ -183,6 +188,8 @@ export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(functio
       scope={scope || 'col'}
       className={cellClass('aura-tbl__th', props)}
       role={stacked ? (scope === 'row' ? 'rowheader' : 'columnheader') : undefined}
+      /* 5.13: a row header can be a stacked row's title (or action), like a Td. */
+      data-card={stacked && (card === 'title' || card === 'action') ? card : undefined}
       {...rest}
     />
   );
@@ -190,16 +197,19 @@ export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(functio
 
 /** Data cell. `numeric` right-aligns with tabular figures (money, counts). */
 export const Td = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Td(props, ref) {
-  const { align, numeric, mono, className, scope, label, ...rest } = props;
+  const { align, numeric, mono, className, scope, label, card, ...rest } = props;
   const labels = React.useContext(StackLabels),
     col = React.useContext(ColumnIndex);
-  const shown = labels ? (label != null ? label : col >= 0 ? labels[col] : undefined) : undefined;
+  /* 5.13 (Chamber-OS 84): a title or action cell in a stacked row shows no label. */
+  const slot = labels && (card === 'title' || card === 'action') ? card : undefined;
+  const shown = labels && !slot ? (label != null ? label : col >= 0 ? labels[col] : undefined) : undefined;
   return (
     <td
       ref={ref}
       className={cellClass('aura-tbl__td', props)}
       role={labels ? 'cell' : undefined}
       data-label={shown || undefined}
+      data-card={slot}
       {...rest}
     />
   );

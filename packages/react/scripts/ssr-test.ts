@@ -52,6 +52,25 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.13 (Chamber-OS 80–82, 84): card options, static Table align/bordered/card slots, EmptyState tone. */
+  {
+    const rows = [{ co: 'Acme', no: 'M-1', flag: 'SE', plan: 'Gold' }];
+    const dt = renderToString(React.createElement(A.DataTable, { label: 'M', rows, selectable: true, hideSelectionInCards: true, stackBelow: 640,
+      columns: [{ key: 'co', label: 'CO' }, { key: 'flag', label: 'F', width: 60, card: 'hide' }, { key: 'plan', label: 'P', width: 80, cardOrder: 2 }, { key: 'no', label: 'NO', width: 80, cardOrder: 1 }] }));
+    if (!/aura-table--cards-nosel/.test(dt) || (dt.match(/data-card="hide"/g) || []).length !== 2 || !/--aura-card-order:6[^>]*data-card="field" data-label="P"/.test(dt) || !/--aura-card-order:5[^>]*data-card="field" data-label="NO"/.test(dt)) { console.log(label, 'DataTable card options:', dt); fail++; }
+    const dt0 = renderToString(React.createElement(A.DataTable, { label: 'M', rows, selectable: true, stackBelow: 640, columns: [{ key: 'co', label: 'CO' }, { key: 'plan', label: 'P', width: 80 }] }));
+    if (/cards-nosel|--aura-card-order|data-card="hide"/.test(dt0)) { console.log(label, 'default DataTable changed:', dt0); fail++; }
+    const cells = (card?: string) => [React.createElement(A.Td, { card: card, key: 'a' }, 'Acme'), React.createElement(A.Td, { key: 'b' }, 'x')];
+    const head = React.createElement(A.THead, null, React.createElement(A.Tr, null, React.createElement(A.Th, null, 'Member'), React.createElement(A.Th, null, 'Type')));
+    const tbl = (p: Record<string, unknown>, card?: string) => renderToString(React.createElement(A.Table, Object.assign({ caption: 'Q' }, p), head, React.createElement(A.TBody, null, React.createElement(A.Tr, null, cells(card)))));
+    const slots = tbl({ stackBelow: 'sm', align: 'middle', bordered: false }, 'title');
+    if (!/class="aura-tbl-wrap is-stackable is-flush"/.test(slots) || !/class="aura-tbl aura-tbl--stack-sm aura-tbl--middle"/.test(slots) || !/<td class="aura-tbl__td" role="cell" data-card="title">Acme/.test(slots) || !/data-label="Type">x/.test(slots)) { console.log(label, 'Table 5.13:', slots); fail++; }
+    const plainTbl = tbl({}, 'title');
+    if (/is-flush|--middle|data-card/.test(plainTbl)) { console.log(label, 'default Table changed:', plainTbl); fail++; }
+    const empty = renderToString(React.createElement(A.EmptyState, { tone: 'danger', bordered: true, title: 'Failed', id: 'e1', 'data-testid': 'x', role: 'alert' }));
+    const empty0 = renderToString(React.createElement(A.EmptyState, { title: 'None' }));
+    if (!/^<div id="e1" data-testid="x" role="alert" class="aura-empty is-bordered is-danger">/.test(empty) || !/^<div class="aura-empty"><span class="aura-empty__icon"/.test(empty0)) { console.log(label, 'EmptyState 5.13:', empty, empty0); fail++; }
+  }
   /* 5.12 (Chamber-OS 79): FilterSelect's server HTML is its face with a real, named <select> over it; searchGrow. */
   {
     const opts = [{ value: 'all', label: 'All statuses' }, { value: 'active', label: 'Active' }];
