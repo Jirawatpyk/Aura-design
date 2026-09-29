@@ -219,8 +219,23 @@ export function statElement(
     (typeof v === 'string' &&
       /\d/.test(v) &&
       /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, '')));
-  const Tag = (props.href ? Link : props.onClick ? 'button' : 'div') as React.ElementType;
+  /* 5.17 (Chamber-OS 110): linkArea="label" — the label holds the link; the tile is a plain box whose hit area the
+   * link stretches over. */
+  const labelLink = !!props.href && props.linkArea === 'label';
+  /* With the link on the label the tile is a plain box (an onClick goes to the link too: nothing interactive nests). */
+  const Tag = (labelLink ? 'div' : props.href ? Link : props.onClick ? 'button' : 'div') as React.ElementType;
   const interactive = !!(props.href || props.onClick);
+  /* The documented attributes only (id, style, lang, dir, aria-*, data-*), so nothing else reaches the DOM. What
+   * names or describes the link goes to the link when it is on the label. */
+  const LINK_ARIA = ['aria-label', 'aria-labelledby', 'aria-describedby', 'aria-current'];
+  const root: Record<string, unknown> = {},
+    toLink: Record<string, unknown> = {};
+  Object.keys(props).forEach(function (k: string) {
+    const v = (props as unknown as Record<string, unknown>)[k];
+    if (labelLink && LINK_ARIA.indexOf(k) >= 0) toLink[k] = v;
+    else if (k === 'id' || k === 'style' || k === 'lang' || k === 'dir' || /^(aria|data)-/.test(k)) root[k] = v;
+  });
+  const busy = props.loading || (props as { 'aria-busy'?: boolean | 'true' | 'false' })['aria-busy'] || undefined;
   if (props.headingLevel && Tag === 'button')
     devWarnOnce(
       'stat-heading-button',
@@ -231,15 +246,30 @@ export function statElement(
   const HeadTag = (LabelTag === 'span' ? 'span' : 'div') as React.ElementType;
   return (
     <Tag
+      {...root}
       ref={ref}
-      className={cx('aura-stat', interactive && 'is-interactive', props.loading && 'is-loading', props.className)}
-      href={props.href}
-      onClick={props.onClick}
+      className={cx(
+        'aura-stat',
+        interactive && 'is-interactive',
+        labelLink && 'aura-stat--label-link',
+        props.loading && 'is-loading',
+        props.className,
+      )}
+      href={labelLink ? undefined : props.href}
+      onClick={labelLink ? undefined : props.onClick}
       type={Tag === 'button' ? 'button' : undefined}
-      aria-busy={props.loading || undefined}
+      aria-busy={busy}
     >
       <HeadTag className="aura-stat__head">
-        <LabelTag className="aura-stat__label">{props.label}</LabelTag>
+        <LabelTag className="aura-stat__label">
+          {labelLink ? (
+            <Link {...toLink} href={props.href} onClick={props.onClick} className="aura-stat__link">
+              {props.label}
+            </Link>
+          ) : (
+            props.label
+          )}
+        </LabelTag>
         {props.icon ? (
           <span className="aura-stat__icon">
             <Icon name={props.icon} />
@@ -256,6 +286,9 @@ export function statElement(
           {props.unit ? <span className="aura-stat__unit">{props.unit}</span> : null}
         </span>
       )}
+      {props.status != null && props.status !== false && props.status !== '' && !props.loading ? (
+        <span className="aura-stat__status">{props.status}</span>
+      ) : null}
       {(ch && !props.loading) || props.caption ? (
         <span className="aura-stat__foot">
           {ch && !props.loading ? (

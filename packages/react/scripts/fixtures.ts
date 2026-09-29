@@ -214,6 +214,23 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.17 (Chamber-OS 110, 111) */
+    StatLabelLink: h(A.Stat, {
+      label: 'Membership',
+      value: 'Gold',
+      href: '/m',
+      headingLevel: 2,
+      linkArea: 'label',
+      status: 'Active',
+      'data-testid': 's',
+    }),
+    ProgressValueText: h(A.Progress, {
+      label: 'E',
+      value: 2,
+      max: 6,
+      secondaryValue: 1,
+      valueText: '2 used, 1 reserved',
+    }),
     /* 5.16 (Chamber-OS 95, 96, 98, 101, 105) */
     SideNavActions: h(A.SideNav, {
       value: 'a',

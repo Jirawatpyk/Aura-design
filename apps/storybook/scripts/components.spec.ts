@@ -4163,3 +4163,51 @@ test('5.16.1: every kind of enabled, editable field shares one ground, in both t
     ).toEqual([]);
   }
 });
+
+test.describe('5.17: Chamber-OS addendum 18', () => {
+  test('110: Stat attributes on the root, a status line, and a link on the label only', async ({ page }) => {
+    await story(page, 'aura-new-in-5-17--stat-options');
+    const card = page.getByTestId('stat-card');
+    await expect(card).toHaveClass(/aura-stat/);
+    await expect(card).toHaveAttribute('data-variant', 'warning');
+    await expect(card.locator('.aura-stat__status')).toHaveText(/Active · renews 1 Jan/);
+    /* The only link to the page is inside the h2; the tile itself is not a link. */
+    const heading = card.getByRole('heading', { level: 2, name: 'Membership' });
+    await expect(heading.getByRole('link', { name: 'Membership' })).toHaveAttribute('href', '#membership');
+    expect(await card.evaluate((e) => e.tagName)).toBe('DIV');
+    await expect(card.getByRole('link')).toHaveCount(2); /* the label's link and the caption's own */
+    /* A click anywhere on the tile follows the label's link; the caption's link still works on its own. */
+    const box = (await card.boundingBox())!;
+    await page.mouse.click(box.x + box.width - 12, box.y + box.height - 12);
+    await expect(page).toHaveURL(/#membership$/);
+    await card.getByRole('link', { name: '4 benefits' }).click();
+    await expect(page).toHaveURL(/#benefits$/);
+    /* The tile shows the focus ring only when the label's link has keyboard focus — not on a mouse click, not when
+     * the caption's link has focus. */
+    const ring = () => card.evaluate((e) => getComputedStyle(e).outlineStyle);
+    expect(await ring()).toBe('none'); /* the caption link was clicked last */
+    await heading.getByRole('link').focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    expect(await ring()).toBe('solid');
+    await page.keyboard.press('Tab');
+    await expect(card.getByRole('link', { name: '4 benefits' })).toBeFocused();
+    expect(await ring()).toBe('none');
+    await page.mouse.click(box.x + 20, box.y + box.height - 12);
+    expect(await ring()).toBe('none');
+    /* Default: the whole tile is the link, as before. */
+    expect(await page.getByTestId('stat-tile').evaluate((e) => e.tagName)).toBe('A');
+    /* A loading placeholder hidden from assistive tech. */
+    await expect(page.getByTestId('stat-loading')).toHaveAttribute('aria-hidden', 'true');
+    await expect(page.getByRole('heading', { name: 'E-Blasts' })).toHaveCount(0);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('111: Progress reads valueText and shows valueLabel', async ({ page }) => {
+    await story(page, 'aura-new-in-5-17--progress-value-text');
+    const bar = page.getByRole('progressbar', { name: 'E-Blasts this year' });
+    await expect(bar).toHaveAttribute('aria-valuetext', '2 used, 1 reserved, 3 remaining of 6');
+    await expect(page.locator('.aura-progress__value')).toHaveText('2 of 6 used');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

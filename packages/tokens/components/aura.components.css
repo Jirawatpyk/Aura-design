@@ -1032,6 +1032,20 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-stat__change.is-negative { color: var(--aura-fg-danger); }
 .aura-stat__change.is-neutral { color: var(--aura-fg-secondary); }
 .aura-stat__caption { color: var(--aura-fg-secondary); }
+/* 5.17 (Chamber-OS 110): a status line under the value, and a link on the label that covers the tile. */
+.aura-stat__status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); font-size: 13px; color: var(--aura-fg-secondary); }
+.aura-stat--label-link { position: relative; }
+.aura-stat__link { color: inherit; text-decoration: none; }
+.aura-stat__link::after { content: ''; position: absolute; inset: 0; border-radius: var(--aura-card-radius); }
+/* The ring is drawn on the tile where :has() works; elsewhere the link keeps its own. */
+.aura-stat__link:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
+@supports selector(:has(*)) {
+  .aura-stat__link:focus-visible { outline: none; }
+  .aura-stat--label-link:has(.aura-stat__link:focus-visible) { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+}
+.aura-stat--label-link:hover .aura-stat__link { text-decoration: underline; text-underline-offset: 3px; }
+/* Anything else interactive in the tile sits above the stretched link. No specificity, so a control's own position wins. */
+:where(.aura-stat--label-link) :where(a, button, input, select, textarea, label, summary, [tabindex]):not(:where(.aura-stat__link)) { position: relative; z-index: 1; }
 
 /* ---------- TimePicker ---------- */
 .aura-time__popover { min-width: 160px; }

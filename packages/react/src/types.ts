@@ -1320,7 +1320,12 @@ export interface StatChange {
   /** e.g. "vs last month". */
   label?: React.ReactNode | undefined;
 }
-export interface StatProps {
+/** `id`, `data-*`, `aria-*`, `style`, `lang` and `dir` go on the `.aura-stat` root (5.17, Chamber-OS 110). */
+export interface StatProps
+  extends
+    Pick<React.HTMLAttributes<HTMLElement>, 'id' | 'style' | 'lang' | 'dir'>,
+    React.AriaAttributes,
+    DataAttributes {
   /** Your router's link (e.g. `Link` from `next/link`) for this component; defaults to AuraProvider's `linkComponent`, then `<a>`. */
   linkComponent?: React.ElementType | undefined;
   label: React.ReactNode;
@@ -1338,6 +1343,13 @@ export interface StatProps {
   /** The label as a heading of this level (5.14), when the tile titles its section. Not with `onClick` (a heading
    * can't sit in a button); a link is fine. Default: a plain label. */
   headingLevel?: 2 | 3 | 4 | 5 | 6 | undefined;
+  /** A status line under the value — "Active · renews 1 Jan" with its tone icon (5.17, Chamber-OS 110). Hidden while
+   * `loading`. */
+  status?: React.ReactNode | undefined;
+  /** With `href`: `tile` (default) makes the whole tile the link; `label` puts the link on the label (inside its
+   * heading) and stretches its hit area over the tile, so a click anywhere follows it and the tile shows the focus
+   * ring (5.17, Chamber-OS 110). Other links or buttons in the tile stay clickable above it. */
+  linkArea?: 'tile' | 'label' | undefined;
   className?: string | undefined;
 }
 
@@ -1425,6 +1437,9 @@ export interface ProgressProps {
   showValue?: boolean | undefined;
   /** Replaces the % text, e.g. "3 of 5 files". Also read out as aria-valuetext. */
   valueLabel?: React.ReactNode | undefined;
+  /** What screen readers hear (`aria-valuetext`), apart from the shown `valueLabel` (5.17, Chamber-OS 111): show
+   * "2 of 6 used", read "2 used, 1 reserved, 3 remaining of 6". */
+  valueText?: string | undefined;
   /** A reserved amount drawn after `value` as a striped segment of the same tone — queued sends on a quota
    * (5.15, Chamber-OS 89). Both counts are read out ("2 of 6 used, 1 reserved") unless `valueLabel` is given. */
   secondaryValue?: number | undefined;

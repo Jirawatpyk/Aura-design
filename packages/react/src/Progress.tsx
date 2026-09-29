@@ -15,7 +15,13 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(function
   const sec = det && props.secondaryValue != null && props.secondaryValue > 0 ? props.secondaryValue : 0;
   const spct = sec ? Math.max(0, Math.min(100 - pct, (sec / max) * 100)) : 0;
   const valueText =
-    props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value!, sec, max) : undefined;
+    props.valueText != null
+      ? props.valueText
+      : props.valueLabel != null
+        ? String(props.valueLabel)
+        : sec
+          ? t.progressReserved(props.value!, sec, max)
+          : undefined;
   const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + '%' : null;
   return (
     <div

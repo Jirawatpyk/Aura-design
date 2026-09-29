@@ -717,8 +717,17 @@ window.Aura = (() => {
     const tone2 = ch && (ch.tone || (dir === "up" ? "positive" : dir === "down" ? "negative" : "neutral"));
     const v = props.value;
     const numeric = typeof v === "number" || typeof v === "string" && /\d/.test(v) && /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, ""));
-    const Tag3 = props.href ? Link : props.onClick ? "button" : "div";
+    const labelLink = !!props.href && props.linkArea === "label";
+    const Tag3 = labelLink ? "div" : props.href ? Link : props.onClick ? "button" : "div";
     const interactive = !!(props.href || props.onClick);
+    const LINK_ARIA = ["aria-label", "aria-labelledby", "aria-describedby", "aria-current"];
+    const root = {}, toLink = {};
+    Object.keys(props).forEach(function(k) {
+      const v2 = props[k];
+      if (labelLink && LINK_ARIA.indexOf(k) >= 0) toLink[k] = v2;
+      else if (k === "id" || k === "style" || k === "lang" || k === "dir" || /^(aria|data)-/.test(k)) root[k] = v2;
+    });
+    const busy = props.loading || props["aria-busy"] || void 0;
     if (props.headingLevel && Tag3 === "button")
       devWarnOnce(
         "stat-heading-button",
@@ -729,15 +738,23 @@ window.Aura = (() => {
     return /* @__PURE__ */ React4.createElement(
       Tag3,
       {
+        ...root,
         ref,
-        className: cx("aura-stat", interactive && "is-interactive", props.loading && "is-loading", props.className),
-        href: props.href,
-        onClick: props.onClick,
+        className: cx(
+          "aura-stat",
+          interactive && "is-interactive",
+          labelLink && "aura-stat--label-link",
+          props.loading && "is-loading",
+          props.className
+        ),
+        href: labelLink ? void 0 : props.href,
+        onClick: labelLink ? void 0 : props.onClick,
         type: Tag3 === "button" ? "button" : void 0,
-        "aria-busy": props.loading || void 0
+        "aria-busy": busy
       },
-      /* @__PURE__ */ React4.createElement(HeadTag, { className: "aura-stat__head" }, /* @__PURE__ */ React4.createElement(LabelTag, { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon })) : null),
+      /* @__PURE__ */ React4.createElement(HeadTag, { className: "aura-stat__head" }, /* @__PURE__ */ React4.createElement(LabelTag, { className: "aura-stat__label" }, labelLink ? /* @__PURE__ */ React4.createElement(Link, { ...toLink, href: props.href, onClick: props.onClick, className: "aura-stat__link" }, props.label) : props.label), props.icon ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon })) : null),
       props.loading ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__value" }, /* @__PURE__ */ React4.createElement("span", { className: "aura-skel aura-stat__skel" })) : /* @__PURE__ */ React4.createElement("span", { className: cx("aura-stat__value", numeric && "is-numeric") }, props.value, props.unit ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__unit" }, props.unit) : null),
+      props.status != null && props.status !== false && props.status !== "" && !props.loading ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__status" }, props.status) : null,
       ch && !props.loading || props.caption ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__foot" }, ch && !props.loading ? /* @__PURE__ */ React4.createElement("span", { className: cx("aura-stat__change", "is-" + tone2) }, /* @__PURE__ */ React4.createElement(
         Icon,
         {
@@ -8344,7 +8361,7 @@ window.Aura = (() => {
     const pct = det ? Math.max(0, Math.min(100, props.value / max * 100)) : 0;
     const sec = det && props.secondaryValue != null && props.secondaryValue > 0 ? props.secondaryValue : 0;
     const spct = sec ? Math.max(0, Math.min(100 - pct, sec / max * 100)) : 0;
-    const valueText = props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value, sec, max) : void 0;
+    const valueText = props.valueText != null ? props.valueText : props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value, sec, max) : void 0;
     const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + "%" : null;
     return /* @__PURE__ */ React53.createElement(
       "div",

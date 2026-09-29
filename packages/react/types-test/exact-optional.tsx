@@ -353,3 +353,22 @@ export function Addendum16({
 export const badMulti = <Aura.Combobox label="x" multiple options={[]} allowCustomValue />;
 // @ts-expect-error chevron is down | right
 export const badChevron = <Aura.SideNav chevron="left" items={[]} />;
+/* 5.17 (Chamber-OS 110, 111). */
+export function Addendum18({ flag }: { flag: boolean | undefined }) {
+  return (
+    <>
+      <Aura.Stat
+        label="M"
+        href="/m"
+        linkArea={flag ? 'label' : undefined}
+        status={undefined}
+        data-testid="s"
+        aria-hidden={flag}
+      />
+      <Server.Stat label="M" href="/m" linkArea="label" status="Active" data-variant="warning" />
+      <Aura.Progress value={2} max={6} valueText={flag ? 'x' : undefined} />
+    </>
+  );
+}
+// @ts-expect-error linkArea is tile | label
+export const badLinkArea = <Aura.Stat label="x" linkArea="card" />;

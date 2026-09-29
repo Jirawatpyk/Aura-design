@@ -52,6 +52,22 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.17 (Chamber-OS 110, 111): exact markup of the new options; defaults unchanged. */
+  {
+    const m = renderToString;
+    const e = React.createElement;
+    const bad = (what: string, ...html: unknown[]) => { console.log(label, what, ...html); fail++; };
+    const st = m(e(A.Stat, { label: 'Membership', value: 'Gold', href: '/m', headingLevel: 2, linkArea: 'label', status: 'Active · renews 1 Jan', 'data-testid': 'stat-card', 'data-variant': 'warning' }));
+    if (!/^<div data-testid="stat-card" data-variant="warning" class="aura-stat is-interactive aura-stat--label-link"><div class="aura-stat__head"><h2 class="aura-stat__label"><a href="\/m" class="aura-stat__link">Membership<\/a><\/h2>/.test(st) || !/<span class="aura-stat__status">Active · renews 1 Jan<\/span>/.test(st) || (st.match(/<a /g) || []).length !== 1) bad('Stat 5.17:', st);
+    /* Review: onClick with the label link nests nothing; only documented attributes reach the root; what names the link goes to the link. */
+    const stc = m(e(A.Stat, { label: 'M', value: 1, href: '/m', linkArea: 'label', headingLevel: 2, onClick: () => {}, 'aria-label': 'Membership details', tone: 'danger', title: 't' } as Record<string, unknown>));
+    if (!/^<div class="aura-stat is-interactive aura-stat--label-link"><div class="aura-stat__head"><h2 class="aura-stat__label"><a aria-label="Membership details" href="\/m" class="aura-stat__link">M<\/a><\/h2>/.test(stc) || /<button|tone=|title=/.test(stc)) bad('Stat label link with onClick / leakage:', stc);
+    const st0 = m(e(A.Stat, { label: 'Invoices', value: 3, href: '/i' }));
+    if (!/^<a class="aura-stat is-interactive" href="\/i">/.test(st0) || /status|label-link/.test(st0)) bad('default Stat changed:', st0);
+    if (!/aria-hidden="true"/.test(m(e(A.Stat, { label: 'E', loading: true, 'aria-hidden': true }))) || /aura-stat__status/.test(m(e(A.Stat, { label: 'E', loading: true, status: 'x' })))) bad('Stat aria-hidden / loading status');
+    const pv = m(e(A.Progress, { label: 'E', value: 2, max: 6, secondaryValue: 1, showValue: true, valueLabel: '2 of 6 used', valueText: '2 used, 1 reserved, 3 remaining of 6' }));
+    if (!/aria-valuetext="2 used, 1 reserved, 3 remaining of 6"/.test(pv) || !/aura-progress__value">2 of 6 used</.test(pv)) bad('Progress valueText:', pv);
+  }
   /* 5.16 (Chamber-OS 95, 96, 98, 101, 105): exact markup of the new options; defaults unchanged. */
   {
     const m = renderToString;
@@ -247,6 +263,8 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       ['Stat', { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold · renews Oct', change: { value: '+2', direction: 'up' } }],
       ['Stat', { label: 'E-Blasts', value: '4,200', unit: 'sent', loading: true }],
       ['Stat', { label: 'Invoices', value: 3, href: '/invoices', headingLevel: 3 }],
+      /* 5.17 (Chamber-OS 110) */
+      ['Stat', { label: 'Membership', value: 'Gold', href: '/m', headingLevel: 2, linkArea: 'label', status: 'Active', 'data-testid': 'stat-card', 'aria-describedby': 'x' }],
       ['Avatar', { name: 'Anna Berg', size: 'lg', status: 'online' }],
       ['Avatar', { name: 'Somchai', src: '/a.png' }],
     ];

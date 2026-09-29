@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.17 — Chamber-OS addendum 18
+
+- **Stat attributes, status line and a link on the label** (item 110): `id`, `data-*`, `aria-*`, `style`, `lang` and `dir` go on the `.aura-stat` root, from the root package and `/server` — a `data-testid`, or `aria-hidden` on a loading placeholder. `status` is a line under the value ("Active · renews 1 Jan" with its tone icon), hidden while loading. With `href`, `linkArea="label"` puts the link on the label (inside the heading when there is one) and stretches its hit area over the tile: a click anywhere follows it, the tile shows the focus ring and hover edge, and other controls in the tile (links, buttons, fields, anything focusable) stay clickable above it. `aria-label`, `aria-labelledby`, `aria-describedby` and `aria-current` then go on the link, and an `onClick` too. Text in such a tile can't be selected by dragging (the click belongs to the link). The default (`tile`) is unchanged. Only the documented attributes reach the root; anything else passed is dropped, as before.
+- **Progress `valueText`** (item 111): what screen readers hear (`aria-valuetext`), apart from the shown `valueLabel` — show "2 of 6 used", read "2 used, 1 reserved, 3 remaining of 6".
+- The CSS budget is 26 kB (was 25).
+
 ## 5.16.1 — Select ground (Chamber-OS 109)
 
 - **A custom Select keeps the input ground.** The read-only rule for text fields matched the Select's trigger button too (`:read-only` matches anything not editable), so every custom Select showed the disabled ground and looked disabled. It now applies to a read-only `input` only; a read-only TextField still takes the disabled ground, and a read-only Textarea now does too.
