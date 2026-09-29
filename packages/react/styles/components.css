@@ -464,7 +464,11 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-field.is-invalid .aura-input, .aura-field.is-invalid .aura-textarea { border-color: var(--aura-border-danger); }
 .aura-field.is-disabled .aura-input { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); }
 .aura-field.is-disabled .aura-input__control { cursor: not-allowed; }
-.aura-input:has(.aura-input__control:read-only:not(select)) { background: var(--aura-bg-input-disabled); }
+/* A read-only text field. Only an input: `:read-only` also matches any element that isn't editable — a
+ * Select's trigger <button> — which painted every custom Select with the disabled ground (5.16.1, Chamber-OS 109). */
+.aura-input:has(input.aura-input__control:read-only) { background: var(--aura-bg-input-disabled); }
+/* A read-only Textarea looks like a read-only TextField (it is its own .aura-input, so the rule above can't reach it). */
+.aura-textarea:read-only:not(:disabled) { background: var(--aura-bg-input-disabled); }
 
 .aura-textarea { display: block; padding: 10px var(--aura-space-3); min-height: 96px; line-height: 1.6; resize: vertical; outline: none; }
 .aura-textarea:focus { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-color: var(--aura-border-strong); }

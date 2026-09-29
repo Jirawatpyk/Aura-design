@@ -4119,3 +4119,28 @@ test.describe('5.16: Chamber-OS addenda 15–16 (larger items)', () => {
     await expect(page.getByTestId('log')).toHaveText('Signed out');
   });
 });
+
+test('5.16.1 (109): a custom Select keeps the input ground; only a read-only field takes the disabled one', async ({
+  page,
+}) => {
+  for (const theme of ['light', 'dark']) {
+    await story(page, 'aura-new-in-5-16-1--select-ground', theme);
+    const dlg = page.getByRole('dialog', { name: 'Erase member' });
+    const ground = (sel: string) =>
+      dlg
+        .locator(sel)
+        .first()
+        .evaluate((e) => getComputedStyle(e.closest('.aura-input')!).backgroundColor);
+    const [select, text, ro] = await Promise.all([
+      ground('.aura-select__trigger'),
+      ground('input[placeholder="Optional note"]'),
+      ground('input[readonly]'),
+    ]);
+    const roArea = await dlg.locator('textarea[readonly]').evaluate((e) => getComputedStyle(e).backgroundColor);
+    expect(select, theme).toBe(text);
+    expect(roArea, theme).toBe(ro);
+    expect(ro, theme).toBe(theme === 'light' ? 'rgb(250, 250, 250)' : 'rgb(8, 8, 10)');
+    if (theme === 'light') expect(select).toBe('rgb(255, 255, 255)');
+    expect(await axeScan(page, '[role="dialog"]')).toEqual([]);
+  }
+});

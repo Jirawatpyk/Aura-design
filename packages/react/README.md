@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.16.1 — Select ground (Chamber-OS 109)
+
+- **A custom Select keeps the input ground.** The read-only rule for text fields matched the Select's trigger button too (`:read-only` matches anything not editable), so every custom Select showed the disabled ground and looked disabled. It now applies to a read-only `input` only; a read-only TextField still takes the disabled ground, and a read-only Textarea now does too.
+
 ## 5.16 — Chamber-OS addenda 15–16, the larger items
 
 - **SideNav action rows** (item 95): an item with `selectable: false` is an action row — Sign out, Help — with the rows' look, 44px on touch screens and the arrow keys, that runs `onSelect` and never becomes the current item (no `aria-current`, no `onChange`). In the rail it is its icon, the label its name. Any item can take `onSelect`. `collapseToggle="row"` shows `collapsible`'s toggle as a labelled row ("Collapse sidebar" / "Expand sidebar") instead of an icon button. In AppShell's phone drawer an action row closes the drawer; `onAction(id)` on SideNav reports action rows.
