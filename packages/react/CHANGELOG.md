@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.16.1
+
+### Patch Changes
+
+- a9e0bbf: Select: a custom Select is no longer painted with the disabled ground (Chamber-OS 109). The read-only rule for text fields used `:read-only`, which also matches the Select's trigger `<button>`, so every custom Select showed `--aura-bg-input-disabled` (#fafafa in light) and looked disabled; Chamber-OS's axe scan flagged its placeholder. The rule now applies to a read-only `input` only, and a read-only Textarea gets the same ground as a read-only TextField (before, it had none).
+
 ## 5.16.0
 
 ### Minor Changes
