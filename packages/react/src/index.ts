@@ -23,7 +23,7 @@ export { FormErrorSummary } from './FormErrorSummary.js';
 export { FilterBar } from './FilterBar.js';
 export { Command } from './Command.js';
 export { Tooltip } from './Tooltip.js';
-export { Dialog, Drawer } from './Dialog.js';
+export { Dialog, Drawer, useDialogClose } from './Dialog.js';
 export { DataTable } from './DataTable.js';
 export { Card } from './Card.js';
 export { buttonClass } from './display.js';

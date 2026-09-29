@@ -189,16 +189,20 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         </li>
       );
     }
-    const on = active === it.id;
+    /* 5.16 (Chamber-OS 95): an action row runs its callback and is never the current item. */
+    const action = it.selectable === false;
+    const on = !action && active === it.id;
     const common = {
       ...tipHandlers(it.label),
-      className: cx('aura-nav__item', on && 'is-active'),
+      className: cx('aura-nav__item', action && 'aura-nav__item--action', on && 'is-active'),
       'aria-current': on ? ('page' as const) : undefined,
       style: depth ? ({ ['--aura-nav-depth' as string]: depth } as React.CSSProperties) : undefined,
       onClick: function (e: React.MouseEvent) {
         if (!it.href) e.preventDefault();
         else if (!plainClick(e)) return; /* opening in a new tab doesn't change this page (5.1.1) */
-        st[1](it.id);
+        if (!action) st[1](it.id);
+        if (it.onSelect) it.onSelect();
+        if (action && props.onAction) props.onAction(it.id);
       },
     };
     return (
@@ -226,6 +230,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         'aura-nav',
         collapsed && 'aura-nav--collapsed',
         props.bordered === false && 'aura-nav--borderless',
+        props.chevron === 'right' && 'aura-nav--chevron-right',
         props.className,
       )}
       data-collapsed={collapsed ? '' : undefined}
@@ -248,7 +253,22 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         })}
       </div>
       {props.footer ? <div className="aura-nav__footer">{props.footer}</div> : null}
-      {props.collapsible ? (
+      {props.collapsible && props.collapseToggle === 'row' ? (
+        <div className="aura-nav__toggle aura-nav__toggle--row">
+          <button
+            type="button"
+            className="aura-nav__item aura-nav__item--action"
+            {...tipHandlers(collapsed ? t.expandNav : t.collapseNav)}
+            onClick={function () {
+              setTip(null);
+              col[1](!collapsed);
+            }}
+          >
+            <Icon name={collapsed ? <IconPanelLeftOpen /> : <IconPanelLeftClose />} />
+            <span className="aura-nav__label">{collapsed ? t.expandNav : t.collapseNav}</span>
+          </button>
+        </div>
+      ) : props.collapsible ? (
         <div className="aura-nav__toggle">
           <IconButton
             icon={collapsed ? <IconPanelLeftOpen /> : <IconPanelLeftClose />}

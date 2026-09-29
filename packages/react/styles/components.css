@@ -685,7 +685,7 @@ a.aura-tab { text-decoration: none; }
   background: var(--aura-bg-canvas); border-right: 1px solid var(--aura-border-default);
   font-family: var(--font-sans); color: var(--aura-fg-primary);
 }
-.aura-nav__header { padding: var(--aura-space-5) var(--aura-space-4) var(--aura-space-4); }
+.aura-nav__header { padding: var(--aura-space-5) var(--aura-space-4) var(--aura-space-4); padding-inline-end: var(--aura-space-2); } /* 5.16 (Chamber-OS 96): 8px at the end, so a brand, its dot and a badge share one row at 240px */
 .aura-nav__scroll { flex: 1; overflow-y: auto; padding: 0 var(--aura-space-3); }
 /* No header: keep the first item off the top edge (5.0.2). */
 .aura-nav > .aura-nav__scroll:first-child { padding-top: var(--aura-space-3); }
@@ -722,6 +722,10 @@ a.aura-tab { text-decoration: none; }
 .aura-nav__item--group.has-active { color: var(--aura-fg-primary); }
 .aura-nav__chevron { color: var(--aura-fg-secondary); transition: transform var(--aura-duration-fast) var(--aura-ease); }
 .aura-nav__chevron.is-open { transform: rotate(180deg); }
+/* 5.16 (Chamber-OS 96): chevron="right" — right when closed, down when open (left when closed in right-to-left). */
+.aura-nav--chevron-right .aura-nav__chevron { transform: rotate(-90deg); }
+.aura-nav--chevron-right .aura-nav__chevron.is-open { transform: none; }
+[dir='rtl'] .aura-nav--chevron-right .aura-nav__chevron:not(.is-open), .aura-nav--chevron-right[dir='rtl'] .aura-nav__chevron:not(.is-open) { transform: rotate(90deg); }
 .aura-nav__sub { margin-top: 2px; }
 .aura-nav__sub[hidden] { display: none; }
 .aura-nav__footer { padding: var(--aura-space-3); border-top: 1px solid var(--aura-border-default); }
@@ -832,6 +836,11 @@ a.aura-tab { text-decoration: none; }
 .aura-combo__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
 /* Same specificity as `.aura-combo__option > .aura-icon` above and later in the file, so it wins by order (4.18). */
 .aura-combo__option > .aura-combo__check { color: var(--aura-fg-accent); }
+/* 5.16 (Chamber-OS 105): option groups under a heading. */
+.aura-combo__group { list-style: none; }
+.aura-combo__group + .aura-combo__group, .aura-combo__option + .aura-combo__group { margin-top: var(--aura-space-1); padding-top: var(--aura-space-1); border-top: 1px solid var(--aura-border-subtle); }
+.aura-combo__group-label { display: block; padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; line-height: 16px; color: var(--aura-fg-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+.aura-combo__grouplist { list-style: none; margin: 0; padding: 0; }
 .aura-combo__note { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-3) var(--aura-space-2); font-size: 13px; color: var(--aura-fg-secondary); }
 
 /* ---------- DatePicker / Calendar ---------- */

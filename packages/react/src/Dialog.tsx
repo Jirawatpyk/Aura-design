@@ -1,11 +1,20 @@
 import * as React from 'react';
 import { useStrings, useDensity } from './locale.js';
 import { createPortal } from 'react-dom';
-import { cx, omit, uid, useMergedRef } from './internal.js';
+import { cx, devWarnOnce, omit, uid, useMaybeControlled, useMergedRef } from './internal.js';
 import { IconButton } from './IconButton.js';
 import { useModal } from './useModal.js';
 import type { DialogProps, DrawerProps } from './types.js';
 import { IconX } from './icons.js';
+
+/* 5.16: what closes the Dialog around a component — a Save or Cancel inside a Dialog that opens itself (`trigger`). */
+const DialogClose = React.createContext<(() => void) | null>(null);
+/** Inside a Dialog's body or footer: a function that closes it (5.16) — also when `dismissible={false}`, which only
+ * turns off Escape, the scrim and ×. Outside a Dialog it does nothing. Use it for Cancel and Save in a Dialog that
+ * has a `trigger` and no `open`. */
+export function useDialogClose(): () => void {
+  return React.useContext(DialogClose) || function () {};
+}
 
 export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dialog(props, ref) {
   const t = useStrings();
@@ -14,21 +23,81 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
     merged = useMergedRef(ref, own),
     titleId = uid(),
     descId = uid();
+  /* 5.16 (Chamber-OS 101): with a `trigger` and no `open`, the Dialog keeps its own open state. */
+  const openState = useMaybeControlled<boolean>(props.open, false, null),
+    open = openState[0];
+  if (props.open === undefined && !props.trigger)
+    devWarnOnce('dialog-no-open', 'Dialog has neither `open` nor `trigger`, so it can never open. Pass one of them.');
+  const trigId = uid();
+  /* The app's own close (useDialogClose: Save, Cancel) — always allowed. */
+  function closeNow() {
+    if (props.open === undefined) openState[1](false);
+    if (props.onClose) props.onClose();
+  }
+  /* Escape, the scrim and ×: only while dismissible. */
   function close() {
-    if (props.dismissible !== false && props.onClose) props.onClose();
+    if (props.dismissible === false) return;
+    closeNow();
   }
   /* 5.7: an alertdialog (a confirmation, often with a typed reason) ignores scrim clicks unless asked. */
   const scrimCloses =
     props.dismissible !== false &&
     (props.dismissOnScrim !== undefined ? props.dismissOnScrim : props.role !== 'alertdialog');
-  const modal = useModal(props.open, own, {
+  const modal = useModal(open, own, {
     autoFocus: props.autoFocus,
     onEscape: close,
     bodySelector: '.aura-dialog__body',
     footSelector: '.aura-dialog__foot',
+    /* With a trigger, focus goes back to it even where a click doesn't focus buttons (Safari). */
+    finalFocus: props.trigger
+      ? function () {
+          const ff = props.finalFocus;
+          const to = ff ? (typeof ff === 'function' ? ff() : ff.current) : null;
+          return to || (document.querySelector('[data-aura-trigger="' + trigId + '"]') as HTMLElement | null);
+        }
+      : props.finalFocus,
+    onCloseComplete: props.onCloseComplete,
   });
-  if (!modal.ready) return null;
-  return createPortal(
+  const trig = props.trigger;
+  const trigger =
+    trig && React.isValidElement(trig)
+      ? React.cloneElement(trig as React.ReactElement<Record<string, unknown>>, {
+          'aria-haspopup': 'dialog',
+          'aria-expanded': open,
+          'data-aura-trigger': trigId,
+          onClick: function (e: React.MouseEvent) {
+            const own = (trig.props as { onClick?: (e: React.MouseEvent) => void }).onClick;
+            if (own) own(e);
+            if (e.defaultPrevented) return;
+            if (props.open === undefined) openState[1](true);
+            if (props.onOpen) props.onOpen();
+          },
+        })
+      : null;
+  if (!modal.ready) return trigger;
+  /* id, data-* and aria-* reach the panel; the dialog semantics stay AURA's. */
+  const rest = omit(props, [
+    'open',
+    'onClose',
+    'title',
+    'description',
+    'children',
+    'footer',
+    'size',
+    'dismissible',
+    'dismissOnScrim',
+    'role',
+    'autoFocus',
+    'className',
+    'trigger',
+    'onOpen',
+    'finalFocus',
+    'onCloseComplete',
+    'aria-labelledby',
+    'aria-describedby',
+    'aria-modal',
+  ]);
+  const panel = createPortal(
     <div className="aura-dialog-layer" data-density={density} onKeyDown={modal.onKeyDown}>
       <div
         className="aura-scrim"
@@ -44,11 +113,12 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
         aria-hidden={true}
       />
       <div
+        {...rest}
         ref={merged}
         role={props.role || 'dialog'}
         aria-modal={true}
         aria-labelledby={titleId}
-        aria-describedby={props.description ? descId : undefined}
+        aria-describedby={cx(props.description ? descId : '', props['aria-describedby']) || undefined}
         tabIndex={-1}
         className={cx('aura-dialog', 'aura-dialog--' + (props.size || 'md'), props.className)}
       >
@@ -65,11 +135,21 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
             {props.description}
           </p>
         ) : null}
-        {props.children ? <div className="aura-dialog__body">{props.children}</div> : null}
-        {props.footer ? <div className="aura-dialog__foot">{props.footer}</div> : null}
+        <DialogClose.Provider value={closeNow}>
+          {props.children ? <div className="aura-dialog__body">{props.children}</div> : null}
+          {props.footer ? <div className="aura-dialog__foot">{props.footer}</div> : null}
+        </DialogClose.Provider>
       </div>
     </div>,
     document.body,
+  );
+  return trigger ? (
+    <>
+      {trigger}
+      {panel}
+    </>
+  ) : (
+    panel
   );
 });
 
@@ -90,6 +170,8 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
     onEscape: close,
     bodySelector: '.aura-drawer__body',
     footSelector: '.aura-drawer__foot',
+    finalFocus: props.finalFocus,
+    onCloseComplete: props.onCloseComplete,
   });
   if (!modal.ready) return null;
   const side = props.side === 'left' ? 'left' : 'right';
@@ -112,6 +194,8 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
     'className',
     'closeLabel',
     'closeProps',
+    'finalFocus',
+    'onCloseComplete',
   ]);
   const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
   return createPortal(

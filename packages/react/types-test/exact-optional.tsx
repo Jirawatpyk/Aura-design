@@ -305,3 +305,51 @@ export const crumbTarget = (
 export const badFlush = <Aura.Card flushBelow="xl">b</Aura.Card>;
 // @ts-expect-error Table stackStyle is list | cards
 export const badStack = <Aura.Table stackStyle="grid">x</Aura.Table>;
+/* 5.16 (Chamber-OS 95, 96, 98, 101, 105). */
+export function Addendum16({
+  flag,
+  ref,
+}: {
+  flag: boolean | undefined;
+  ref: React.RefObject<HTMLButtonElement | null>;
+}) {
+  return (
+    <>
+      <Aura.SideNav
+        chevron={flag ? 'right' : undefined}
+        collapseToggle={flag ? 'row' : undefined}
+        items={[{ id: 'out', label: 'Sign out', selectable: flag, onSelect: flag ? () => {} : undefined }]}
+      />
+      <Aura.DataTable
+        rows={[{ id: 'a' }]}
+        selectable
+        rangeSelect={flag}
+        onSelectionChange={(keys, change) => {
+          const k: string | number | null = change.key;
+          const s: 'click' | 'keyboard' | 'all' | 'sync' = change.source;
+          void [keys, k, s, change.shiftKey, change.range];
+        }}
+      />
+      <Aura.Dialog
+        trigger={<Aura.Button>Open</Aura.Button>}
+        title="T"
+        data-testid="d"
+        finalFocus={ref}
+        onCloseComplete={undefined}
+      >
+        x
+      </Aura.Dialog>
+      <Aura.Dialog open={flag} onClose={() => {}} title="T" finalFocus={() => null} onOpen={undefined}>
+        x
+      </Aura.Dialog>
+      <Aura.Drawer open={false} onClose={() => {}} title="T" finalFocus={ref} onCloseComplete={() => {}}>
+        x
+      </Aura.Drawer>
+      <Aura.Combobox label="Country" groups={[{ label: 'Most used', options: ['Thailand'] }]} allowCustomValue={flag} />
+    </>
+  );
+}
+// @ts-expect-error allowCustomValue is single-value only
+export const badMulti = <Aura.Combobox label="x" multiple options={[]} allowCustomValue />;
+// @ts-expect-error chevron is down | right
+export const badChevron = <Aura.SideNav chevron="left" items={[]} />;

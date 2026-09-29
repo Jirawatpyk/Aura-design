@@ -10,6 +10,10 @@ export interface ModalOptions {
   footSelector?: string | undefined;
   autoFocus?: boolean | undefined;
   onEscape?: (() => void) | undefined;
+  /** Where focus goes on close instead of the opener (5.16). */
+  finalFocus?: React.RefObject<HTMLElement | null> | (() => HTMLElement | null) | undefined;
+  /** Once the modal has closed and left the page (5.16). */
+  onCloseComplete?: (() => void) | undefined;
 }
 /* 5.1.1: one page-scroll lock shared by every open modal. Each modal used to save and restore body overflow on its
  * own, so two dialogs closing out of order left the page locked. */
@@ -47,6 +51,9 @@ export function useModal(
   const mounted = useMounted();
   const prev = React.useRef<HTMLElement | null>(null);
   const o = opts || {};
+  /* Read at close, not when it opened: the element to focus (a row just saved) usually exists only by then. */
+  const latest = React.useRef(o);
+  latest.current = o;
   React.useEffect(
     function () {
       if (!open || !mounted) return;
@@ -74,7 +81,12 @@ export function useModal(
       if (target && o.autoFocus !== false) target.focus();
       return function () {
         unlock();
-        if (prev.current && prev.current.focus) prev.current.focus();
+        const l = latest.current;
+        const ff = l.finalFocus;
+        const to = ff ? (typeof ff === 'function' ? ff() : ff.current) : null;
+        const back = to && to.isConnected ? to : prev.current;
+        if (back && back.focus) back.focus();
+        if (l.onCloseComplete) l.onCloseComplete();
       };
     },
     [open, mounted],

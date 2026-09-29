@@ -52,6 +52,16 @@ export interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnc
   linkComponent?: React.ElementType | undefined;
 }
 
+/** How a DataTable selection changed: the second argument of `onSelectionChange` (5.16). */
+export interface DataTableSelectionChange {
+  /** The row whose box or Space made the change; null for select-all and `sync`. */
+  key: string | number | null;
+  shiftKey: boolean;
+  source: 'click' | 'keyboard' | 'all' | 'sync';
+  /** With `rangeSelect`, the keys a Shift range set (the row's own key included). */
+  range?: Array<string | number> | undefined;
+}
+
 /** What DataTable's onStateChange reports: the sort and the 1-based page, together. */
 export interface DataTableState {
   sort: DataTableSort | null;
@@ -150,7 +160,13 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
   selected?: Array<string | number> | undefined;
   /** Initial selection when uncontrolled. */
   defaultSelected?: Array<string | number> | undefined;
-  onSelectionChange?: ((keys: Array<string | number>) => void) | undefined;
+  /** The new keys, and how they changed (5.16, Chamber-OS 98): the row's `key` (null for select-all), whether Shift
+   * was held, and the `source` — `click` (a checkbox), `keyboard` (Space on a row), `all` (the select-all box) or
+   * `sync` (keys of rows `isRowSelectable` rejects, dropped). `range` lists the keys a Shift range changed. */
+  onSelectionChange?: ((keys: Array<string | number>, change: DataTableSelectionChange) => void) | undefined;
+  /** Shift-click a row's checkbox (or Shift+Space on a row) to set every selectable row from the last one changed to
+   * this one, on this page and in this order, to this row's new state (5.16, Chamber-OS 98). Default false. */
+  rangeSelect?: boolean | undefined;
   /** Shown when rows is empty. */
   empty?: DataTableEmpty | undefined;
   /** A totals row under the body (4.19): content per column key, e.g. `{ id: 'Total', vat: '7,000.00', total: '107,000.00' }`.
@@ -682,9 +698,26 @@ export interface FieldPropsPublic {
   required?: boolean | undefined;
   optional?: boolean | undefined;
 }
-export interface DialogProps {
-  open: boolean;
-  onClose: () => void;
+/** `id`, `data-*`, `aria-*`, `style`, `lang` and `dir` go on the `.aura-dialog` panel (5.16, Chamber-OS 101). */
+export interface DialogProps
+  extends
+    Pick<React.HTMLAttributes<HTMLDivElement>, 'id' | 'style' | 'lang' | 'dir'>,
+    React.AriaAttributes,
+    DataAttributes {
+  /** Controlled open state. Leave it out with a `trigger` and the Dialog opens and closes itself (5.16). */
+  open?: boolean | undefined;
+  onClose?: (() => void) | undefined;
+  /** The button that opens it (5.16, Chamber-OS 101): rendered in place, with `aria-haspopup="dialog"`,
+   * `aria-expanded` and a click that opens the Dialog (its own onClick runs first; `preventDefault()` keeps it shut).
+   * Focus returns to it on close. */
+  trigger?: React.ReactElement | undefined;
+  /** Called when the trigger opens it (5.16). */
+  onOpen?: (() => void) | undefined;
+  /** Where focus goes when it closes — by a button, Escape or the scrim — instead of back to what opened it: the
+   * row a save just created (5.16). A ref, or a function read at close; null falls back to the opener. */
+  finalFocus?: React.RefObject<HTMLElement | null> | (() => HTMLElement | null) | undefined;
+  /** Runs once after it has closed and its panel has left the page (5.16) — reset a selection there. */
+  onCloseComplete?: (() => void) | undefined;
   title: React.ReactNode;
   description?: React.ReactNode | undefined;
   children?: React.ReactNode | undefined;
@@ -784,6 +817,11 @@ export interface NavItem {
   children?: NavItem[] | undefined;
   /** Start open. A group also opens by itself when one of its items is the current one. */
   defaultOpen?: boolean | undefined;
+  /** Runs when the item is chosen (5.16, Chamber-OS 95). */
+  onSelect?: (() => void) | undefined;
+  /** `false` makes an action row — Sign out, Collapse sidebar: it looks like the other rows and runs `onSelect`,
+   * but never becomes the current item (no `aria-current`, no `onChange`). Default true. (5.16) */
+  selectable?: boolean | undefined;
 }
 export interface SideNavProps {
   sections?: Array<{ title?: string | undefined; items: NavItem[] }> | undefined;
@@ -806,6 +844,15 @@ export interface SideNavProps {
   onCollapsedChange?: ((collapsed: boolean) => void) | undefined;
   /** Adds a collapse / expand button at the bottom. AppShell hides it in its phone drawer. */
   collapsible?: boolean | undefined;
+  /** Called with the item's id when an action row (`selectable: false`) is chosen, after its `onSelect` (5.16).
+   * AppShell uses it to close its phone drawer. */
+  onAction?: ((id: string) => void) | undefined;
+  /** How `collapsible` shows its toggle: `icon` (default, an IconButton) or `row` — a labelled nav row
+   * ("Collapse sidebar") with the rows' look, its icon alone in the rail (5.16, Chamber-OS 95). */
+  collapseToggle?: 'icon' | 'row' | undefined;
+  /** Where a closed group's chevron points: `down` (default; up when open) or `right` (down when open; left in
+   * right-to-left pages) (5.16, Chamber-OS 96). */
+  chevron?: 'down' | 'right' | undefined;
   /** The 1px right edge that divides the nav from the page. Default true; `false` when your layout draws its own
    * divider. (5.1) */
   bordered?: boolean | undefined;
@@ -875,7 +922,7 @@ export interface ComboboxOption {
 /** Combobox with `multiple`: pick any number; the picks show as removable chips in the field. */
 export interface ComboboxMultipleProps extends Omit<
   ComboboxProps,
-  'value' | 'defaultValue' | 'onChange' | 'clearable'
+  'value' | 'defaultValue' | 'onChange' | 'clearable' | 'allowCustomValue'
 > {
   multiple: true;
   /** Selected option values, in the order they were picked (controlled). */
@@ -888,7 +935,8 @@ export interface ComboboxMultipleProps extends Omit<
   max?: number | undefined;
 }
 export interface ComboboxProps extends FieldProps {
-  options: Array<ComboboxOption | string>;
+  /** The options. Optional with `groups` (5.16). */
+  options?: Array<ComboboxOption | string> | undefined;
   /** Selected option value (controlled). */
   value?: string | null | undefined;
   defaultValue?: string | null | undefined;
@@ -911,6 +959,14 @@ export interface ComboboxProps extends FieldProps {
   limit?: number | undefined;
   /** Replace the Thai-aware default filter (label, description, keywords). */
   filter?: ((option: ComboboxOption, query: string) => boolean) | undefined;
+  /** Options under headings, after any in `options` (5.16, Chamber-OS 105): `[{ label: 'Nordic and Thailand',
+   * options: [...] }]`. Each heading names its group for screen readers; filtering keeps a heading while any of its
+   * options match. */
+  groups?: Array<{ label: string; options: Array<ComboboxOption | string> }> | undefined;
+  /** A typed value that isn't in the list is kept (5.16, Chamber-OS 105): Enter with no match highlighted, or leaving
+   * the field, makes the text the value (text matching an option's label picks that option). Clearing the text
+   * clears the value. Single value only. */
+  allowCustomValue?: boolean | undefined;
   className?: string | undefined;
 }
 
@@ -1067,6 +1123,10 @@ export interface DrawerProps
     DataAttributes {
   open: boolean;
   onClose: () => void;
+  /** As Dialog's (5.16): where focus goes when it closes, instead of back to what opened it. */
+  finalFocus?: React.RefObject<HTMLElement | null> | (() => HTMLElement | null) | undefined;
+  /** As Dialog's (5.16): runs once after it has closed and left the page. */
+  onCloseComplete?: (() => void) | undefined;
   /** Default `right`. */
   side?: 'right' | 'left' | undefined;
   /** sm 360 · md 480 (default) · lg 640 · nav = SideNav width. Full width below 640px. */

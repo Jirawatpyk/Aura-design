@@ -11,6 +11,7 @@ import type {
   DataTableColumn,
   DataTableEmpty,
   DataTableProps,
+  DataTableSelectionChange,
   DataTableSort,
   MenuItem,
   StatusPillProps,
@@ -103,7 +104,11 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   );
   const sort = sortState[0],
     setSort = sortState[1];
-  const selState = useMaybeControlled<RowKey[]>(props.selected, props.defaultSelected || [], props.onSelectionChange);
+  /* 5.16 (Chamber-OS 98): onSelectionChange also says how the selection changed, so it is called here, not by the
+   * controlled-state hook. */
+  const selState = useMaybeControlled<RowKey[]>(props.selected, props.defaultSelected || [], null);
+  const onSel = React.useRef(props.onSelectionChange);
+  onSel.current = props.onSelectionChange;
   /* 5.6 (Chamber-OS 52): rows `isRowSelectable` rejects show no checkbox and never count as selected, even when the
    * app passes their keys in. Keys of rows not on hand (other server pages) are kept as given. */
   const canSelect = function (r: Row | null | undefined): boolean {
@@ -115,9 +120,12 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       if (!canSelect(r)) rejected[String(r[rowKey])] = true;
     });
   const selected = selState[0].filter(function (k: RowKey) {
-      return !rejected[String(k)];
-    }),
-    setSelected = selState[1];
+    return !rejected[String(k)];
+  });
+  function setSelected(next: RowKey[], change?: DataTableSelectionChange) {
+    selState[1](next);
+    if (onSel.current) onSel.current(next, change || { key: null, shiftKey: false, source: 'sync' });
+  }
   /* Keys the app passed in for rejected rows are dropped from its state too, so `selected` never holds one. */
   const droppedSig =
     selState[0].length === selected.length
@@ -736,13 +744,42 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     return selSet[String(k)];
   }).length;
   const all = nSel > 0 && nSel === pageKeys.length;
-  function toggle(k: RowKey, on: boolean) {
+  /* The last row changed one at a time: the start of a Shift range (5.16). */
+  const anchor = React.useRef<RowKey | null>(null);
+  const shiftClick = React.useRef(false);
+  function toggle(k: RowKey, on: boolean, how: { shiftKey: boolean; source: 'click' | 'keyboard' }) {
+    const same = function (x: RowKey) {
+      return String(x) === String(k); /* '1' from a URL and 1 from the data are the same row (5.1.1) */
+    };
+    let range: RowKey[] | null = null;
+    if (props.rangeSelect && how.shiftKey && anchor.current != null) {
+      const from = pageKeys.findIndex(function (x: RowKey) {
+        return String(x) === String(anchor.current);
+      });
+      const to = pageKeys.findIndex(same);
+      if (from >= 0 && to >= 0) range = pageKeys.slice(Math.min(from, to), Math.max(from, to) + 1);
+    }
+    anchor.current = k;
+    const change: DataTableSelectionChange = { key: k, shiftKey: how.shiftKey, source: how.source };
+    if (range) {
+      const inRange: Record<string, boolean> = {};
+      range.forEach(function (x: RowKey) {
+        inRange[String(x)] = true;
+      });
+      const rest = selected.filter(function (x: RowKey) {
+        return !inRange[String(x)];
+      });
+      change.range = range;
+      setSelected(on ? rest.concat(range) : rest, change);
+      return;
+    }
     setSelected(
       on
         ? selected.concat([k])
         : selected.filter(function (x: RowKey) {
-            return String(x) !== String(k); /* '1' from a URL and 1 from the data are the same row (5.1.1) */
+            return !same(x);
           }),
+      change,
     );
   }
   function toggleAll() {
@@ -758,6 +795,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
               return !selSet[String(k)];
             }),
           ),
+      { key: null, shiftKey: false, source: 'all' },
     );
   }
 
@@ -1036,7 +1074,8 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       } else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
       else if (r > 0 && k === ' ' && selectable) {
         /* Space on a row that can't be selected does nothing, but is still handled so the page doesn't scroll. */
-        if (canSelect(row) && !(stacked && noCardSel)) toggle(row![rowKey], !selSet[row![rowKey]]);
+        if (canSelect(row) && !(stacked && noCardSel))
+          toggle(row![rowKey], !selSet[row![rowKey]], { shiftKey: e.shiftKey, source: 'keyboard' });
       } else if (
         r > 0 &&
         k === 'Enter' &&
@@ -1246,6 +1285,10 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           onFocus={function (e: React.FocusEvent) {
             if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
           }}
+          /* The checkbox reports only on/off; whether Shift was held comes from the click that changed it. */
+          onClickCapture={function (e: React.MouseEvent) {
+            shiftClick.current = e.shiftKey;
+          }}
         >
           {canSelect(r) ? (
             <Checkbox
@@ -1254,7 +1297,9 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
               tabIndex={-1}
               label={selLabel}
               onChange={function (on: boolean) {
-                toggle(k, on);
+                const shift = shiftClick.current;
+                shiftClick.current = false;
+                toggle(k, on, { shiftKey: shift, source: 'click' });
               }}
             />
           ) : null}

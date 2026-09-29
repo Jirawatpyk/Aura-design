@@ -3917,3 +3917,201 @@ test.describe('5.15: Chamber-OS addenda 14–16 (layout)', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.16: Chamber-OS addenda 15–16 (larger items)', () => {
+  test('95 action rows and the collapse row, 96 right chevron and a one-row header', async ({ page }) => {
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await story(page, 'aura-new-in-5-16--side-nav-actions');
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    /* 96: brand, dot and badge on one row at 240px. */
+    const row = await page.getByTestId('brand').evaluate((b) => {
+      const kids = Array.from(b.children).map((c) => c.getBoundingClientRect());
+      return { tops: kids.map((k) => Math.round(k.top + k.height / 2)), h: b.getBoundingClientRect().height };
+    });
+    expect(Math.max(...row.tops) - Math.min(...row.tops)).toBeLessThanOrEqual(2);
+    expect(row.h).toBeLessThan(30);
+    expect(await nav.evaluate((n) => n.getBoundingClientRect().width)).toBe(240);
+    /* Right when closed, down when open. */
+    const admin = nav.getByRole('button', { name: 'Admin' });
+    const rot = () => admin.locator('.aura-nav__chevron').evaluate((c) => getComputedStyle(c).transform);
+    expect(await rot()).toBe('matrix(0, -1, 1, 0, 0, 0)');
+    await admin.click();
+    await page.waitForTimeout(250);
+    expect(await rot()).toBe('none');
+    /* 95: the action row runs its callback and never becomes current. */
+    const signOut = nav.getByRole('button', { name: 'Sign out' });
+    await signOut.click();
+    await expect(page.getByTestId('log')).toHaveText('Signed out');
+    await expect(page.getByTestId('page')).toHaveText('Page: members');
+    await expect(signOut).not.toHaveAttribute('aria-current');
+    await expect(nav.getByRole('button', { name: 'Members' })).toHaveAttribute('aria-current', 'page');
+    const [a, m] = await Promise.all([
+      signOut.boundingBox(),
+      nav.getByRole('button', { name: 'Members' }).boundingBox(),
+    ]);
+    expect([a!.height, a!.x, a!.width]).toEqual([m!.height, m!.x, m!.width]);
+    /* Arrow keys reach it like any row. */
+    await nav.getByRole('button', { name: 'Audit log' }).focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(signOut).toBeFocused();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    /* The collapse row: labelled, a nav row; in the rail it is its icon with the label as its name. */
+    const toggle = nav.getByRole('button', { name: 'Collapse sidebar' });
+    await expect(toggle).toHaveClass(/aura-nav__item/);
+    await toggle.click();
+    await expect(nav).toHaveClass(/aura-nav--collapsed/);
+    await page.waitForTimeout(400); /* past the width transition */
+    const expand = nav.getByRole('button', { name: 'Expand sidebar' });
+    const eb = await expand.boundingBox();
+    expect(eb!.width).toBeLessThanOrEqual(48);
+    await expect(nav.getByRole('button', { name: 'Sign out' })).toBeVisible();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('95: action rows are 44px on touch screens', async ({ browser }) => {
+    const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 1200, height: 800 } });
+    const page = await ctx.newPage();
+    await story(page, 'aura-new-in-5-16--side-nav-actions');
+    for (const name of ['Sign out', 'Collapse sidebar']) {
+      const b = await page.getByRole('button', { name }).boundingBox();
+      expect(b!.height, name).toBeGreaterThanOrEqual(44);
+      expect(b!.width, name).toBeGreaterThan(150); /* a full-width row, not a 44px icon button */
+    }
+    await ctx.close();
+  });
+
+  test('98: rangeSelect and how the selection changed', async ({ page }) => {
+    await story(page, 'aura-new-in-5-16--data-table-range');
+    const box = (name: string) => page.getByRole('checkbox', { name });
+    const change = async () => JSON.parse((await page.getByTestId('change').textContent()) || '{}');
+    await box('Select Acme AB').click({ force: true });
+    expect(await change()).toEqual({ key: 'M-101', shiftKey: false, source: 'click' });
+    await page.keyboard.down('Shift');
+    await box('Select Volvo Thailand').click({ force: true });
+    await page.keyboard.up('Shift');
+    await expect(page.getByTestId('selected')).toHaveText('Selected: M-101, M-102, M-103, M-104');
+    expect(await change()).toEqual({
+      key: 'M-104',
+      shiftKey: true,
+      source: 'click',
+      range: ['M-101', 'M-102', 'M-103', 'M-104'],
+    });
+    /* Shift-clicking a selected row clears the range up to it. */
+    await page.keyboard.down('Shift');
+    await box('Select Nordic Timber Oy').click({ force: true });
+    await page.keyboard.up('Shift');
+    await expect(page.getByTestId('selected')).toHaveText('Selected: M-101');
+    /* Space on a row: source keyboard. */
+    await page.locator('[data-rc="5:1"]').focus();
+    await page.keyboard.press('Space');
+    expect(await change()).toEqual({ key: 'M-105', shiftKey: false, source: 'keyboard' });
+    await expect(page.getByTestId('selected')).toHaveText('Selected: M-101, M-105');
+    /* The select-all box. */
+    await page.getByRole('checkbox', { name: 'Select all rows' }).click({ force: true });
+    expect(await change()).toEqual({ key: null, shiftKey: false, source: 'all' });
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('101: Dialog trigger, attributes on the panel, finalFocus and onCloseComplete', async ({ page }) => {
+    await story(page, 'aura-new-in-5-16--dialog-options');
+    const trig = page.getByRole('button', { name: 'Add contact' });
+    await expect(trig).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(trig).toHaveAttribute('aria-expanded', 'false');
+    await trig.click();
+    const dlg = page.getByRole('dialog', { name: 'Add contact' });
+    await expect(dlg).toBeVisible();
+    await expect(dlg).toHaveAttribute('data-testid', 'contact-dialog');
+    await expect(trig).toHaveAttribute('aria-expanded', 'true');
+    expect(await axeScan(page, 'body')).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(trig).toBeFocused();
+    /* A footer button closes a self-managed Dialog through useDialogClose. */
+    await trig.click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(trig).toBeFocused();
+    /* dismissible={false}: Escape does nothing, the Dialog's own Accept closes it. */
+    await page.getByRole('button', { name: 'Accept terms' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Accept the new terms' })).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: 'Accept' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Accept terms' })).toBeFocused();
+    /* finalFocus: after a save, focus lands on the row it created; onCloseComplete runs once, after unmount. */
+    await page.getByRole('button', { name: 'Restore primary' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Restore' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Lars Holm' })).toBeFocused();
+    await expect(page.getByTestId('log')).toHaveText('closed:gone');
+    /* Closed by Escape with nothing new: focus goes back to the opener (the ref points at Lars Holm now). */
+    await page.getByRole('button', { name: 'Restore primary' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Lars Holm' })).toBeFocused();
+    await expect(page.getByTestId('log')).toHaveText('closed:gone closed:gone');
+    /* …and by the scrim. */
+    await page.getByRole('button', { name: 'Restore primary' }).click();
+    await page.mouse.click(5, 5);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByTestId('log')).toHaveText('closed:gone closed:gone closed:gone');
+  });
+
+  test('105: Combobox takes a typed value and shows option groups', async ({ page }) => {
+    await story(page, 'aura-new-in-5-16--combobox-custom');
+    const prov = page.getByRole('combobox', { name: 'Province / region' });
+    await prov.fill('Västra Götaland');
+    await prov.press('Enter');
+    await expect(page.getByTestId('province')).toHaveText('Province: Västra Götaland');
+    await expect(prov).toHaveValue('Västra Götaland');
+    /* A typed label that matches an option picks the option; leaving the field commits too. */
+    await prov.fill('phuket');
+    await page.mouse.click(700, 20); /* a click elsewhere on the page */
+    await expect(page.getByTestId('province')).toHaveText('Province: Phuket');
+    await prov.fill('');
+    await prov.press('Tab');
+    await expect(page.getByTestId('province')).toHaveText('Province: none');
+    /* Typing highlights nothing, so Enter and Tab keep a prefix of an option; an option reached by arrow is picked. */
+    await prov.fill('Chon');
+    await expect(prov).not.toHaveAttribute('aria-activedescendant');
+    await prov.press('Enter');
+    await expect(page.getByTestId('province')).toHaveText('Province: Chon');
+    await prov.fill('Chi');
+    await prov.press('Tab');
+    await expect(page.getByTestId('province')).toHaveText('Province: Chi');
+    await prov.fill('Ch');
+    await prov.press('ArrowDown');
+    await prov.press('Tab');
+    await expect(page.getByTestId('province')).toHaveText('Province: Chiang Mai');
+    /* Groups: headings name their options; filtering keeps a heading only while it has matches. */
+    const country = page.getByRole('combobox', { name: 'Country', exact: true });
+    await country.click();
+    const list = page.getByRole('listbox');
+    await expect(list.getByRole('group', { name: 'Most used' }).getByRole('option')).toHaveText(['Thailand', 'Sweden']);
+    await expect(list.getByRole('group', { name: 'All countries' }).getByRole('option')).toHaveCount(5);
+    /* A press on a heading keeps the list open and focus in the field. */
+    await list.getByText('Most used').click();
+    await expect(list).toBeVisible();
+    await expect(country).toBeFocused();
+    /* The grouped listbox itself (its popover scrolls by arrow keys and aria-activedescendant, as every Combobox's). */
+    expect(await axeScan(page, '[role="listbox"]')).toEqual([]);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    await country.fill('an');
+    await expect(list.getByRole('group')).toHaveText([/Thailand/, /Finland.*Germany.*Japan/]);
+    await country.press('ArrowDown');
+    await country.press('Enter');
+    await expect(page.getByTestId('country')).toHaveText('Country: Finland');
+    /* Past the limit, the note counts every option, grouped ones included. */
+    await page.getByRole('combobox', { name: 'Country (first three)' }).click();
+    await expect(page.getByText('Keep typing to narrow 7 options')).toBeVisible();
+  });
+
+  test('95: an action row in the AppShell phone drawer closes the drawer', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, 'aura-new-in-5-16--shell-sign-out');
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    const drawer = page.getByRole('dialog');
+    await drawer.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByTestId('log')).toHaveText('Signed out');
+  });
+});

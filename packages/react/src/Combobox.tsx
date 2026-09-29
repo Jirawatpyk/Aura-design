@@ -30,6 +30,8 @@ function norm(s: unknown): string {
 function toOpt(o: ComboboxOption | string): ComboboxOption {
   return typeof o === 'object' ? o : { value: String(o), label: String(o) };
 }
+/* 5.16: an option under a heading (`groups`) carries its group's index. */
+type GroupedOption = ComboboxOption & { __g?: number };
 /** The Thai-aware default filter: label, description and keywords contain the query. */
 export function defaultFilter(option: ComboboxOption, query: string): boolean {
   const q = norm(query).trim();
@@ -56,7 +58,14 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
     const auto = uid(),
       id = props.id || auto,
       listId = id + '-list';
-    const options = (props.options || []).map(toOpt);
+    const options: GroupedOption[] = (props.options || []).map(toOpt);
+    const groups = props.groups || [];
+    groups.forEach(function (g: { label: string; options: Array<ComboboxOption | string> }, gi: number) {
+      g.options.forEach(function (o: ComboboxOption | string) {
+        options.push(Object.assign({}, toOpt(o), { __g: gi }));
+      });
+    });
+    const custom = !multi && !!props.allowCustomValue;
     /* One store for both modes: a single value is kept as a 0- or 1-item list. */
     const st = useMaybeControlled<string[]>(
       multi ? mp.value : props.value === undefined ? undefined : props.value == null ? [] : [props.value],
@@ -117,7 +126,16 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
           });
     const more = shown.length > limit;
     shown = shown.slice(0, limit);
-    const activeIdx = Math.min(active, shown.length - 1);
+    /* 5.16: with allowCustomValue typing highlights nothing (-1) unless the text is an option's label, so Enter and
+     * Tab keep what was typed; the arrow keys still reach the options. */
+    const activeIdx =
+      active < 0
+        ? query
+          ? shown.findIndex(function (o: ComboboxOption) {
+              return !o.disabled && norm(o.label) === norm(query.trim());
+            })
+          : -1
+        : Math.min(active, shown.length - 1);
 
     function place() {
       if (!boxRef.current) return;
@@ -145,6 +163,8 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         function outside(e: Event) {
           if (boxRef.current && boxRef.current.contains(e.target as Node)) return;
           if (listRef.current && listRef.current.contains(e.target as Node)) return;
+          /* A click elsewhere commits typed text too (allowCustomValue); this listener outlives the render. */
+          if (commitRef.current()) return;
           close(false);
         }
         function onScroll(e: Event) {
@@ -183,6 +203,29 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
       setOpen(false);
       setQuery(null);
     }
+    /* 5.16 (Chamber-OS 105): with allowCustomValue, typed text becomes the value — an option whose label it matches,
+     * else the text itself; empty text clears it. Returns whether there was typed text to commit. */
+    const committed = React.useRef(false);
+    const commitRef = React.useRef(function (): boolean {
+      return false;
+    });
+    function commitTyped(): boolean {
+      if (!custom || query == null || committed.current) return false;
+      committed.current = true;
+      const q = query.trim();
+      if (!q) {
+        if (props.clearable !== false) setValue(null);
+      } else {
+        const hit = options.filter(function (o: ComboboxOption) {
+          return !o.disabled && norm(o.label) === norm(q);
+        })[0];
+        setValue(hit ? hit.value : q);
+      }
+      setQuery(null);
+      setOpen(false);
+      return true;
+    }
+    commitRef.current = commitTyped;
     function choose(o: ComboboxOption | undefined) {
       if (!o || o.disabled) return;
       if (multi) {
@@ -225,7 +268,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         if (open && live[activeIdx]) {
           e.preventDefault();
           choose(live[activeIdx]);
-        }
+        } else if (commitTyped()) e.preventDefault();
       } else if (k === 'Escape') {
         if (open) {
           e.preventDefault();
@@ -238,18 +281,80 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         /* Backspace in an empty field removes the last pick. */
         setValues(values.slice(0, -1));
       } else if (k === 'Tab') {
+        /* An option reached with the arrow keys is the pick, as with Enter; otherwise the typed text. */
+        if (custom && open && query != null && live[activeIdx]) {
+          choose(live[activeIdx]);
+          return;
+        }
+        if (commitTyped()) return;
         if (open) close();
       }
     }
-    const text = query != null ? query : selected ? selected.label : '';
+    /* A custom value (not an option) shows as itself. */
+    const text = query != null ? query : selected ? selected.label : custom && value != null ? value : '';
     const summaryId = id + '-picked';
     const optId = function (i: number) {
       return id + '-opt-' + i;
     };
+    function renderOpt(o: GroupedOption, i: number) {
+      const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
+      const blocked = o.disabled || (multi && full && !isSel);
+      return (
+        <li
+          key={o.value}
+          id={optId(i)}
+          role="option"
+          data-idx={i}
+          aria-selected={isSel}
+          aria-disabled={blocked || undefined}
+          className={cx(
+            'aura-combo__option',
+            i === activeIdx && 'is-active',
+            isSel && 'is-selected',
+            blocked && 'is-disabled',
+          )}
+          onPointerDown={function (e: React.PointerEvent) {
+            e.preventDefault();
+          }}
+          onClick={function () {
+            if (!blocked || isSel) choose(o);
+          }}
+          onPointerMove={function () {
+            if (activeIdx !== i) setActive(i);
+          }}
+        >
+          {o.icon ? <Icon name={o.icon} /> : null}
+          <span className="aura-combo__text">
+            <span className="aura-combo__label">{o.label}</span>
+            {o.description ? <span className="aura-combo__desc">{o.description}</span> : null}
+          </span>
+          {isSel ? <Icon name={<IconCheck />} className="aura-combo__check" /> : null}
+        </li>
+      );
+    }
+    /* Consecutive options of one group form a segment; ungrouped ones stand alone. */
+    function grouped(list: GroupedOption[]) {
+      const out: Array<{ g: number | undefined; items: Array<[GroupedOption, number]> }> = [];
+      list.forEach(function (o: GroupedOption, i: number) {
+        const last = out[out.length - 1];
+        if (last && last.g === o.__g) last.items.push([o, i]);
+        else out.push({ g: o.__g, items: [[o, i]] });
+      });
+      return out;
+    }
     const list =
       open && mounted && posState[0]
         ? createPortal(
-            <div ref={listRef} data-density={density} className="aura-combo__popover" style={posState[0]}>
+            <div
+              ref={listRef}
+              data-density={density}
+              className="aura-combo__popover"
+              style={posState[0]}
+              /* A press anywhere in the list (a group heading, the gaps) keeps focus in the field. */
+              onPointerDown={function (e: React.PointerEvent) {
+                e.preventDefault();
+              }}
+            >
               {/* 5.1.1: the listbox exists only while it has options (an empty one fails axe, aria-required-children);
                * "Searching…", "No matches" and "keep typing" sit beside it as a status line. */}
               {live.length ? (
@@ -260,39 +365,26 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                   aria-multiselectable={multi || undefined}
                   className="aura-combo__list"
                 >
-                  {live.map(function (o: ComboboxOption, i: number) {
-                    const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
-                    const blocked = o.disabled || (multi && full && !isSel);
+                  {grouped(live).map(function (seg: { g: number | undefined; items: Array<[GroupedOption, number]> }) {
+                    if (seg.g == null)
+                      return (
+                        <React.Fragment key={'u' + seg.items[0]![1]}>
+                          {seg.items.map(function (p: [GroupedOption, number]) {
+                            return renderOpt(p[0], p[1]);
+                          })}
+                        </React.Fragment>
+                      );
+                    const gid = id + '-group-' + seg.g + '-' + seg.items[0]![1];
                     return (
-                      <li
-                        key={o.value}
-                        id={optId(i)}
-                        role="option"
-                        data-idx={i}
-                        aria-selected={isSel}
-                        aria-disabled={blocked || undefined}
-                        className={cx(
-                          'aura-combo__option',
-                          i === activeIdx && 'is-active',
-                          isSel && 'is-selected',
-                          blocked && 'is-disabled',
-                        )}
-                        onPointerDown={function (e: React.PointerEvent) {
-                          e.preventDefault();
-                        }}
-                        onClick={function () {
-                          if (!blocked || isSel) choose(o);
-                        }}
-                        onPointerMove={function () {
-                          if (activeIdx !== i) setActive(i);
-                        }}
-                      >
-                        {o.icon ? <Icon name={o.icon} /> : null}
-                        <span className="aura-combo__text">
-                          <span className="aura-combo__label">{o.label}</span>
-                          {o.description ? <span className="aura-combo__desc">{o.description}</span> : null}
+                      <li key={gid} role="group" aria-labelledby={gid} className="aura-combo__group">
+                        <span id={gid} role="presentation" className="aura-combo__group-label">
+                          {groups[seg.g]!.label}
                         </span>
-                        {isSel ? <Icon name={<IconCheck />} className="aura-combo__check" /> : null}
+                        <ul role="none" className="aura-combo__grouplist">
+                          {seg.items.map(function (p: [GroupedOption, number]) {
+                            return renderOpt(p[0], p[1]);
+                          })}
+                        </ul>
                       </li>
                     );
                   })}
@@ -308,7 +400,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                   ) : !live.length ? (
                     <div className="aura-combo__note">{props.emptyText || t.noMatches}</div>
                   ) : (
-                    <div className="aura-combo__note">{t.keepTyping((props.options || []).length)}</div>
+                    <div className="aura-combo__note">{t.keepTyping(options.length)}</div>
                   )}
                 </div>
               ) : null}
@@ -409,8 +501,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
 
             value={text}
             onChange={function (e: React.ChangeEvent<HTMLInputElement>) {
+              committed.current = false;
               setQuery(e.target.value);
-              setActive(0);
+              setActive(custom ? -1 : 0);
               if (!open) setOpen(true);
               if (props.onSearch) props.onSearch(e.target.value);
             }}
@@ -419,6 +512,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
             onBlur={function () {
               setTimeout(function () {
                 if (listRef.current && listRef.current.contains(document.activeElement)) return;
+                /* Focus came back to the field before this ran: nothing to finish (allowCustomValue only). */
+                if (custom && document.activeElement === inputRef.current) return;
+                if (commitRef.current()) return;
                 setOpen(false);
                 setQuery(null);
               }, 0);

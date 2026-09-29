@@ -8,6 +8,7 @@ import type { AppShellProps } from './types.js';
 import { IconMenu } from './icons.js';
 
 type NavElementProps = {
+  onAction?: ((id: string) => void) | undefined;
   value?: string | undefined;
   defaultValue?: string | undefined;
   sections?: unknown;
@@ -80,6 +81,11 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
         onChange: function (id: string) {
           onNav(id);
           setOpen(false);
+        },
+        /* 5.16: an action row (Sign out) closes the drawer too. */
+        onAction: function (id: string) {
+          setOpen(false);
+          if (navEl.props.onAction) navEl.props.onAction(id);
         },
         className: cx(navEl.props.className, 'is-in-drawer'),
         collapsed: false,

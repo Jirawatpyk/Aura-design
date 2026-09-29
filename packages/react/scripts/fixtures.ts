@@ -214,6 +214,34 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.16 (Chamber-OS 95, 96, 98, 101, 105) */
+    SideNavActions: h(A.SideNav, {
+      value: 'a',
+      chevron: 'right',
+      collapsible: true,
+      collapseToggle: 'row',
+      items: [
+        { id: 'a', label: 'Members' },
+        { id: 'g', label: 'Admin', children: [{ id: 'r', label: 'Roles' }] },
+        { id: 'out', label: 'Sign out', selectable: false, onSelect: noop },
+      ],
+    }),
+    DialogTrigger: h(
+      A.Dialog,
+      { trigger: h(A.Button, null, 'Add contact'), title: 'Add contact', 'data-testid': 'd' },
+      'x',
+    ),
+    ComboboxCustom: h(A.Combobox, {
+      label: 'Province',
+      options: ['Bangkok'],
+      allowCustomValue: true,
+      defaultValue: 'Västra Götaland',
+    }),
+    ComboboxGroups: h(A.Combobox, {
+      label: 'Country',
+      groups: [{ label: 'Most used', options: ['Thailand', 'Sweden'] }],
+    }),
+    DataTableRange: h(A.DataTable, { rows, selectable: true, rangeSelect: true, onSelectionChange: noop }),
     /* 5.15 (Chamber-OS 85–100) */
     CardHeader: h(A.Card, { header: h(A.StatusPill, { tone: 'warning' }, 'Pending'), flushBelow: 'lg' }, 'Body'),
     ProgressReserved: h(A.Progress, { label: 'E-Blasts', value: 2, secondaryValue: 1, max: 6 }),

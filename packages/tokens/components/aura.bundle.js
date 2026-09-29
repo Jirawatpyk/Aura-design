@@ -138,6 +138,7 @@ window.Aura = (() => {
     useBreakpoint: () => useBreakpoint,
     useColorScheme: () => useColorScheme,
     useDensity: () => useDensity,
+    useDialogClose: () => useDialogClose,
     useFormatDate: () => useFormatDate,
     useResponsive: () => useResponsive
   });
@@ -2466,6 +2467,13 @@ window.Aura = (() => {
       const density = useDensity();
       const auto = uid(), id = props.id || auto, listId = id + "-list";
       const options = (props.options || []).map(toOpt);
+      const groups = props.groups || [];
+      groups.forEach(function(g, gi) {
+        g.options.forEach(function(o) {
+          options.push(Object.assign({}, toOpt(o), { __g: gi }));
+        });
+      });
+      const custom = !multi && !!props.allowCustomValue;
       const st = useMaybeControlled(
         multi ? mp.value : props.value === void 0 ? void 0 : props.value == null ? [] : [props.value],
         multi ? mp.defaultValue || [] : props.defaultValue == null ? [] : [props.defaultValue],
@@ -2505,7 +2513,9 @@ window.Aura = (() => {
       });
       const more = shown.length > limit;
       shown = shown.slice(0, limit);
-      const activeIdx = Math.min(active, shown.length - 1);
+      const activeIdx = active < 0 ? query ? shown.findIndex(function(o) {
+        return !o.disabled && norm(o.label) === norm(query.trim());
+      }) : -1 : Math.min(active, shown.length - 1);
       function place() {
         if (!boxRef.current) return;
         const r = boxRef.current.getBoundingClientRect();
@@ -2530,6 +2540,7 @@ window.Aura = (() => {
           function outside(e) {
             if (boxRef.current && boxRef.current.contains(e.target)) return;
             if (listRef.current && listRef.current.contains(e.target)) return;
+            if (commitRef.current()) return;
             close(false);
           }
           function onScroll(e) {
@@ -2566,6 +2577,27 @@ window.Aura = (() => {
         setOpen(false);
         setQuery(null);
       }
+      const committed = React19.useRef(false);
+      const commitRef = React19.useRef(function() {
+        return false;
+      });
+      function commitTyped() {
+        if (!custom || query == null || committed.current) return false;
+        committed.current = true;
+        const q = query.trim();
+        if (!q) {
+          if (props.clearable !== false) setValue(null);
+        } else {
+          const hit = options.filter(function(o) {
+            return !o.disabled && norm(o.label) === norm(q);
+          })[0];
+          setValue(hit ? hit.value : q);
+        }
+        setQuery(null);
+        setOpen(false);
+        return true;
+      }
+      commitRef.current = commitTyped;
       function choose(o) {
         if (!o || o.disabled) return;
         if (multi) {
@@ -2606,7 +2638,7 @@ window.Aura = (() => {
           if (open && live[activeIdx]) {
             e.preventDefault();
             choose(live[activeIdx]);
-          }
+          } else if (commitTyped()) e.preventDefault();
         } else if (k === "Escape") {
           if (open) {
             e.preventDefault();
@@ -2618,58 +2650,95 @@ window.Aura = (() => {
         } else if (k === "Backspace" && multi && !props.readOnly && !text2 && values.length) {
           setValues(values.slice(0, -1));
         } else if (k === "Tab") {
+          if (custom && open && query != null && live[activeIdx]) {
+            choose(live[activeIdx]);
+            return;
+          }
+          if (commitTyped()) return;
           if (open) close();
         }
       }
-      const text2 = query != null ? query : selected ? selected.label : "";
+      const text2 = query != null ? query : selected ? selected.label : custom && value != null ? value : "";
       const summaryId = id + "-picked";
       const optId = function(i) {
         return id + "-opt-" + i;
       };
-      const list = open && mounted && posState[0] ? (0, import_react_dom3.createPortal)(
-        /* @__PURE__ */ React19.createElement("div", { ref: listRef, "data-density": density, className: "aura-combo__popover", style: posState[0] }, live.length ? /* @__PURE__ */ React19.createElement(
-          "ul",
+      function renderOpt(o, i) {
+        const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
+        const blocked = o.disabled || multi && full && !isSel;
+        return /* @__PURE__ */ React19.createElement(
+          "li",
           {
-            id: listId,
-            role: "listbox",
-            "aria-label": props.label,
-            "aria-multiselectable": multi || void 0,
-            className: "aura-combo__list"
+            key: o.value,
+            id: optId(i),
+            role: "option",
+            "data-idx": i,
+            "aria-selected": isSel,
+            "aria-disabled": blocked || void 0,
+            className: cx(
+              "aura-combo__option",
+              i === activeIdx && "is-active",
+              isSel && "is-selected",
+              blocked && "is-disabled"
+            ),
+            onPointerDown: function(e) {
+              e.preventDefault();
+            },
+            onClick: function() {
+              if (!blocked || isSel) choose(o);
+            },
+            onPointerMove: function() {
+              if (activeIdx !== i) setActive(i);
+            }
           },
-          live.map(function(o, i) {
-            const isSel = multi ? isPicked(o.value) : !!selected && o.value === selected.value;
-            const blocked = o.disabled || multi && full && !isSel;
-            return /* @__PURE__ */ React19.createElement(
-              "li",
-              {
-                key: o.value,
-                id: optId(i),
-                role: "option",
-                "data-idx": i,
-                "aria-selected": isSel,
-                "aria-disabled": blocked || void 0,
-                className: cx(
-                  "aura-combo__option",
-                  i === activeIdx && "is-active",
-                  isSel && "is-selected",
-                  blocked && "is-disabled"
-                ),
-                onPointerDown: function(e) {
-                  e.preventDefault();
-                },
-                onClick: function() {
-                  if (!blocked || isSel) choose(o);
-                },
-                onPointerMove: function() {
-                  if (activeIdx !== i) setActive(i);
-                }
-              },
-              o.icon ? /* @__PURE__ */ React19.createElement(Icon, { name: o.icon }) : null,
-              /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
-              isSel ? /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconCheck, null), className: "aura-combo__check" }) : null
-            );
-          })
-        ) : null, props.loading || !live.length || more ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__list", role: "status" }, props.loading ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconLoaderCircle, null), className: "aura-spin" }), props.loadingText || t.searching) : !live.length ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, props.emptyText || t.noMatches) : /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, t.keepTyping((props.options || []).length))) : null),
+          o.icon ? /* @__PURE__ */ React19.createElement(Icon, { name: o.icon }) : null,
+          /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
+          isSel ? /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconCheck, null), className: "aura-combo__check" }) : null
+        );
+      }
+      function grouped(list2) {
+        const out = [];
+        list2.forEach(function(o, i) {
+          const last = out[out.length - 1];
+          if (last && last.g === o.__g) last.items.push([o, i]);
+          else out.push({ g: o.__g, items: [[o, i]] });
+        });
+        return out;
+      }
+      const list = open && mounted && posState[0] ? (0, import_react_dom3.createPortal)(
+        /* @__PURE__ */ React19.createElement(
+          "div",
+          {
+            ref: listRef,
+            "data-density": density,
+            className: "aura-combo__popover",
+            style: posState[0],
+            onPointerDown: function(e) {
+              e.preventDefault();
+            }
+          },
+          live.length ? /* @__PURE__ */ React19.createElement(
+            "ul",
+            {
+              id: listId,
+              role: "listbox",
+              "aria-label": props.label,
+              "aria-multiselectable": multi || void 0,
+              className: "aura-combo__list"
+            },
+            grouped(live).map(function(seg) {
+              if (seg.g == null)
+                return /* @__PURE__ */ React19.createElement(React19.Fragment, { key: "u" + seg.items[0][1] }, seg.items.map(function(p) {
+                  return renderOpt(p[0], p[1]);
+                }));
+              const gid = id + "-group-" + seg.g + "-" + seg.items[0][1];
+              return /* @__PURE__ */ React19.createElement("li", { key: gid, role: "group", "aria-labelledby": gid, className: "aura-combo__group" }, /* @__PURE__ */ React19.createElement("span", { id: gid, role: "presentation", className: "aura-combo__group-label" }, groups[seg.g].label), /* @__PURE__ */ React19.createElement("ul", { role: "none", className: "aura-combo__grouplist" }, seg.items.map(function(p) {
+                return renderOpt(p[0], p[1]);
+              })));
+            })
+          ) : null,
+          props.loading || !live.length || more ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__list", role: "status" }, props.loading ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconLoaderCircle, null), className: "aura-spin" }), props.loadingText || t.searching) : !live.length ? /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, props.emptyText || t.noMatches) : /* @__PURE__ */ React19.createElement("div", { className: "aura-combo__note" }, t.keepTyping(options.length))) : null
+        ),
         document.body
       ) : null;
       return /* @__PURE__ */ React19.createElement(
@@ -2731,8 +2800,9 @@ window.Aura = (() => {
             required: props.required && (!multi || !values.length),
             value: text2,
             onChange: function(e) {
+              committed.current = false;
               setQuery(e.target.value);
-              setActive(0);
+              setActive(custom ? -1 : 0);
               if (!open) setOpen(true);
               if (props.onSearch) props.onSearch(e.target.value);
             },
@@ -2741,6 +2811,8 @@ window.Aura = (() => {
             onBlur: function() {
               setTimeout(function() {
                 if (listRef.current && listRef.current.contains(document.activeElement)) return;
+                if (custom && document.activeElement === inputRef.current) return;
+                if (commitRef.current()) return;
                 setOpen(false);
                 setQuery(null);
               }, 0);
@@ -4270,6 +4342,8 @@ window.Aura = (() => {
     const mounted = useMounted();
     const prev = React27.useRef(null);
     const o = opts || {};
+    const latest = React27.useRef(o);
+    latest.current = o;
     React27.useEffect(
       function() {
         if (!open || !mounted) return;
@@ -4290,7 +4364,12 @@ window.Aura = (() => {
         if (target && o.autoFocus !== false) target.focus();
         return function() {
           unlock();
-          if (prev.current && prev.current.focus) prev.current.focus();
+          const l = latest.current;
+          const ff = l.finalFocus;
+          const to = ff ? typeof ff === "function" ? ff() : ff.current : null;
+          const back = to && to.isConnected ? to : prev.current;
+          if (back && back.focus) back.focus();
+          if (l.onCloseComplete) l.onCloseComplete();
         };
       },
       [open, mounted]
@@ -4672,22 +4751,77 @@ window.Aura = (() => {
   // src/Dialog.tsx
   var React30 = __toESM(require_react(), 1);
   var import_react_dom8 = __toESM(require_react_dom(), 1);
+  var DialogClose = React30.createContext(null);
+  function useDialogClose() {
+    return React30.useContext(DialogClose) || function() {
+    };
+  }
   var Dialog = React30.forwardRef(function Dialog2(props, ref) {
     const t = useStrings();
     const density = useDensity();
     const own = React30.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+    const openState = useMaybeControlled(props.open, false, null), open = openState[0];
+    if (props.open === void 0 && !props.trigger)
+      devWarnOnce("dialog-no-open", "Dialog has neither `open` nor `trigger`, so it can never open. Pass one of them.");
+    const trigId = uid();
+    function closeNow() {
+      if (props.open === void 0) openState[1](false);
+      if (props.onClose) props.onClose();
+    }
     function close() {
-      if (props.dismissible !== false && props.onClose) props.onClose();
+      if (props.dismissible === false) return;
+      closeNow();
     }
     const scrimCloses = props.dismissible !== false && (props.dismissOnScrim !== void 0 ? props.dismissOnScrim : props.role !== "alertdialog");
-    const modal = useModal(props.open, own, {
+    const modal = useModal(open, own, {
       autoFocus: props.autoFocus,
       onEscape: close,
       bodySelector: ".aura-dialog__body",
-      footSelector: ".aura-dialog__foot"
+      footSelector: ".aura-dialog__foot",
+      /* With a trigger, focus goes back to it even where a click doesn't focus buttons (Safari). */
+      finalFocus: props.trigger ? function() {
+        const ff = props.finalFocus;
+        const to = ff ? typeof ff === "function" ? ff() : ff.current : null;
+        return to || document.querySelector('[data-aura-trigger="' + trigId + '"]');
+      } : props.finalFocus,
+      onCloseComplete: props.onCloseComplete
     });
-    if (!modal.ready) return null;
-    return (0, import_react_dom8.createPortal)(
+    const trig = props.trigger;
+    const trigger = trig && React30.isValidElement(trig) ? React30.cloneElement(trig, {
+      "aria-haspopup": "dialog",
+      "aria-expanded": open,
+      "data-aura-trigger": trigId,
+      onClick: function(e) {
+        const own2 = trig.props.onClick;
+        if (own2) own2(e);
+        if (e.defaultPrevented) return;
+        if (props.open === void 0) openState[1](true);
+        if (props.onOpen) props.onOpen();
+      }
+    }) : null;
+    if (!modal.ready) return trigger;
+    const rest = omit(props, [
+      "open",
+      "onClose",
+      "title",
+      "description",
+      "children",
+      "footer",
+      "size",
+      "dismissible",
+      "dismissOnScrim",
+      "role",
+      "autoFocus",
+      "className",
+      "trigger",
+      "onOpen",
+      "finalFocus",
+      "onCloseComplete",
+      "aria-labelledby",
+      "aria-describedby",
+      "aria-modal"
+    ]);
+    const panel = (0, import_react_dom8.createPortal)(
       /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React30.createElement(
         "div",
         {
@@ -4701,21 +4835,22 @@ window.Aura = (() => {
       ), /* @__PURE__ */ React30.createElement(
         "div",
         {
+          ...rest,
           ref: merged,
           role: props.role || "dialog",
           "aria-modal": true,
           "aria-labelledby": titleId,
-          "aria-describedby": props.description ? descId : void 0,
+          "aria-describedby": cx(props.description ? descId : "", props["aria-describedby"]) || void 0,
           tabIndex: -1,
           className: cx("aura-dialog", "aura-dialog--" + (props.size || "md"), props.className)
         },
         /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__head" }, /* @__PURE__ */ React30.createElement("h2", { className: "aura-dialog__title", id: titleId }, props.title), props.dismissible !== false ? /* @__PURE__ */ React30.createElement(IconButton, { icon: /* @__PURE__ */ React30.createElement(IconX, null), label: t.close, className: "aura-dialog__close", onClick: close }) : null),
         props.description ? /* @__PURE__ */ React30.createElement("p", { className: "aura-dialog__desc", id: descId }, props.description) : null,
-        props.children ? /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__body" }, props.children) : null,
-        props.footer ? /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__foot" }, props.footer) : null
+        /* @__PURE__ */ React30.createElement(DialogClose.Provider, { value: closeNow }, props.children ? /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__body" }, props.children) : null, props.footer ? /* @__PURE__ */ React30.createElement("div", { className: "aura-dialog__foot" }, props.footer) : null)
       )),
       document.body
     );
+    return trigger ? /* @__PURE__ */ React30.createElement(React30.Fragment, null, trigger, panel) : panel;
   });
   var Drawer = React30.forwardRef(function Drawer2(props, ref) {
     const t = useStrings();
@@ -4728,7 +4863,9 @@ window.Aura = (() => {
       autoFocus: props.autoFocus,
       onEscape: close,
       bodySelector: ".aura-drawer__body",
-      footSelector: ".aura-drawer__foot"
+      footSelector: ".aura-drawer__foot",
+      finalFocus: props.finalFocus,
+      onCloseComplete: props.onCloseComplete
     });
     if (!modal.ready) return null;
     const side = props.side === "left" ? "left" : "right";
@@ -4749,7 +4886,9 @@ window.Aura = (() => {
       "aria-labelledby",
       "className",
       "closeLabel",
-      "closeProps"
+      "closeProps",
+      "finalFocus",
+      "onCloseComplete"
     ]);
     const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
     return (0, import_react_dom8.createPortal)(
@@ -4845,7 +4984,9 @@ window.Aura = (() => {
       oneCallback ? null : props.onSortChange
     );
     const sort = sortState[0], setSort = sortState[1];
-    const selState = useMaybeControlled(props.selected, props.defaultSelected || [], props.onSelectionChange);
+    const selState = useMaybeControlled(props.selected, props.defaultSelected || [], null);
+    const onSel = React31.useRef(props.onSelectionChange);
+    onSel.current = props.onSelectionChange;
     const canSelect = function(r) {
       return !!r && (!props.isRowSelectable || !!props.isRowSelectable(r));
     };
@@ -4856,7 +4997,11 @@ window.Aura = (() => {
       });
     const selected = selState[0].filter(function(k) {
       return !rejected[String(k)];
-    }), setSelected = selState[1];
+    });
+    function setSelected(next, change) {
+      selState[1](next);
+      if (onSel.current) onSel.current(next, change || { key: null, shiftKey: false, source: "sync" });
+    }
     const droppedSig = selState[0].length === selected.length ? "" : "#" + selState[0].filter(function(k) {
       return rejected[String(k)];
     }).join("\0") + "#" + selected.join("\0");
@@ -5344,11 +5489,39 @@ window.Aura = (() => {
       return selSet[String(k)];
     }).length;
     const all = nSel > 0 && nSel === pageKeys.length;
-    function toggle(k, on) {
+    const anchor = React31.useRef(null);
+    const shiftClick = React31.useRef(false);
+    function toggle(k, on, how) {
+      const same2 = function(x) {
+        return String(x) === String(k);
+      };
+      let range = null;
+      if (props.rangeSelect && how.shiftKey && anchor.current != null) {
+        const from = pageKeys.findIndex(function(x) {
+          return String(x) === String(anchor.current);
+        });
+        const to = pageKeys.findIndex(same2);
+        if (from >= 0 && to >= 0) range = pageKeys.slice(Math.min(from, to), Math.max(from, to) + 1);
+      }
+      anchor.current = k;
+      const change = { key: k, shiftKey: how.shiftKey, source: how.source };
+      if (range) {
+        const inRange = {};
+        range.forEach(function(x) {
+          inRange[String(x)] = true;
+        });
+        const rest = selected.filter(function(x) {
+          return !inRange[String(x)];
+        });
+        change.range = range;
+        setSelected(on ? rest.concat(range) : rest, change);
+        return;
+      }
       setSelected(
         on ? selected.concat([k]) : selected.filter(function(x) {
-          return String(x) !== String(k);
-        })
+          return !same2(x);
+        }),
+        change
       );
     }
     function toggleAll() {
@@ -5361,7 +5534,8 @@ window.Aura = (() => {
           pageKeys.filter(function(k) {
             return !selSet[String(k)];
           })
-        )
+        ),
+        { key: null, shiftKey: false, source: "all" }
       );
     }
     function canResize(c) {
@@ -5540,8 +5714,8 @@ window.Aura = (() => {
         };
       }).concat([{ separator: true }, { label: t.resetColumns, icon: /* @__PURE__ */ React31.createElement(IconRotateCcw, null), onSelect: resetColumns }]);
     }
-    function openMenu(kind, key, anchor, rc) {
-      setMenu({ kind, key, anchor, rc });
+    function openMenu(kind, key, anchor2, rc) {
+      setMenu({ kind, key, anchor: anchor2, rc });
     }
     function closeMenu(restore) {
       const m = menu;
@@ -5601,7 +5775,8 @@ window.Aura = (() => {
           if (pageKeys.length) toggleAll();
         } else if (r === 0 && col && col.sortable && canSortAny) sortBy(col.key);
         else if (r > 0 && k === " " && selectable) {
-          if (canSelect(row) && !(stacked && noCardSel)) toggle(row[rowKey], !selSet[row[rowKey]]);
+          if (canSelect(row) && !(stacked && noCardSel))
+            toggle(row[rowKey], !selSet[row[rowKey]], { shiftKey: e.shiftKey, source: "keyboard" });
         } else if (r > 0 && k === "Enter" && rowHref && !target.querySelector("button, a[href]:not(.aura-table__row-link), input, select, textarea"))
           followRow(target.closest('[role="row"]'), e);
         else if (r > 0 && k === "Enter" && target.querySelector("button, a[href], input, select, textarea"))
@@ -5791,6 +5966,9 @@ window.Aura = (() => {
               "aria-label": canSelect(r) ? selLabel : props.rowSelectDisabledLabel ? props.rowSelectDisabledLabel(r) : void 0,
               onFocus: function(e) {
                 if (e.target === e.currentTarget) activeState[1]({ r: ri, c: 0 });
+              },
+              onClickCapture: function(e) {
+                shiftClick.current = e.shiftKey;
               }
             },
             canSelect(r) ? /* @__PURE__ */ React31.createElement(
@@ -5801,7 +5979,9 @@ window.Aura = (() => {
                 tabIndex: -1,
                 label: selLabel,
                 onChange: function(on) {
-                  toggle(k, on);
+                  const shift = shiftClick.current;
+                  shiftClick.current = false;
+                  toggle(k, on, { shiftKey: shift, source: "click" });
                 }
               }
             ) : null
@@ -6511,16 +6691,19 @@ window.Aura = (() => {
           return item(c, depth + 1);
         })));
       }
-      const on = active === it.id;
+      const action = it.selectable === false;
+      const on = !action && active === it.id;
       const common = {
         ...tipHandlers(it.label),
-        className: cx("aura-nav__item", on && "is-active"),
+        className: cx("aura-nav__item", action && "aura-nav__item--action", on && "is-active"),
         "aria-current": on ? "page" : void 0,
         style: depth ? { ["--aura-nav-depth"]: depth } : void 0,
         onClick: function(e) {
           if (!it.href) e.preventDefault();
           else if (!plainClick(e)) return;
-          st[1](it.id);
+          if (!action) st[1](it.id);
+          if (it.onSelect) it.onSelect();
+          if (action && props.onAction) props.onAction(it.id);
         }
       };
       return /* @__PURE__ */ React34.createElement("li", { key: it.id }, it.href ? /* @__PURE__ */ React34.createElement(Link, { href: it.href, ...common }, inner(it, false, false)) : /* @__PURE__ */ React34.createElement("button", { type: "button", ...common }, inner(it, false, false)));
@@ -6537,6 +6720,7 @@ window.Aura = (() => {
           "aura-nav",
           collapsed && "aura-nav--collapsed",
           props.bordered === false && "aura-nav--borderless",
+          props.chevron === "right" && "aura-nav--chevron-right",
           props.className
         ),
         "data-collapsed": collapsed ? "" : void 0,
@@ -6550,7 +6734,20 @@ window.Aura = (() => {
         })));
       })),
       props.footer ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__footer" }, props.footer) : null,
-      props.collapsible ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__toggle" }, /* @__PURE__ */ React34.createElement(
+      props.collapsible && props.collapseToggle === "row" ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__toggle aura-nav__toggle--row" }, /* @__PURE__ */ React34.createElement(
+        "button",
+        {
+          type: "button",
+          className: "aura-nav__item aura-nav__item--action",
+          ...tipHandlers(collapsed ? t.expandNav : t.collapseNav),
+          onClick: function() {
+            setTip(null);
+            col[1](!collapsed);
+          }
+        },
+        /* @__PURE__ */ React34.createElement(Icon, { name: collapsed ? /* @__PURE__ */ React34.createElement(IconPanelLeftOpen, null) : /* @__PURE__ */ React34.createElement(IconPanelLeftClose, null) }),
+        /* @__PURE__ */ React34.createElement("span", { className: "aura-nav__label" }, collapsed ? t.expandNav : t.collapseNav)
+      )) : props.collapsible ? /* @__PURE__ */ React34.createElement("div", { className: "aura-nav__toggle" }, /* @__PURE__ */ React34.createElement(
         IconButton,
         {
           icon: collapsed ? /* @__PURE__ */ React34.createElement(IconPanelLeftOpen, null) : /* @__PURE__ */ React34.createElement(IconPanelLeftClose, null),
@@ -6816,6 +7013,11 @@ window.Aura = (() => {
       onChange: function(id) {
         onNav(id);
         setOpen(false);
+      },
+      /* 5.16: an action row (Sign out) closes the drawer too. */
+      onAction: function(id) {
+        setOpen(false);
+        if (navEl.props.onAction) navEl.props.onAction(id);
       },
       className: cx(navEl.props.className, "is-in-drawer"),
       collapsed: false,

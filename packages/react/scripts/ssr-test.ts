@@ -52,6 +52,23 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.16 (Chamber-OS 95, 96, 98, 101, 105): exact markup of the new options; defaults unchanged. */
+  {
+    const m = renderToString;
+    const e = React.createElement;
+    const bad = (what: string, ...html: unknown[]) => { console.log(label, what, ...html); fail++; };
+    const items = [{ id: 'a', label: 'Members' }, { id: 'g', label: 'Admin', children: [{ id: 'r', label: 'Roles' }] }, { id: 'out', label: 'Sign out', selectable: false, onSelect: () => {} }];
+    const sn = m(e(A.SideNav, { value: 'out', items, chevron: 'right', collapsible: true, collapseToggle: 'row' }));
+    if (!/class="aura-nav aura-nav--chevron-right"/.test(sn) || !/<button type="button" class="aura-nav__item aura-nav__item--action">(?:(?!aria-current).)*Sign out/.test(sn) || /aria-current/.test(sn) || !/<div class="aura-nav__toggle aura-nav__toggle--row"><button type="button" class="aura-nav__item aura-nav__item--action">.*Collapse sidebar<\/span><\/button><\/div>/.test(sn)) bad('SideNav 5.16:', sn);
+    const sn0 = m(e(A.SideNav, { value: 'a', items: items.slice(0, 2), collapsible: true }));
+    if (/chevron-right|--action|toggle--row/.test(sn0) || !/aria-current="page"/.test(sn0) || !/<div class="aura-nav__toggle"><button type="button"[^>]*class="aura-icon-btn"/.test(sn0)) bad('default SideNav changed:', sn0);
+    const dt = m(e(A.Dialog, { trigger: e(A.Button, { variant: 'secondary' }, 'Add contact'), title: 'T', 'data-testid': 'd' }, 'x'));
+    if (!/^<button aria-haspopup="dialog" aria-expanded="false" data-aura-trigger="[^"]+" type="button" class="aura-btn aura-btn--secondary">Add contact<\/button>$/.test(dt)) bad('Dialog trigger SSR:', dt);
+    if (m(e(A.Dialog, { open: false, onClose: () => {}, title: 'T' }, 'x')) !== '') bad('closed Dialog renders');
+    const cc = m(e(A.Combobox, { label: 'P', options: ['Bangkok'], allowCustomValue: true, defaultValue: 'Västra Götaland' }));
+    const cc0 = m(e(A.Combobox, { label: 'P', options: ['Bangkok'], defaultValue: 'Västra Götaland' }));
+    if (!/role="combobox"[^>]*value="Västra Götaland"/.test(cc) || /value="Västra Götaland"/.test(cc0.replace(/type="hidden"[^>]*/g, ''))) bad('Combobox custom value SSR:', cc, cc0);
+  }
   /* 5.15 (Chamber-OS 85, 87, 89, 90, 92–94, 99, 100): exact markup of the new options; defaults unchanged. */
   {
     const m = renderToString;
