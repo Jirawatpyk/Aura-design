@@ -720,6 +720,7 @@ window.Aura = (() => {
         "Stat `headingLevel` is ignored with `onClick`: a heading can\u2019t sit in a button. Use `href`, or put the heading outside."
       );
     const LabelTag = props.headingLevel && Tag3 !== "button" ? "h" + props.headingLevel : "span";
+    const HeadTag = LabelTag === "span" ? "span" : "div";
     return /* @__PURE__ */ React4.createElement(
       Tag3,
       {
@@ -730,7 +731,7 @@ window.Aura = (() => {
         type: Tag3 === "button" ? "button" : void 0,
         "aria-busy": props.loading || void 0
       },
-      /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__head" }, /* @__PURE__ */ React4.createElement(LabelTag, { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon })) : null),
+      /* @__PURE__ */ React4.createElement(HeadTag, { className: "aura-stat__head" }, /* @__PURE__ */ React4.createElement(LabelTag, { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon })) : null),
       props.loading ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__value" }, /* @__PURE__ */ React4.createElement("span", { className: "aura-skel aura-stat__skel" })) : /* @__PURE__ */ React4.createElement("span", { className: cx("aura-stat__value", numeric && "is-numeric") }, props.value, props.unit ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__unit" }, props.unit) : null),
       ch && !props.loading || props.caption ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__foot" }, ch && !props.loading ? /* @__PURE__ */ React4.createElement("span", { className: cx("aura-stat__change", "is-" + tone2) }, /* @__PURE__ */ React4.createElement(
         Icon,
@@ -6670,6 +6671,27 @@ window.Aura = (() => {
       if (shared) navState[1](id);
       if (navEl && navEl.props.onChange) navEl.props.onChange(id);
     }
+    const rootRef = React41.useRef(null);
+    const barRef = React41.useRef(null);
+    const mergedRef = useMergedRef(ref, rootRef);
+    const hasBar = !!(props.header || props.nav);
+    useIsoLayoutEffect(
+      function() {
+        const root = rootRef.current, bar = barRef.current;
+        if (!root || !bar) return;
+        function sync() {
+          root.style.setProperty("--aura-shell-bar-height", bar.getBoundingClientRect().height + "px");
+        }
+        sync();
+        const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
+        if (ro) ro.observe(bar);
+        return function() {
+          if (ro) ro.disconnect();
+          root.style.removeProperty("--aura-shell-bar-height");
+        };
+      },
+      [hasBar]
+    );
     const deskNav = navEl && shared ? React41.cloneElement(navEl, { value: navState[0], onChange: onNav }) : props.nav;
     const drawerNav = navEl ? React41.cloneElement(navEl, {
       value: shared ? navState[0] : navEl.props.value,
@@ -6684,7 +6706,7 @@ window.Aura = (() => {
     return /* @__PURE__ */ React41.createElement(
       "div",
       {
-        ref,
+        ref: mergedRef,
         className: cx(
           "aura-shell",
           props.bottomNav && "aura-shell--bottomnav",
@@ -6709,7 +6731,7 @@ window.Aura = (() => {
         },
         drawerNav
       ) : null,
-      /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React41.createElement("header", { className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React41.createElement(
+      /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React41.createElement("header", { ref: barRef, className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React41.createElement(
         IconButton,
         {
           className: "aura-shell__menu",

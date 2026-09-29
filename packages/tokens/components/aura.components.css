@@ -38,6 +38,12 @@ a.aura-btn { text-decoration: none; }
  * not-allowed cursor and a tooltip still work). */
 button.aura-btn[aria-disabled='true']:not(.is-loading) { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
 button.aura-btn[aria-disabled='true']:active { transform: none; }
+/* …and hovering it changes nothing: each variant keeps its resting look (the hover rules below are overridden). */
+button.aura-btn--primary[aria-disabled='true']:hover { background: var(--aura-button-primary-bg); }
+button.aura-btn--secondary[aria-disabled='true']:hover, button.aura-btn--ghost[aria-disabled='true']:hover,
+button.aura-btn--danger-secondary[aria-disabled='true']:hover { background: transparent; }
+button.aura-btn--danger[aria-disabled='true']:hover { background: var(--aura-button-danger-bg); }
+button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-shadow-creative); transform: none; }
 .aura-btn.is-loading:active { transform: none; }
 
 /* Focus — ADDED: the source defines none. Solid 2px ring, 2px offset, on every interactive element. */
@@ -931,7 +937,7 @@ a.aura-tab { text-decoration: none; }
 .aura-shell__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .aura-shell__bar {
   position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: var(--aura-space-2);
-  box-sizing: border-box; min-height: var(--aura-shell-bar-height);
+  box-sizing: border-box; min-height: 56px;
   padding: 0 var(--aura-space-6); background: var(--aura-bg-surface); border-bottom: 1px solid var(--aura-border-default);
 }
 /* Responsive in CSS (4.16), so the server's HTML is already right on a phone: below lg the sidebar is hidden and the
@@ -953,7 +959,7 @@ a.aura-tab { text-decoration: none; }
 @media (min-width: 640px) { .aura-shell__content { padding: var(--aura-space-6); } }
 @media (min-width: 1024px) { .aura-shell__content { padding: var(--aura-space-8); } }
 /* The shell already pads its content: a Container directly inside only caps the width. */
-.aura-shell__content > .aura-container { padding-left: 0; padding-right: 0; }
+.aura-shell__content:not(.is-flush) > .aura-container { padding-left: 0; padding-right: 0; }
 
 /* Totals row (4.19): under the body, a strong top edge; sticky at the bottom of a `height` table with stickyFooter. */
 .aura-table__total { background: var(--aura-bg-canvas); border-top: 1px solid var(--aura-border-strong); font-weight: 600; }
@@ -1677,6 +1683,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__td[data-card='field'] { order: var(--aura-card-order, 5); }
   /* 5.14 (Chamber-OS 108): in a card every field starts under its label; align: 'end' is for the grid (figures stay tabular). */
   .aura-table__td.is-end { text-align: start; }
+  .aura-table__row--skeleton .aura-table__td.is-end { justify-content: flex-start; }
   /* hideSelectionInCards: no row boxes, no select-all line. */
   .aura-table--cards-nosel .aura-table__row > .aura-table__sel { display: none; }
   .aura-table--cards-nosel .aura-table__head { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); }
