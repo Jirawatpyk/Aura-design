@@ -28,3 +28,25 @@ export const SelectGround: StoryObj = {
     );
   },
 };
+
+/* Every kind of field, enabled and editable, side by side: they must share one ground. A rule that catches the wrong
+ * element (as the read-only one caught the Select's trigger) shows up as one field off. */
+export const FieldGrounds: StoryObj = {
+  render: () => (
+    <div
+      data-testid="fields"
+      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}
+    >
+      <Aura.TextField label="Text" placeholder="Name" />
+      <Aura.PasswordField label="Password" />
+      <Aura.NumberField label="Amount" />
+      <Aura.Select label="Select" placeholder="Choose" options={['A', 'B']} />
+      <Aura.Select label="Select (list)" multiple options={['A', 'B']} />
+      <Aura.Combobox label="Combobox" options={['Bangkok', 'Phuket']} />
+      <Aura.DatePicker label="Date" />
+      <Aura.DateRangePicker label="Range" />
+      <Aura.TimePicker label="Time" />
+      <Aura.Textarea label="Notes" />
+    </div>
+  ),
+};

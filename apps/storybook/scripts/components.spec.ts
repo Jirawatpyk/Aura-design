@@ -4144,3 +4144,22 @@ test('5.16.1 (109): a custom Select keeps the input ground; only a read-only fie
     expect(await axeScan(page, '[role="dialog"]')).toEqual([]);
   }
 });
+
+test('5.16.1: every kind of enabled, editable field shares one ground, in both themes', async ({ page }) => {
+  for (const theme of ['light', 'dark']) {
+    await story(page, 'aura-new-in-5-16-1--field-grounds', theme);
+    const grounds = await page.getByTestId('fields').evaluate((root) =>
+      Array.from(root.querySelectorAll<HTMLElement>('.aura-input')).map((e) => ({
+        field: e.closest('.aura-field')?.querySelector('label')?.textContent || e.className,
+        bg: getComputedStyle(e).backgroundColor,
+      })),
+    );
+    expect(grounds.length, theme).toBeGreaterThanOrEqual(10);
+    const input = grounds.find((g) => /^Text/.test(g.field))!.bg;
+    expect(input, theme).toBe(theme === 'light' ? 'rgb(255, 255, 255)' : 'rgb(24, 24, 27)');
+    expect(
+      grounds.filter((g) => g.bg !== input),
+      theme,
+    ).toEqual([]);
+  }
+});
