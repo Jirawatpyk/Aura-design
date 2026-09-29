@@ -5,6 +5,8 @@ import AxeBuilder from '@axe-core/playwright';
 const story = async (page: Page, id: string, theme = 'light') => {
   await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:${theme}`);
   await page.waitForSelector('#storybook-root > *');
+  /* Measure after the web fonts have loaded (or failed): a swap mid-test moves text by a line in CI. */
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
 };
 
 /* axe on part of the page. Storybook's a11y addon can be mid-run in the preview; wait and retry instead of failing. */
@@ -3478,10 +3480,12 @@ test.describe('5.13: Chamber-OS addendum 13', () => {
       /* 8px under the first line, as between field lines; two fields to a line. */
       const firstLine = Math.round(Math.max(title.y + title.height, action.y + action.height));
       const f0 = (await row.locator('.aura-tbl__td:not([data-card])').first().boundingBox())!;
+      const f1 = (await row.locator('.aura-tbl__td:not([data-card])').nth(1).boundingBox())!;
       const f2 = (await row.locator('.aura-tbl__td:not([data-card])').nth(2).boundingBox())!;
       expect(Math.round(f0.y) - firstLine).toBe(8);
       expect(fields[0]!.top).toBe(fields[1]!.top);
-      expect(Math.round(f2.y - (f0.y + f0.height))).toBe(8);
+      /* The next line starts 8px under the taller field of this one (a date can wrap in a narrower font). */
+      expect(Math.round(f2.y - Math.max(f0.y + f0.height, f1.y + f1.height))).toBe(8);
     }
     /* Edge rows: a row header as the title; an action with no title still at the end; a lone title adds no space. */
     const thRow = page.getByTestId('edge-th');
