@@ -3507,3 +3507,183 @@ test.describe('5.13: Chamber-OS addendum 13', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.14: Chamber-OS addenda 15–16 (small items)', () => {
+  test('102 gated Button, 88 Stat heading, 86 EmptyState outside the outline, 106 warning text, 107 location tabs', async ({
+    page,
+  }) => {
+    for (const theme of ['light', 'dark']) {
+      await story(page, 'aura-new-in-5-14--small-options', theme);
+      /* 102: announced as unavailable, still in the Tab order, clicks and Enter do nothing until the gate opens. */
+      const erase = page.getByRole('button', { name: 'Erase member' });
+      await expect(erase).toHaveAttribute('aria-disabled', 'true');
+      await expect(erase).not.toHaveAttribute('disabled'); /* not the disabled attribute: it stays focusable */
+      await erase.focus();
+      await expect(erase).toBeFocused();
+      await page.keyboard.press('Enter');
+      await erase.click({ force: true }); /* Playwright waits for aria-disabled buttons; a person can still click */
+      await expect(page.getByTestId('clicks')).toHaveText('Erased: 0');
+      await page.getByRole('checkbox', { name: 'I have exported their data' }).check();
+      await expect(erase).not.toHaveAttribute('aria-disabled');
+      await erase.click();
+      await expect(page.getByTestId('clicks')).toHaveText('Erased: 1');
+      /* Hovering a gated button changes nothing, in any variant. */
+      for (const b of await page.getByTestId('gated-variants').getByRole('button').all()) {
+        const look = () =>
+          b.evaluate((e) => {
+            const s = getComputedStyle(e);
+            return [s.backgroundColor, s.boxShadow, s.transform].join(' | ');
+          });
+        await page.mouse.move(0, 0);
+        const rest = await look();
+        await b.hover({ force: true });
+        await page.waitForTimeout(250); /* past the transitions */
+        expect(await look(), (await b.textContent()) + ' ' + theme).toBe(rest);
+      }
+      await page.mouse.move(0, 0);
+      /* 88: the Stat labels are the sections' headings, a link tile included; 86: the empty state adds none. */
+      for (const n of ['Membership', 'Invoices', 'E-Blasts'])
+        await expect(page.getByRole('heading', { level: 2, name: n })).toBeVisible();
+      await expect(
+        page.getByRole('link', { name: /Invoices/ }).getByRole('heading', { name: 'Invoices' }),
+      ).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'No benefits' })).toHaveCount(0);
+      await expect(page.getByText('No benefits', { exact: true })).toBeVisible();
+      /* 106: aura-fg-warning reads on the page in both themes (≥4.5:1). */
+      const ratio = await page.getByTestId('owed').evaluate((el) => {
+        const px = (c: string) => {
+          const cv = document.createElement('canvas').getContext('2d')!;
+          cv.fillStyle = c;
+          cv.fillRect(0, 0, 1, 1);
+          return Array.from(cv.getImageData(0, 0, 1, 1).data.slice(0, 3));
+        };
+        const lum = (c: number[]) =>
+          c
+            .map((v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+            .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i]!, 0);
+        const a = lum(px(getComputedStyle(el).color)),
+          b = lum(px(getComputedStyle(document.body).backgroundColor));
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      });
+      expect(ratio, theme).toBeGreaterThanOrEqual(4.5);
+      /* 107 */
+      await expect(page.getByRole('link', { name: 'Contacts' })).toHaveAttribute('aria-current', 'location');
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    }
+  });
+
+  test('91: a field focused in a long Drawer form on a phone keeps clear of the head and the foot', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 600 });
+    await story(page, 'aura-new-in-5-14--drawer-scroll-padding');
+    await page.getByRole('button', { name: 'Edit member' }).click();
+    const body = page.locator('.aura-drawer__body');
+    await expect(body).toBeVisible();
+    /* Focus it, then scroll the way a phone does when its keyboard opens: just far enough ('nearest'), from the far
+     * end of the form. Browsers respect the body's scroll-padding there; without it the ring meets the edge. */
+    const clear = async (name: string) => {
+      const f = page.getByRole('textbox', { name, exact: true });
+      await f.focus();
+      await f.evaluate((input) => {
+        const b = input.closest('.aura-drawer__body')!;
+        b.scrollTop =
+          input.closest('.aura-input')!.getBoundingClientRect().top < b.getBoundingClientRect().top + 200
+            ? b.scrollHeight
+            : 0;
+        input.closest('.aura-input')!.scrollIntoView({ block: 'nearest' });
+      });
+      await page.waitForTimeout(100);
+      return f.evaluate((input) => {
+        const box = input.closest('.aura-input')!.getBoundingClientRect();
+        const b = input.closest('.aura-drawer__body')!.getBoundingClientRect();
+        const ring = 3; /* 2px ring, 1px offset */
+        return { above: box.top - ring - b.top, below: b.bottom - (box.bottom + ring) };
+      });
+    };
+    const last = await clear('Field 12');
+    expect(last.below).toBeGreaterThanOrEqual(8);
+    const first = await clear('Field 1');
+    expect(first.above).toBeGreaterThanOrEqual(8);
+  });
+
+  test('104: --aura-shell-bar-height is the bar’s height; 97: contentPadding={false}', async ({ page }) => {
+    for (const w of [390, 1440]) {
+      await page.setViewportSize({ width: w, height: 800 });
+      await story(page, 'aura-new-in-5-14--shell-options');
+      for (const mode of ['comfortable', 'compact', 'long']) {
+        if (mode === 'compact') await page.getByRole('button', { name: 'Compact' }).click();
+        if (mode === 'long') await page.getByRole('button', { name: 'Long title' }).click();
+        await page.waitForTimeout(100); /* the ResizeObserver runs before the next frame */
+        const m = await page.evaluate(() => {
+          const bar = document.querySelector('.aura-shell__bar')!.getBoundingClientRect().height;
+          const token = parseFloat(
+            getComputedStyle(document.querySelector('.aura-shell')!).getPropertyValue('--aura-shell-bar-height'),
+          );
+          const main = getComputedStyle(document.querySelector('.aura-shell__content')!);
+          return { bar, token, pad: [main.paddingTop, main.paddingLeft] };
+        });
+        expect(m.bar, w + ' ' + mode).toBe(m.token);
+        /* The wrapping title makes the bar taller than 56px on a phone: the token follows. */
+        if (mode === 'long' && w === 390) expect(m.bar).toBeGreaterThan(60);
+        expect(m.pad).toEqual(['0px', '0px']);
+        /* 97: a Container in flush content keeps its gutters. */
+        expect(
+          await page.locator('.story-flush-container').evaluate((e) => parseFloat(getComputedStyle(e).paddingLeft)),
+        ).toBeGreaterThan(0);
+        /* A sticky strip offset by the token sits right under the bar. */
+        await page.evaluate(() => window.scrollTo(0, 600));
+        const top = await page.getByTestId('sticky').evaluate((e) => e.getBoundingClientRect().top);
+        expect(Math.abs(top - m.token)).toBeLessThanOrEqual(0.5);
+        await page.evaluate(() => window.scrollTo(0, 0));
+      }
+    }
+  });
+});
+
+test('5.14 (108): align "end" is right-aligned in the DataTable grid and starts under its label in the cards', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await story(page, 'aura-new-in-5-14--card-amounts-start');
+  const measure = (t: string) =>
+    page
+      .getByTestId(t)
+      .locator('.aura-table__td.is-end')
+      .evaluateAll((els) =>
+        els.map((e) => {
+          const cell = e.getBoundingClientRect();
+          const r = document.createRange();
+          r.selectNodeContents(e);
+          const text = r.getBoundingClientRect();
+          const s = getComputedStyle(e);
+          return {
+            fromStart: Math.round(text.left - cell.left - parseFloat(s.paddingLeft)),
+            fromEnd: Math.round(cell.right - parseFloat(s.paddingRight) - text.right),
+            nums: s.fontVariantNumeric,
+          };
+        }),
+      );
+  await expect(page.getByTestId('amount-cards').locator('.aura-table--stacked')).toHaveCount(1);
+  for (const g of await measure('amount-grid')) {
+    expect(Math.abs(g.fromEnd)).toBeLessThanOrEqual(1);
+    expect(g.nums).toContain('tabular-nums');
+  }
+  for (const c of await measure('amount-cards')) {
+    expect(Math.abs(c.fromStart)).toBeLessThanOrEqual(1);
+    expect(c.nums).toContain('tabular-nums');
+  }
+  /* …and the loading cards' bars start there too. */
+  const skel = await page
+    .getByTestId('amount-cards-loading')
+    .locator('.aura-table__td.is-end')
+    .evaluateAll((els) =>
+      els.map((e) => {
+        const bar = e.querySelector('.aura-skel')!.getBoundingClientRect();
+        return Math.round(bar.left - e.getBoundingClientRect().left - parseFloat(getComputedStyle(e).paddingLeft));
+      }),
+    );
+  expect(skel.length).toBeGreaterThan(0);
+  for (const s of skel) expect(Math.abs(s)).toBeLessThanOrEqual(1);
+  expect(await axeScan(page, '#storybook-root')).toEqual([]);
+});

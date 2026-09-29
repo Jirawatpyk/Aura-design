@@ -674,7 +674,7 @@ window.Aura = (() => {
     );
   }
   function emptyStateElement(props, ref) {
-    const HT = "h" + (props.headingLevel || 3);
+    const HT = props.headingLevel === false ? "p" : "h" + (props.headingLevel || 3);
     const rest = omit(props, [
       "title",
       "description",
@@ -704,6 +704,65 @@ window.Aura = (() => {
       /* @__PURE__ */ React4.createElement(HT, { className: "aura-empty__title" }, props.title),
       props.description ? /* @__PURE__ */ React4.createElement("p", { className: "aura-empty__text" }, props.description) : null,
       props.action ? /* @__PURE__ */ React4.createElement("div", { className: "aura-empty__action" }, props.action) : null
+    );
+  }
+  function statElement(props, ref, Link) {
+    const ch = props.change;
+    const dir = ch && (ch.direction || "flat");
+    const tone2 = ch && (ch.tone || (dir === "up" ? "positive" : dir === "down" ? "negative" : "neutral"));
+    const v = props.value;
+    const numeric = typeof v === "number" || typeof v === "string" && /\d/.test(v) && /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, ""));
+    const Tag3 = props.href ? Link : props.onClick ? "button" : "div";
+    const interactive = !!(props.href || props.onClick);
+    if (props.headingLevel && Tag3 === "button")
+      devWarnOnce(
+        "stat-heading-button",
+        "Stat `headingLevel` is ignored with `onClick`: a heading can\u2019t sit in a button. Use `href`, or put the heading outside."
+      );
+    const LabelTag = props.headingLevel && Tag3 !== "button" ? "h" + props.headingLevel : "span";
+    return /* @__PURE__ */ React4.createElement(
+      Tag3,
+      {
+        ref,
+        className: cx("aura-stat", interactive && "is-interactive", props.loading && "is-loading", props.className),
+        href: props.href,
+        onClick: props.onClick,
+        type: Tag3 === "button" ? "button" : void 0,
+        "aria-busy": props.loading || void 0
+      },
+      /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__head" }, /* @__PURE__ */ React4.createElement(LabelTag, { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon })) : null),
+      props.loading ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__value" }, /* @__PURE__ */ React4.createElement("span", { className: "aura-skel aura-stat__skel" })) : /* @__PURE__ */ React4.createElement("span", { className: cx("aura-stat__value", numeric && "is-numeric") }, props.value, props.unit ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__unit" }, props.unit) : null),
+      ch && !props.loading || props.caption ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__foot" }, ch && !props.loading ? /* @__PURE__ */ React4.createElement("span", { className: cx("aura-stat__change", "is-" + tone2) }, /* @__PURE__ */ React4.createElement(
+        Icon,
+        {
+          name: dir === "up" ? /* @__PURE__ */ React4.createElement(IconTrendingUp, null) : dir === "down" ? /* @__PURE__ */ React4.createElement(IconTrendingDown, null) : /* @__PURE__ */ React4.createElement(IconMinus, null),
+          size: 14
+        }
+      ), /* @__PURE__ */ React4.createElement("span", null, ch.value)) : null, ch && ch.label && !props.loading ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__caption" }, ch.label) : null, props.caption ? /* @__PURE__ */ React4.createElement("span", { className: "aura-stat__caption" }, props.caption) : null) : null
+    );
+  }
+  var AVATAR_TONES = ["progress", "ready", "neutral", "warning"];
+  function initials(name) {
+    const parts = String(name || "?").trim().split(/\s+/);
+    return ((parts[0] || "?")[0] + (parts.length > 1 ? parts[parts.length - 1][0] : parts[0][1] || "")).toUpperCase();
+  }
+  function avatarElement(props, ref, broken, onError) {
+    const size = props.size || "md";
+    let hash = 0;
+    String(props.name || "").split("").forEach(function(ch) {
+      hash = hash * 31 + ch.charCodeAt(0) >>> 0;
+    });
+    const tone2 = AVATAR_TONES[hash % AVATAR_TONES.length];
+    return /* @__PURE__ */ React4.createElement(
+      "span",
+      {
+        ref,
+        className: cx("aura-avatar", "aura-avatar--" + size, "aura-avatar--" + tone2, props.className),
+        role: "img",
+        "aria-label": props.name + (props.status ? ", " + props.status : "")
+      },
+      props.src && broken !== props.src ? /* @__PURE__ */ React4.createElement("img", { key: props.src, src: props.src, alt: "", onError }) : /* @__PURE__ */ React4.createElement("span", { "aria-hidden": true }, initials(props.name)),
+      props.status === "online" ? /* @__PURE__ */ React4.createElement("span", { className: "aura-avatar__status", "aria-hidden": true }) : null
     );
   }
   function buttonClass(opts = {}) {
@@ -1194,6 +1253,8 @@ window.Aura = (() => {
       const props = all;
       const variant = props.variant || "primary";
       const loading = !!props.loading;
+      const ad = props["aria-disabled"];
+      const blocked = loading || ad === true || ad === "true";
       const rest = omit(props, [
         "variant",
         "className",
@@ -1220,8 +1281,8 @@ window.Aura = (() => {
             className: props.className
           }),
           "aria-busy": loading || void 0,
-          "aria-disabled": loading || void 0,
-          onClick: loading ? function(e) {
+          "aria-disabled": blocked || void 0,
+          onClick: blocked ? function(e) {
             e.preventDefault();
           } : props.onClick
         },
@@ -6137,7 +6198,7 @@ window.Aura = (() => {
               key: t.id,
               href: t.href,
               className: tabCls(on, own.className),
-              "aria-current": on ? "page" : void 0,
+              "aria-current": on ? props.current || "page" : void 0,
               onClick: function(e) {
                 if (own.onClick) own.onClick(e);
                 if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -6484,39 +6545,11 @@ window.Aura = (() => {
 
   // src/Avatar.tsx
   var React36 = __toESM(require_react(), 1);
-  var AVATAR_TONES = ["progress", "ready", "neutral", "warning"];
-  function initials(name) {
-    const parts = String(name || "?").trim().split(/\s+/);
-    return ((parts[0] || "?")[0] + (parts.length > 1 ? parts[parts.length - 1][0] : parts[0][1] || "")).toUpperCase();
-  }
   var Avatar = React36.forwardRef(function Avatar2(props, ref) {
-    const size = props.size || "md", errState = React36.useState(null);
-    let hash = 0;
-    String(props.name || "").split("").forEach(function(ch) {
-      hash = hash * 31 + ch.charCodeAt(0) >>> 0;
+    const errState = React36.useState(null);
+    return avatarElement(props, ref, errState[0], function() {
+      errState[1](props.src || null);
     });
-    const tone2 = AVATAR_TONES[hash % AVATAR_TONES.length];
-    return /* @__PURE__ */ React36.createElement(
-      "span",
-      {
-        ref,
-        className: cx("aura-avatar", "aura-avatar--" + size, "aura-avatar--" + tone2, props.className),
-        role: "img",
-        "aria-label": props.name + (props.status ? ", " + props.status : "")
-      },
-      props.src && errState[0] !== props.src ? /* @__PURE__ */ React36.createElement(
-        "img",
-        {
-          key: props.src,
-          src: props.src,
-          alt: "",
-          onError: function() {
-            errState[1](props.src || null);
-          }
-        }
-      ) : /* @__PURE__ */ React36.createElement("span", { "aria-hidden": true }, initials(props.name)),
-      props.status === "online" ? /* @__PURE__ */ React36.createElement("span", { className: "aura-avatar__status", "aria-hidden": true }) : null
-    );
   });
 
   // src/Stack.tsx
@@ -6648,32 +6681,56 @@ window.Aura = (() => {
       collapsed: false,
       collapsible: false
     }) : props.nav;
-    return /* @__PURE__ */ React41.createElement("div", { ref, className: cx("aura-shell", props.bottomNav && "aura-shell--bottomnav", props.className) }, props.nav ? /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__nav" }, deskNav) : null, props.nav ? /* @__PURE__ */ React41.createElement(
-      Drawer,
+    return /* @__PURE__ */ React41.createElement(
+      "div",
       {
-        open,
-        onClose: function() {
-          setOpen(false);
-        },
-        side: "left",
-        size: "nav",
-        "aria-label": props.navLabel || t.navigation,
-        dismissible: true
+        ref,
+        className: cx(
+          "aura-shell",
+          props.bottomNav && "aura-shell--bottomnav",
+          /* 5.14: no top bar at all, or one that only holds the menu button (gone from lg up): the bar-height token is 0. */
+          !props.header && !props.nav && "aura-shell--no-bar",
+          !props.header && props.nav && "aura-shell--menu-bar",
+          props.className
+        )
       },
-      drawerNav
-    ) : null, /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React41.createElement("header", { className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React41.createElement(
-      IconButton,
-      {
-        className: "aura-shell__menu",
-        icon: /* @__PURE__ */ React41.createElement(IconMenu, null),
-        label: props.menuLabel || t.openNav,
-        size: "md",
-        onClick: function() {
-          setOpen(true);
+      props.nav ? /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__nav" }, deskNav) : null,
+      props.nav ? /* @__PURE__ */ React41.createElement(
+        Drawer,
+        {
+          open,
+          onClose: function() {
+            setOpen(false);
+          },
+          side: "left",
+          size: "nav",
+          "aria-label": props.navLabel || t.navigation,
+          dismissible: true
         },
-        "aria-expanded": open
-      }
-    ) : null, /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React41.createElement("main", { className: "aura-shell__content", id: props.mainId || "main", tabIndex: -1 }, props.children), props.bottomNav || null));
+        drawerNav
+      ) : null,
+      /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React41.createElement("header", { className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React41.createElement(
+        IconButton,
+        {
+          className: "aura-shell__menu",
+          icon: /* @__PURE__ */ React41.createElement(IconMenu, null),
+          label: props.menuLabel || t.openNav,
+          size: "md",
+          onClick: function() {
+            setOpen(true);
+          },
+          "aria-expanded": open
+        }
+      ) : null, /* @__PURE__ */ React41.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React41.createElement(
+        "main",
+        {
+          className: cx("aura-shell__content", props.contentPadding === false && "is-flush"),
+          id: props.mainId || "main",
+          tabIndex: -1
+        },
+        props.children
+      ), props.bottomNav || null)
+    );
   });
 
   // src/ActionBar.tsx
@@ -6977,34 +7034,8 @@ window.Aura = (() => {
   // src/Stat.tsx
   var React47 = __toESM(require_react(), 1);
   var Stat = React47.forwardRef(function Stat2(props, ref) {
-    const ch = props.change;
-    const dir = ch && (ch.direction || "flat");
-    const tone2 = ch && (ch.tone || (dir === "up" ? "positive" : dir === "down" ? "negative" : "neutral"));
     const Link = useLinkComponent(props.linkComponent);
-    const v = props.value;
-    const numeric = typeof v === "number" || typeof v === "string" && /\d/.test(v) && /^[\s\d.,:+\-\u2212%()\u0E3F$\u20AC\u00A3\u00A5kKmMbB]+$/.test(v.replace(/\b[A-Z]{3}\b/g, ""));
-    const Tag3 = props.href ? Link : props.onClick ? "button" : "div";
-    const interactive = !!(props.href || props.onClick);
-    return /* @__PURE__ */ React47.createElement(
-      Tag3,
-      {
-        ref,
-        className: cx("aura-stat", interactive && "is-interactive", props.loading && "is-loading", props.className),
-        href: props.href,
-        onClick: props.onClick,
-        type: Tag3 === "button" ? "button" : void 0,
-        "aria-busy": props.loading || void 0
-      },
-      /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__head" }, /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__label" }, props.label), props.icon ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__icon" }, /* @__PURE__ */ React47.createElement(Icon, { name: props.icon })) : null),
-      props.loading ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__value" }, /* @__PURE__ */ React47.createElement("span", { className: "aura-skel aura-stat__skel" })) : /* @__PURE__ */ React47.createElement("span", { className: cx("aura-stat__value", numeric && "is-numeric") }, props.value, props.unit ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__unit" }, props.unit) : null),
-      ch && !props.loading || props.caption ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__foot" }, ch && !props.loading ? /* @__PURE__ */ React47.createElement("span", { className: cx("aura-stat__change", "is-" + tone2) }, /* @__PURE__ */ React47.createElement(
-        Icon,
-        {
-          name: dir === "up" ? /* @__PURE__ */ React47.createElement(IconTrendingUp, null) : dir === "down" ? /* @__PURE__ */ React47.createElement(IconTrendingDown, null) : /* @__PURE__ */ React47.createElement(IconMinus, null),
-          size: 14
-        }
-      ), /* @__PURE__ */ React47.createElement("span", null, ch.value)) : null, ch && ch.label && !props.loading ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__caption" }, ch.label) : null, props.caption ? /* @__PURE__ */ React47.createElement("span", { className: "aura-stat__caption" }, props.caption) : null) : null
-    );
+    return statElement(props, ref, Link);
   });
 
   // src/TimePicker.tsx

@@ -80,7 +80,8 @@ module.exports = {
       "inverted": "var(--aura-fg-inverted)",
       "accent": "var(--aura-fg-accent)",
       "danger": "var(--aura-fg-danger)",
-      "positive": "var(--aura-fg-positive)"
+      "positive": "var(--aura-fg-positive)",
+      "warning": "var(--aura-fg-warning)"
     },
     "border": {
       "DEFAULT": "var(--aura-border-default)",

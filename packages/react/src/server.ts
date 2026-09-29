@@ -27,11 +27,16 @@ export {
   ServerStatusPill as StatusPill,
   ServerBadge as Badge,
   ServerEmptyState as EmptyState,
+  ServerStat as Stat,
+  ServerAvatar as Avatar,
   buttonClass,
 } from './display.js';
 export { Icon, registerIcons } from './Icon.js';
 export type {
   AlertProps,
+  AvatarProps,
+  StatProps,
+  StatChange,
   BadgeProps,
   CardProps,
   EmptyStateProps,

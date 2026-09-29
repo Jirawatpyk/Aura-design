@@ -52,6 +52,30 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.14 (Chamber-OS 86, 88, 97, 102, 104, 107): exact markup of the new options; defaults unchanged. */
+  {
+    const m = renderToString;
+    const e = React.createElement;
+    const es = m(e(A.EmptyState, { title: 'No benefits', headingLevel: false }));
+    if (!/<p class="aura-empty__title">No benefits<\/p>/.test(es) || /<h\d/.test(es)) { console.log(label, 'EmptyState headingLevel false:', es); fail++; }
+    if (!/<h3 class="aura-empty__title">/.test(m(e(A.EmptyState, { title: 'x' })))) { console.log(label, 'EmptyState default heading changed'); fail++; }
+    const st = m(e(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active' }));
+    const st0 = m(e(A.Stat, { label: 'Membership', value: 'Active' }));
+    const w: string[] = [], ow = console.warn;
+    console.warn = (x: unknown) => w.push(String(x));
+    const stBtn = m(e(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', onClick: () => {} }));
+    console.warn = ow;
+    if (!/<h2 class="aura-stat__label">Membership<\/h2>/.test(st) || !/<span class="aura-stat__label">Membership<\/span>/.test(st0) || /<h2/.test(stBtn) || !w.some((x) => /headingLevel` is ignored with `onClick`/.test(x))) { console.log(label, 'Stat headingLevel:', st, stBtn, w); fail++; }
+    const sh = m(e(A.AppShell, { header: 'H', contentPadding: false }, 'c')), sh0 = m(e(A.AppShell, { header: 'H' }, 'c'));
+    if (!/class="aura-shell__content is-flush"/.test(sh) || /is-flush/.test(sh0)) { console.log(label, 'AppShell contentPadding:', sh); fail++; }
+    if (!/class="aura-shell aura-shell--no-bar"/.test(m(e(A.AppShell, null, 'c'))) || /--no-bar|--menu-bar/.test(sh0)) { console.log(label, 'AppShell bar classes'); fail++; }
+    const gated = m(e(A.Button, { 'aria-disabled': true }, 'Erase')), plainBtn = m(e(A.Button, null, 'Erase'));
+    const busy = m(e(A.Button, { loading: true }, 'Erase'));
+    if (!/aria-disabled="true"/.test(gated) || /disabled=""/.test(gated) || /aria-disabled/.test(plainBtn) || !/aria-disabled="true"/.test(busy)) { console.log(label, 'Button aria-disabled:', gated, busy); fail++; }
+    const tabs = [{ id: 'a', label: 'Contacts', href: '#contacts' }, { id: 'b', label: 'Invoices', href: '#invoices' }];
+    const loc = m(e(A.Tabs, { label: 'On this page', value: 'a', tabs, current: 'location' })), pg = m(e(A.Tabs, { label: 'On this page', value: 'a', tabs }));
+    if (!/aria-current="location"/.test(loc) || !/aria-current="page"/.test(pg)) { console.log(label, 'Tabs current:', loc); fail++; }
+  }
   /* 5.13 (Chamber-OS 80–82, 84): card options, static Table align/bordered/card slots, EmptyState tone. */
   {
     const rows = [{ co: 'Acme', no: 'M-1', flag: 'SE', plan: 'Gold' }];
@@ -152,11 +176,22 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       ['Alert', { tone: 'warning', children: 'y' }],
       ['Badge', { tone: 'success', icon: 'check', 'data-x': '1', children: '3' }],
       ['EmptyState', { title: 'Nothing', description: 'yet', icon: 'search', size: 'sm', bordered: true, headingLevel: 2 }],
+      /* 5.14 (Chamber-OS 86, 88, 103) */
+      ['EmptyState', { title: 'No benefits', headingLevel: false }],
+      ['Stat', { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold · renews Oct', change: { value: '+2', direction: 'up' } }],
+      ['Stat', { label: 'E-Blasts', value: '4,200', unit: 'sent', loading: true }],
+      ['Stat', { label: 'Invoices', value: 3, href: '/invoices', headingLevel: 3 }],
+      ['Avatar', { name: 'Anna Berg', size: 'lg', status: 'online' }],
+      ['Avatar', { name: 'Somchai', src: '/a.png' }],
     ];
     for (const [n, p] of cases) {
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
     }
+    /* A heading label sits in a div row (not a span); a /server Stat drops a click handler passed at runtime. */
+    const stH = m(e(S.Stat, { label: 'Membership', headingLevel: 2, value: 'Active' })), stS = m(e(S.Stat, { label: 'M', value: 1 }));
+    const stClick = m(e(S.Stat, { label: 'M', value: 1, onClick: () => {} }));
+    if (!/<div class="aura-stat__head"><h2 /.test(stH) || !/<span class="aura-stat__head"><span /.test(stS) || stClick !== stS) { console.log(label, 'Stat head/onClick:', stH, stClick); fail++; }
     const card = m(e(A.Card, cases[0]![1])), pill = m(e(A.StatusPill, cases[2]![1])), alert = m(e(A.Alert, cases[3]![1]));
     if (!/id="renewal-prefs"/.test(card) || !/data-testid="history-item"/.test(card) || !/aria-labelledby="rp-t"/.test(card)) { console.log(label, 'Card attributes:', card); fail++; }
     if (!/aria-labelledby="outer"/.test(m(e(A.Card, cases[1]![1])))) { console.log(label, 'Card keeps a caller aria-labelledby without a title'); fail++; }

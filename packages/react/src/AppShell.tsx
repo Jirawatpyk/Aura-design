@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Drawer } from './Dialog.js';
 import { IconButton } from './IconButton.js';
-import { cx } from './internal.js';
+import { cx, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { useStrings } from './locale.js';
 import { useBreakpoint } from './responsive.js';
 import type { AppShellProps } from './types.js';
@@ -48,6 +48,30 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
     if (shared) navState[1](id);
     if (navEl && navEl.props.onChange) navEl.props.onChange(id);
   }
+  /* 5.14 (Chamber-OS 104): --aura-shell-bar-height follows the bar's real height (a header that wraps on a phone is
+   * taller than 56px; one hidden from lg up is 0). The stylesheet's value is what the server's HTML uses until then. */
+  const rootRef = React.useRef<HTMLDivElement | null>(null);
+  const barRef = React.useRef<HTMLElement | null>(null);
+  const mergedRef = useMergedRef(ref, rootRef);
+  const hasBar = !!(props.header || props.nav);
+  useIsoLayoutEffect(
+    function () {
+      const root = rootRef.current,
+        bar = barRef.current;
+      if (!root || !bar) return;
+      function sync() {
+        root!.style.setProperty('--aura-shell-bar-height', bar!.getBoundingClientRect().height + 'px');
+      }
+      sync();
+      const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
+      if (ro) ro.observe(bar);
+      return function () {
+        if (ro) ro.disconnect();
+        root.style.removeProperty('--aura-shell-bar-height');
+      };
+    },
+    [hasBar],
+  );
   const deskNav = navEl && shared ? React.cloneElement(navEl, { value: navState[0], onChange: onNav }) : props.nav;
   /* The drawer's copy: closes the drawer on navigation, always full width, no collapse toggle. */
   const drawerNav = navEl
@@ -63,7 +87,17 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       })
     : props.nav;
   return (
-    <div ref={ref} className={cx('aura-shell', props.bottomNav && 'aura-shell--bottomnav', props.className)}>
+    <div
+      ref={mergedRef}
+      className={cx(
+        'aura-shell',
+        props.bottomNav && 'aura-shell--bottomnav',
+        /* 5.14: no top bar at all, or one that only holds the menu button (gone from lg up): the bar-height token is 0. */
+        !props.header && !props.nav && 'aura-shell--no-bar',
+        !props.header && props.nav && 'aura-shell--menu-bar',
+        props.className,
+      )}
+    >
       {props.nav ? <div className="aura-shell__nav">{deskNav}</div> : null}
       {props.nav ? (
         <Drawer
@@ -81,7 +115,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       ) : null}
       <div className="aura-shell__main">
         {props.header || props.nav ? (
-          <header className={cx('aura-shell__bar', !props.header && 'aura-shell__bar--menu-only')}>
+          <header ref={barRef} className={cx('aura-shell__bar', !props.header && 'aura-shell__bar--menu-only')}>
             {props.nav ? (
               <IconButton
                 className="aura-shell__menu"
@@ -97,7 +131,11 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
             <div className="aura-shell__bar-content">{props.header}</div>
           </header>
         ) : null}
-        <main className="aura-shell__content" id={props.mainId || 'main'} tabIndex={-1}>
+        <main
+          className={cx('aura-shell__content', props.contentPadding === false && 'is-flush')}
+          id={props.mainId || 'main'}
+          tabIndex={-1}
+        >
           {props.children}
         </main>
         {props.bottomNav || null}

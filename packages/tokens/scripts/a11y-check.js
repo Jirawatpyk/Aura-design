@@ -65,7 +65,7 @@ const TEXT = 4.5, UI = 3;
 const grounds = ['bg-surface', 'bg-canvas', 'bg-surface-hover'];
 /** @type {[string, string, number][]} */
 const pairs = [];
-for (const fg of ['fg-primary', 'fg-secondary', 'fg-tertiary', 'fg-accent', 'fg-danger', 'fg-positive']) for (const bg of grounds) pairs.push([fg, bg, TEXT]);
+for (const fg of ['fg-primary', 'fg-secondary', 'fg-tertiary', 'fg-accent', 'fg-danger', 'fg-positive', 'fg-warning']) for (const bg of grounds) pairs.push([fg, bg, TEXT]);
 pairs.push(['fg-primary', 'bg-selected', TEXT], ['fg-secondary', 'bg-selected', TEXT]);
 pairs.push(['fg-inverted', 'bg-surface-strong', TEXT], ['fg-inverted', 'bg-inverted', TEXT]);
 pairs.push(['button-primary-fg', 'button-primary-bg', TEXT], ['button-primary-fg', 'button-primary-bg-hover', TEXT]);

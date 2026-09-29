@@ -104,7 +104,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
                 key={t.id}
                 href={t.href}
                 className={tabCls(on, own.className)}
-                aria-current={on ? 'page' : undefined}
+                aria-current={on ? props.current || 'page' : undefined}
                 onClick={function (e: React.MouseEvent<HTMLButtonElement>) {
                   if (own.onClick) own.onClick(e);
                   /* A new-tab click (modifier or middle button) leaves this page as it is. */

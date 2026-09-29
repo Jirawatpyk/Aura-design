@@ -660,6 +660,9 @@ export interface TabsProps {
 	variant?: "underline" | "segmented" | undefined;
 	/** With `variant="segmented"`: stretch the track to the full width, tabs sharing it equally. (5.10) */
 	fullWidth?: boolean | undefined;
+	/** Link tabs: what the current link is (5.14). `page` (default) for routes; `location` for links to sections of
+	 * this page (`#contacts`). */
+	current?: "page" | "location" | undefined;
 }
 export interface NavItem {
 	id: string;
@@ -996,6 +999,8 @@ export interface AppShellProps {
 	/** A BottomNav for phones (4.19). Shown below its `hideFrom` breakpoint; the content keeps room for it, and a
 	 * viewport ActionBar sits on top of it. With a `bottomNav` and no `nav`, there is no menu button. */
 	bottomNav?: React$1.ReactElement | undefined;
+	/** `false` (5.14): `<main>` has no padding, for pages whose containers own the page padding and column. */
+	contentPadding?: boolean | undefined;
 	className?: string | undefined;
 }
 export interface SeparatorProps {
@@ -1122,6 +1127,9 @@ export interface StatProps {
 	/** Makes the whole card a link or a button (drill-down). */
 	href?: string | undefined;
 	onClick?: (() => void) | undefined;
+	/** The label as a heading of this level (5.14), when the tile titles its section. Not with `onClick` (a heading
+	 * can't sit in a button); a link is fine. Default: a plain label. */
+	headingLevel?: 2 | 3 | 4 | 5 | 6 | undefined;
 	className?: string | undefined;
 }
 export interface TimePickerProps extends FieldProps {
@@ -1232,7 +1240,9 @@ export interface EmptyStateProps extends Omit<React$1.HTMLAttributes<HTMLDivElem
 	/** `danger` (5.13) for a failure — the data couldn't load: the danger tint, a danger-coloured icon, and a solid
 	 * danger frame with `bordered`. It stays quiet; pass `role="alert"` if it must interrupt. Default `neutral`. */
 	tone?: "neutral" | "danger" | undefined;
-	headingLevel?: 2 | 3 | 4 | 5 | 6 | undefined;
+	/** The title's heading level (default 3); `false` (5.14) makes it a paragraph, for a card or list whose outline
+	 * mustn't change. EmptyState has no live-region role unless you pass `role`. */
+	headingLevel?: 2 | 3 | 4 | 5 | 6 | false | undefined;
 	className?: string | undefined;
 }
 export interface PaginationProps {

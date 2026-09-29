@@ -101,6 +101,7 @@
   --aura-alert-danger-fg: var(--aura-red-700);
   --aura-alert-danger-border: var(--aura-red-200);
   --aura-fg-positive: var(--aura-lime-800);
+  --aura-fg-warning: var(--aura-amber-800);
   --aura-chart-1: #5e2cb5;
   --aura-chart-2: #0a8b7a;
   --aura-chart-3: #803900;
@@ -180,6 +181,7 @@
   --aura-alert-danger-fg: var(--aura-red-300);
   --aura-alert-danger-border: #6e2a2b;
   --aura-fg-positive: var(--aura-lime-300);
+  --aura-fg-warning: var(--aura-amber-300);
   --aura-chart-1: #bba9ff;
   --aura-chart-3: #fe9c63;
   --aura-chart-5: #ff91d1;
@@ -252,6 +254,7 @@
     --aura-alert-danger-fg: var(--aura-red-300);
     --aura-alert-danger-border: #6e2a2b;
     --aura-fg-positive: var(--aura-lime-300);
+    --aura-fg-warning: var(--aura-amber-300);
     --aura-chart-1: #bba9ff;
     --aura-chart-3: #fe9c63;
     --aura-chart-5: #ff91d1;

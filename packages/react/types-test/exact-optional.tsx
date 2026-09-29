@@ -3,6 +3,7 @@
  * (dist/index.d.ts) with strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess. */
 import * as React from 'react';
 import * as Aura from '../dist/index';
+import * as Server from '../dist/server/index';
 import { Button, DataTable, DatePicker, SideNav, TextField } from '../dist/index';
 import { IconPlus, IconUsers, allIcons, defineIcon } from '../dist/icons/index';
 import { th } from '../dist/locales/th';
@@ -237,3 +238,29 @@ export function Addendum13({ o, flag }: { o: number | undefined; flag: boolean |
 export const badCard: Aura.DataTableColumn = { key: 'x', label: 'X', card: 'actions' };
 // @ts-expect-error Table align is 'top' | 'middle' (the old HTML align attribute is not accepted)
 export const badAlign = <Aura.Table caption="Q" align="center" />;
+
+/* 5.14 (Chamber-OS 86, 88, 97, 102, 103, 107): EmptyState title as a paragraph, Stat heading, shell padding, a gated
+ * Button, in-page link tabs; undefined allowed. */
+export function Addendum15({ level, flag }: { level: 2 | 3 | undefined; flag: boolean | undefined }) {
+  return (
+    <>
+      <Aura.EmptyState title="No benefits" headingLevel={false} />
+      <Aura.Stat label="Membership" value="Active" headingLevel={level} />
+      <Aura.AppShell contentPadding={flag}>x</Aura.AppShell>
+      <Aura.Button aria-disabled={flag}>Erase</Aura.Button>
+      <Aura.Tabs label="On this page" current="location" tabs={[{ id: 'a', label: 'A', href: '#a' }]} />
+      <Aura.Tabs label="Sections" current={undefined} tabs={[{ id: 'a', label: 'A' }]} />
+    </>
+  );
+}
+// @ts-expect-error headingLevel true is not a level
+export const badEmpty = <Aura.EmptyState title="x" headingLevel={true} />;
+/* 5.14 (Chamber-OS 88, 103): Stat and Avatar from /server; no onClick there. */
+export const serverTiles = (
+  <>
+    <Server.Stat label="Membership" headingLevel={2} value="Active" href="/membership" />
+    <Server.Avatar name="Anna Berg" size="sm" />
+  </>
+);
+// @ts-expect-error a server Stat can't take onClick
+export const serverClick = <Server.Stat label="x" onClick={() => {}} />;

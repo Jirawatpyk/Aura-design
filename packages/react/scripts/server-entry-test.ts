@@ -81,6 +81,10 @@ for (const [name, A] of [
       tree(A.Alert({ tone: 'danger', role: 'status', icon: 'clock', title: 'Paused', children: 'Benefits paused' })),
       tree(A.Badge({ tone: 'success', children: '3' })),
       tree(A.EmptyState({ title: 'Nothing yet' })),
+      /* 5.14 (Chamber-OS 88, 103) */
+      tree(A.Stat({ label: 'Membership', headingLevel: 2, value: 'Active' })),
+      tree(A.Stat({ label: 'Quota', loading: true })),
+      tree(A.Avatar({ name: 'Anna Berg' })),
     ].join('');
     for (const want of [
       'id="renewal-prefs"',
@@ -92,6 +96,10 @@ for (const [name, A] of [
       'aura-alert--danger',
       'aura-badge--success',
       'aura-empty',
+      '<h2 class="aura-stat__label">Membership</h2>',
+      'aura-stat__skel',
+      'aura-avatar',
+      '>AB<',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')

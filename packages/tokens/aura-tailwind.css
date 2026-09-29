@@ -87,6 +87,7 @@
   --color-fg-accent: var(--aura-fg-accent);
   --color-fg-danger: var(--aura-fg-danger);
   --color-fg-positive: var(--aura-fg-positive);
+  --color-fg-warning: var(--aura-fg-warning);
   --color-border: var(--aura-border-default);
   --color-border-default: var(--aura-border-default);
   --color-border-strong: var(--aura-border-strong);

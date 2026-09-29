@@ -64,6 +64,10 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
     const props = all as ButtonProps;
     const variant = props.variant || 'primary';
     const loading = !!props.loading;
+    /* 5.14 (Chamber-OS 102): a passed aria-disabled is kept (merged with loading's): the button stays focusable and
+     * announced as unavailable, and clicks do nothing — a gated confirm. */
+    const ad = (props as { 'aria-disabled'?: unknown })['aria-disabled'];
+    const blocked = loading || ad === true || ad === 'true';
     const rest = omit(props, [
       'variant',
       'className',
@@ -89,9 +93,9 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
           className: props.className,
         })}
         aria-busy={loading || undefined}
-        aria-disabled={loading || undefined}
+        aria-disabled={blocked || undefined}
         onClick={
-          loading
+          blocked
             ? function (e: React.MouseEvent<HTMLButtonElement>) {
                 e.preventDefault();
               }

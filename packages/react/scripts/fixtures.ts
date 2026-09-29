@@ -211,6 +211,9 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       resultCount: 312,
       actions: h(A.Button, { variant: 'secondary' }, 'Export'),
     }),
+    StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
+    EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
+    ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
     EmptyStateDanger: h(A.EmptyState, {
       tone: 'danger',
       bordered: true,
