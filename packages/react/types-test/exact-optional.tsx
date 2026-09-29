@@ -264,3 +264,44 @@ export const serverTiles = (
 );
 // @ts-expect-error a server Stat can't take onClick
 export const serverClick = <Server.Stat label="x" onClick={() => {}} />;
+/* 5.15 (Chamber-OS 85–100): every new option takes `undefined` under exactOptionalPropertyTypes. */
+export function Addendum15Layout({ flag, bp }: { flag: boolean | undefined; bp: 'sm' | 'md' | undefined }) {
+  return (
+    <>
+      <Aura.Table caption="Q" stackBelow={bp} stackStyle={flag ? 'cards' : undefined}>
+        x
+      </Aura.Table>
+      <Aura.Card header={<span>Pending</span>} flushBelow={bp}>
+        b
+      </Aura.Card>
+      <Aura.Progress value={2} secondaryValue={flag ? 1 : undefined} max={6} />
+      <Aura.Tabs label="L" fullWidth={flag ? 'below-lg' : undefined} tabs={[{ id: 'a', label: 'A' }]} />
+      <Aura.FilterBar controlsLayout={flag ? 'fill' : undefined} stackBelow={flag ? 'lg' : undefined} />
+      <Aura.Breadcrumb
+        collapseBelow={bp}
+        items={[{ label: 'A', href: '/a', itemProps: { 'data-slot': 'item' }, linkProps: { 'data-testid': 'a' } }]}
+      />
+      <Aura.Checkbox label="x" hideLabel hitArea={flag ? { x: 12, y: 8 } : undefined} />
+      <Aura.Button size="sm" touchHeight={flag}>
+        Pay
+      </Aura.Button>
+      <Aura.Button href="/i" touchHeight={flag}>
+        View
+      </Aura.Button>
+      <Aura.IconButton icon="x" label="Close" touchHeight={flag} />
+    </>
+  );
+}
+/* Review: the pay sheet's close button can be 44px on phones; crumb links take link attributes. */
+export const payClose = (
+  <Aura.Drawer open onClose={() => {}} title="Pay" closeProps={{ touchHeight: true, 'data-testid': 'close' }}>
+    x
+  </Aura.Drawer>
+);
+export const crumbTarget = (
+  <Aura.Breadcrumb items={[{ label: 'Docs', href: '/d', linkProps: { target: '_blank', rel: 'noopener' } }]} />
+);
+// @ts-expect-error Card flushBelow takes sm | md | lg
+export const badFlush = <Aura.Card flushBelow="xl">b</Aura.Card>;
+// @ts-expect-error Table stackStyle is list | cards
+export const badStack = <Aura.Table stackStyle="grid">x</Aura.Table>;

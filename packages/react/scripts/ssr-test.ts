@@ -52,6 +52,55 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.15 (Chamber-OS 85, 87, 89, 90, 92–94, 99, 100): exact markup of the new options; defaults unchanged. */
+  {
+    const m = renderToString;
+    const e = React.createElement;
+    const bad = (what: string, ...html: unknown[]) => { console.log(label, what, ...html); fail++; };
+    /* 87, 93 */
+    const pill = e(A.StatusPill, { tone: 'warning' }, 'Pending');
+    const ch = m(e(A.Card, { header: pill, title: 'Ignored', titleId: 't1', flushBelow: 'lg' }, 'b'));
+    if (!/^<section class="aura-card aura-card--flush-below-lg"><div class="aura-card__head"><div class="aura-card__heading"><span class="aura-pill/.test(ch) || /<h\d|Ignored|aria-labelledby/.test(ch)) bad('Card header/flushBelow:', ch);
+    if (m(e(S.Card, { header: pill, flushBelow: 'lg' }, 'b')) !== m(e(A.Card, { header: pill, flushBelow: 'lg' }, 'b'))) bad('/server Card header differs');
+    const c0 = m(e(A.Card, { title: 'T', titleId: 't1' }, 'b'));
+    if (!/^<section class="aura-card" aria-labelledby="t1"><div class="aura-card__head"><div class="aura-card__heading"><h3 class="aura-card__title" id="t1">T<\/h3>/.test(c0)) bad('default Card changed:', c0);
+    /* 89 */
+    const pr = m(e(A.Progress, { label: 'E', value: 2, secondaryValue: 1, max: 6 }));
+    if (!/aria-valuetext="2 of 6 used, 1 reserved"/.test(pr) || !/class="aura-progress__bar aura-progress__bar--reserved" style="left:33\.3+\d*%;width:16\.6+\d*%"/.test(pr)) bad('Progress reserved:', pr);
+    const pr0 = m(e(A.Progress, { label: 'E', value: 2, max: 6 })), prZero = m(e(A.Progress, { label: 'E', value: 2, secondaryValue: 0, max: 6 }));
+    if (/reserved|aria-valuetext/.test(pr0) || prZero !== pr0) bad('default Progress changed:', pr0, prZero);
+    /* 90 */
+    const tabs = [{ id: 'a', label: 'A', content: 'x' }, { id: 'b', label: 'B', content: 'y' }];
+    const tl = (p: Record<string, unknown>) => (/class="(aura-tabs__list[^"]*)"/.exec(m(e(A.Tabs, Object.assign({ label: 'L', tabs }, p)))) || [])[1];
+    const got = [tl({}), tl({ fullWidth: true }), tl({ fullWidth: 'below-lg' }), tl({ variant: 'segmented', fullWidth: true }), tl({ variant: 'segmented', fullWidth: 'below-md' })];
+    const want = ['aura-tabs__list', 'aura-tabs__list is-fill', 'aura-tabs__list is-fill-below-lg', 'aura-tabs__list aura-segmented is-full', 'aura-tabs__list aura-segmented is-full-below-md'];
+    if (JSON.stringify(got) !== JSON.stringify(want)) bad('Tabs fullWidth classes:', got);
+    /* 92 */
+    const fb = (p: Record<string, unknown>) => (/class="(aura-filterbar[^"]*)"/.exec(m(e(A.FilterBar, Object.assign({ search: '', onSearchChange: () => {} }, p), 'x'))) || [])[1];
+    if (fb({ controlsLayout: 'fill', stackBelow: 'lg' }) !== 'aura-filterbar aura-filterbar--fill aura-filterbar--stack-lg' || fb({ controlsLayout: 'auto', stackBelow: 'md' }) !== 'aura-filterbar') bad('FilterBar classes');
+    /* 94 */
+    const items = [{ label: 'Admin', href: '/a', itemProps: { 'data-slot': 'item' } }, { label: 'Members', href: '/m' }, { label: 'Acme', linkProps: { 'data-slot': 'page' } }];
+    const bc = m(e(A.Breadcrumb, { collapseBelow: 'sm', items }));
+    if (!/<nav aria-label="Breadcrumb" class="aura-crumbs aura-crumbs--collapse-sm"><ol><li data-slot="item"><a href="\/a">Admin<\/a>.*?<\/li><li class="aura-crumbs__more"><button type="button" aria-label="Show the full path">…<\/button>.*?<\/li><li class="aura-crumbs__middle"><a href="\/m">Members/.test(bc) || !/<span data-slot="page" aria-current="page" class="aura-crumbs__current">Acme<\/span>/.test(bc)) bad('Breadcrumb collapse:', bc);
+    const bc2 = m(e(A.Breadcrumb, { collapseBelow: 'sm', items: items.slice(1) })), bc0 = m(e(A.Breadcrumb, { items: [{ label: 'Admin', href: '/a' }, { label: 'Members', href: '/m' }, { label: 'Acme' }] }));
+    if (/collapse|__more|__middle/.test(bc2) || /collapse|__more|__middle|class=""/.test(bc0) || !/<li><a href="\/a">Admin/.test(bc0)) bad('Breadcrumb defaults:', bc2, bc0);
+    /* 99 */
+    const cb = m(e(A.Checkbox, { label: 'Approve', hideLabel: true, hitArea: { x: 12, y: 8 } }));
+    const cbT = m(e(A.Checkbox, { label: 'Approve', hideLabel: true, hitArea: 'target' }));
+    const cbL = m(e(A.Checkbox, { hitArea: { x: 12, y: 8 } }, 'Approve')), cb0 = m(e(A.Checkbox, { label: 'Approve', hideLabel: true, hitArea: 'box' }));
+    if (!/class="aura-check has-hit" style="--aura-check-hit-x:12px;--aura-check-hit-y:8px"/.test(cb) || !/--aura-check-hit-x:4px;--aura-check-hit-y:4px/.test(cbT) || /has-hit|--aura-check/.test(cbL + cb0)) bad('Checkbox hitArea:', cb, cbL);
+    /* 100 */
+    const bt = m(e(A.Button, { size: 'sm', touchHeight: true }, 'Pay')), bl = m(e(A.Button, { href: '/i', size: 'sm', touchHeight: true }, 'View'));
+    const ib = m(e(A.IconButton, { icon: 'x', label: 'Close', touchHeight: true }));
+    if (!/class="aura-btn aura-btn--primary aura-btn--sm aura-btn--touch"/.test(bt) || !/class="aura-btn aura-btn--primary aura-btn--sm aura-btn--touch"/.test(bl) || !/class="aura-icon-btn aura-icon-btn--touch"/.test(ib) || /touchheight/i.test(bt + bl + ib)) bad('touchHeight:', bt, bl, ib);
+    if (S.buttonClass({ size: 'sm', touchHeight: true }) !== 'aura-btn aura-btn--primary aura-btn--sm aura-btn--touch') bad('buttonClass touchHeight');
+    /* 85 */
+    const head = e(A.THead, null, e(A.Tr, null, e(A.Th, null, 'Member')));
+    const body = e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'Acme')));
+    const tc = m(e(A.Table, { caption: 'Q', stackBelow: 'sm', stackStyle: 'cards' }, head, body));
+    const tc0 = m(e(A.Table, { caption: 'Q', stackBelow: 'sm', stackStyle: 'list' }, head, body)), tcNo = m(e(A.Table, { caption: 'Q', stackStyle: 'cards' }, head, body));
+    if (!/^<div class="aura-tbl-cards aura-tbl-cards--sm"><div class="aura-tbl-wrap is-stackable"><table class="aura-tbl aura-tbl--stack-sm aura-tbl--cards"/.test(tc) || /cards/.test(tc0 + tcNo)) bad('Table stackStyle:', tc, tc0, tcNo);
+  }
   /* 5.14 (Chamber-OS 86, 88, 97, 102, 104, 107): exact markup of the new options; defaults unchanged. */
   {
     const m = renderToString;

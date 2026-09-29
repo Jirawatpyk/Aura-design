@@ -312,6 +312,12 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 .aura-icon-btn:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+/* 5.15 (Chamber-OS 100): touchHeight — visibly 44px on phones, for buttons and icon buttons a phone design wants full size. */
+@media (max-width: 639.98px) {
+  .aura-btn.aura-btn--touch { height: var(--aura-touch-target); }
+  .aura-btn.aura-btn--touch.aura-btn--full { height: auto; min-height: var(--aura-touch-target); }
+  .aura-icon-btn.aura-icon-btn--touch { width: var(--aura-touch-target); height: var(--aura-touch-target); }
+}
 /* Touch: same 32px look, a 44px hit area around it (WCAG 2.5.5). */
 @media (pointer: coarse) {
   .aura-icon-btn { position: relative; }
@@ -345,6 +351,9 @@ a.aura-icon-btn { text-decoration: none; }
 /* Checkbox — 16px, 4px corners, ink when checked */
 .aura-check { position: relative; display: inline-flex; width: var(--aura-icon-sm); height: var(--aura-icon-sm); flex: none; cursor: pointer; }
 .aura-check__input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+/* 5.15 (Chamber-OS 99): hitArea — the input reaches past the box. */
+.aura-check.has-hit { isolation: isolate; } /* the larger input stays inside the checkbox's own stacking */
+.aura-check.has-hit .aura-check__input { inset: calc(-1 * var(--aura-check-hit-y)) calc(-1 * var(--aura-check-hit-x)); z-index: 1; }
 .aura-check__box {
   box-sizing: border-box; width: 100%; height: 100%;
   display: inline-flex; align-items: center; justify-content: center;
@@ -632,6 +641,10 @@ a.aura-icon-btn { text-decoration: none; }
 }
 .aura-card.is-interactive { cursor: pointer; transition: border-color var(--aura-duration-fast) var(--aura-ease); }
 .aura-card.is-interactive:hover { border-color: var(--aura-border-control); }
+/* 5.15 (Chamber-OS 93): frameless below a width — the rows inside become cards of their own. */
+@media (max-width: 639.98px) { .aura-card.aura-card--flush-below-sm, .aura-card.aura-card--flush-below-sm:hover { border-color: transparent; background: transparent; box-shadow: none; } }
+@media (max-width: 767.98px) { .aura-card.aura-card--flush-below-md, .aura-card.aura-card--flush-below-md:hover { border-color: transparent; background: transparent; box-shadow: none; } }
+@media (max-width: 1023.98px) { .aura-card.aura-card--flush-below-lg, .aura-card.aura-card--flush-below-lg:hover { border-color: transparent; background: transparent; box-shadow: none; } }
 .aura-card--creative { border: 2px solid var(--aura-border-strong); box-shadow: var(--aura-card-shadow-creative); }
 .aura-card__head { display: flex; align-items: flex-start; gap: var(--aura-space-3); }
 .aura-card__heading { flex: 1; min-width: 0; }
@@ -749,6 +762,21 @@ a.aura-tab { text-decoration: none; }
 /* 5.7: a segment with no page of its own — the links' colour, not interactive. */
 .aura-crumbs__text { color: var(--aura-fg-secondary); }
 .aura-crumbs__sep { color: var(--aura-fg-tertiary); }
+/* 5.15 (Chamber-OS 94): first, "…", last below a width. */
+.aura-crumbs li.aura-crumbs__more { display: none; }
+/* "…" is the only way to the hidden items: a 24px target, 44px on touch screens. */
+.aura-crumbs__more > button { position: relative; min-width: 24px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; }
+@media (pointer: coarse) {
+  .aura-crumbs__more > button::after { content: ''; position: absolute; top: 50%; left: 50%; width: var(--aura-touch-target); height: var(--aura-touch-target); transform: translate(-50%, -50%); }
+}
+@media (max-width: 639.98px) {
+  .aura-crumbs--collapse-sm li.aura-crumbs__more { display: inline-flex; }
+  .aura-crumbs--collapse-sm .aura-crumbs__middle { display: none; }
+}
+@media (max-width: 767.98px) {
+  .aura-crumbs--collapse-md li.aura-crumbs__more { display: inline-flex; }
+  .aura-crumbs--collapse-md .aura-crumbs__middle { display: none; }
+}
 
 /* ---------- Avatar ---------- */
 .aura-avatar {
@@ -1083,6 +1111,12 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-progress--warning .aura-progress__bar { background: var(--aura-alert-warning-fg); }
 .aura-progress--danger .aura-progress__bar { background: var(--aura-fg-danger); }
 .aura-progress--neutral .aura-progress__bar { background: var(--aura-fg-secondary); }
+/* 5.15 (Chamber-OS 89): a reserved amount after the value — the same tone, striped, so it reads without colour. */
+.aura-progress__bar--reserved {
+  transition: left var(--aura-duration-base) var(--aura-ease), width var(--aura-duration-base) var(--aura-ease);
+  -webkit-mask-image: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 6px);
+  mask-image: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 6px);
+}
 .aura-progress__track.is-indeterminate .aura-progress__bar { width: 35%; animation: aura-progress-slide var(--aura-duration-pulse) var(--aura-ease) infinite; }
 @keyframes aura-progress-slide { from { left: -35%; } to { left: 100%; } }
 @media (prefers-reduced-motion: reduce) { .aura-progress__track.is-indeterminate .aura-progress__bar { animation-duration: calc(var(--aura-duration-pulse) * 3); } }
@@ -1265,6 +1299,30 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tabs--segmented .aura-tabs__list.aura-segmented { gap: 2px; }
 .aura-tabs--segmented .aura-tabs__list.aura-segmented.is-full .aura-tab { min-width: max-content; }
 .aura-tabs--segmented .aura-tab.aura-segmented__option { margin-bottom: 0; }
+/* 5.15 (Chamber-OS 90): underline tabs sharing the width, always or below a breakpoint; the segmented track below one. */
+.aura-tabs__list.is-fill { gap: 0; }
+.aura-tabs__list.is-fill > .aura-tab { flex: 1 1 0; min-width: max-content; justify-content: center; padding: 0 var(--aura-space-3); }
+@media (max-width: 639.98px) {
+  .aura-tabs__list.is-fill-below-sm { gap: 0; }
+  .aura-tabs__list.is-fill-below-sm > .aura-tab { flex: 1 1 0; min-width: max-content; justify-content: center; padding: 0 var(--aura-space-3); }
+  .aura-segmented.is-full-below-sm { display: flex; width: 100%; }
+  .aura-segmented.is-full-below-sm .aura-segmented__option { flex: 1 1 0; min-width: 0; }
+  .aura-tabs--segmented .aura-segmented.is-full-below-sm .aura-tab { min-width: max-content; }
+}
+@media (max-width: 767.98px) {
+  .aura-tabs__list.is-fill-below-md { gap: 0; }
+  .aura-tabs__list.is-fill-below-md > .aura-tab { flex: 1 1 0; min-width: max-content; justify-content: center; padding: 0 var(--aura-space-3); }
+  .aura-segmented.is-full-below-md { display: flex; width: 100%; }
+  .aura-segmented.is-full-below-md .aura-segmented__option { flex: 1 1 0; min-width: 0; }
+  .aura-tabs--segmented .aura-segmented.is-full-below-md .aura-tab { min-width: max-content; }
+}
+@media (max-width: 1023.98px) {
+  .aura-tabs__list.is-fill-below-lg { gap: 0; }
+  .aura-tabs__list.is-fill-below-lg > .aura-tab { flex: 1 1 0; min-width: max-content; justify-content: center; padding: 0 var(--aura-space-3); }
+  .aura-segmented.is-full-below-lg { display: flex; width: 100%; }
+  .aura-segmented.is-full-below-lg .aura-segmented__option { flex: 1 1 0; min-width: 0; }
+  .aura-tabs--segmented .aura-segmented.is-full-below-lg .aura-tab { min-width: max-content; }
+}
 .aura-tabs--segmented .aura-tab.aura-segmented__option:focus-visible { border-radius: var(--aura-radius-full); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
 .aura-tabs--segmented .aura-tab.aura-segmented__option:disabled,
 .aura-tabs--segmented .aura-tab.aura-segmented__option.is-disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
@@ -1391,6 +1449,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 /* 5.12 searchGrow: the search fills what the controls leave. */
 .aura-filterbar--grow .aura-filterbar__search { max-width: none; }
 .aura-filterbar--grow .aura-filterbar__search ~ .aura-filterbar__spacer { display: none; }
+/* 5.15 (Chamber-OS 92): the search on its own row up to 1024px; controls sharing their row in equal columns. */
+@media (max-width: 1023.98px) {
+  .aura-filterbar--stack-lg .aura-filterbar__search { flex-basis: 100%; max-width: none; }
+  .aura-filterbar--stack-lg .aura-filterbar__spacer { display: none; }
+}
+.aura-filterbar--fill .aura-filterbar__spacer { display: none; }
+.aura-filterbar--fill .aura-filterbar__controls { flex: 1 1 auto; min-width: 0; }
+.aura-filterbar--fill .aura-filterbar__controls > * { flex: 1 1 0; min-width: 120px; max-width: none; width: auto; }
+.aura-filterbar--fill .aura-filterbar__controls > .aura-filterselect .aura-filterselect__face { width: 100%; }
+.aura-filterbar--fill .aura-filterbar__controls > .aura-filterselect .aura-filterselect__chevron { margin-inline-start: auto; }
 /* Compact filters sit closer together than full fields. */
 .aura-filterbar__controls:has(> .aura-filterselect) { gap: var(--aura-space-2); }
 
@@ -1629,6 +1697,34 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
   }
+}
+
+/* 5.15 (Chamber-OS 85): stackStyle="cards" — each stacked row its own card (DataTable's card spacing), no outer frame.
+ * .aura-tbl-cards is the container here, so the wrap's own frame can be dropped while stacked. */
+.aura-tbl-cards { container: aura-tbl / inline-size; width: 100%; }
+@container aura-tbl (width < 768px) {
+  .aura-tbl-cards--md > .aura-tbl-wrap { border: 0; border-radius: 0; background: transparent; overflow: visible; }
+  .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
+  .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row, .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row {
+    margin-bottom: var(--aura-space-2); padding: var(--aura-space-4);
+    border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); background: var(--aura-bg-surface);
+  }
+  .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row { background: var(--aura-bg-canvas); }
+  .aura-tbl--cards.aura-tbl--stack-md > :last-child > .aura-tbl__row:last-child { margin-bottom: 0; }
+  .aura-tbl-wrap[data-density='compact'] > .aura-tbl--cards.aura-tbl--stack-md > * > .aura-tbl__row { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
+  .aura-tbl-wrap.is-flush > .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
+}
+@container aura-tbl (width < 640px) {
+  .aura-tbl-cards--sm > .aura-tbl-wrap { border: 0; border-radius: 0; background: transparent; overflow: visible; }
+  .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
+  .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row {
+    margin-bottom: var(--aura-space-2); padding: var(--aura-space-4);
+    border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); background: var(--aura-bg-surface);
+  }
+  .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row { background: var(--aura-bg-canvas); }
+  .aura-tbl--cards.aura-tbl--stack-sm > :last-child > .aura-tbl__row:last-child { margin-bottom: 0; }
+  .aura-tbl-wrap[data-density='compact'] > .aura-tbl--cards.aura-tbl--stack-sm > * > .aura-tbl__row { padding-top: var(--aura-space-2); padding-bottom: var(--aura-space-2); }
+  .aura-tbl-wrap.is-flush > .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
 }
 
 /* ---------- 4.20: DataTable width queries and cards, one markup ---------- */

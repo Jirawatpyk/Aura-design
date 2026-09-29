@@ -28,6 +28,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
     'className',
     'tabIndex',
     'disabled',
+    'hitArea',
   ]);
   /* The visible text is the children. `label` alone is still only the accessible name in 5.x; 6.0 shows it beside
    * the box like Switch and TextField. A bare box says so with hideLabel. */
@@ -40,9 +41,23 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
     );
   /* 5.1.1: linked even without an id (a bare hideLabel box lost its description). */
   const descId = props.description ? (props.id || auto) + '-desc' : undefined;
+  /* 5.15: a larger invisible input around a bare box; the box itself doesn't change. */
+  const ha = props.hitArea;
+  const hit = !labelled && ha && ha !== 'box' ? (ha === 'target' ? { x: 4, y: 4 } : ha) : null;
   return (
     <label
-      className={cx('aura-check', labelled && 'aura-check--labelled', props.disabled && 'is-disabled', props.className)}
+      className={cx(
+        'aura-check',
+        labelled && 'aura-check--labelled',
+        hit && 'has-hit',
+        props.disabled && 'is-disabled',
+        props.className,
+      )}
+      style={
+        hit
+          ? ({ '--aura-check-hit-x': hit.x + 'px', '--aura-check-hit-y': hit.y + 'px' } as React.CSSProperties)
+          : undefined
+      }
       onClick={function (e: React.MouseEvent) {
         e.stopPropagation();
       }}

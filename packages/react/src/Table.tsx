@@ -59,7 +59,11 @@ function headerLabels(children: React.ReactNode): Array<string | undefined> {
 
 /** A static table. Scrolls sideways inside its own box when it is wider than its container. */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Table(props, ref) {
-  const { caption, captionHidden, density, stackBelow, align, bordered, className, children, ...rest } = props;
+  const { caption, captionHidden, density, stackBelow, align, bordered, stackStyle, className, children, ...rest } =
+    props;
+  /* 5.15: stacked rows as separate cards. The frame around them has to go while stacked, and a container query
+   * can't style its own container, so the width is measured one level up. */
+  const cards = !!stackBelow && stackStyle === 'cards';
   const labels = stackBelow ? headerLabels(children) : null;
   if (labels && !labels.length)
     devWarnOnce(
@@ -87,7 +91,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
       ro.disconnect();
     };
   }, []);
-  return (
+  const table = (
     <div
       ref={wrap}
       className={cx('aura-tbl-wrap', stackBelow && 'is-stackable', bordered === false && 'is-flush')}
@@ -104,6 +108,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
           'aura-tbl',
           stackBelow && 'aura-tbl--stack-' + stackBelow,
           align === 'middle' && 'aura-tbl--middle',
+          cards && 'aura-tbl--cards',
           className,
         )}
         /* Stacked rows are display: block; explicit roles keep the table for screen readers (Safari drops it). */
@@ -125,6 +130,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
       </table>
     </div>
   );
+  return cards ? <div className={'aura-tbl-cards aura-tbl-cards--' + stackBelow}>{table}</div> : table;
 });
 
 function section(tag: 'thead' | 'tbody' | 'tfoot', cls: string) {

@@ -122,6 +122,10 @@ export const sv: AuraLocalePack = {
   pageN: function (p) {
     return 'Sida ' + p;
   },
+  progressReserved: function (v, r, max) {
+    return nsv(v) + ' av ' + nsv(max) + ' använda, ' + nsv(r) + ' reserverade';
+  },
+  breadcrumbMore: 'Visa hela sökvägen',
   accepts: function (list, max) {
     return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
   },

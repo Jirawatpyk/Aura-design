@@ -122,6 +122,10 @@ export const th: AuraLocalePack = {
   pageN: function (p) {
     return 'หน้า ' + p;
   },
+  progressReserved: function (v, r, max) {
+    return 'ใช้แล้ว ' + n(v) + ' จาก ' + n(max) + ' จองไว้ ' + n(r);
+  },
+  breadcrumbMore: 'แสดงเส้นทางทั้งหมด',
   accepts: function (list, max) {
     return [list, max && 'ไม่เกิน ' + max + ' ต่อไฟล์'].filter(Boolean).join(' · ');
   },

@@ -4,7 +4,7 @@ import { Icon } from './Icon.js';
 import type { IconButtonProps } from './types.js';
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(props, ref) {
-  const rest = omit(props, ['icon', 'label', 'className', 'size', 'tone']);
+  const rest = omit(props, ['icon', 'label', 'className', 'size', 'tone', 'touchHeight']);
   return (
     <button
       {...rest}
@@ -12,7 +12,12 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
       type={props.type || 'button'}
       aria-label={props.label}
       title={props.label}
-      className={cx('aura-icon-btn', props.tone === 'danger' && 'aura-icon-btn--danger', props.className)}
+      className={cx(
+        'aura-icon-btn',
+        props.tone === 'danger' && 'aura-icon-btn--danger',
+        props.touchHeight && 'aura-icon-btn--touch',
+        props.className,
+      )}
     >
       <Icon name={props.icon} size={props.size || 'sm'} />
     </button>

@@ -1,14 +1,21 @@
 import * as React from 'react';
 import { cx, tone, uid } from './internal.js';
+import { useStrings } from './locale.js';
 import type { ProgressProps } from './types.js';
 
 /* ---------- Progress: determinate (value) or indeterminate (no value) ---------- */
 export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(function Progress(props, ref) {
+  const t = useStrings();
   const auto = uid(),
     id = props.id || auto;
   const max = props.max || 100,
     det = props.value != null;
   const pct = det ? Math.max(0, Math.min(100, (props.value! / max) * 100)) : 0;
+  /* The reserved segment starts where the value ends and never runs past the end of the track. */
+  const sec = det && props.secondaryValue != null && props.secondaryValue > 0 ? props.secondaryValue : 0;
+  const spct = sec ? Math.max(0, Math.min(100 - pct, (sec / max) * 100)) : 0;
+  const valueText =
+    props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value!, sec, max) : undefined;
   const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + '%' : null;
   return (
     <div
@@ -40,9 +47,15 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(function
         aria-valuemin={det ? 0 : undefined}
         aria-valuemax={det ? max : undefined}
         aria-valuenow={det ? props.value : undefined}
-        aria-valuetext={det && props.valueLabel != null ? String(props.valueLabel) : undefined}
+        aria-valuetext={det ? valueText : undefined}
       >
         <span className="aura-progress__bar" style={det ? { width: pct + '%' } : undefined} />
+        {sec ? (
+          <span
+            className="aura-progress__bar aura-progress__bar--reserved"
+            style={{ left: pct + '%', width: spct + '%' }}
+          />
+        ) : null}
       </div>
       {props.hint ? <p className="aura-progress__hint">{props.hint}</p> : null}
     </div>

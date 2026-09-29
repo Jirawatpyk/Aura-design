@@ -3687,3 +3687,233 @@ test('5.14 (108): align "end" is right-aligned in the DataTable grid and starts 
   for (const s of skel) expect(Math.abs(s)).toBeLessThanOrEqual(1);
   expect(await axeScan(page, '#storybook-root')).toEqual([]);
 });
+
+test.describe('5.15: Chamber-OS addenda 14–16 (layout)', () => {
+  test('85: stackStyle="cards" — separate framed cards on a phone, the framed table above', async ({ page }) => {
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await story(page, 'aura-new-in-5-15--table-cards');
+    const m = (t: string) =>
+      page.getByTestId(t).evaluate((box) => {
+        const wrap = box.querySelector('.aura-tbl-wrap')!;
+        const rows = Array.from(box.querySelectorAll('tbody > tr')).map((r) => {
+          const s = getComputedStyle(r);
+          const b = r.getBoundingClientRect();
+          return { top: b.top, bottom: b.bottom, border: s.borderTopWidth, radius: s.borderTopLeftRadius };
+        });
+        const ws = getComputedStyle(wrap);
+        return { wrapBorder: ws.borderTopWidth, wrapBg: ws.backgroundColor, rows };
+      });
+    const phone = await m('cards-phone');
+    expect(phone.wrapBorder).toBe('0px');
+    expect(phone.wrapBg).toBe('rgba(0, 0, 0, 0)');
+    for (const r of phone.rows) {
+      expect(r.border).toBe('1px');
+      expect(parseFloat(r.radius)).toBeGreaterThan(8);
+    }
+    expect(phone.rows[1]!.top - phone.rows[0]!.bottom).toBeGreaterThanOrEqual(8);
+    const wide = await m('cards-wide');
+    expect(wide.wrapBorder).toBe('1px');
+    for (const r of wide.rows) expect(r.radius).toBe('0px');
+    /* Table semantics and the #84 slots are kept. */
+    await expect(page.getByTestId('cards-phone').getByRole('table')).toHaveCount(1);
+    await expect(page.getByTestId('cards-phone').getByRole('button', { name: 'Review' })).toHaveCount(2);
+    /* Compact cards are compact; a frameless table's caption lines up with its cards; no gap after the last card. */
+    const c = await page.getByTestId('cards-compact').evaluate((box) => {
+      const row = box.querySelector('tbody > tr')!;
+      const cap = box.querySelector('caption')!.getBoundingClientRect();
+      const r = row.getBoundingClientRect();
+      const s = getComputedStyle(row);
+      return { pad: s.paddingTop, capLeft: cap.left, rowLeft: r.left, gapAfter: parseFloat(s.marginBottom) };
+    });
+    expect(c.pad).toBe('8px');
+    expect(Math.abs(c.capLeft - c.rowLeft)).toBeLessThanOrEqual(0.5);
+    expect(c.gapAfter).toBe(0);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('87 Card header, 93 flushBelow', async ({ page }) => {
+    for (const w of [820, 1440]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      await story(page, 'aura-new-in-5-15--card-options');
+      const head = page.getByTestId('card-header').locator('.aura-card__head');
+      await expect(head.getByText('Pending review')).toBeVisible();
+      await expect(head.getByRole('heading', { level: 2, name: 'Contact change · Acme AB' })).toBeVisible();
+      await expect(page.getByTestId('card-header').getByRole('heading')).toHaveCount(1);
+      await expect(head.getByRole('button', { name: 'More for this request' })).toBeVisible();
+      await expect(page.getByTestId('card-loading').locator('.aura-card__head .aura-skel')).toHaveCount(2);
+      await expect(page.getByTestId('card-loading').getByRole('heading')).toHaveCount(0);
+      const f = await page.getByTestId('card-flush').evaluate((e) => {
+        const s = getComputedStyle(e);
+        return [s.borderTopColor, s.backgroundColor, s.boxShadow];
+      });
+      if (w === 820) {
+        expect(f).toEqual(['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0)', 'none']);
+        /* An interactive flush card gets no edge back on hover. */
+        await page.getByTestId('card-flush').hover();
+        await page.waitForTimeout(250);
+        expect(await page.getByTestId('card-flush').evaluate((e) => getComputedStyle(e).borderTopColor)).toBe(
+          'rgba(0, 0, 0, 0)',
+        );
+        await page.mouse.move(0, 0);
+      } else {
+        expect(f[0]).not.toBe('rgba(0, 0, 0, 0)');
+        expect(f[1]).not.toBe('rgba(0, 0, 0, 0)');
+        expect(f[2]).not.toBe('none');
+      }
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    }
+  });
+
+  test('89: Progress draws a striped reserved segment after the value and reads both counts', async ({ page }) => {
+    await story(page, 'aura-new-in-5-15--progress-reserved');
+    const bars = page.getByRole('progressbar');
+    await expect(bars.nth(0)).toHaveAttribute('aria-valuetext', '2 sent · 1 queued · 6 included');
+    await expect(bars.nth(1)).toHaveAttribute('aria-valuetext', '3 of 10 used, 2 reserved');
+    const g = await bars.nth(0).evaluate((track) => {
+      const t = track.getBoundingClientRect();
+      const [a, b] = Array.from(track.querySelectorAll('.aura-progress__bar')).map((e) => e.getBoundingClientRect());
+      const r = track.querySelector('.aura-progress__bar--reserved')!;
+      const s = getComputedStyle(r);
+      return {
+        value: a!.width / t.width,
+        start: (b!.left - t.left) / t.width,
+        reserved: b!.width / t.width,
+        mask: s.maskImage || s.webkitMaskImage,
+        same: s.backgroundColor === getComputedStyle(track.querySelector('.aura-progress__bar')!).backgroundColor,
+      };
+    });
+    expect(g.value).toBeCloseTo(2 / 6, 2);
+    expect(g.start).toBeCloseTo(2 / 6, 2);
+    expect(g.reserved).toBeCloseTo(1 / 6, 2);
+    expect(g.mask).toContain('repeating-linear-gradient');
+    expect(g.same).toBe(true);
+    /* 5 + 4 of 6: the reserved part stops at the end of the track. */
+    const over = await bars.nth(2).evaluate((track) => {
+      const t = track.getBoundingClientRect();
+      const b = track.querySelector('.aura-progress__bar--reserved')!.getBoundingClientRect();
+      return b.right - t.right;
+    });
+    expect(over).toBeLessThanOrEqual(0.5);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('90: underline tabs share the width below 1024px and sit at their own width above', async ({ page }) => {
+    for (const w of [390, 820, 1440]) {
+      await page.setViewportSize({ width: w, height: 700 });
+      await story(page, 'aura-new-in-5-15--tabs-fill');
+      const m = await page.locator('.aura-tabs__list').evaluate((l) => ({
+        list: l.getBoundingClientRect().width,
+        tabs: Array.from(l.children).map((c) => c.getBoundingClientRect().width),
+      }));
+      if (w < 1024) {
+        expect(Math.abs(m.tabs[0]! - m.tabs[1]!), String(w)).toBeLessThanOrEqual(1);
+        expect(Math.abs(m.tabs[0]! + m.tabs[1]! - m.list)).toBeLessThanOrEqual(1);
+      } else expect(m.tabs[0]! + m.tabs[1]!).toBeLessThan(m.list / 2);
+    }
+    await page.getByRole('tab', { name: 'Usage' }).click();
+    await expect(page.getByRole('tabpanel')).toHaveText('Usage this year.');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('92: FilterBar controlsLayout="fill" stackBelow="lg"', async ({ page }) => {
+    for (const w of [390, 820, 1440]) {
+      await page.setViewportSize({ width: w, height: 700 });
+      await story(page, 'aura-new-in-5-15--filter-bar-fill');
+      const m = await page.locator('.aura-filterbar').evaluate((bar) => {
+        const r = (e: Element) => e.getBoundingClientRect();
+        return {
+          bar: r(bar.querySelector('.aura-filterbar__row')!),
+          search: r(bar.querySelector('.aura-filterbar__search')!),
+          filters: Array.from(bar.querySelectorAll('.aura-filterselect')).map(r),
+          clear: r(bar.querySelector('.aura-filterbar__actions')!),
+        };
+      });
+      const [a, b, c] = m.filters;
+      if (w === 820) {
+        expect(Math.abs(m.search.width - m.bar.width)).toBeLessThanOrEqual(1);
+        expect(a!.top).toBeGreaterThan(m.search.bottom);
+        expect(new Set(m.filters.map((f) => Math.round(f.top))).size).toBe(1);
+        expect(Math.abs(a!.width - b!.width)).toBeLessThanOrEqual(1);
+        expect(Math.abs(b!.width - c!.width)).toBeLessThanOrEqual(1);
+        expect(Math.abs(m.clear.right - m.bar.right)).toBeLessThanOrEqual(1);
+      }
+      if (w === 1440) {
+        expect(Math.abs(a!.top - m.search.top)).toBeLessThanOrEqual(1);
+        expect(Math.abs(a!.width - c!.width)).toBeLessThanOrEqual(1);
+        expect(a!.width).toBeGreaterThan(160);
+      }
+      /* Nothing runs out of the bar at any width. */
+      for (const f of m.filters) expect(f.right).toBeLessThanOrEqual(m.bar.right + 0.5);
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    }
+  });
+
+  test('94: Breadcrumb collapses to first, "…", last below 640px; item attributes', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 700 });
+    await story(page, 'aura-new-in-5-15--breadcrumb-collapse');
+    const nav = page.getByRole('navigation', { name: 'Breadcrumb' });
+    const shown = () =>
+      nav
+        .locator('li')
+        .evaluateAll((lis) =>
+          lis.filter((l) => getComputedStyle(l).display !== 'none').map((l) => (l as HTMLElement).innerText.trim()),
+        );
+    expect(await shown()).toEqual(['Admin', '…', 'Contact change']);
+    await expect(nav.locator('li[data-slot="breadcrumb-item"]')).toHaveCount(5);
+    await expect(nav.locator('[data-slot="breadcrumb-page"]')).toHaveAttribute('aria-current', 'page');
+    const more = nav.getByRole('button', { name: 'Show the full path' });
+    const mb = await more.boundingBox();
+    expect(Math.min(mb!.width, mb!.height)).toBeGreaterThanOrEqual(24);
+    /* From the keyboard: Tab from the first link reaches "…"; Enter shows the trail and focuses the first revealed. */
+    await nav.getByRole('link', { name: 'Admin' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(more).toBeFocused();
+    await page.keyboard.press('Enter');
+    expect(await shown()).toEqual(['Admin', 'Members', 'Acme AB', 'Change requests', 'Contact change']);
+    await expect(nav.getByRole('link', { name: 'Members' })).toBeFocused();
+    /* The next page's trail starts collapsed again. */
+    await page.getByRole('button', { name: 'Next page' }).click();
+    expect(await shown()).toEqual(['Admin', '…', 'Invoices']);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    await page.setViewportSize({ width: 1200, height: 700 });
+    await story(page, 'aura-new-in-5-15--breadcrumb-collapse');
+    expect(await shown()).toEqual(['Admin', 'Members', 'Acme AB', 'Change requests', 'Contact change']);
+  });
+
+  test('99: Checkbox hitArea — a click 10px left of the box toggles it; the box is unchanged', async ({ page }) => {
+    await story(page, 'aura-new-in-5-15--checkbox-hit-area');
+    const box = await page.locator('.aura-check__box').boundingBox();
+    expect([box!.width, box!.height]).toEqual([16, 16]);
+    await page.mouse.click(box!.x - 10, box!.y + 8);
+    await expect(page.getByTestId('state')).toHaveText('Approved');
+    await page.mouse.click(box!.x + 8, box!.y - 6);
+    await expect(page.getByTestId('state')).toHaveText('Not approved');
+    /* Outside the 40 × 32 area nothing happens. */
+    await page.mouse.click(box!.x - 16, box!.y + 8);
+    await expect(page.getByTestId('state')).toHaveText('Not approved');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('100: touchHeight — 44px on a phone, the size asked for above 640px, label centred', async ({ page }) => {
+    for (const w of [390, 1200]) {
+      await page.setViewportSize({ width: w, height: 700 });
+      await story(page, 'aura-new-in-5-15--touch-height');
+      const m = await page.locator('#storybook-root').evaluate((root) =>
+        Array.from(root.querySelectorAll('.aura-btn, .aura-icon-btn')).map((e) => {
+          const b = e.getBoundingClientRect();
+          const r = document.createRange();
+          r.selectNodeContents(e);
+          const t = r.getBoundingClientRect();
+          return { h: b.height, w: b.width, off: Math.abs(t.top + t.height / 2 - (b.top + b.height / 2)) };
+        }),
+      );
+      const [touch, plain, icon, link] = m;
+      expect(touch!.h, String(w)).toBe(w < 640 ? 44 : 32);
+      expect(plain!.h).toBe(32);
+      expect([icon!.w, icon!.h]).toEqual(w < 640 ? [44, 44] : [32, 32]);
+      expect(link!.h).toBe(w < 640 ? 44 : 32);
+      for (const b of [touch!, link!]) expect(b.off).toBeLessThanOrEqual(1);
+    }
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

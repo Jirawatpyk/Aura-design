@@ -23,6 +23,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   fullWidth?: boolean | undefined;
   /** `sm` is 32px with tighter padding, for toolbars, table rows and card footers. Default `md` (44px). */
   size?: ButtonSize | undefined;
+  /** 44px tall below 640px (the viewport's), whatever `size` — a small button that phones get at full touch height
+   * (5.15, Chamber-OS 100). From 640px up it keeps its size. */
+  touchHeight?: boolean | undefined;
 }
 
 /** A link that looks like a Button: give `Button` an `href` and it renders an `<a>` (navigation, not actions). */
@@ -42,6 +45,9 @@ export interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnc
   fullWidth?: boolean | undefined;
   /** `sm` is 32px with tighter padding. Default `md` (44px). */
   size?: ButtonSize | undefined;
+  /** 44px tall below 640px (the viewport's), whatever `size` — a small button that phones get at full touch height
+   * (5.15, Chamber-OS 100). From 640px up it keeps its size. */
+  touchHeight?: boolean | undefined;
   /** A router's link to render instead of `<a>`, e.g. `Link` from `next/link` (client-side navigation). It gets `href`, `className`, the children and the ref. */
   linkComponent?: React.ElementType | undefined;
 }
@@ -358,6 +364,10 @@ export interface CheckboxProps extends Omit<
   disabled?: boolean | undefined;
   tabIndex?: number | undefined;
   className?: string | undefined;
+  /** How far a click counts around a box without visible text (5.15, Chamber-OS 99): `box` (default, 16×16),
+   * `target` (24×24, WCAG 2.5.8, as DataTable's selection column) or `{ x, y }` — px added on each side, so
+   * `{ x: 12, y: 8 }` is a 40×32 area. The box looks the same; a labelled checkbox's whole label is its target. */
+  hitArea?: 'box' | 'target' | { x: number; y: number } | undefined;
 }
 
 /** 32px round button holding one icon. */
@@ -369,6 +379,9 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   label: string;
   /** Icon size. Default `sm` (16). */
   size?: 'sm' | 'md' | undefined;
+  /** 44×44 below 640px (the viewport's) instead of 32×32 — a phone sheet's close button, a card's ⋯ trigger
+   * (5.15, Chamber-OS 100). */
+  touchHeight?: boolean | undefined;
 }
 
 export interface MenuItem {
@@ -496,6 +509,12 @@ export interface FilterBarProps {
   /** The search takes all the room the controls leave in its row, instead of stopping at 360px with the count and
    * actions pushed to the end (5.12). */
   searchGrow?: boolean | undefined;
+  /** `fill`: the filter controls share their row in equal columns (at least 120px each, wrapping when they can't),
+   * and the count and actions keep to the end (5.15, Chamber-OS 92). Default `auto`: each at its own width. */
+  controlsLayout?: 'auto' | 'fill' | undefined;
+  /** Below this width (the viewport's) the search takes a row of its own above the controls. Default `md` (768px);
+   * `lg` (1024px) for bars with several filters (5.15, Chamber-OS 92). */
+  stackBelow?: 'md' | 'lg' | undefined;
   className?: string | undefined;
 }
 /** One command in the palette. */
@@ -704,6 +723,12 @@ export interface CardProps extends Omit<React.HTMLAttributes<HTMLElement>, 'titl
   className?: string | undefined;
   /** id for the title element; the card is then labelled by it (aria-labelledby). */
   titleId?: string | undefined;
+  /** Free head content in place of `title` and `description` (5.15, Chamber-OS 87): skeleton bars while the card
+   * loads, a status pill above a title you mark up yourself. No heading is added; `actions` still sit top-right. */
+  header?: React.ReactNode | undefined;
+  /** Below this width (the viewport's) the card drops its border, surface and shadow — a list whose rows become
+   * cards of their own on a phone, so there are no cards in a card (5.15, Chamber-OS 93). Padding is kept. */
+  flushBelow?: 'sm' | 'md' | 'lg' | undefined;
 }
 export interface TabItem {
   id: string;
@@ -739,8 +764,10 @@ export interface TabsProps {
   /** `underline` (default) or `segmented`: the tabs as a pill track with the selected one raised, like
    * SegmentedControl, keeping every Tabs behaviour (panels, keepMounted, activation, tabProps). (5.10, Chamber-OS 72) */
   variant?: 'underline' | 'segmented' | undefined;
-  /** With `variant="segmented"`: stretch the track to the full width, tabs sharing it equally. (5.10) */
-  fullWidth?: boolean | undefined;
+  /** Tabs share the full width equally: the segmented track (5.10), or underline tabs (5.15, Chamber-OS 90).
+   * `'below-sm' | 'below-md' | 'below-lg'` only below that width (the viewport's) — `below-lg` for phone and tablet
+   * layouts, tabs at their own width on a desktop. */
+  fullWidth?: boolean | 'below-sm' | 'below-md' | 'below-lg' | undefined;
   /** Link tabs: what the current link is (5.14). `page` (default) for routes; `location` for links to sections of
    * this page (`#contacts`). */
   current?: 'page' | 'location' | undefined;
@@ -787,8 +814,24 @@ export interface SideNavProps {
 export interface BreadcrumbProps {
   /** Root first; the last item is the current page. */
   /** An item with neither `href` nor `onClick` is plain text (5.7), for a segment with no page of its own. */
-  items: Array<{ label: string; href?: string | undefined; onClick?: (() => void) | undefined }>;
+  items: Array<{
+    label: string;
+    href?: string | undefined;
+    onClick?: (() => void) | undefined;
+    /** Attributes for this item's `<li>` — `data-slot`, `data-testid` (5.15, Chamber-OS 94). */
+    itemProps?: (React.LiHTMLAttributes<HTMLLIElement> & DataAttributes) | undefined;
+    /** Attributes for the item's link, button or text (5.15): `data-*`, `target`, `rel`… Its `onClick` runs before
+     * the item's own. */
+    linkProps?:
+      | (React.AnchorHTMLAttributes<HTMLAnchorElement> &
+          Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof React.AnchorHTMLAttributes<HTMLAnchorElement>> &
+          DataAttributes)
+      | undefined;
+  }>;
   label?: string | undefined;
+  /** Below this width (the viewport's) a trail of three or more shows the first item, "…" and the last; the "…"
+   * button shows the rest (5.15, Chamber-OS 94). Decided in CSS, so the server's HTML is already right. */
+  collapseBelow?: 'sm' | 'md' | undefined;
   /** Your router's link (e.g. `Link` from `next/link`) for this component; defaults to AuraProvider's `linkComponent`, then `<a>`. */
   linkComponent?: React.ElementType | undefined;
   className?: string | undefined;
@@ -1045,8 +1088,9 @@ export interface DrawerProps
   /** The close button's accessible name and tooltip, saying what it closes ("Close payment drawer"). Default: the
    * built-in "Close" in the provider's language. (5.9) */
   closeLabel?: string | undefined;
-  /** Attributes for the close button, e.g. `{ 'data-testid': 'pay-sheet-close' }`. (5.9) */
-  closeProps?: ButtonAttributes | undefined;
+  /** Attributes for the close button, e.g. `{ 'data-testid': 'pay-sheet-close' }` (5.9), or `touchHeight: true` for a
+   * 44px close button on phones (5.15). */
+  closeProps?: (ButtonAttributes & { touchHeight?: boolean | undefined }) | undefined;
 }
 
 export type Breakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';
@@ -1120,6 +1164,10 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
   /** `false` (5.13) drops the frame — border, radius, background — and the outer cells' side padding, so the table
    * lines up with the content around it, e.g. flush inside a Card under its heading. Default `true`. */
   bordered?: boolean | undefined;
+  /** How stacked rows look (5.15, Chamber-OS 85): `list` (default) — one frame, rows divided by rules; `cards` —
+   * each row its own framed card, spaced like DataTable's cards, with no frame around them. From the `stackBelow`
+   * width up the table is unchanged. The table then sits in one more `div` (`.aura-tbl-cards`). */
+  stackStyle?: 'list' | 'cards' | undefined;
   className?: string | undefined;
   children?: React.ReactNode | undefined;
 }
@@ -1317,6 +1365,9 @@ export interface ProgressProps {
   showValue?: boolean | undefined;
   /** Replaces the % text, e.g. "3 of 5 files". Also read out as aria-valuetext. */
   valueLabel?: React.ReactNode | undefined;
+  /** A reserved amount drawn after `value` as a striped segment of the same tone — queued sends on a quota
+   * (5.15, Chamber-OS 89). Both counts are read out ("2 of 6 used, 1 reserved") unless `valueLabel` is given. */
+  secondaryValue?: number | undefined;
   hint?: React.ReactNode | undefined;
   tone?: Tone | undefined;
   size?: 'sm' | 'md' | undefined;

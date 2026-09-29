@@ -90,6 +90,10 @@ export interface AuraStrings {
   pagination: string;
   pageN: (p: number) => string;
   accepts: (list?: string, max?: number | string) => string;
+  /** Progress with a reserved segment (5.15): "2 of 6 used, 1 reserved". */
+  progressReserved: (value: number, reserved: number, max: number) => string;
+  /** The collapsed middle of a Breadcrumb (5.15). */
+  breadcrumbMore: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */
@@ -213,6 +217,10 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     pageN: function (p) {
       return 'Page ' + p;
     },
+    progressReserved: function (v, r, max) {
+      return n(v) + ' of ' + n(max) + ' used, ' + n(r) + ' reserved';
+    },
+    breadcrumbMore: 'Show the full path',
     accepts: function (list, max) {
       return [list, max && 'up to ' + max + ' each'].filter(Boolean).join(', ');
     },

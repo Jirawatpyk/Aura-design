@@ -214,6 +214,24 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.15 (Chamber-OS 85–100) */
+    CardHeader: h(A.Card, { header: h(A.StatusPill, { tone: 'warning' }, 'Pending'), flushBelow: 'lg' }, 'Body'),
+    ProgressReserved: h(A.Progress, { label: 'E-Blasts', value: 2, secondaryValue: 1, max: 6 }),
+    TabsFill: h(A.Tabs, {
+      label: 'Sections',
+      fullWidth: 'below-lg',
+      tabs: [
+        { id: 'a', label: 'Benefits', content: 'A' },
+        { id: 'b', label: 'Usage', content: 'B' },
+      ],
+    }),
+    BreadcrumbCollapse: h(A.Breadcrumb, {
+      collapseBelow: 'sm',
+      items: [{ label: 'Admin', href: '/a' }, { label: 'Members', href: '/m' }, { label: 'Acme AB' }],
+    }),
+    CheckboxHit: h(A.Checkbox, { label: 'Approve', hideLabel: true, hitArea: { x: 12, y: 8 } }),
+    ButtonTouch: h(A.Button, { size: 'sm', touchHeight: true }, 'Pay'),
+    IconButtonTouch: h(A.IconButton, { icon: 'x', label: 'Close', touchHeight: true }),
     EmptyStateDanger: h(A.EmptyState, {
       tone: 'danger',
       bordered: true,
@@ -235,6 +253,17 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
           h(A.Td, { card: 'action' }, h(A.Button, { size: 'sm' }, 'Review')),
         ),
       ),
+    ),
+    TableCards: h(
+      A.Table,
+      { caption: 'Queue', stackBelow: 'sm', stackStyle: 'cards' },
+      h(A.THead, null, h(A.Tr, null, h(A.Th, null, 'Member'), h(A.Th, null, 'Type'))),
+      h(A.TBody, null, h(A.Tr, null, h(A.Td, { card: 'title' }, 'Acme AB'), h(A.Td, null, 'Plan upgrade'))),
+    ),
+    FilterBarFill: h(
+      A.FilterBar,
+      { search: '', onSearchChange: noop, controlsLayout: 'fill', stackBelow: 'lg' },
+      h(A.FilterSelect, { label: 'Status', options: [{ value: 'all', label: 'All' }], value: 'all', onChange: noop }),
     ),
     FilterBarGrow: h(
       A.FilterBar,

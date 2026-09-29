@@ -27,6 +27,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
     'href',
     'fullWidth',
     'size',
+    'touchHeight',
   ]);
   const Tag: React.ElementType = disabled ? 'a' : Link;
   return (
@@ -41,6 +42,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
         variant: variant,
         size: props.size,
         fullWidth: props.fullWidth,
+        touchHeight: props.touchHeight,
         className: props.className,
       })}
       onClick={disabled ? undefined : props.onClick}
@@ -79,6 +81,7 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
       'onClick',
       'fullWidth',
       'size',
+      'touchHeight',
     ]);
     return (
       <button
@@ -89,6 +92,7 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
           variant: variant,
           size: props.size,
           fullWidth: props.fullWidth,
+          touchHeight: props.touchHeight,
           loading: loading,
           className: props.className,
         })}

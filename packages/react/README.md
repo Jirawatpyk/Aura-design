@@ -186,6 +186,19 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.15 — Chamber-OS addenda 14–16, layout
+
+- **Table `stackStyle="cards"`** (item 85): below `stackBelow` each row is its own framed card (DataTable's card radius, border, padding and 8px gap), with no frame around them; above it the table is unchanged. The table then sits in one more `div` (`.aura-tbl-cards`), which carries the width query. Table roles, labels and the `card` slots behave as before.
+- **Card `header`** (item 87): free head content in place of `title` and `description` — skeleton bars while the card loads, a status pill above a title you mark up yourself. No heading is added and `title` / `titleId` are ignored; `actions` still sit top-right. Card `header` works from `/server` too.
+- **Progress `secondaryValue`** (item 89): a reserved amount drawn after `value` in the same tone, striped (so it reads without colour), clamped to the end of the track. Screen readers hear "2 of 6 used, 1 reserved" (Thai and Swedish included) unless you pass `valueLabel`.
+- **Tabs `fullWidth` for underline tabs** (item 90): `fullWidth` now works on the default look too, tabs sharing the row equally; `fullWidth="below-sm" | "below-md" | "below-lg"` does it only below that width (either look). Tabs never shrink below their label; too many scroll as before. Underline tabs that already passed `fullWidth` (ignored until now) now fill their row.
+- **FilterBar `controlsLayout="fill"` and `stackBelow="lg"`** (item 92): `fill` gives the filters equal columns across their row (at least 120px each, wrapping when they can't fit) with the count and actions at the end; `stackBelow="lg"` puts the search on its own row up to 1024px (default `md`, 768px).
+- **Card `flushBelow`** (item 93): `'sm' | 'md' | 'lg'` — below that width the card drops its border, surface and shadow (padding kept), for a list whose rows become cards of their own.
+- **Breadcrumb `collapseBelow` and item attributes** (item 94): `collapseBelow="sm" | "md"` shows the first item, "…" and the last below that width, in CSS (the server's HTML is already right); "…" is a button ("Show the full path") that shows the rest and moves focus to the first item it revealed; a new trail (the next page, with the Breadcrumb kept mounted) starts collapsed again. "…" is a 24px target, 44px on touch screens. Each item takes `itemProps` (its `<li>`) and `linkProps` (its link, button or text) — `data-slot`, `data-testid`.
+- **Checkbox `hitArea`** (item 99): `'target'` (24×24, WCAG 2.5.8) or `{ x, y }` px on each side — `{ x: 12, y: 8 }` is 40×32 — for a box without visible text; the box looks the same. A labelled checkbox's whole label is already its target.
+- **`touchHeight` on Button and IconButton** (item 100): 44px tall (IconButton 44×44) below 640px, the size asked for above; the label stays centred. A Drawer's close button takes it through `closeProps={{ touchHeight: true }}`. `buttonClass({ touchHeight: true })` from `/server` gives the same class. Off by default.
+- New strings `progressReserved` and `breadcrumbMore` in every locale; a pack you wrote yourself should add them (the built-in ones for the locale are used otherwise). The CSS budget is 25 kB (was 24).
+
 ## 5.14 — Chamber-OS addenda 15–16, the small items
 
 - **EmptyState `headingLevel={false}`** (item 86): the title is a `<p>`, so an empty state inside a card or list adds nothing to the page's heading outline. EmptyState has no live-region role unless you pass `role`.

@@ -64,7 +64,13 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
       ref={ref}
       role="region"
       aria-label={props.label || t.filters}
-      className={cx('aura-filterbar', props.searchGrow && 'aura-filterbar--grow', props.className)}
+      className={cx(
+        'aura-filterbar',
+        props.searchGrow && 'aura-filterbar--grow',
+        props.controlsLayout === 'fill' && 'aura-filterbar--fill',
+        props.stackBelow === 'lg' && 'aura-filterbar--stack-lg',
+        props.className,
+      )}
     >
       <div className="aura-filterbar__row">
         {hasSearch ? (

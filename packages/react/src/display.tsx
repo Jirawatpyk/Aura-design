@@ -81,7 +81,10 @@ export function cardElement(props: CardProps, ref: React.Ref<HTMLElement> | unde
     'as',
     'className',
     'titleId',
+    'header',
+    'flushBelow',
   ]);
+  const head = props.header !== undefined && props.header !== null && props.header !== false;
   return h(
     props.as || 'section',
     Object.assign({}, rest, {
@@ -90,18 +93,20 @@ export function cardElement(props: CardProps, ref: React.Ref<HTMLElement> | unde
         'aura-card',
         creative && 'aura-card--creative',
         props.interactive && 'is-interactive',
+        props.flushBelow && 'aura-card--flush-below-' + props.flushBelow,
         props.className,
       ),
       /* A titled card is labelled by its title; otherwise the caller's aria-labelledby stays (5.8). */
-      'aria-labelledby': props.title && props.titleId ? props.titleId : props['aria-labelledby'],
+      'aria-labelledby': !head && props.title && props.titleId ? props.titleId : props['aria-labelledby'],
     }),
-    props.title || props.actions ? (
+    head || props.title || props.actions ? (
       <div className="aura-card__head">
         <div className="aura-card__heading">
-          {props.title
+          {head ? props.header : null}
+          {!head && props.title
             ? h('h' + (props.headingLevel || 3), { className: 'aura-card__title', id: props.titleId }, props.title)
             : null}
-          {props.description ? <p className="aura-card__desc">{props.description}</p> : null}
+          {!head && props.description ? <p className="aura-card__desc">{props.description}</p> : null}
         </div>
         {props.actions ? <div className="aura-card__actions">{props.actions}</div> : null}
       </div>
@@ -318,6 +323,7 @@ export function buttonClass(
     size?: ButtonProps['size'];
     fullWidth?: boolean | undefined;
     loading?: boolean | undefined;
+    touchHeight?: boolean | undefined;
     className?: string | undefined;
   } = {},
 ): string {
@@ -326,6 +332,7 @@ export function buttonClass(
     'aura-btn--' + (opts.variant || 'primary'),
     opts.size === 'sm' && 'aura-btn--sm',
     opts.fullWidth && 'aura-btn--full',
+    opts.touchHeight && 'aura-btn--touch',
     opts.loading && 'is-loading',
     opts.className,
   );

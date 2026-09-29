@@ -36,7 +36,14 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
   const manual = props.activation === 'manual';
   /* 5.10 (Chamber-OS 72): the segmented look reuses SegmentedControl's classes on the same DOM. */
   const seg = props.variant === 'segmented';
-  const listCls = cx('aura-tabs__list', seg && 'aura-segmented', seg && props.fullWidth && 'is-full');
+  const fw = props.fullWidth;
+  /* 5.15 (Chamber-OS 90): underline tabs share the width too, and either look can do so only below a breakpoint. */
+  const listCls = cx(
+    'aura-tabs__list',
+    seg && 'aura-segmented',
+    fw === true && (seg ? 'is-full' : 'is-fill'),
+    typeof fw === 'string' && (seg ? 'is-full-' : 'is-fill-') + fw,
+  );
   const tabCls = function (on: boolean | undefined, extra?: string) {
     return cx('aura-tab', on && 'is-active', seg && 'aura-segmented__option', seg && on && 'is-selected', extra);
   };
