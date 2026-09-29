@@ -22,15 +22,22 @@ export const SideNavActions: StoryObj = {
             collapsible
             collapseToggle="row"
             header={
-              <span data-testid="brand" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <strong className="aura-text-label" style={{ fontSize: 15 }}>
+              /* Fixed widths (142 + 8 + 48, 6px apart = 210px), so the test doesn't depend on which font loaded: it
+               * fits the 215px the header has with 8px end padding, and wraps in the 207px 16px left. */
+              <span data-testid="brand" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+                <strong
+                  className="aura-text-label"
+                  style={{ width: 142, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+                >
                   Swedish Chamber OS
                 </strong>
                 <span
                   aria-hidden="true"
                   style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--aura-accent-dot)' }}
                 />
-                <Aura.Badge>Staff</Aura.Badge>
+                <span style={{ display: 'inline-flex', width: 48 }}>
+                  <Aura.Badge>Staff</Aura.Badge>
+                </span>
               </span>
             }
             sections={[
