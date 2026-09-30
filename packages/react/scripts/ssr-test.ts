@@ -52,6 +52,15 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.21 (Chamber-OS 117): Table rowHeight="density" adds its class; the default doesn't. */
+  {
+    const e = React.createElement;
+    const t = (p: Record<string, unknown>) => renderToString(e(A.Table, p, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))));
+    const on = t({ rowHeight: 'density', align: 'middle' });
+    if (!/<table class="aura-tbl aura-tbl--middle aura-tbl--row-density">/.test(on) || /rowheight|rowHeight/i.test(on.replace('row-density', ''))) { console.log(label, 'Table rowHeight:', on); fail++; }
+    if (/row-density|tbl--middle/.test(t({}))) { console.log(label, 'Table default changed'); fail++; }
+    if (!/aura-tbl--middle aura-tbl--row-density/.test(t({ rowHeight: 'density' })) || /tbl--middle/.test(t({ rowHeight: 'density', align: 'top' }))) { console.log(label, 'Table rowHeight centring'); fail++; }
+  }
   /* 5.20 (Chamber-OS 115, 116): a Table takes the provider's density; ActionBar's start slot. Defaults unchanged. */
   {
     const e = React.createElement;

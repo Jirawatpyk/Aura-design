@@ -7267,7 +7267,19 @@ window.Aura = (() => {
     return out;
   }
   var Table = React44.forwardRef(function Table2(props, ref) {
-    const { caption, captionHidden, density, stackBelow, align, bordered, stackStyle, className, children, ...rest } = props;
+    const {
+      caption,
+      captionHidden,
+      density,
+      stackBelow,
+      align,
+      bordered,
+      stackStyle,
+      rowHeight,
+      className,
+      children,
+      ...rest
+    } = props;
     const cards = !!stackBelow && stackStyle === "cards";
     const labels = stackBelow ? headerLabels(children) : null;
     if (labels && !labels.length)
@@ -7311,7 +7323,9 @@ window.Aura = (() => {
           className: cx(
             "aura-tbl",
             stackBelow && "aura-tbl--stack-" + stackBelow,
-            align === "middle" && "aura-tbl--middle",
+            /* 5.21: even rows centre their content, as DataTable's auto rows do, unless `align="top"` is asked for. */
+            (align === "middle" || rowHeight === "density" && align !== "top") && "aura-tbl--middle",
+            rowHeight === "density" && "aura-tbl--row-density",
             cards && "aura-tbl--cards",
             className
           ),

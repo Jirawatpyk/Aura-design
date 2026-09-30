@@ -60,8 +60,19 @@ function headerLabels(children: React.ReactNode): Array<string | undefined> {
 
 /** A static table. Scrolls sideways inside its own box when it is wider than its container. */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Table(props, ref) {
-  const { caption, captionHidden, density, stackBelow, align, bordered, stackStyle, className, children, ...rest } =
-    props;
+  const {
+    caption,
+    captionHidden,
+    density,
+    stackBelow,
+    align,
+    bordered,
+    stackStyle,
+    rowHeight,
+    className,
+    children,
+    ...rest
+  } = props;
   /* 5.15: stacked rows as separate cards. The frame around them has to go while stacked, and a container query
    * can't style its own container, so the width is measured one level up. */
   const cards = !!stackBelow && stackStyle === 'cards';
@@ -110,7 +121,9 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
         className={cx(
           'aura-tbl',
           stackBelow && 'aura-tbl--stack-' + stackBelow,
-          align === 'middle' && 'aura-tbl--middle',
+          /* 5.21: even rows centre their content, as DataTable's auto rows do, unless `align="top"` is asked for. */
+          (align === 'middle' || (rowHeight === 'density' && align !== 'top')) && 'aura-tbl--middle',
+          rowHeight === 'density' && 'aura-tbl--row-density',
           cards && 'aura-tbl--cards',
           className,
         )}

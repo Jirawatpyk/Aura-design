@@ -186,6 +186,11 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.21 — Chamber-OS addendum 21
+
+- **Table `rowHeight="density"`** (item 117): every body row is at least the density's row height (48px; 40px compact; 48px on touch screens, as DataTable — unlike the 5.20 cell padding, which stays compact on touch), and its cells' vertical padding shrinks to fit a small Button (7.5px at 48px, 3.5px compact, at most 8px), as in DataTable's `rowHeight="auto"` — so a row with a `sm` Button, an IconButton, a pill or one line of text are all the same height. Content is centred on the row unless you pass `align="top"` (footer cells centre too, as with `align="middle"`). Rows whose text wraps still grow, with the smaller padding. Header and footer row heights, stacked rows and cards (`stackBelow`), and tables without the prop are unchanged.
+- The CSS budget is 27 kB (was 26; 5.19–5.21 added read-only fields, the ActionBar start slot and even rows).
+
 ## 5.20 — Chamber-OS addendum 20, items 115–116
 
 - **Table follows the page's density** (item 115): without a `density` prop a Table takes the nearest AuraProvider's density, as its docs said — inside `AuraProvider density="compact"` the wrap carries `data-density="compact"` and cells get 8px vertical padding (were 12px). A `density` prop still wins. The padding comes from the nearest `data-density` (a provider, `<html>`, any element, or the table's own), so `comfortable` inside a compact page switches back as it does for fields. As before with an explicit `compact`, cells stay compact on touch screens. A visible change for Tables inside a compact provider or page.

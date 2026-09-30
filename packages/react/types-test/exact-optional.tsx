@@ -413,3 +413,9 @@ export function Addendum20b({ flag }: { flag: boolean | undefined }) {
     </>
   );
 }
+
+export function Addendum21({ flag }: { flag: boolean | undefined }) {
+  return <Aura.Table rowHeight={flag ? 'density' : undefined} />;
+}
+// @ts-expect-error rowHeight is only 'density' on a static Table
+export const badTableRowHeight = <Aura.Table rowHeight="auto" />;

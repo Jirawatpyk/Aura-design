@@ -1245,6 +1245,12 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
    * each row its own framed card, spaced like DataTable's cards, with no frame around them. From the `stackBelow`
    * width up the table is unchanged. The table then sits in one more `div` (`.aura-tbl-cards`). */
   stackStyle?: 'list' | 'cards' | undefined;
+  /** `'density'` (5.21, Chamber-OS 117): every body row is at least the density's row height (48px, 40px compact,
+   * 48px on touch screens, as DataTable) and its cells' vertical padding shrinks to fit a small Button — so a row with
+   * a `sm` Button, an IconButton, a pill or one line of text are all the same height, as in DataTable's
+   * `rowHeight="auto"`. Content is centred on the row unless `align="top"`. Rows whose text wraps still grow (with the
+   * smaller padding). Header and footer rows, and stacked rows (`stackBelow`), are unchanged. */
+  rowHeight?: 'density' | undefined;
   className?: string | undefined;
   children?: React.ReactNode | undefined;
 }

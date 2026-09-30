@@ -4586,3 +4586,54 @@ test.describe('5.20: Chamber-OS addendum 20, 115–116', () => {
     expect(Math.abs(rv2.x - inner2.x)).toBeLessThanOrEqual(1);
   });
 });
+
+test.describe('5.21: Chamber-OS addendum 21', () => {
+  const heights = (page: import('@playwright/test').Page, id: string) =>
+    page
+      .getByTestId(id)
+      .locator('.aura-tbl__body > .aura-tbl__row')
+      .evaluateAll((rows) => rows.map((r) => Math.round(r.getBoundingClientRect().height * 2) / 2));
+
+  test('117: rowHeight="density" gives rows with a Button, an IconButton, a pill or a line the same height', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-21--table-row-height');
+    /* Compact: 40px for the Button, pill and IconButton rows; the wrapped row grows. */
+    const c = await heights(page, 'compact');
+    expect(c.slice(0, 3)).toEqual([40, 40, 40]);
+    expect(c[3]).toBeGreaterThan(40);
+    /* Comfortable: 48px. */
+    const k = await heights(page, 'comfortable');
+    expect(k.slice(0, 3)).toEqual([48, 48, 48]);
+    expect(k[3]).toBeGreaterThan(48);
+    /* Without the prop, rows stay uneven, as before. */
+    const d = await heights(page, 'compact-default');
+    expect(new Set(d.slice(0, 3)).size).toBeGreaterThan(1);
+    /* The content stays centred in its row. */
+    const cell = page.getByTestId('compact').getByRole('button', { name: 'Download' });
+    const row = page.getByTestId('row-button').first();
+    const cb = (await cell.boundingBox())!,
+      rb = (await row.boundingBox())!;
+    expect(Math.abs(cb.y + cb.height / 2 - (rb.y + rb.height / 2))).toBeLessThanOrEqual(1);
+    /* Without align, rowHeight still centres (a pill in a 48px row sits in the middle, not at the top). */
+    const nr = (await page.getByTestId('no-align-row').boundingBox())!;
+    const np = (await page.getByTestId('no-align').locator('.aura-pill').boundingBox())!;
+    expect(Math.abs(np.y + np.height / 2 - (nr.y + nr.height / 2))).toBeLessThanOrEqual(2);
+    /* Header rows are unchanged. */
+    const head = (sel: string) =>
+      page
+        .getByTestId(sel)
+        .locator('.aura-tbl__head .aura-tbl__row')
+        .evaluate((e) => e.getBoundingClientRect().height);
+    expect(await head('compact')).toBe(await head('compact-default'));
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('117: stacked rows and cards are unchanged by rowHeight', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-21--table-row-height');
+    expect(await heights(page, 'compact-stacked')).toEqual(await heights(page, 'compact-stacked-default'));
+    expect(await heights(page, 'compact-cards')).toEqual(await heights(page, 'compact-cards-default'));
+  });
+});
