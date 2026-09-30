@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.20.0
+
+### Minor Changes
+
+- 5081961: Chamber-OS addendum 20, items 115–116: a Table without `density` follows the nearest AuraProvider's and the nearest `data-density` (compact inside a compact frame, comfortable again inside comfortable); ActionBar takes `start` — buttons at the start edge, outside the status live region, laid out by the bar's own width. ActionBar's actions sit at the end edge in right-to-left pages.
+
 ## 5.19.0
 
 ### Minor Changes
