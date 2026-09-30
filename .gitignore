@@ -8,3 +8,6 @@ packages/react/examples/*/dist/
 a11y-report.json
 telemetry-report.json
 .DS_Store
+
+# local Playwright config (sandbox runs)
+apps/storybook/pw.local.config.ts

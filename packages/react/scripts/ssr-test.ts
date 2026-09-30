@@ -52,6 +52,32 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.18 (Chamber-OS 112): an error step keeps its state and says so; steps without status are unchanged. */
+  {
+    const e = React.createElement;
+    const steps = [
+      { id: 'basics', label: 'Basics' },
+      { id: 'fees', label: 'Fees', status: 'error' as const },
+      { id: 'benefits', label: 'Benefits' },
+      { id: 'review', label: 'Review' },
+    ];
+    const s = renderToString(e(A.Stepper, { current: 'review', steps, onStepClick: () => {} }));
+    const fees = s.split('<li class').find((li) => li.includes('Fees')) || '';
+    const basics = s.split('<li class').find((li) => li.includes('Basics')) || '';
+    if (!/^="aura-stepper__item is-done is-error"/.test(fees) || !/<button type="button" class="aura-stepper__step aura-focusable" aria-label="Fees, has errors">/.test(fees) || !/<span class="aura-stepper__label">Fees<span class="aura-sr-only">, has errors<\/span><\/span>/.test(fees) || /completed/.test(fees) || /aura-stepper__marker[^>]*>2</.test(fees)) { console.log(label, 'Stepper error step:', fees); fail++; }
+    if (!/^="aura-stepper__item is-done"/.test(basics) || !/aria-label="Basics, completed"/.test(basics) || !/<span class="aura-stepper__label">Basics<span class="aura-sr-only">, completed<\/span><\/span>/.test(basics)) { console.log(label, 'Stepper done step changed:', basics); fail++; }
+    if (/— has errors/.test(s)) { console.log(label, 'Stepper compact says errors for a clean current step:', s); fail++; }
+    /* The current step with errors: still aria-current, not a button, and the phone line says so; in Thai too. */
+    /* A description is the button's description; a label that isn't text keeps the content name (no aria-label). */
+    const d = renderToString(e(A.Stepper, { current: 'b', onStepClick: () => {}, steps: [{ id: 'a', label: 'Basics', description: 'Name and period' }, { id: 'b', label: 'Fees' }] }));
+    const dm = /aria-label="Basics, completed" aria-describedby="([^"]+)"/.exec(d);
+    if (!dm || !new RegExp('<span class="aura-stepper__desc" id="' + dm[1] + '">Name and period</span>').test(d)) { console.log(label, 'Stepper description:', d); fail++; }
+    const el = renderToString(e(A.Stepper, { current: 'b', onStepClick: () => {}, steps: [{ id: 'a', label: e('em', null, 'Basics'), status: 'error' }, { id: 'b', label: 'Fees' }] }));
+    if (/aria-label|aria-describedby/.test(el) || !/<em>Basics<\/em><span class="aura-sr-only">, has errors<\/span>/.test(el)) { console.log(label, 'Stepper element label:', el); fail++; }
+    const cur = renderToString(e(A.AuraProvider, { locale: 'th' }, e(A.Stepper, { current: 'fees', steps, onStepClick: () => {} })));
+    const feesCur = cur.split('<li class').find((li) => li.includes('Fees')) || '';
+    if (!/^="aura-stepper__item is-current is-error" aria-current="step"/.test(feesCur) || /<button/.test(feesCur) || !/>Fees<span class="aura-sr-only">, มีข้อผิดพลาด</.test(feesCur) || /aria-label/.test(feesCur) || !/ขั้นที่ 2 จาก 4<span class="aura-stepper__count-error"> — มีข้อผิดพลาด<\/span>/.test(cur)) { console.log(label, 'Stepper current error step:', cur); fail++; }
+  }
   /* 5.17 (Chamber-OS 110, 111): exact markup of the new options; defaults unchanged. */
   {
     const m = renderToString;

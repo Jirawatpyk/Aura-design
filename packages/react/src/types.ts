@@ -1004,6 +1004,10 @@ export interface StepItem {
   label: React.ReactNode;
   /** Short line under the label, e.g. what the step asks for. */
   description?: React.ReactNode | undefined;
+  /** `'error'` (5.18, Chamber-OS 112): the step has a problem — say, Save found errors on it. It keeps its place in the
+   * order and whether it can be clicked, shows the danger tone with an alert icon instead of the check or number, and
+   * adds "has errors" to its accessible name (in place of "completed"). */
+  status?: 'error' | undefined;
 }
 /** Progress through a multi-step flow (wizard, checkout, booking). */
 export interface StepperProps {
@@ -1014,7 +1018,8 @@ export interface StepperProps {
   label?: string | undefined;
   /** Makes completed steps buttons that go back to them. Upcoming steps never are. */
   onStepClick?: ((id: string) => void) | undefined;
-  /** Default `horizontal`. Below `sm` a horizontal stepper shows only the current step ("Step 2 of 4"). */
+  /** Default `horizontal`. Below `sm` a horizontal stepper shows only the current step ("Step 2 of 4"; "Step 2 of 4 —
+   * has errors" when that step has `status: 'error'`). */
   orientation?: 'horizontal' | 'vertical' | undefined;
   className?: string | undefined;
 }

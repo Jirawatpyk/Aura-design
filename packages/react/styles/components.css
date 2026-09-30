@@ -1294,6 +1294,10 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-stepper__compact { display: none; margin: var(--aura-space-2) 0 0; font-size: 13px; }
 .aura-stepper__count { color: var(--aura-fg-secondary); margin-right: var(--aura-space-2); }
 .aura-stepper__compact-label { font-weight: 600; }
+/* 5.18 (Chamber-OS 112): a step with errors — the danger fill and an alert icon; outlined when it is the current step. */
+.aura-stepper__item.is-error .aura-stepper__marker { background: var(--aura-button-danger-bg); border-color: var(--aura-button-danger-bg); color: var(--aura-button-danger-fg); }
+.aura-stepper__item.is-current.is-error .aura-stepper__marker { background: var(--aura-bg-surface); border: 2px solid var(--aura-fg-danger); color: var(--aura-fg-danger); }
+.aura-stepper__item.is-error .aura-stepper__label, .aura-stepper__count-error { color: var(--aura-fg-danger); }
 
 /* ---------- SegmentedControl ---------- */
 .aura-segmented {

@@ -4211,3 +4211,90 @@ test.describe('5.17: Chamber-OS addendum 18', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.18: Chamber-OS addendum 19', () => {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`112: a Stepper step with errors (${theme})`, async ({ page }) => {
+      await story(page, 'aura-new-in-5-18--stepper-errors', theme);
+      const wizard = page.getByTestId('wizard');
+      const fees = wizard.getByRole('button', { name: 'Fees, has errors', exact: true });
+      await expect(fees).toBeVisible();
+      await expect(wizard.getByRole('button', { name: 'Basics, completed', exact: true })).toBeVisible();
+      /* The danger fill and an alert icon in place of the check; the label in the danger tone. */
+      const tokens = await page.evaluate(() => {
+        const probe = document.createElement('span');
+        document.getElementById('storybook-root')!.appendChild(probe);
+        probe.style.color = 'var(--aura-button-danger-bg)';
+        const fill = getComputedStyle(probe).color;
+        probe.style.color = 'var(--aura-fg-danger)';
+        const text = getComputedStyle(probe).color;
+        probe.remove();
+        return { fill, text };
+      });
+      const marker = fees.locator('.aura-stepper__marker');
+      expect(await marker.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(tokens.fill);
+      expect(await fees.locator('.aura-stepper__label').evaluate((e) => getComputedStyle(e).color)).toBe(tokens.text);
+      await expect(marker.locator('svg')).toHaveCount(1);
+      await expect(marker).not.toContainText('2');
+      /* Done steps without errors are unchanged. */
+      const basicsFill = await wizard
+        .getByRole('button', { name: 'Basics, completed', exact: true })
+        .locator('.aura-stepper__marker')
+        .evaluate((e) => getComputedStyle(e).backgroundColor);
+      expect(basicsFill).not.toBe(tokens.fill);
+      /* Chrome's own accessibility tree (not only Playwright's name computation) reads the names with no stray space. */
+      const cdp = await page.context().newCDPSession(page);
+      const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as {
+        nodes: Array<{ role?: { value: string }; name?: { value: string } }>;
+      };
+      const names = nodes.filter((n) => n.role?.value === 'button').map((n) => n.name?.value);
+      expect(names).toEqual(expect.arrayContaining(['Basics, completed', 'Fees, has errors', 'Avgifter, har fel']));
+      /* The visible label starts the name (WCAG 2.5.3); the hidden note is still there for reading the page. */
+      await expect(fees).toHaveAttribute('aria-label', 'Fees, has errors');
+      await expect(fees.locator('.aura-sr-only')).toHaveText(', has errors');
+      /* The vertical one: an error step before the current one, and an upcoming one (danger fill, not a button). */
+      const v = page.getByTestId('vertical');
+      const vErr = v.locator('.aura-stepper__item.is-error');
+      await expect(vErr).toHaveCount(2);
+      for (const i of [0, 1]) {
+        const bg = await vErr
+          .nth(i)
+          .locator('.aura-stepper__marker')
+          .evaluate((e) => getComputedStyle(e).backgroundColor);
+        expect(bg).toBe(tokens.fill);
+      }
+      await expect(vErr.nth(1)).toHaveClass(/is-upcoming/);
+      await expect(vErr.nth(1).getByRole('button')).toHaveCount(0);
+      await expect(vErr.nth(1)).toContainText('Review, has errors');
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+      /* Enter goes back to it; there it is the current step (outlined, aria-current) and still has errors. */
+      await fees.focus();
+      await page.keyboard.press('Enter');
+      await expect(page.getByTestId('page')).toHaveText('Page: fees');
+      const current = wizard.locator('[aria-current="step"]');
+      await expect(current).toHaveClass(/is-error/);
+      await expect(current).toContainText('Fees, has errors');
+      await expect(current.getByRole('button')).toHaveCount(0);
+      const cm = current.locator('.aura-stepper__marker');
+      expect(await cm.evaluate((e) => getComputedStyle(e).borderTopColor)).toBe(tokens.text);
+      expect(await cm.evaluate((e) => getComputedStyle(e).borderTopWidth)).toBe('2px');
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    });
+  }
+
+  test('112: a click goes back to the step; the phone line says the current step has errors', async ({ page }) => {
+    await story(page, 'aura-new-in-5-18--stepper-errors');
+    await page.getByTestId('wizard').getByRole('button', { name: 'Fees, has errors', exact: true }).click();
+    await expect(page.getByTestId('page')).toHaveText('Page: fees');
+    await page.setViewportSize({ width: 390, height: 800 });
+    const compact = page.getByTestId('wizard').locator('.aura-stepper__compact');
+    await expect(compact).toBeVisible();
+    await expect(compact).toHaveText(/^Step 2 of 4 — has errors\s*Fees$/);
+    /* The markers stay visible on a phone, so an error step before the current one still shows. */
+    await page.getByTestId('wizard').getByRole('button', { name: 'Basics, completed', exact: true }).click();
+    await expect(compact).toHaveText(/^Step 1 of 4\s*Basics$/);
+    await expect(
+      page.getByTestId('wizard').locator('.aura-stepper__item.is-error .aura-stepper__marker'),
+    ).toBeVisible();
+  });
+});

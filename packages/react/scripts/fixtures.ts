@@ -214,6 +214,18 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.18 (Chamber-OS 112) */
+    StepperError: h(A.Stepper, {
+      label: 'New plan',
+      current: 'review',
+      steps: [
+        { id: 'basics', label: 'Basics', description: 'Name and period' },
+        { id: 'fees', label: 'Fees', status: 'error', description: 'Two fields need a value' },
+        { id: 'extras', label: h('em', null, 'Extras') },
+        { id: 'review', label: 'Review', status: 'error' },
+      ],
+      onStepClick: noop,
+    }),
     /* 5.17 (Chamber-OS 110, 111) */
     StatLabelLink: h(A.Stat, {
       label: 'Membership',

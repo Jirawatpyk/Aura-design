@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx } from './internal.js';
+import { cx, uid } from './internal.js';
 import { useStrings } from './locale.js';
 import type { StepItem, StepperProps } from './types.js';
-import { IconCheck } from './icons.js';
+import { IconCheck, IconCircleAlert } from './icons.js';
 
 /** Progress through a multi-step flow. Completed steps can link back; the current one has aria-current="step". */
 export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Stepper(props, ref) {
   const t = useStrings();
+  const idBase = uid();
   const steps = props.steps || [];
   let at = -1;
   steps.forEach(function (s: StepItem, i: number) {
@@ -25,31 +26,46 @@ export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Step
       <ol className="aura-stepper__list">
         {steps.map(function (s: StepItem, i: number) {
           const state = i < at ? 'done' : i === at ? 'current' : 'upcoming';
+          /* 5.18 (Chamber-OS 112): an error step keeps its state (place, clickability, aria-current) and says so. */
+          const error = s.status === 'error';
           const marker = (
             <span className="aura-stepper__marker" aria-hidden={true}>
-              {state === 'done' ? <Icon name={<IconCheck />} /> : i + 1}
+              {error ? <Icon name={<IconCircleAlert />} /> : state === 'done' ? <Icon name={<IconCheck />} /> : i + 1}
             </span>
           );
+          const note = error ? t.stepError : state === 'done' ? t.stepDone : '';
+          const clickable = state === 'done' && !!props.onStepClick;
+          /* 5.18: a clickable step with a text label is named "Fees, has errors" outright. From its content, Chrome
+           * would read "Fees , has errors" (it puts a space before the absolutely positioned sr-only note); the
+           * description, part of that content name before, becomes the button's description. */
+          const named =
+            clickable && (typeof s.label === 'string' || typeof s.label === 'number') && String(s.label).trim() !== '';
+          const descId = idBase + '-step-' + i;
           const text = (
             <span className="aura-stepper__text">
               <span className="aura-stepper__label">
                 {s.label}
-                {state === 'done' ? <span className="aura-sr-only">{', ' + t.stepDone}</span> : null}
+                {note ? <span className="aura-sr-only">{', ' + note}</span> : null}
               </span>
-              {s.description ? <span className="aura-stepper__desc">{s.description}</span> : null}
+              {s.description ? (
+                <span className="aura-stepper__desc" id={named ? descId : undefined}>
+                  {s.description}
+                </span>
+              ) : null}
             </span>
           );
-          const clickable = state === 'done' && !!props.onStepClick;
           return (
             <li
               key={s.id}
-              className={cx('aura-stepper__item', 'is-' + state)}
+              className={cx('aura-stepper__item', 'is-' + state, error && 'is-error')}
               aria-current={state === 'current' ? ('step' as const) : undefined}
             >
               {clickable ? (
                 <button
                   type="button"
                   className="aura-stepper__step aura-focusable"
+                  aria-label={named ? String(s.label) + (note ? ', ' + note : '') : undefined}
+                  aria-describedby={named && s.description ? descId : undefined}
                   onClick={function () {
                     props.onStepClick!(s.id);
                   }}
@@ -69,7 +85,10 @@ export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Step
       </ol>
       {!vertical && cur ? (
         <p className="aura-stepper__compact" aria-hidden={true}>
-          <span className="aura-stepper__count">{t.stepOf(at + 1, steps.length)}</span>
+          <span className="aura-stepper__count">
+            {t.stepOf(at + 1, steps.length)}
+            {cur.status === 'error' ? <span className="aura-stepper__count-error">{' — ' + t.stepError}</span> : null}
+          </span>
           <span className="aura-stepper__compact-label">{cur.label}</span>
         </p>
       ) : null}

@@ -372,3 +372,17 @@ export function Addendum18({ flag }: { flag: boolean | undefined }) {
 }
 // @ts-expect-error linkArea is tile | label
 export const badLinkArea = <Aura.Stat label="x" linkArea="card" />;
+
+export function Addendum19({ flag }: { flag: boolean | undefined }) {
+  return (
+    <Aura.Stepper
+      current="review"
+      steps={[
+        { id: 'basics', label: 'Basics', status: undefined },
+        { id: 'fees', label: 'Fees', status: flag ? 'error' : undefined },
+      ]}
+    />
+  );
+}
+// @ts-expect-error a step's status is only 'error' for now
+export const badStepStatus = <Aura.Stepper current="a" steps={[{ id: 'a', label: 'A', status: 'warning' }]} />;

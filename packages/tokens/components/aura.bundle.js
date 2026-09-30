@@ -928,6 +928,7 @@ window.Aura = (() => {
       return "\u0E43\u0E0A\u0E49\u0E41\u0E25\u0E49\u0E27 " + n(v) + " \u0E08\u0E32\u0E01 " + n(max) + " \u0E08\u0E2D\u0E07\u0E44\u0E27\u0E49 " + n(r);
     },
     breadcrumbMore: "\u0E41\u0E2A\u0E14\u0E07\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
+    stepError: "\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14",
     accepts: function(list, max) {
       return [list, max && "\u0E44\u0E21\u0E48\u0E40\u0E01\u0E34\u0E19 " + max + " \u0E15\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C"].filter(Boolean).join(" \xB7 ");
     }
@@ -1058,6 +1059,7 @@ window.Aura = (() => {
       return nsv(v) + " av " + nsv(max) + " anv\xE4nda, " + nsv(r) + " reserverade";
     },
     breadcrumbMore: "Visa hela s\xF6kv\xE4gen",
+    stepError: "har fel",
     accepts: function(list, max) {
       return [list, max && "h\xF6gst " + max + " per fil"].filter(Boolean).join(", ");
     }
@@ -1189,6 +1191,7 @@ window.Aura = (() => {
         return n2(v) + " of " + n2(max) + " used, " + n2(r) + " reserved";
       },
       breadcrumbMore: "Show the full path",
+      stepError: "has errors",
       accepts: function(list, max) {
         return [list, max && "up to " + max + " each"].filter(Boolean).join(", ");
       }
@@ -8912,6 +8915,7 @@ window.Aura = (() => {
   var React60 = __toESM(require_react(), 1);
   var Stepper = React60.forwardRef(function Stepper2(props, ref) {
     const t = useStrings();
+    const idBase = uid();
     const steps = props.steps || [];
     let at = -1;
     steps.forEach(function(s, i) {
@@ -8929,14 +8933,18 @@ window.Aura = (() => {
       },
       /* @__PURE__ */ React60.createElement("ol", { className: "aura-stepper__list" }, steps.map(function(s, i) {
         const state = i < at ? "done" : i === at ? "current" : "upcoming";
-        const marker = /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, state === "done" ? /* @__PURE__ */ React60.createElement(Icon, { name: /* @__PURE__ */ React60.createElement(IconCheck, null) }) : i + 1);
-        const text2 = /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__text" }, /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__label" }, s.label, state === "done" ? /* @__PURE__ */ React60.createElement("span", { className: "aura-sr-only" }, ", " + t.stepDone) : null), s.description ? /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__desc" }, s.description) : null);
+        const error = s.status === "error";
+        const marker = /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, error ? /* @__PURE__ */ React60.createElement(Icon, { name: /* @__PURE__ */ React60.createElement(IconCircleAlert, null) }) : state === "done" ? /* @__PURE__ */ React60.createElement(Icon, { name: /* @__PURE__ */ React60.createElement(IconCheck, null) }) : i + 1);
+        const note = error ? t.stepError : state === "done" ? t.stepDone : "";
         const clickable = state === "done" && !!props.onStepClick;
+        const named = clickable && (typeof s.label === "string" || typeof s.label === "number") && String(s.label).trim() !== "";
+        const descId = idBase + "-step-" + i;
+        const text2 = /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__text" }, /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__label" }, s.label, note ? /* @__PURE__ */ React60.createElement("span", { className: "aura-sr-only" }, ", " + note) : null), s.description ? /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__desc", id: named ? descId : void 0 }, s.description) : null);
         return /* @__PURE__ */ React60.createElement(
           "li",
           {
             key: s.id,
-            className: cx("aura-stepper__item", "is-" + state),
+            className: cx("aura-stepper__item", "is-" + state, error && "is-error"),
             "aria-current": state === "current" ? "step" : void 0
           },
           clickable ? /* @__PURE__ */ React60.createElement(
@@ -8944,6 +8952,8 @@ window.Aura = (() => {
             {
               type: "button",
               className: "aura-stepper__step aura-focusable",
+              "aria-label": named ? String(s.label) + (note ? ", " + note : "") : void 0,
+              "aria-describedby": named && s.description ? descId : void 0,
               onClick: function() {
                 props.onStepClick(s.id);
               }
@@ -8953,7 +8963,7 @@ window.Aura = (() => {
           ) : /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__step" }, marker, text2)
         );
       })),
-      !vertical && cur ? /* @__PURE__ */ React60.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length)), /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__compact-label" }, cur.label)) : null
+      !vertical && cur ? /* @__PURE__ */ React60.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length), cur.status === "error" ? /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__count-error" }, " \u2014 " + t.stepError) : null), /* @__PURE__ */ React60.createElement("span", { className: "aura-stepper__compact-label" }, cur.label)) : null
     );
   });
 

@@ -126,6 +126,7 @@ export const sv: AuraLocalePack = {
     return nsv(v) + ' av ' + nsv(max) + ' använda, ' + nsv(r) + ' reserverade';
   },
   breadcrumbMore: 'Visa hela sökvägen',
+  stepError: 'har fel',
   accepts: function (list, max) {
     return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
   },
