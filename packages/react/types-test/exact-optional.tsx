@@ -386,3 +386,19 @@ export function Addendum19({ flag }: { flag: boolean | undefined }) {
 }
 // @ts-expect-error a step's status is only 'error' for now
 export const badStepStatus = <Aura.Stepper current="a" steps={[{ id: 'a', label: 'A', status: 'warning' }]} />;
+
+export function Addendum20({ flag }: { flag: boolean | undefined }) {
+  return (
+    <>
+      <Aura.Switch
+        label="M2M"
+        readOnly={flag}
+        icon={flag ? 'lock' : undefined}
+        aria-describedby={flag ? 'n' : undefined}
+      />
+      <Aura.Select label="Type" options={['a']} readOnly={flag} />
+    </>
+  );
+}
+// @ts-expect-error readOnly is a boolean
+export const badSwitchReadOnly = <Aura.Switch label="x" readOnly="yes" />;

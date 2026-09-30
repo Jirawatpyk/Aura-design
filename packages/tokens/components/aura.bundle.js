@@ -1869,10 +1869,22 @@ window.Aura = (() => {
   var Select = React15.forwardRef(function Select2(props, ref) {
     const auto = uid(), id = props.id || auto;
     const filter = props[FILTER_KEY];
-    const rest = omit(props, FIELD_KEYS.concat(["children", FILTER_KEY]));
+    const rest = omit(props, FIELD_KEYS.concat(["children", FILTER_KEY, "readOnly"]));
+    const ro = !!props.readOnly && !props.disabled;
+    const mounted = useMounted();
+    const kept = React15.useRef(null);
+    const current2 = [].concat(props.value != null ? props.value : props.defaultValue != null ? props.defaultValue : []).map(String);
     const opts = (props.options || []).map(function(o) {
       const v = typeof o === "object" ? o : { value: o, label: o };
-      return /* @__PURE__ */ React15.createElement("option", { key: v.value, value: v.value, disabled: v.disabled }, v.label);
+      return /* @__PURE__ */ React15.createElement(
+        "option",
+        {
+          key: v.value,
+          value: v.value,
+          disabled: v.disabled || ro && !mounted && current2.length > 0 && current2.indexOf(v.value) < 0 || void 0
+        },
+        v.label
+      );
     });
     if (props.placeholder)
       opts.unshift(
@@ -1880,7 +1892,6 @@ window.Aura = (() => {
       );
     const extra = props.value === void 0 && props.defaultValue === void 0 && props.placeholder ? { defaultValue: "" } : {};
     const native = !!props.multiple || props.size != null && props.size > 1;
-    const mounted = useMounted();
     const live = !native && mounted;
     const density = useDensity();
     React15.useEffect(function() {
@@ -2002,7 +2013,7 @@ window.Aura = (() => {
     }
     function choose(it) {
       const el = selRef.current;
-      if (!el || it.disabled) return;
+      if (!el || it.disabled || ro) return;
       if (el.value !== it.value) {
         el.value = it.value;
         el.dispatchEvent(new Event("input", { bubbles: true }));
@@ -2012,7 +2023,7 @@ window.Aura = (() => {
       close(true);
     }
     function openList(at) {
-      if (props.disabled || trigRef.current && trigRef.current.disabled) return;
+      if (props.disabled || ro || trigRef.current && trigRef.current.disabled) return;
       const list = readItems(selRef.current);
       const ok = choices(list);
       if (!ok.length) return;
@@ -2143,6 +2154,45 @@ window.Aura = (() => {
       [open, active, pos[0] != null]
     );
     const described = [describedBy(id, props), rest["aria-describedby"]].filter(Boolean).join(" ") || void 0;
+    function keep(e) {
+      kept.current = Array.prototype.filter.call(e.currentTarget.options, function(o) {
+        return o.selected;
+      }).map(function(o) {
+        return o.value;
+      });
+    }
+    const listBoxLock = ro && native ? {
+      onFocus: function(e) {
+        const user = rest.onFocus;
+        if (user) user(e);
+        keep(e);
+      },
+      onPointerDown: function(e) {
+        const user = rest.onPointerDown;
+        if (user) user(e);
+        keep(e);
+      },
+      onMouseDown: function(e) {
+        const user = rest.onMouseDown;
+        if (user) user(e);
+        e.preventDefault();
+        e.currentTarget.focus();
+      },
+      onKeyDown: function(e) {
+        const user = rest.onKeyDown;
+        if (user) user(e);
+        const k = e.key;
+        const picks = /^(Arrow(Up|Down|Left|Right)|Home|End|Page(Up|Down))$/.test(k) || k.length === 1 && !e.altKey && (!(e.ctrlKey || e.metaKey) || k === " " || k.toLowerCase() === "a");
+        if (picks) e.preventDefault();
+      },
+      onChange: function(e) {
+        const was = kept.current;
+        if (!was) return;
+        Array.prototype.forEach.call(e.currentTarget.options, function(o) {
+          o.selected = was.indexOf(o.value) >= 0;
+        });
+      }
+    } : {};
     const field = (child) => filter ? child : /* @__PURE__ */ React15.createElement(
       Field,
       {
@@ -2175,19 +2225,25 @@ window.Aura = (() => {
       ));
     if (!live)
       return field(
-        /* @__PURE__ */ React15.createElement("div", { className: cx("aura-input aura-select", props.icon && "has-icon") }, props.icon ? /* @__PURE__ */ React15.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, h4(
+        /* @__PURE__ */ React15.createElement("div", { className: cx("aura-input aura-select", props.icon && "has-icon", ro && "is-readonly") }, props.icon ? /* @__PURE__ */ React15.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, h4(
           "select",
-          Object.assign(extra, rest, {
-            ref: native ? ref : selMerged,
-            id,
-            className: "aura-input__control",
-            required: props.required,
-            "aria-invalid": props.error ? true : void 0,
-            "aria-describedby": described
-          }),
+          Object.assign(
+            extra,
+            rest,
+            {
+              ref: native ? ref : selMerged,
+              id,
+              className: "aura-input__control",
+              required: props.required,
+              "aria-invalid": props.error ? true : void 0,
+              "aria-readonly": ro || void 0,
+              "aria-describedby": described
+            },
+            listBoxLock
+          ),
           opts,
           props.children
-        ), /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-select__chevron" }))
+        ), ro ? null : /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-select__chevron" }))
       );
     const listId = id + "-list", labelId = id + "-label";
     const optId = function(i) {
@@ -2276,6 +2332,7 @@ window.Aura = (() => {
             filter ? "aura-filterselect" : "aura-input",
             "aura-select aura-select--custom",
             props.icon && "has-icon",
+            ro && "is-readonly",
             open && "is-open",
             filter && props.disabled && "is-disabled",
             filter && props.className
@@ -2328,6 +2385,7 @@ window.Aura = (() => {
             "aria-labelledby": rest["aria-labelledby"] || (filter && !rest["aria-label"] ? nameId : void 0),
             "aria-required": props.required || void 0,
             "aria-invalid": props.error ? true : void 0,
+            "aria-readonly": ro || void 0,
             "aria-describedby": described,
             onFocus: function(e) {
               if (userFocus) userFocus(e);
@@ -2350,7 +2408,7 @@ window.Aura = (() => {
           },
           face || /* @__PURE__ */ React15.createElement("span", { id: id + "-value", className: cx("aura-select__value", shown[0].empty && "is-placeholder") }, shown[0].label || " ")
         ),
-        filter ? null : /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-select__chevron" }),
+        filter || ro ? null : /* @__PURE__ */ React15.createElement(Icon, { name: /* @__PURE__ */ React15.createElement(IconChevronDown, null), className: "aura-select__chevron" }),
         popup
       )
     );
@@ -2429,13 +2487,15 @@ window.Aura = (() => {
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
     const on = !!st[0];
+    const ro = !!props.readOnly && !props.disabled;
+    const described = [props.description ? id + "-desc" : "", props["aria-describedby"] || ""].filter(Boolean).join(" ");
     return /* @__PURE__ */ React18.createElement(
       "div",
       {
-        className: cx("aura-switch-row", props.disabled && "is-disabled", props.className),
+        className: cx("aura-switch-row", props.disabled && "is-disabled", ro && "is-readonly", props.className),
         onClick: function(e) {
           const t = e.target;
-          if (props.disabled || t.closest("button, label, a, input")) return;
+          if (props.disabled || ro || t.closest("button, label, a, input")) return;
           st[1](!on);
         }
       },
@@ -2450,15 +2510,17 @@ window.Aura = (() => {
           disabled: props.disabled,
           "aria-labelledby": props.label ? id + "-label" : void 0,
           "aria-label": props.label ? void 0 : props["aria-label"],
-          "aria-describedby": props.description ? id + "-desc" : void 0,
+          "aria-readonly": ro || void 0,
+          "aria-describedby": described || void 0,
           className: cx("aura-switch", on && "is-on"),
           onClick: function() {
-            st[1](!on);
+            if (!ro) st[1](!on);
           }
         },
         /* @__PURE__ */ React18.createElement("span", { className: "aura-switch__thumb" })
       ),
-      props.label ? /* @__PURE__ */ React18.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React18.createElement("label", { className: "aura-choice__label", id: id + "-label", htmlFor: id }, props.label), props.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-choice__desc", id: id + "-desc" }, props.description) : null) : props.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-sr-only", id: id + "-desc" }, props.description) : null
+      props.label ? /* @__PURE__ */ React18.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React18.createElement("label", { className: "aura-choice__label", id: id + "-label", htmlFor: id }, props.label), props.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-choice__desc", id: id + "-desc" }, props.description) : null) : props.description ? /* @__PURE__ */ React18.createElement("span", { className: "aura-sr-only", id: id + "-desc" }, props.description) : null,
+      props.icon ? /* @__PURE__ */ React18.createElement(Icon, { name: props.icon, className: "aura-switch-row__icon" }) : null
     );
   });
 

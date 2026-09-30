@@ -52,6 +52,24 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.19 (Chamber-OS 113, 114): read-only Switch and Select; defaults unchanged. */
+  {
+    const e = React.createElement;
+    const bad = (what: string, html: string) => { console.log(label, what, html); fail++; };
+    const sw = renderToString(e(A.Switch, { id: 's', label: 'M2M benefits access', checked: true, readOnly: true, icon: 'lock', description: 'd', 'aria-describedby': 'note' }));
+    if (!/^<div class="aura-switch-row is-readonly">/.test(sw) || !/aria-readonly="true"/.test(sw) || !/aria-describedby="s-desc note"/.test(sw) || !/class="aura-icon aura-switch-row__icon" aria-hidden="true"/.test(sw) || /disabled/.test(sw)) bad('Switch readOnly:', sw);
+    const sw0 = renderToString(e(A.Switch, { id: 's', label: 'L', 'aria-describedby': 'note' }));
+    if (!/aria-describedby="note"/.test(sw0) || /readonly|s-ro|switch-row__icon/.test(sw0)) bad('Switch default / describedby merge:', sw0);
+    const swd = renderToString(e(A.Switch, { id: 's', label: 'L', readOnly: true, disabled: true }));
+    if (/readonly|-ro"/.test(swd) || !/disabled=""/.test(swd)) bad('Switch disabled wins over readOnly:', swd);
+    const opts = [{ value: 'person', label: 'Person' }, { value: 'company', label: 'Company' }];
+    const se = renderToString(e(A.AuraProvider, { locale: 'th' }, e(A.Select, { id: 't', label: 'Member type', value: 'company', options: opts, readOnly: true, 'aria-describedby': 'note', onChange: () => {} })));
+    if (!/class="aura-input aura-select is-readonly"/.test(se) || !/aria-readonly="true"/.test(se) || !/aria-describedby="note"/.test(se) || !/<option value="person" disabled="">Person<\/option><option value="company" selected="">Company<\/option>/.test(se) || /aura-select__chevron/.test(se)  || /readonly=""/i.test(se)) bad('Select readOnly:', se);
+    const se1 = renderToString(e(A.Select, { label: 'T', options: opts, readOnly: true }));
+    if (/disabled=""/.test(se1)) bad('Select readOnly with no value disables options:', se1);
+    const se0 = renderToString(e(A.Select, { label: 'T', value: 'company', options: opts, onChange: () => {} }));
+    if (/readonly|disabled=""|-ro"/i.test(se0) || !/aura-select__chevron/.test(se0)) bad('Select default changed:', se0);
+  }
   /* 5.18 (Chamber-OS 112): an error step keeps its state and says so; steps without status are unchanged. */
   {
     const e = React.createElement;

@@ -4298,3 +4298,154 @@ test.describe('5.18: Chamber-OS addendum 19', () => {
     ).toBeVisible();
   });
 });
+
+test.describe('5.19: Chamber-OS addendum 20', () => {
+  type AX = {
+    role?: { value: string };
+    name?: { value: string };
+    value?: { value: string };
+    description?: { value: string };
+  };
+  async function axOf(page: import('@playwright/test').Page, role: string, name: string) {
+    const cdp = await page.context().newCDPSession(page);
+    const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as { nodes: AX[] };
+    return nodes.find((n) => n.role?.value === role && n.name?.value === name);
+  }
+
+  for (const theme of ['light', 'dark'] as const) {
+    test(`113: a read-only Switch stays in the Tab order, says so, and doesn't change (${theme})`, async ({ page }) => {
+      await story(page, 'aura-new-in-5-19--locked-plan', theme);
+      const fee = page.getByRole('textbox', { name: 'Annual fee' });
+      const m2m = page.getByRole('switch', { name: 'M2M benefits access' });
+      /* Tab from the read-only field reaches the read-only switch (disabled would skip it). */
+      await fee.focus();
+      await page.keyboard.press('Tab');
+      await expect(m2m).toBeFocused();
+      await expect(m2m).toHaveAttribute('aria-readonly', 'true');
+      await expect(m2m).toHaveAttribute('aria-checked', 'true');
+      /* What Chrome gives a screen reader: name, on, then the lock note. */
+      const ax = await axOf(page, 'switch', 'M2M benefits access');
+      expect(ax?.description?.value).toBe('Locked: historical plan');
+      const ev = await axOf(page, 'switch', 'Event discounts');
+      expect(ev?.description?.value).toBe('Members pay the member price. Locked: historical plan');
+      /* Space, a click on the switch, its label and its row change nothing. */
+      await page.keyboard.press('Space');
+      await m2m.click();
+      await page.getByText('M2M benefits access').click();
+      const row = page.locator('.aura-switch-row').filter({ has: m2m });
+      const rb = (await row.boundingBox())!;
+      await page.mouse.click(rb.x + rb.width / 2, rb.y + rb.height / 2);
+      await expect(m2m).toHaveAttribute('aria-checked', 'true');
+      await expect(page.getByTestId('log')).toHaveText('No change');
+      /* An editable switch still toggles. */
+      const news = page.getByRole('switch', { name: 'Newsletter' });
+      await news.click();
+      await expect(news).toHaveAttribute('aria-checked', 'false');
+      /* The lock sits at the row's end, the field icon's size and colour; the state keeps full colour (no fade). */
+      const icon = row.locator('.aura-switch-row__icon');
+      const ib = (await icon.boundingBox())!;
+      const fieldIcon = (await page.locator('.aura-input__icon').first().boundingBox())!;
+      expect(Math.round(ib.width)).toBe(Math.round(fieldIcon.width));
+      expect(Math.abs(rb.x + rb.width - (ib.x + ib.width))).toBeLessThanOrEqual(1);
+      const colours = await icon.evaluate((e) => {
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--aura-fg-secondary)';
+        e.parentElement!.appendChild(probe);
+        const want = getComputedStyle(probe).color;
+        probe.remove();
+        return { got: getComputedStyle(e).color, want };
+      });
+      expect(colours.got).toBe(colours.want);
+      expect(await m2m.evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    });
+
+    test(`114: a read-only Select stays in the Tab order, never opens, and its value is sent (${theme})`, async ({
+      page,
+    }) => {
+      await story(page, 'aura-new-in-5-19--locked-plan', theme);
+      const type = page.getByRole('combobox', { name: 'Member type' });
+      await page.getByRole('switch', { name: 'Newsletter' }).focus();
+      await page.keyboard.press('Tab');
+      await expect(type).toBeFocused();
+      await expect(type).toHaveAttribute('aria-readonly', 'true');
+      const ax = await axOf(page, 'combobox', 'Member type');
+      expect(ax?.value?.value).toBe('Company');
+      expect(ax?.description?.value).toBe('Locked: historical plan');
+      /* No key or click opens it; the value stays. */
+      for (const k of ['Enter', ' ', 'ArrowDown', 'ArrowUp', 'p', 'Alt+ArrowDown']) {
+        await page.keyboard.press(k);
+        await expect(page.locator('.aura-select__popover [role=listbox]')).toHaveCount(0);
+      }
+      await type.click();
+      await page.getByText('Member type', { exact: true }).click();
+      await expect(page.locator('.aura-select__popover [role=listbox]')).toHaveCount(0);
+      await expect(type).toHaveAttribute('aria-expanded', 'false');
+      await expect(type).toHaveText('Company');
+      await expect(page.getByTestId('log')).toHaveText('No change');
+      /* The read-only ground of a read-only TextField, and no chevron; an editable Select still opens. */
+      const ground = (sel: string) =>
+        page
+          .locator(sel)
+          .first()
+          .evaluate((e) => getComputedStyle(e).backgroundColor);
+      const wrap = page.locator('.aura-select--custom.is-readonly');
+      expect(await wrap.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(
+        await page
+          .locator('.aura-input')
+          .filter({ has: page.getByRole('textbox', { name: 'Annual fee' }) })
+          .evaluate((e) => getComputedStyle(e).backgroundColor),
+      );
+      expect(await wrap.evaluate((e) => getComputedStyle(e).backgroundColor)).not.toBe(
+        await ground('.aura-select:not(.is-readonly):not(:has(:disabled))'),
+      );
+      await expect(wrap.locator('.aura-select__chevron')).toHaveCount(0);
+      await page.getByRole('combobox', { name: 'Billing type' }).click();
+      await expect(page.locator('.aura-select__popover [role=listbox]')).toBeVisible();
+      await page.keyboard.press('Escape');
+      /* Unlike disabled, the read-only value is posted with the form. */
+      await page.getByRole('button', { name: 'Show form data' }).click();
+      const data = JSON.parse(await page.getByTestId('data').innerText());
+      expect(data.memberType).toBe('company');
+      expect(data.billingType).toBe('company');
+      expect(data.oldRegion).toBeUndefined();
+      expect(data.regions).toBe('north');
+      /* Once hydrated, a value the app sets itself (react-hook-form reset / setValue) shows and is posted — no option is
+       * left disabled to drop it from the form's data. */
+      await page.evaluate(() => {
+        const s = document.querySelector('select[name="memberType"]') as HTMLSelectElement;
+        s.value = 'person';
+      });
+      await expect(type).toHaveText('Person');
+      await page.getByRole('button', { name: 'Show form data' }).click();
+      expect(JSON.parse(await page.getByTestId('data').innerText()).memberType).toBe('person');
+      /* A read-only list box: no click, Ctrl+click or key changes it. */
+      const regions = page.getByRole('listbox', { name: 'Regions' });
+      await regions.getByRole('option', { name: 'north' }).click({ modifiers: ['Control'] });
+      await regions.getByRole('option', { name: 'south' }).click();
+      await expect(regions).toBeFocused();
+      for (const k of ['ArrowDown', ' ', 'Control+ ', 'End']) await page.keyboard.press(k);
+      expect(
+        await regions.evaluate((e) => Array.from((e as HTMLSelectElement).selectedOptions, (o) => o.value)),
+      ).toEqual(['north']);
+      await expect(page.getByTestId('log')).toHaveText('No change');
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    });
+  }
+
+  test('114: a touch tap does not change a read-only list box', async ({ browser }) => {
+    const ctx = await browser.newContext({ hasTouch: true });
+    const page = await ctx.newPage();
+    await story(page, 'aura-new-in-5-19--locked-plan');
+    const regions = page.getByRole('listbox', { name: 'Regions' });
+    await regions.getByRole('option', { name: 'south' }).tap();
+    await regions.getByRole('option', { name: 'north' }).tap();
+    expect(await regions.evaluate((e) => Array.from((e as HTMLSelectElement).selectedOptions, (o) => o.value))).toEqual(
+      ['north'],
+    );
+    await expect(page.getByTestId('log')).toHaveText('No change');
+    await page.getByRole('button', { name: 'Show form data' }).tap();
+    expect(JSON.parse(await page.getByTestId('data').innerText()).regions).toBe('north');
+    await ctx.close();
+  });
+});

@@ -593,6 +593,10 @@ export interface SelectProps
   /** Shown in fg-tertiary on the closed field until something is chosen; not listed as a choice. */
   placeholder?: string | undefined;
   icon?: IconInput | undefined;
+  /** 5.19 (Chamber-OS 114): a locked value. The field stays in the Tab order with `aria-readonly` and shows the chosen
+   * option on the read-only ground, with no chevron; no click or key opens the list. The value is still submitted
+   * with the form (unlike `disabled`). Before JavaScript runs, the other options from `options` are disabled. */
+  readOnly?: boolean | undefined;
 }
 /** A compact filter for FilterBar (5.12): "Status All ▾", as wide as its words. */
 export interface FilterSelectProps extends Omit<
@@ -632,8 +636,16 @@ export interface SwitchProps {
   defaultChecked?: boolean | undefined;
   onChange?: ((checked: boolean) => void) | undefined;
   disabled?: boolean | undefined;
+  /** 5.19 (Chamber-OS 113): a locked value. The switch stays in the Tab order with `aria-readonly`, so its name,
+   * state and description are heard; click, Space and the row ignore it. Its colours stay (on reads as on). */
+  readOnly?: boolean | undefined;
+  /** 5.19: an icon at the end of the row, in fg-secondary and the field icon's size — `icon={<IconLock />}` or
+   * `icon="lock"` on a locked row. Hidden from screen readers; say what it means in the description. */
+  icon?: IconInput | undefined;
   /** Required when there is no visible label. */
   'aria-label'?: string | undefined;
+  /** 5.19: ids of more text that describes the switch (a lock note); merged with `description`'s. */
+  'aria-describedby'?: string | undefined;
   id?: string | undefined;
   className?: string | undefined;
 }

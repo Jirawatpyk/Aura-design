@@ -122,11 +122,27 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   const auto = uid(),
     id = props.id || auto;
   const filter = (props as Record<string, unknown>)[FILTER_KEY] as FilterFace | undefined;
-  const rest = omit(props, FIELD_KEYS.concat(['children', FILTER_KEY])) as Record<string, unknown>;
+  const rest = omit(props, FIELD_KEYS.concat(['children', FILTER_KEY, 'readOnly'])) as Record<string, unknown>;
+  /* 5.19 (Chamber-OS 114): read-only. A <select> has no readonly. Before hydration, when no script can change the
+   * value, the options it may not change to are disabled, so the native control keeps it (with no value given,
+   * nothing is — the browser shows the first option). Once React runs they are enabled again: a disabled selected
+   * option is left out of the form's data, and reset() / setValue() may still move the value. The list never opens;
+   * a list box (multiple / size) ignores pointer and keys instead. */
+  const ro = !!props.readOnly && !props.disabled;
+  const mounted = useMounted();
+  /* A read-only list box's selection, taken before a pointer or focus can change it (touch picks on the tap). */
+  const kept = React.useRef<string[] | null>(null);
+  const current = ([] as unknown[])
+    .concat(props.value != null ? props.value : props.defaultValue != null ? props.defaultValue : [])
+    .map(String);
   const opts = (props.options || []).map(function (o: SelectOption) {
     const v: Exclude<SelectOption, string> = typeof o === 'object' ? o : { value: o, label: o };
     return (
-      <option key={v.value} value={v.value} disabled={v.disabled}>
+      <option
+        key={v.value}
+        value={v.value}
+        disabled={v.disabled || (ro && !mounted && current.length > 0 && current.indexOf(v.value) < 0) || undefined}
+      >
         {v.label}
       </option>
     );
@@ -141,7 +157,6 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
     props.value === undefined && props.defaultValue === undefined && props.placeholder ? { defaultValue: '' } : {};
   /* A list box (multiple / size > 1) is already on the page: keep the native control for it. */
   const native = !!props.multiple || (props.size != null && props.size > 1);
-  const mounted = useMounted();
   /* Server HTML and the first paint before hydration show the real <select> (it works with JavaScript off);
    * the button and AURA's list take over once React runs. */
   const live = !native && mounted;
@@ -287,7 +302,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   }
   function choose(it: Item) {
     const el = selRef.current;
-    if (!el || it.disabled) return;
+    if (!el || it.disabled || ro) return;
     if (el.value !== it.value) {
       /* The native setter, then a real change event: React's onChange, register(), form listeners all see it. */
       el.value = it.value;
@@ -298,7 +313,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
     close(true);
   }
   function openList(at?: 'first' | 'last' | number) {
-    if (props.disabled || (trigRef.current && trigRef.current.disabled)) return;
+    if (props.disabled || ro || (trigRef.current && trigRef.current.disabled)) return;
     const list = readItems(selRef.current);
     const ok = choices(list);
     /* Nothing to choose (no options yet, or only the placeholder): an empty listbox helps no one. */
@@ -445,6 +460,54 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
 
   const described =
     [describedBy(id, props), rest['aria-describedby'] as string | undefined].filter(Boolean).join(' ') || undefined;
+  /* 5.19: a read-only list box ignores the mouse (focusing it instead) and the keys that pick; a change that gets
+   * through anyway (a touch tap, a phone's picker) is put back and not reported. */
+  function keep(e: React.SyntheticEvent<HTMLSelectElement>) {
+    kept.current = Array.prototype.filter
+      .call(e.currentTarget.options, function (o: HTMLOptionElement) {
+        return o.selected;
+      })
+      .map(function (o: HTMLOptionElement) {
+        return o.value;
+      });
+  }
+  const listBoxLock: Record<string, unknown> =
+    ro && native
+      ? {
+          onFocus: function (e: React.FocusEvent<HTMLSelectElement>) {
+            const user = rest.onFocus as ((e: React.FocusEvent<HTMLSelectElement>) => void) | undefined;
+            if (user) user(e);
+            keep(e);
+          },
+          onPointerDown: function (e: React.PointerEvent<HTMLSelectElement>) {
+            const user = rest.onPointerDown as ((e: React.PointerEvent<HTMLSelectElement>) => void) | undefined;
+            if (user) user(e);
+            keep(e);
+          },
+          onMouseDown: function (e: React.MouseEvent<HTMLSelectElement>) {
+            const user = rest.onMouseDown as ((e: React.MouseEvent<HTMLSelectElement>) => void) | undefined;
+            if (user) user(e);
+            e.preventDefault();
+            e.currentTarget.focus();
+          },
+          onKeyDown: function (e: React.KeyboardEvent<HTMLSelectElement>) {
+            const user = rest.onKeyDown as ((e: React.KeyboardEvent<HTMLSelectElement>) => void) | undefined;
+            if (user) user(e);
+            const k = e.key;
+            const picks =
+              /^(Arrow(Up|Down|Left|Right)|Home|End|Page(Up|Down))$/.test(k) ||
+              (k.length === 1 && !e.altKey && (!(e.ctrlKey || e.metaKey) || k === ' ' || k.toLowerCase() === 'a'));
+            if (picks) e.preventDefault();
+          },
+          onChange: function (e: React.ChangeEvent<HTMLSelectElement>) {
+            const was = kept.current;
+            if (!was) return;
+            Array.prototype.forEach.call(e.currentTarget.options, function (o: HTMLOptionElement) {
+              o.selected = was.indexOf(o.value) >= 0;
+            });
+          },
+        }
+      : {};
   const field = (child: React.ReactNode) =>
     filter ? (
       child
@@ -510,22 +573,28 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   /* Before hydration, and for a list box: the real <select> as the control (what 5.2 rendered). */
   if (!live)
     return field(
-      <div className={cx('aura-input aura-select', props.icon && 'has-icon')}>
+      <div className={cx('aura-input aura-select', props.icon && 'has-icon', ro && 'is-readonly')}>
         {props.icon ? <Icon name={props.icon} className="aura-input__icon" /> : null}
         {h(
           'select',
-          Object.assign(extra, rest, {
-            ref: native ? ref : selMerged,
-            id: id,
-            className: 'aura-input__control',
-            required: props.required,
-            'aria-invalid': props.error ? true : undefined,
-            'aria-describedby': described,
-          }),
+          Object.assign(
+            extra,
+            rest,
+            {
+              ref: native ? ref : selMerged,
+              id: id,
+              className: 'aura-input__control',
+              required: props.required,
+              'aria-invalid': props.error ? true : undefined,
+              'aria-readonly': ro || undefined,
+              'aria-describedby': described,
+            },
+            listBoxLock,
+          ),
           opts,
           props.children,
         )}
-        <Icon name={<IconChevronDown />} className="aura-select__chevron" />
+        {ro ? null : <Icon name={<IconChevronDown />} className="aura-select__chevron" />}
       </div>,
     );
 
@@ -635,6 +704,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         filter ? 'aura-filterselect' : 'aura-input',
         'aura-select aura-select--custom',
         props.icon && 'has-icon',
+        ro && 'is-readonly',
         open && 'is-open',
         filter && props.disabled && 'is-disabled',
         filter && props.className,
@@ -691,6 +761,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         }
         aria-required={props.required || undefined}
         aria-invalid={props.error ? true : undefined}
+        aria-readonly={ro || undefined}
         aria-describedby={described}
         onFocus={function (e: React.FocusEvent<HTMLButtonElement>) {
           if (userFocus) userFocus(e);
@@ -718,7 +789,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           </span>
         )}
       </button>
-      {filter ? null : <Icon name={<IconChevronDown />} className="aura-select__chevron" />}
+      {filter || ro ? null : <Icon name={<IconChevronDown />} className="aura-select__chevron" />}
       {popup}
     </div>,
   );

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Icon } from './Icon.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
 import type { SwitchProps } from './types.js';
 
@@ -7,13 +8,16 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
     id = props.id || auto;
   const st = useMaybeControlled(props.checked, !!props.defaultChecked, props.onChange);
   const on = !!st[0];
+  const ro = !!props.readOnly && !props.disabled;
+  /* 5.19 (Chamber-OS 113): the description, then the caller's ids (a lock note). */
+  const described = [props.description ? id + '-desc' : '', props['aria-describedby'] || ''].filter(Boolean).join(' ');
   return (
     <div
-      className={cx('aura-switch-row', props.disabled && 'is-disabled', props.className)}
+      className={cx('aura-switch-row', props.disabled && 'is-disabled', ro && 'is-readonly', props.className)}
       onClick={function (e: React.MouseEvent<HTMLDivElement>) {
         /* The whole row is the target (44px on touch); the switch and its <label> already toggle by themselves. */
         const t = e.target as HTMLElement;
-        if (props.disabled || t.closest('button, label, a, input')) return;
+        if (props.disabled || ro || t.closest('button, label, a, input')) return;
         st[1](!on);
       }}
     >
@@ -26,12 +30,12 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
         disabled={props.disabled}
         aria-labelledby={props.label ? id + '-label' : undefined}
         aria-label={props.label ? undefined : props['aria-label']}
-        aria-describedby={
-          props.description ? id + '-desc' : undefined /* rendered below with or without a label (5.1.1) */
-        }
+        aria-readonly={ro || undefined}
+        /* The description renders below with or without a label (5.1.1). */
+        aria-describedby={described || undefined}
         className={cx('aura-switch', on && 'is-on')}
         onClick={function () {
-          st[1](!on);
+          if (!ro) st[1](!on);
         }}
       >
         <span className="aura-switch__thumb" />
@@ -52,6 +56,7 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
           {props.description}
         </span>
       ) : null}
+      {props.icon ? <Icon name={props.icon} className="aura-switch-row__icon" /> : null}
     </div>
   );
 });

@@ -487,6 +487,10 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-select__value.is-placeholder { color: var(--aura-fg-tertiary); }
 .aura-select__group { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-tertiary); }
 .aura-select.is-open .aura-select__chevron { transform: rotate(180deg); }
+/* 5.19 (Chamber-OS 114): a read-only Select looks like a read-only TextField — the same ground, no chevron (it doesn't
+ * open), no pointer; the value keeps full contrast. */
+.aura-select.is-readonly { background: var(--aura-bg-input-disabled); }
+.aura-select.is-readonly .aura-input__control { cursor: default; padding-right: var(--aura-space-3); }
 
 .aura-radio-group > legend { margin-bottom: 6px; }
 .aura-radio-group__list { display: flex; flex-direction: column; gap: var(--aura-space-3); }
@@ -528,6 +532,10 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-switch.is-on .aura-switch__thumb { transform: translateX(16px); background: var(--aura-button-primary-fg); }
 .aura-switch:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-switch:disabled { cursor: not-allowed; }
+/* 5.19 (Chamber-OS 113): a read-only switch keeps its colours (a locked "on" reads as on at full contrast) and stays
+ * focusable; only the pointer says it won't change. The row's icon (a lock) sits at its end, like a field's icon. */
+.aura-switch-row.is-readonly, .aura-switch-row.is-readonly .aura-switch, .aura-switch-row.is-readonly .aura-choice__label { cursor: default; }
+.aura-switch-row__icon { flex: none; margin-inline-start: auto; margin-top: 2px; width: var(--aura-icon-sm); height: var(--aura-icon-sm); color: var(--aura-fg-secondary); }
 
 /* ---------- Alerts & toasts ---------- */
 .aura-alert {
@@ -1414,7 +1422,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     padding-block: calc((var(--aura-touch-target) - 20px) / 2);
   }
   .aura-check--labelled .aura-check__input { top: calc((var(--aura-touch-target) - 20px) / 2 + 3px); }
-  .aura-switch-row:not(.is-disabled) { cursor: pointer; }
+  .aura-switch-row:not(.is-disabled):not(.is-readonly) { cursor: pointer; }
   .aura-radio-group__list { gap: 0; }
   .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); }
 }
