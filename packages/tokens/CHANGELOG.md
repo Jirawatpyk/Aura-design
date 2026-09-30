@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.21.0
+
+### Minor Changes
+
+- 6c3723f: Chamber-OS addendum 21: Table `rowHeight="density"` — every body row at least the density's row height, with cell padding clamped to fit a small Button, so rows with a button, a pill or one line of text are one height. Stacked rows are unchanged.
+
 ## 5.20.0
 
 ### Minor Changes
