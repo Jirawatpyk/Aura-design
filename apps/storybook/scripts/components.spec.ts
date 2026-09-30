@@ -4637,3 +4637,91 @@ test.describe('5.21: Chamber-OS addendum 21', () => {
     expect(await heights(page, 'compact-cards')).toEqual(await heights(page, 'compact-cards-default'));
   });
 });
+
+test.describe('5.22: Chamber-OS addendum 22', () => {
+  const box = (l: import('@playwright/test').Locator) => l.boundingBox().then((b) => b!);
+
+  test("118: card: footer puts the actions on the card's last row, full width; the grid is unchanged", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 1200 });
+    await story(page, 'aura-new-in-5-22--renewal-cards');
+    const row = page.getByTestId('footer').getByRole('row').nth(1);
+    const footer = row.locator('[data-card="footer"]');
+    const f = await box(footer);
+    /* After every other cell … */
+    for (const cell of await row.locator('[role="gridcell"]:not([data-card="footer"]), .aura-table__sel').all()) {
+      if (!(await cell.isVisible())) continue;
+      const c = await box(cell);
+      expect(f.y).toBeGreaterThanOrEqual(c.y + c.height - 1);
+    }
+    /* … at the card's full inner width, the Button filling it beside the 32px IconButton. */
+    const inner = await row.evaluate((e) => {
+      const s = getComputedStyle(e),
+        r = e.getBoundingClientRect();
+      return {
+        x: r.x + parseFloat(s.paddingLeft) + parseFloat(s.borderLeftWidth),
+        w: e.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight),
+      };
+    });
+    expect(Math.abs(f.x - inner.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(f.width - inner.w)).toBeLessThanOrEqual(1);
+    const b = await box(footer.getByRole('button', { name: 'Send reminder' }));
+    const ib = await box(footer.getByRole('button', { name: /^More for/ }));
+    expect(ib.width).toBe(32);
+    expect(Math.abs(b.x + b.width + 8 - ib.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(ib.x + ib.width - (f.x + f.width))).toBeLessThanOrEqual(1);
+    /* The card keeps its 16px under the footer. */
+    const rb = await box(row);
+    expect(Math.round(rb.y + rb.height - (f.y + f.height))).toBe(17); /* 16px + the 1px border */
+    await footer.getByRole('button', { name: 'Send reminder' }).click();
+    await expect(page.getByTestId('log')).toHaveText('Reminder: Kiruna Mining Services (Thailand)');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    /* At 1280px it is an ordinary actions column at its width, rows as tall as without the option. */
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const g = page.getByTestId('footer').getByRole('row').nth(1).locator('[data-card="footer"]');
+    expect(Math.round((await box(g)).width)).toBe(220);
+    const heights = (id: string) =>
+      page
+        .getByTestId(id)
+        .getByRole('row')
+        .evaluateAll((rs) => rs.map((r) => Math.round(r.getBoundingClientRect().height)));
+    expect(await heights('footer')).toEqual(await heights('default'));
+  });
+
+  test('119: a stacked title wraps, whole, with the pill and the row box on its first line', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 1200 });
+    await story(page, 'aura-new-in-5-22--renewal-cards');
+    const row = page.getByTestId('default').getByRole('row').nth(1);
+    const title = row.locator('[data-card="title"]');
+    await expect(title).toHaveText('Kiruna Mining Services (Thailand)');
+    const t = await box(title);
+    expect(t.height).toBeGreaterThanOrEqual(39); /* two 20px lines */
+    expect(await title.evaluate((e) => e.scrollWidth <= e.clientWidth + 1)).toBe(true);
+    const firstLine = t.y + 10;
+    const p = await box(row.locator('[data-card="pill"] .aura-pill'));
+    expect(Math.abs(p.y + p.height / 2 - firstLine)).toBeLessThanOrEqual(2);
+    const cb = await box(row.getByRole('checkbox'));
+    expect(Math.abs(cb.y + cb.height / 2 - firstLine)).toBeLessThanOrEqual(2);
+    /* A one-line title keeps them on its line too. */
+    const row2 = page.getByTestId('default').getByRole('row').nth(2);
+    const t2 = await box(row2.locator('[data-card="title"]'));
+    const p2 = await box(row2.locator('[data-card="pill"] .aura-pill'));
+    expect(Math.abs(p2.y + p2.height / 2 - (t2.y + t2.height / 2))).toBeLessThanOrEqual(2);
+    /* Existing cards with top-right actions: the box, the title's line and the actions line up. */
+    await story(page, 'aura-responsive--stacked-table');
+    const first = page.locator('.aura-table__scroll > .aura-table__row:not(.aura-table__head)').first();
+    const tt = await box(first.locator('[data-card="title"]'));
+    for (const sel of ['[data-card="actions"] button', '.aura-table__sel input']) {
+      const el = first.locator(sel).first();
+      if (!(await el.count())) continue;
+      const bb = await box(el);
+      expect(Math.abs(bb.y + bb.height / 2 - (tt.y + 10))).toBeLessThanOrEqual(1);
+    }
+    /* The grid keeps its one-line rows. */
+    await story(page, 'aura-new-in-5-22--renewal-cards');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const g = page.getByTestId('default').getByRole('row').nth(1).locator('[data-card="title"]');
+    expect(Math.round((await box(g)).height)).toBeLessThanOrEqual(48);
+  });
+});

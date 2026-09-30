@@ -419,3 +419,14 @@ export function Addendum21({ flag }: { flag: boolean | undefined }) {
 }
 // @ts-expect-error rowHeight is only 'density' on a static Table
 export const badTableRowHeight = <Aura.Table rowHeight="auto" />;
+
+export function Addendum22({ flag }: { flag: boolean | undefined }) {
+  return (
+    <Aura.DataTable<{ id: string }>
+      label="R"
+      rows={[]}
+      rowKey="id"
+      columns={[{ key: 'a', label: '', actions: true, card: flag ? 'footer' : undefined }]}
+    />
+  );
+}

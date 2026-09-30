@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.22 — Chamber-OS addendum 22
+
+- **DataTable `card: 'footer'`** (item 118): in a stacked card the column becomes the card's last row, full width, after every other cell — row actions such as "Send reminder" and a menu. A Button placed directly in the cell grows to fill the row; an IconButton or menu keeps its size. The grid is unchanged (an ordinary column at its `width`).
+- **Stacked titles wrap** (item 119): a card's title (`card: 'title'` or the automatic one) wraps onto more lines instead of being cut, on a 20px line, and the row box, the pill and top-right actions line up with its first line. Visible in every stacked DataTable: long titles wrap; one-line cards without a pill or actions are 4px taller (the 20px line), with a pill about 1px; the grid is unchanged.
+- `card: 'footer'` moves the cell only visually: arrow keys and screen readers keep the grid's column order. A footer holding only an IconButton or a menu sits at the end edge.
+
 ## 5.21 — Chamber-OS addendum 21
 
 - **Table `rowHeight="density"`** (item 117): every body row is at least the density's row height (48px; 40px compact; 48px on touch screens, as DataTable — unlike the 5.20 cell padding, which stays compact on touch), and its cells' vertical padding shrinks to fit a small Button (7.5px at 48px, 3.5px compact, at most 8px), as in DataTable's `rowHeight="auto"` — so a row with a `sm` Button, an IconButton, a pill or one line of text are all the same height. Content is centred on the row unless you pass `align="top"` (footer cells centre too, as with `align="middle"`). Rows whose text wraps still grow, with the smaller padding. Header and footer row heights, stacked rows and cards (`stackBelow`), and tables without the prop are unchanged.

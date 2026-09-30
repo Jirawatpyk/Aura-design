@@ -368,7 +368,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         autoTitle = i;
         break;
       }
-  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' | 'hide' {
+  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' | 'hide' | 'footer' {
     if (c.card) return c.card;
     if (i === autoTitle) return 'title';
     if (c.key === pillKey && !ownPill) return 'pill';

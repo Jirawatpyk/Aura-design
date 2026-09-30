@@ -214,6 +214,24 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.22 (Chamber-OS 118, 119) */
+    DataTableCardFooter: h(A.DataTable, {
+      label: 'Renewals',
+      rows: [{ id: 'M-201', member: 'Kiruna Mining Services (Thailand)' }],
+      rowKey: 'id',
+      stackBelow: 640,
+      columns: [
+        { key: 'member', label: 'MEMBER', card: 'title' },
+        {
+          key: 'a',
+          label: '',
+          actions: true,
+          width: 200,
+          card: 'footer',
+          render: () => h(A.Button, { size: 'sm' }, 'Send reminder'),
+        },
+      ],
+    }),
     /* 5.21 (Chamber-OS 117) */
     TableRowHeight: h(
       A.Table,

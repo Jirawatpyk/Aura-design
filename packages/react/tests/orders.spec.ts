@@ -109,6 +109,10 @@ test.describe('desktop 1440', () => {
     expect(await activeAttr(page, 'data-rc')).toMatch(/:7$/);
   });
   test('d_new_order', async ({ page }) => {
+    /* The example's "today" is fixed (2026-09-18) but the calendar opens on the real month: pin the clock to it, or
+     * the date picked below leaves the calendar once the real date moves on. */
+    await page.clock.setFixedTime(new Date('2026-09-18T10:00:00+07:00'));
+    await ready(page);
     await page.getByRole('button', { name: 'สร้างคำสั่งซื้อ' }).click();
     const dlg = page.getByRole('dialog', { name: 'สร้างคำสั่งซื้อ' });
     await expect(dlg).toBeVisible();

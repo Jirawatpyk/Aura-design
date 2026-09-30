@@ -52,6 +52,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.22 (Chamber-OS 118): a card: 'footer' column's cells carry data-card="footer"; other columns unchanged. */
+  {
+    const e = React.createElement;
+    const dt = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'Kiruna' }], rowKey: 'id', stackBelow: 640, columns: [{ key: 'm', label: 'MEMBER' }, { key: 'a', label: '', actions: true, card: 'footer', render: () => e('button', null, 'Send') }] }));
+    if (!/data-card="footer"/.test(dt) || !/data-card="title"/.test(dt) || /data-card="actions"/.test(dt)) { console.log(label, 'DataTable card footer:', dt.slice(0, 600)); fail++; }
+  }
   /* 5.21 (Chamber-OS 117): Table rowHeight="density" adds its class; the default doesn't. */
   {
     const e = React.createElement;

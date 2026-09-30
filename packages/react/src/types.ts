@@ -108,8 +108,10 @@ export interface DataTableColumn<Row extends Record<string, any> = Record<string
   actions?: boolean | undefined;
   /** Its place in a stacked card (5.13): `'hide'` leaves it out of the card (the grid keeps it), `'title'` / `'pill'`
    * make it the card's title or the pill beside it (instead of the first column / first pill column), `'field'` a
-   * label/value field. Default: today's rule. */
-  card?: 'hide' | 'field' | 'title' | 'pill' | undefined;
+   * label/value field. `'footer'` (5.22, Chamber-OS 118) makes it the card's last row, full width — row actions
+   * such as "Send reminder" and a menu: a Button placed directly in the cell grows to fill the row, an IconButton or
+   * menu keeps its size. Default: today's rule. The grid is unchanged by any of them. */
+  card?: 'hide' | 'field' | 'title' | 'pill' | 'footer' | undefined;
   /** The order of fields in a stacked card (5.13), lowest first; the grid's column order is unchanged. Fields
    * without one sort by their column index (0-based). Screen readers and arrow keys follow the grid's order. */
   cardOrder?: number | undefined;

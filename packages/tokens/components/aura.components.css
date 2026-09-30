@@ -1854,9 +1854,29 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__td[data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
   .aura-table__td[data-card='pill'] { order: 2; flex: none; }
   .aura-table__td[data-card='actions'] { order: 3; flex: none; margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-2)) calc(-1 * var(--aura-space-1)) 0; }
+  /* 5.22 (Chamber-OS 119): the title wraps rather than being cut — a member's full name before a one-click action —
+   * and the row box and the pill line up with its first line (a 20px line; the 16px box 2px down). */
+  .aura-table__td[data-card='title'] { white-space: normal; overflow-wrap: anywhere; overflow: visible; line-height: 20px; align-self: flex-start; }
+  .aura-table__td[data-card='pill'] { align-self: flex-start; line-height: 20px; }
+  .aura-table__row > .aura-table__sel { align-self: flex-start; margin-top: 2px; }
+  /* Actions top-right sit on that first line too (a 32px button centred on 20px, the same 24px footprint as before). */
+  .aura-table__td[data-card='actions'] { align-self: flex-start; margin-top: calc(-1 * var(--aura-space-1) - 2px); margin-bottom: -2px; }
+  /* 5.22 (Chamber-OS 118): card: 'footer' — the card's last row, full width; a Button in it grows, an IconButton or a
+   * menu keeps its size. */
+  .aura-table__td[data-card='footer'] {
+    order: 99; flex: 0 0 100%; display: flex; align-items: center; gap: var(--aura-space-2);
+    margin: var(--aura-space-1) 0 0; overflow: visible; white-space: normal;
+  }
+  .aura-table__td[data-card='footer'] > .aura-table__cell { display: flex; flex: 1 1 auto; align-items: center; gap: var(--aura-space-2); min-width: 0; }
+  .aura-table__td[data-card='footer'] > .aura-btn, .aura-table__td[data-card='footer'] > .aura-table__cell > .aura-btn { flex: 1 1 auto; }
+  /* Only an IconButton or a menu: at the end, as a card's ⋯ usually is. A totals row's label isn't shown there. */
+  .aura-table__td[data-card='footer']:not(:has(.aura-btn)), .aura-table__td[data-card='footer'] > .aura-table__cell:not(:has(.aura-btn)) { justify-content: flex-end; }
+  .aura-table__td[data-card='footer']::before { display: none; }
   /* Spacing: 12px under the title line, 8px between field lines (row gap 4 + the break's 4 + each field's 4 below). */
   .aura-table__break { display: block; order: 4; flex: 0 0 100%; height: var(--aura-space-1); }
   .aura-table__row:has(> .aura-table__break) { padding-bottom: calc(var(--aura-space-4) - var(--aura-space-1)); }
+  /* 5.22: a footer row ends the card with no margin under it, so the card keeps its full 16px. */
+  .aura-table__row:has(> [data-card='footer']:not(.is-blank)) { padding-bottom: var(--aura-space-4); }
   .aura-table__row--skeleton .aura-table__td { display: flex; }
   .aura-table__total { background: var(--aura-bg-canvas); }
   .aura-table__total > .is-blank { display: none; }
