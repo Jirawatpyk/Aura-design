@@ -11,6 +11,10 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
   const bulk = props.selected != null;
   const idle = bulk && !props.selected;
   const count = bulk && props.selected ? t.selectedCount(props.selected) : null;
+  /* 5.20: `start` counts only when it renders something (not null, false, true or ''). */
+  const hasStart = React.Children.toArray(props.start).some(function (c) {
+    return c !== '';
+  });
   /* Where focus came from before it entered the bar: Clear hides the bar's buttons, so focus goes back there. */
   const cameFrom = React.useRef<HTMLElement | null>(null);
   const own = React.useRef<HTMLDivElement | null>(null);
@@ -42,13 +46,14 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
         props.className,
       )}
     >
-      <div className="aura-actionbar__inner">
+      <div className={cx('aura-actionbar__inner', hasStart && 'has-start')}>
         {/* Always rendered, so a change of text is announced. */}
         <div className="aura-actionbar__status" role="status">
           {count}
           {count && props.status ? ' · ' : null}
           {props.status}
         </div>
+        {!idle && hasStart ? <div className="aura-actionbar__start">{props.start}</div> : null}
         {!idle ? (
           <div className="aura-actionbar__actions">
             {count && props.onClearSelection ? (

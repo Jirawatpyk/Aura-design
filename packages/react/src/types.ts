@@ -1277,6 +1277,10 @@ export interface TableCellProps extends Omit<React.TdHTMLAttributes<HTMLTableCel
 export interface ActionBarProps {
   /** Buttons, right-aligned (the primary one last). */
   children?: React.ReactNode | undefined;
+  /** 5.20 (Chamber-OS 116): buttons at the start edge — Cancel in a wizard — outside the `status` live region. When
+   * the bar itself is 640px or wider they sit flush with its start edge and `children` at its end; in a narrower bar a
+   * status line takes its own row and they sit before the actions. In the tab order they come before `children`. */
+  start?: React.ReactNode | undefined;
   /** A short line such as "Total 107,000.00 THB · due Oct 22, 2026" or "Unsaved changes". It sits in a polite live
    * region that is always in the page, so a change is announced. */
   status?: React.ReactNode | undefined;

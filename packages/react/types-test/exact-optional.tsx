@@ -402,3 +402,14 @@ export function Addendum20({ flag }: { flag: boolean | undefined }) {
 }
 // @ts-expect-error readOnly is a boolean
 export const badSwitchReadOnly = <Aura.Switch label="x" readOnly="yes" />;
+
+export function Addendum20b({ flag }: { flag: boolean | undefined }) {
+  return (
+    <>
+      <Aura.ActionBar start={flag ? <Aura.Button>Cancel</Aura.Button> : undefined}>
+        <Aura.Button>Next</Aura.Button>
+      </Aura.ActionBar>
+      <Aura.Table density={flag ? 'compact' : undefined} />
+    </>
+  );
+}

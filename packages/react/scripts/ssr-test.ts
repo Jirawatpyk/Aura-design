@@ -52,6 +52,28 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.20 (Chamber-OS 115, 116): a Table takes the provider's density; ActionBar's start slot. Defaults unchanged. */
+  {
+    const e = React.createElement;
+    const bad = (what: string, html: string) => { console.log(label, what, html); fail++; };
+    const tbl = (p: Record<string, unknown>) => e(A.Table, p, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x'))));
+    const inCompact = renderToString(e(A.AuraProvider, { density: 'compact' }, tbl({})));
+    if (!/<div class="aura-tbl-wrap" data-density="compact">/.test(inCompact)) bad('Table in a compact provider:', inCompact);
+    const own = renderToString(e(A.AuraProvider, { density: 'compact' }, tbl({ density: 'comfortable' })));
+    if (!/<div class="aura-tbl-wrap" data-density="comfortable">/.test(own)) bad('Table density prop wins:', own);
+    const plain = renderToString(tbl({}));
+    if (/data-density/.test(plain)) bad('Table default changed:', plain);
+    const ab = renderToString(e(A.ActionBar, { status: 'Unsaved', start: e('button', null, 'Cancel') }, e('button', null, 'Next')));
+    if (!/<div class="aura-actionbar__inner has-start"><div class="aura-actionbar__status" role="status">Unsaved<\/div><div class="aura-actionbar__start"><button>Cancel<\/button><\/div><div class="aura-actionbar__actions"><button>Next<\/button><\/div>/.test(ab)) bad('ActionBar start:', ab);
+    const ab0 = renderToString(e(A.ActionBar, null, e('button', null, 'Next')));
+    if (/has-start|__start/.test(ab0)) bad('ActionBar default changed:', ab0);
+    for (const empty of [false, true, '', null]) {
+      const h = renderToString(e(A.ActionBar, { start: empty }, e('button', null, 'Next')));
+      if (/has-start|__start/.test(h)) bad('ActionBar empty start renders:', h);
+    }
+    const idle = renderToString(e(A.ActionBar, { selected: 0, start: e('button', null, 'Cancel') }));
+    if (/Cancel/.test(idle)) bad('ActionBar idle shows start:', idle);
+  }
   /* 5.19 (Chamber-OS 113, 114): read-only Switch and Select; defaults unchanged. */
   {
     const e = React.createElement;

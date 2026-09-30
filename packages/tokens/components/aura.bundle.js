@@ -7164,6 +7164,9 @@ window.Aura = (() => {
     const bulk = props.selected != null;
     const idle = bulk && !props.selected;
     const count = bulk && props.selected ? t.selectedCount(props.selected) : null;
+    const hasStart = React42.Children.toArray(props.start).some(function(c) {
+      return c !== "";
+    });
     const cameFrom = React42.useRef(null);
     const own = React42.useRef(null);
     function clear() {
@@ -7195,7 +7198,7 @@ window.Aura = (() => {
           props.className
         )
       },
-      /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__inner" }, /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React42.createElement(Button, { variant: "ghost", size: "sm", onClick: clear }, t.clear()) : null, props.children) : null)
+      /* @__PURE__ */ React42.createElement("div", { className: cx("aura-actionbar__inner", hasStart && "has-start") }, /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle && hasStart ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__start" }, props.start) : null, !idle ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React42.createElement(Button, { variant: "ghost", size: "sm", onClick: clear }, t.clear()) : null, props.children) : null)
     );
   });
 
@@ -7273,6 +7276,7 @@ window.Aura = (() => {
         "Table stackBelow: no THead > Tr > Th found among its children, so cells have no labels. Pass `label` on each Td."
       );
     const outer = React44.useContext(StackLabels);
+    const pageDensity = useDensity();
     const capId = uid();
     const wrap = React44.useRef(null);
     const sc = React44.useState(false), scrolls = sc[0];
@@ -7294,7 +7298,7 @@ window.Aura = (() => {
       {
         ref: wrap,
         className: cx("aura-tbl-wrap", stackBelow && "is-stackable", bordered === false && "is-flush"),
-        "data-density": density,
+        "data-density": density || pageDensity,
         tabIndex: scrolls ? 0 : void 0,
         role: scrolls && (caption != null || rest["aria-label"]) ? "region" : void 0,
         "aria-labelledby": scrolls && caption != null ? capId : void 0,

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cx, devWarnOnce, uid, useIsoLayoutEffect } from './internal.js';
+import { useDensity } from './locale.js';
 import type { TableCellProps, TableProps, TableSectionProps, TableRowProps } from './types.js';
 
 /* Table family (4.20): plain <table> markup with AURA's type and spacing, for small fixed tables (invoice line items,
@@ -72,6 +73,8 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     );
   /* A plain table inside a stacked one's cell must not take its labels or roles. */
   const outer = React.useContext(StackLabels);
+  /* 5.20 (Chamber-OS 115): no `density` prop follows the nearest AuraProvider's; the prop wins. */
+  const pageDensity = useDensity();
   const capId = uid();
   const wrap = React.useRef<HTMLDivElement | null>(null);
   /* When it has to scroll sideways (a narrow phone), the box becomes a named, focusable region so keyboard users
@@ -95,7 +98,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     <div
       ref={wrap}
       className={cx('aura-tbl-wrap', stackBelow && 'is-stackable', bordered === false && 'is-flush')}
-      data-density={density}
+      data-density={density || pageDensity}
       tabIndex={scrolls ? 0 : undefined}
       /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
       role={scrolls && (caption != null || rest['aria-label']) ? 'region' : undefined}

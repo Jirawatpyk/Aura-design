@@ -4449,3 +4449,140 @@ test.describe('5.19: Chamber-OS addendum 20', () => {
     await ctx.close();
   });
 });
+
+test.describe('5.20: Chamber-OS addendum 20, 115–116', () => {
+  test('115: a Table follows the page density; its own prop wins', async ({ page }) => {
+    await story(page, 'aura-new-in-5-20--table-density');
+    const wrapOf = (id: string) => page.getByTestId(id).locator('.aura-tbl-wrap').first();
+    const pad = (id: string) =>
+      page
+        .getByTestId(id)
+        .locator('.aura-tbl__td')
+        .first()
+        .evaluate((e) => getComputedStyle(e).paddingTop);
+    const rowH = (id: string) =>
+      page
+        .getByTestId(id)
+        .locator('.aura-tbl__body .aura-tbl__row')
+        .first()
+        .evaluate((e) => e.getBoundingClientRect().height);
+    /* Inside AuraProvider density="compact": the wrap says so, 8px cell padding, a shorter row. */
+    await expect(wrapOf('frame')).toHaveAttribute('data-density', 'compact');
+    expect(await pad('frame')).toBe('8px');
+    expect(await pad('page')).toBe('12px');
+    expect(await rowH('frame')).toBeLessThan(await rowH('page'));
+    /* An explicit prop wins over the provider. */
+    await expect(wrapOf('override')).toHaveAttribute('data-density', 'comfortable');
+    expect(await pad('override')).toBe('12px');
+    /* A page that sets data-density itself, without a provider: followed in CSS. */
+    await expect(wrapOf('attr')).not.toHaveAttribute('data-density', /.*/);
+    expect(await pad('attr')).toBe('8px');
+    /* "comfortable" inside a compact page switches back, provider or not. */
+    expect(await pad('nested')).toBe('12px');
+    /* Outside any density: unchanged. */
+    await expect(wrapOf('page')).not.toHaveAttribute('data-density', /.*/);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('115: stacked rows in a compact frame keep their stacked cell padding', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, 'aura-new-in-5-20--table-density');
+    const st = page.getByTestId('frame-stacked');
+    expect(
+      await st
+        .locator('.aura-tbl__body .aura-tbl__td')
+        .first()
+        .evaluate((e) => getComputedStyle(e).paddingTop),
+    ).toBe('0px');
+    expect(
+      await st
+        .locator('.aura-tbl__body .aura-tbl__row')
+        .first()
+        .evaluate((e) => getComputedStyle(e).paddingTop),
+    ).toBe('8px');
+  });
+
+  test('116: ActionBar start sits at the start edge from 640px, outside the live region, first in the Tab order', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await story(page, 'aura-new-in-5-20--action-bar-start');
+    const bar = page.getByRole('region', { name: 'Wizard actions' });
+    const inner = (await bar.locator('.aura-actionbar__inner').boundingBox())!;
+    const cancel = bar.getByRole('button', { name: 'Cancel' });
+    const back = bar.getByRole('button', { name: 'Back' });
+    const next = bar.getByRole('button', { name: 'Next' });
+    const c = (await cancel.boundingBox())!,
+      b = (await back.boundingBox())!,
+      n = (await next.boundingBox())!;
+    const padL = await bar
+      .locator('.aura-actionbar__inner')
+      .evaluate((e) => parseFloat(getComputedStyle(e).paddingLeft));
+    const padR = await bar
+      .locator('.aura-actionbar__inner')
+      .evaluate((e) => parseFloat(getComputedStyle(e).paddingRight));
+    expect(Math.abs(c.x - (inner.x + padL))).toBeLessThanOrEqual(1);
+    expect(Math.abs(n.x + n.width - (inner.x + inner.width - padR))).toBeLessThanOrEqual(1);
+    expect(b.x).toBeGreaterThan(c.x + c.width + 100);
+    expect(Math.abs(c.y - n.y)).toBeLessThanOrEqual(1);
+    /* Not in the status live region; Tab goes Cancel → Back → Next. */
+    await expect(bar.getByRole('status').getByRole('button')).toHaveCount(0);
+    await cancel.focus();
+    await page.keyboard.press('Tab');
+    await expect(back).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(next).toBeFocused();
+    /* With a status line, it sits between the start slot and the actions. */
+    const sb = page.getByRole('region', { name: 'Form actions' });
+    const d = (await sb.getByRole('button', { name: 'Discard' }).boundingBox())!;
+    const s = (await sb.getByRole('status').boundingBox())!;
+    const v = (await sb.getByRole('button', { name: 'Save' }).boundingBox())!;
+    expect(d.x).toBeLessThan(s.x);
+    expect(s.x + 8).toBeLessThan(v.x);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    /* Narrower than 640px: the start slot wraps with the actions, before them. */
+    await page.setViewportSize({ width: 390, height: 800 });
+    const c2 = (await cancel.boundingBox())!,
+      b2 = (await back.boundingBox())!;
+    expect(c2.x < b2.x || c2.y < b2.y).toBe(true);
+    /* With a status line, the status takes its own row and Discard stays beside Save. */
+    const d2 = (await sb.getByRole('button', { name: 'Discard' }).boundingBox())!,
+      s2 = (await sb.getByRole('status').boundingBox())!,
+      v2 = (await sb.getByRole('button', { name: 'Save' }).boundingBox())!;
+    expect(d2.y).toBeGreaterThan(s2.y + s2.height - 1);
+    expect(Math.abs(d2.y + d2.height / 2 - (v2.y + v2.height / 2))).toBeLessThanOrEqual(1);
+    expect(d2.x).toBeLessThan(v2.x);
+  });
+
+  test("116: the bar's own width decides its layout, and the start slot follows the reading direction", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-20--action-bar-start');
+    /* A 320px card on a wide screen: the status on its own row, Discard beside Save. */
+    const nb = page.getByRole('region', { name: 'Narrow actions' });
+    const s = (await nb.getByRole('status').boundingBox())!,
+      d = (await nb.getByRole('button', { name: 'Discard' }).boundingBox())!,
+      v = (await nb.getByRole('button', { name: 'Save' }).boundingBox())!;
+    expect(d.y).toBeGreaterThan(s.y + s.height - 1);
+    expect(Math.abs(d.y + d.height / 2 - (v.y + v.height / 2))).toBeLessThanOrEqual(1);
+    /* A narrow wizard with no status: Cancel stays at the start edge (the empty live region takes no room). */
+    const nw = page.getByRole('region', { name: 'Narrow wizard' });
+    const nwi = (await nw.locator('.aura-actionbar__inner').boundingBox())!;
+    const nc = (await nw.getByRole('button', { name: 'Cancel' }).boundingBox())!;
+    expect(Math.abs(nc.x - nwi.x)).toBeLessThanOrEqual(1);
+    await expect(nw.getByRole('status')).toHaveCount(1);
+    /* Right to left: Discard at the right (start) edge, Save at the left (end) edge. */
+    const rb = page.getByRole('region', { name: 'RTL actions' });
+    const inner = (await rb.locator('.aura-actionbar__inner').boundingBox())!;
+    const rd = (await rb.getByRole('button', { name: 'Discard' }).boundingBox())!,
+      rv = (await rb.getByRole('button', { name: 'Save' }).boundingBox())!;
+    expect(Math.abs(rd.x + rd.width - (inner.x + inner.width))).toBeLessThanOrEqual(1);
+    expect(Math.abs(rv.x - inner.x)).toBeLessThanOrEqual(1);
+    /* Narrow and right to left: Save still at the end (left) edge. */
+    await page.setViewportSize({ width: 390, height: 900 });
+    const inner2 = (await rb.locator('.aura-actionbar__inner').boundingBox())!;
+    const rv2 = (await rb.getByRole('button', { name: 'Save' }).boundingBox())!;
+    expect(Math.abs(rv2.x - inner2.x)).toBeLessThanOrEqual(1);
+  });
+});

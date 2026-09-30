@@ -214,6 +214,17 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.20 (Chamber-OS 115, 116) */
+    TableInCompact: h(
+      A.AuraProvider,
+      { density: 'compact' },
+      h(A.Table, { caption: 'Plans' }, h(A.TBody, null, h(A.Tr, null, h(A.Td, null, 'Corporate 2026')))),
+    ),
+    ActionBarStart: h(
+      A.ActionBar,
+      { position: 'container', start: h(A.Button, { variant: 'ghost' }, 'Cancel') },
+      h(A.Button, { variant: 'primary' }, 'Next'),
+    ),
     /* 5.19 (Chamber-OS 113, 114) */
     SwitchReadOnly: h(A.Switch, {
       label: 'M2M benefits access',
