@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.25 — Chamber-OS addendum 27
+
+- **Toggle `Tag` takes `touchHeight`** (item 124): a selectable Tag (`selected` / `onClick`) with `touchHeight` is at least 44px tall below 640px and wherever the primary pointer is coarse, the same rule as Button's (5.24) — filter chips tapped with a finger. The pill grows rather than keeping 32px with a larger invisible hit area, so it lines up with 44px buttons on the same row and a tap lands where it looks. With a mouse from 640px up it stays 32px. A plain or removable Tag ignores the prop, and the remove button is unchanged; the prop is never written to the DOM. In a flex row with the default `align-items: stretch`, other items stretch to the chips' 44px; put them in their own row or set `align-items: center` if they should keep their size.
+
 ## 5.24 — Chamber-OS addendum 26
 
 - **`touchHeight` follows the pointer, not only the width** (item 123): Button, IconButton and the ActionBar Clear are 44px wherever the primary pointer is coarse — a tablet in portrait (768px) or landscape (1024–1366px) — as well as below 640px. With a mouse (`pointer: fine`) from 640px up nothing changes. Visible on tablets for every control that already passes `touchHeight`. A touch laptop reports its trackpad as the primary pointer (`pointer: fine`), so it keeps the compact size, as AURA's other touch rules do.

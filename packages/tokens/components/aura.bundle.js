@@ -4242,7 +4242,16 @@ window.Aura = (() => {
   var Tag = React25.forwardRef(function Tag2(props, ref) {
     const t = useStrings();
     const selectable = props.onClick != null || props.selected != null;
-    const rest = omit(props, ["onRemove", "selected", "icon", "className", "children", "disabled", "removeLabel"]);
+    const rest = omit(props, [
+      "onRemove",
+      "selected",
+      "icon",
+      "className",
+      "children",
+      "disabled",
+      "removeLabel",
+      "touchHeight"
+    ]);
     const inner = [
       props.icon ? /* @__PURE__ */ React25.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
       /* @__PURE__ */ React25.createElement("span", { key: "t", className: "aura-tag__text" }, props.children)
@@ -4256,7 +4265,12 @@ window.Aura = (() => {
           type: "button",
           "aria-pressed": !!props.selected,
           disabled: props.disabled,
-          className: cx("aura-tag is-selectable", props.selected && "is-selected", props.className)
+          className: cx(
+            "aura-tag is-selectable",
+            props.selected && "is-selected",
+            props.touchHeight && "aura-tag--touch",
+            props.className
+          )
         },
         props.selected ? /* @__PURE__ */ React25.createElement(Icon, { name: /* @__PURE__ */ React25.createElement(IconCheck, null), size: 14 }) : inner[0],
         inner[1]

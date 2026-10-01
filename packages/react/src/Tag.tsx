@@ -22,7 +22,16 @@ function textOf(node: React.ReactNode): string {
 export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, ref) {
   const t = useStrings();
   const selectable = props.onClick != null || props.selected != null;
-  const rest = omit(props, ['onRemove', 'selected', 'icon', 'className', 'children', 'disabled', 'removeLabel']);
+  const rest = omit(props, [
+    'onRemove',
+    'selected',
+    'icon',
+    'className',
+    'children',
+    'disabled',
+    'removeLabel',
+    'touchHeight',
+  ]);
   const inner = [
     props.icon ? <Icon key="i" name={props.icon} size={14} /> : null,
     <span key="t" className="aura-tag__text">
@@ -37,7 +46,12 @@ export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, r
         type="button"
         aria-pressed={!!props.selected}
         disabled={props.disabled}
-        className={cx('aura-tag is-selectable', props.selected && 'is-selected', props.className)}
+        className={cx(
+          'aura-tag is-selectable',
+          props.selected && 'is-selected',
+          props.touchHeight && 'aura-tag--touch',
+          props.className,
+        )}
       >
         {props.selected ? <Icon name={<IconCheck />} size={14} /> : inner[0]}
         {inner[1]}

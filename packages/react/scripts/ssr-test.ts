@@ -52,6 +52,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.25 (Chamber-OS 124): a toggle Tag takes touchHeight as a class; a plain one ignores it; never a DOM attribute. */
+  {
+    const e = React.createElement;
+    const on = renderToString(e(A.Tag, { selected: true, onClick: () => {}, touchHeight: true }, 'Open'));
+    const off = renderToString(e(A.Tag, { selected: false, onClick: () => {} }, 'Open'));
+    const plain = renderToString(e(A.Tag, { touchHeight: true, onRemove: () => {} }, 'Acme'));
+    if (!/<button[^>]*class="[^"]*aura-tag--touch/.test(on) || /aura-tag--touch/.test(off) || /aura-tag--touch/.test(plain) || /touchheight/i.test(on + plain)) { console.log(label, 'Tag touchHeight:', on, off, plain); fail++; }
+  }
   /* 5.23 (Chamber-OS 120, 122): card: 'wide' is a labelled card part; ActionBar touchHeight reaches its Clear. */
   {
     const e = React.createElement;

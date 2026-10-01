@@ -1350,6 +1350,10 @@ export interface TagProps extends Omit<React$1.HTMLAttributes<HTMLElement>, "onC
 	selected?: boolean | undefined;
 	onClick?: ((e: React$1.MouseEvent<HTMLButtonElement>) => void) | undefined;
 	disabled?: boolean | undefined;
+	/** A toggle chip (`selected` / `onClick`) at least 44px tall below 640px or wherever the primary pointer is coarse
+	 * — filter chips tapped with a finger (5.25, Chamber-OS 124); with a mouse from 640px up it keeps 32px, as Button's
+	 * `touchHeight`. A plain or removable Tag ignores it. */
+	touchHeight?: boolean | undefined;
 }
 export interface ProgressProps {
 	/** Omit for indeterminate. */

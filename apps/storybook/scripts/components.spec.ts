@@ -4891,3 +4891,50 @@ test.describe('5.24: Chamber-OS addendum 26', () => {
     }
   });
 });
+
+test.describe('5.25: Chamber-OS addendum 27', () => {
+  const box = (l: import('@playwright/test').Locator) => l.boundingBox().then((b) => b!);
+  const chips = ['Open', 'Done', 'Skipped', 'All', 'Mine', 'Unassigned'];
+  const heights = async (page: import('@playwright/test').Page) => ({
+    chips: await Promise.all(
+      chips.map(async (name) => Math.round((await box(page.getByRole('button', { name, exact: true }))).height)),
+    ),
+    compact: Math.round((await box(page.getByRole('button', { name: 'Compact chip' }))).height),
+    plain: Math.round((await box(page.locator('span.aura-tag').filter({ hasText: 'Acme AB' }))).height),
+    remove: Math.round((await box(page.getByRole('button', { name: 'Remove Acme AB' }))).height),
+  });
+
+  for (const [width, touch] of [
+    [390, true],
+    [390, false],
+    [1024, true],
+  ] as const) {
+    test(`124: a toggle Tag with touchHeight is 44px at ${width}px (${touch ? 'touch' : 'mouse'}); others unchanged`, async ({
+      browser,
+    }) => {
+      const ctx = await browser.newContext({ viewport: { width, height: 800 }, hasTouch: touch, isMobile: touch });
+      const page = await ctx.newPage();
+      await story(page, 'aura-new-in-5-25--filter-chips-touch');
+      expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(touch);
+      const h = await heights(page);
+      expect(h.chips).toEqual(chips.map(() => 44));
+      expect([h.compact, h.plain, h.remove]).toEqual([32, 32, 20]);
+      /* The label stays centred and pressing still toggles. */
+      const done = page.getByRole('button', { name: 'Done', exact: true });
+      const [b, l] = [await box(done), await box(done.locator('.aura-tag__text'))];
+      expect(Math.abs(l.y - b.y - (b.y + b.height - l.y - l.height))).toBeLessThanOrEqual(1);
+      await done.click();
+      await expect(done).toHaveAttribute('aria-pressed', 'true');
+      await ctx.close();
+    });
+  }
+
+  for (const width of [640, 1280])
+    test(`124: with a mouse at ${width}px the toggle Tag keeps 32px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await story(page, 'aura-new-in-5-25--filter-chips-touch');
+      const h = await heights(page);
+      expect(h.chips).toEqual(chips.map(() => 32));
+      expect([h.compact, h.plain]).toEqual([32, 32]);
+    });
+});
