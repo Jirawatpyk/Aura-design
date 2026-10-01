@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.22.0
+
+### Minor Changes
+
+- c3d7a93: Chamber-OS addendum 22: DataTable columns take `card: 'footer'` — the stacked card's last row, full width, a Button in it growing. Stacked card titles wrap instead of being cut, on a 20px line, with the row box, pill and top-right actions on the first line (one-line cards without a pill or actions are 4px taller).
+
 ## 5.21.0
 
 ### Minor Changes
