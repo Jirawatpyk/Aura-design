@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.25.0
+
+### Minor Changes
+
+- fccf751: Chamber-OS addendum 27: a toggle `Tag` (`selected` / `onClick`) takes `touchHeight` — at least 44px below 640px or on a coarse pointer, 32px with a mouse from 640px up. Plain and removable Tags are unchanged.
+
 ## 5.24.0
 
 ### Minor Changes
