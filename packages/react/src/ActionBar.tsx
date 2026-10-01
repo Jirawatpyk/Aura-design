@@ -57,7 +57,7 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
         {!idle ? (
           <div className="aura-actionbar__actions">
             {count && props.onClearSelection ? (
-              <Button variant="ghost" size="sm" onClick={clear}>
+              <Button variant="ghost" size="sm" touchHeight={props.touchHeight} onClick={clear}>
                 {t.clear()}
               </Button>
             ) : null}

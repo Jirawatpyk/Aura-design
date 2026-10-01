@@ -110,8 +110,10 @@ export interface DataTableColumn<Row extends Record<string, any> = Record<string
    * make it the card's title or the pill beside it (instead of the first column / first pill column), `'field'` a
    * label/value field. `'footer'` (5.22, Chamber-OS 118) makes it the card's last row, full width — row actions
    * such as "Send reminder" and a menu: a Button placed directly in the cell grows to fill the row, an IconButton or
-   * menu keeps its size. Default: today's rule. The grid is unchanged by any of them. */
-  card?: 'hide' | 'field' | 'title' | 'pill' | 'footer' | undefined;
+   * menu keeps its size. `'wide'` (5.23, Chamber-OS 120) is a field on a line of its own at the card's full width,
+   * after the half-width fields (in column order; `cardOrder` doesn't move it), its label above and its text wrapping —
+   * a reason with its evidence. Default: today's rule. The grid is unchanged by any of them. */
+  card?: 'hide' | 'field' | 'title' | 'pill' | 'footer' | 'wide' | undefined;
   /** The order of fields in a stacked card (5.13), lowest first; the grid's column order is unchanged. Fields
    * without one sort by their column index (0-based). Screen readers and arrow keys follow the grid's order. */
   cardOrder?: number | undefined;
@@ -1302,6 +1304,9 @@ export interface ActionBarProps {
   selected?: number | undefined;
   /** Adds a "Clear" button next to the count. */
   onClearSelection?: (() => void) | undefined;
+  /** 5.23 (Chamber-OS 122): the bar's own Clear button takes Button's `touchHeight` — 44px below 640px — to match
+   * action buttons that use it. */
+  touchHeight?: boolean | undefined;
   /** Name of the region. Default "Actions". */
   label?: string | undefined;
   className?: string | undefined;

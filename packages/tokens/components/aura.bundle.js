@@ -5298,12 +5298,13 @@ window.Aura = (() => {
       const part = cardPart(c, i), lv = hideLevel(c);
       return {
         "data-card": part,
-        "data-label": part === "field" ? c.label || void 0 : void 0,
+        "data-label": part === "field" || part === "wide" ? c.label || void 0 : void 0,
         "data-hide": lv ? String(lv) : void 0
       };
     }
     const hasFields = vis.some(function(c, i) {
-      return cardPart(c, i) === "field";
+      const p = cardPart(c, i);
+      return p === "field" || p === "wide";
     });
     const hasFlex = vis.some(function(c) {
       return widthOf(c) == null;
@@ -7198,7 +7199,7 @@ window.Aura = (() => {
           props.className
         )
       },
-      /* @__PURE__ */ React42.createElement("div", { className: cx("aura-actionbar__inner", hasStart && "has-start") }, /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle && hasStart ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__start" }, props.start) : null, !idle ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React42.createElement(Button, { variant: "ghost", size: "sm", onClick: clear }, t.clear()) : null, props.children) : null)
+      /* @__PURE__ */ React42.createElement("div", { className: cx("aura-actionbar__inner", hasStart && "has-start") }, /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle && hasStart ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__start" }, props.start) : null, !idle ? /* @__PURE__ */ React42.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React42.createElement(Button, { variant: "ghost", size: "sm", touchHeight: props.touchHeight, onClick: clear }, t.clear()) : null, props.children) : null)
     );
   });
 

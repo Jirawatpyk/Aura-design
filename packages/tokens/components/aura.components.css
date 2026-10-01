@@ -669,10 +669,13 @@ a.aura-icon-btn { text-decoration: none; }
 
 /* ---------- Tabs ---------- */
 .aura-tabs { font-family: var(--font-sans); }
-.aura-tabs__list { display: flex; gap: var(--aura-space-6); border-bottom: 1px solid var(--aura-border-default); overflow-x: auto; scrollbar-width: none; }
+/* 5.23 (Chamber-OS 121): the 1px track is an inset shadow inside the list's padding box, and the active tab's 2px
+ * indicator paints over its bottom row. The list scrolls sideways (overflow-x), and a scroll container clips at its
+ * padding box: an indicator pulled 1px over a border (as up to 5.22) showed only half its height. Same box height. */
+.aura-tabs__list { display: flex; gap: var(--aura-space-6); box-shadow: inset 0 -1px 0 var(--aura-border-default); overflow-x: auto; scrollbar-width: none; }
 .aura-tab {
   position: relative; display: inline-flex; align-items: center; gap: var(--aura-space-2); flex: none;
-  height: var(--aura-input-height); padding: 0; margin-bottom: -1px;
+  height: var(--aura-input-height); padding: 0;
   border: 0; border-bottom: 2px solid transparent; background: transparent;
   color: var(--aura-fg-secondary); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
   transition: color var(--aura-duration-fast) var(--aura-ease), border-color var(--aura-duration-fast) var(--aura-ease);
@@ -1335,9 +1338,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
  * ring is drawn inside the pill, so neither the scrolling list (many tabs on a phone) nor the next pill can cover it;
  * full-width tabs share the track but never shrink below their label (the track scrolls instead). The phone rule's
  * wider tab gap doesn't apply. */
-.aura-tabs--segmented .aura-tabs__list.aura-segmented { gap: 2px; }
+.aura-tabs--segmented .aura-tabs__list.aura-segmented { gap: 2px; box-shadow: none; }
 .aura-tabs--segmented .aura-tabs__list.aura-segmented.is-full .aura-tab { min-width: max-content; }
-.aura-tabs--segmented .aura-tab.aura-segmented__option { margin-bottom: 0; }
 /* 5.15 (Chamber-OS 90): underline tabs sharing the width, always or below a breakpoint; the segmented track below one. */
 .aura-tabs__list.is-fill { gap: 0; }
 .aura-tabs__list.is-fill > .aura-tab { flex: 1 1 0; min-width: max-content; justify-content: center; padding: 0 var(--aura-space-3); }
@@ -1861,6 +1863,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__row > .aura-table__sel { align-self: flex-start; margin-top: 2px; }
   /* Actions top-right sit on that first line too (a 32px button centred on 20px, the same 24px footprint as before). */
   .aura-table__td[data-card='actions'] { align-self: flex-start; margin-top: calc(-1 * var(--aura-space-1) - 2px); margin-bottom: -2px; }
+  /* 5.23 (Chamber-OS 120): card: 'wide' — a field on its own full-width line after the half-width ones, wrapping. */
+  .aura-table__td[data-card='wide'] { order: 90; flex: 0 0 100%; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   /* 5.22 (Chamber-OS 118): card: 'footer' — the card's last row, full width; a Button in it grows, an IconButton or a
    * menu keeps its size. */
   .aura-table__td[data-card='footer'] {
@@ -1901,6 +1905,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-segmented__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
   .aura-tab { border-bottom-color: Canvas; }
   .aura-tab.is-active { border-bottom-color: Highlight; }
+  /* Shadows are dropped in forced colours: the track is a real border again, the indicator just above it. */
+  .aura-tabs__list:not(.aura-segmented) { border-bottom: 1px solid CanvasText; }
   /* 5.10: segmented tabs mark the selection with a border and focus with a dashed ring inside it, so a focused tab
    * and the selected one never look alike (manual activation moves focus without selecting). */
   .aura-tabs--segmented .aura-tab.aura-segmented__option.is-selected { outline: none; border: 2px solid Highlight; }

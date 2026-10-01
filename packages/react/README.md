@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.23 — Chamber-OS addenda 23–25
+
+- **DataTable `card: 'wide'`** (item 120): in a stacked card the column is a field on a line of its own at the card's full inner width, after the half-width fields (and before a `footer`), its label above and its text wrapping — a reason with its evidence line. The grid is unchanged (an ordinary column at its `width`).
+- **Underline Tabs show their whole 2px indicator** (item 121): the list scrolls sideways, and a scroll container clips at its padding box, so the indicator pulled 1px over the list's border showed only 1px. The track is now an inset shadow inside the list and the indicator paints over its bottom row; the tabs' size is unchanged. In forced colours the track is a border again, with the indicator just above it (the list is 1px taller there).
+- **ActionBar `touchHeight`** (item 122): the bar's own Clear button takes Button's `touchHeight` — 44px below 640px — to match action buttons that use it.
+
 ## 5.22 — Chamber-OS addendum 22
 
 - **DataTable `card: 'footer'`** (item 118): in a stacked card the column becomes the card's last row, full width, after every other cell — row actions such as "Send reminder" and a menu. A Button placed directly in the cell grows to fill the row; an IconButton or menu keeps its size. The grid is unchanged (an ordinary column at its `width`).

@@ -4725,3 +4725,130 @@ test.describe('5.22: Chamber-OS addendum 22', () => {
     expect(Math.round((await box(g)).height)).toBeLessThanOrEqual(48);
   });
 });
+
+test.describe('5.23: Chamber-OS addenda 23–25', () => {
+  const box = (l: import('@playwright/test').Locator) => l.boundingBox().then((b) => b!);
+
+  for (const kind of ['default', 'auto'] as const)
+    test(`120: card: wide puts a field on its own full-width line after the half-width ones, whole (${kind} rows)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 1400 });
+      await story(page, 'aura-new-in-5-23--wide-field');
+      const row = page.getByTestId(kind).getByRole('row').nth(1);
+      const wide = row.locator('[data-card="wide"]');
+      const w = await box(wide);
+      const inner = await row.evaluate((e) => {
+        const s = getComputedStyle(e),
+          r = e.getBoundingClientRect();
+        return {
+          x: r.x + parseFloat(s.paddingLeft) + parseFloat(s.borderLeftWidth),
+          w: e.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight),
+        };
+      });
+      expect(Math.abs(w.x - inner.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(w.width - inner.w)).toBeLessThanOrEqual(1);
+      for (const f of await row.locator('[data-card="field"]').all()) {
+        const b = await box(f);
+        expect(b.width).toBeLessThan(inner.w / 2 + 1);
+        expect(w.y).toBeGreaterThanOrEqual(b.y + b.height - 1);
+      }
+      /* Its label above it, and the reason and evidence whole, wrapped. */
+      expect(await wide.evaluate((e) => getComputedStyle(e, '::before').content)).toContain('REASON');
+      await expect(wide).toContainText('Turnover above threshold');
+      await expect(wide).toContainText('threshold met 14 Sep 2026');
+      expect(
+        await wide.evaluate((e) => e.scrollWidth <= e.clientWidth + 1 && e.scrollHeight <= e.clientHeight + 1),
+      ).toBe(true);
+      expect(w.height).toBeGreaterThan(50);
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+      /* At 1280px an ordinary column at its width. */
+      await page.setViewportSize({ width: 1280, height: 600 });
+      expect(
+        Math.round((await box(page.getByTestId(kind).getByRole('row').nth(1).locator('[data-card="wide"]'))).width),
+      ).toBe(320);
+    });
+
+  /* Colours of a 1px-wide column of the page, top to bottom, decoded from a PNG screenshot (zlib only). */
+  async function pixelColumn(page: import('@playwright/test').Page, x: number, y: number, h: number) {
+    const zlib = await import('node:zlib');
+    const png = await page.screenshot({ clip: { x, y, width: 1, height: h } });
+    let off = 8,
+      bpp = 4;
+    const idat: Buffer[] = [];
+    while (off < png.length) {
+      const len = png.readUInt32BE(off),
+        type = png.toString('ascii', off + 4, off + 8),
+        data = png.subarray(off + 8, off + 8 + len);
+      if (type === 'IHDR') bpp = data[9] === 6 ? 4 : 3;
+      if (type === 'IDAT') idat.push(data);
+      off += 12 + len;
+    }
+    const raw = zlib.inflateSync(Buffer.concat(idat));
+    const rows: number[][] = [];
+    let prev: number[] = new Array(bpp).fill(0);
+    for (let r = 0; r < h; r++) {
+      const f = raw[r * (bpp + 1)]!,
+        px = Array.from(raw.subarray(r * (bpp + 1) + 1, (r + 1) * (bpp + 1)));
+      /* One pixel per row: Sub sees no left pixel (none), Average halves Up, Paeth reduces to Up. */
+      const cur = px.map((v, i) => (f === 2 || f === 4 ? v + prev[i]! : f === 3 ? v + (prev[i]! >> 1) : v) & 255);
+      rows.push(cur.slice(0, 3));
+      prev = cur;
+    }
+    return rows;
+  }
+
+  for (const theme of ['light', 'dark'] as const) {
+    test(`121: the active underline tab shows its whole 2px indicator over the track (${theme})`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 600 });
+      await story(page, 'aura-new-in-5-23--tabs-underline', theme);
+      const list = page.locator('.aura-tabs__list').first();
+      expect(await list.evaluate((e) => getComputedStyle(e).overflowX)).toBe('auto');
+      const lb = (await list.boundingBox())!;
+      expect(Math.round(lb.height)).toBe(44);
+      const tb = (await page.locator('.aura-tab.is-active').boundingBox())!;
+      const bottom = Math.round(lb.y + lb.height);
+      const colours = await page.evaluate(() => {
+        const probe = document.createElement('span');
+        document.getElementById('storybook-root')!.appendChild(probe);
+        const rgb = (v: string) => {
+          probe.style.color = v;
+          const m = getComputedStyle(probe)
+            .color.match(/[\d.]+/g)!
+            .map(Number);
+          return { rgb: m.slice(0, 3), a: m.length > 3 ? m[3]! : 1 };
+        };
+        const out = { active: rgb('var(--aura-fg-primary)'), track: rgb('var(--aura-border-default)') };
+        probe.remove();
+        return out;
+      });
+      const near = (a: number[], b: number[]) => a.every((v, i) => Math.abs(v - b[i]!) <= 3);
+      /* A translucent colour (dark theme borders) as it lands on the background under it. */
+      const over = (c: { rgb: number[]; a: number }, bg: number[]) => c.rgb.map((v, i) => v * c.a + bg[i]! * (1 - c.a));
+      /* Under the active tab: its last two rows are the indicator, the last one over the track. */
+      const act = await pixelColumn(page, Math.round(tb.x + tb.width / 2), bottom - 4, 4);
+      const active = over(colours.active, act[0]!);
+      expect(near(act[2]!, active) && near(act[3]!, active)).toBe(true);
+      expect(near(act[1]!, active)).toBe(false);
+      /* Past the last tab: the track alone, one row. */
+      const gap = await pixelColumn(page, Math.round(lb.x + lb.width - 4), bottom - 4, 4);
+      const track = over(colours.track, gap[2]!);
+      expect(near(gap[3]!, track)).toBe(true);
+      expect(near(gap[2]!, track)).toBe(false);
+    });
+  }
+
+  test("122: ActionBar touchHeight makes its own Clear 44px on a phone, like the bar's buttons", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, 'aura-new-in-5-23--bulk-touch');
+    const bar = page.getByRole('region', { name: 'Bulk actions' });
+    for (const name of [/^Clear/, 'Send reminder', 'Mark paid']) {
+      expect(Math.round((await box(bar.getByRole('button', { name }))).height)).toBe(44);
+    }
+    await page.setViewportSize({ width: 1024, height: 800 });
+    expect(Math.round((await box(bar.getByRole('button', { name: /^Clear/ }))).height)).toBe(32);
+    /* Clear still clears. */
+    await bar.getByRole('button', { name: /^Clear/ }).click();
+    await expect(bar.getByRole('button', { name: 'Mark paid' })).toHaveCount(0);
+  });
+});

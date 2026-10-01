@@ -52,6 +52,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.23 (Chamber-OS 120, 122): card: 'wide' is a labelled card part; ActionBar touchHeight reaches its Clear. */
+  {
+    const e = React.createElement;
+    const dt = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'Nordic', r: 'Turnover' }], rowKey: 'id', stackBelow: 640, columns: [{ key: 'm', label: 'MEMBER' }, { key: 'r', label: 'REASON', card: 'wide' }] }));
+    if (!/data-card="wide"/.test(dt) || !/data-label="REASON"/.test(dt) || !/aura-table__break/.test(dt)) { console.log(label, 'DataTable card wide:', dt.slice(0, 800)); fail++; }
+    const clearOf = (p: Record<string, unknown>) => /<button[^>]*class="([^"]*)"[^>]*>Clear/.exec(renderToString(e(A.ActionBar, Object.assign({ selected: 2, onClearSelection: () => {} }, p), e('button', null, 'Go')))) || ['', ''];
+    if (!/aura-btn--touch/.test(clearOf({ touchHeight: true })[1]) || /aura-btn--touch/.test(clearOf({})[1])) { console.log(label, 'ActionBar touchHeight Clear:', clearOf({ touchHeight: true })[0], clearOf({})[0]); fail++; }
+  }
   /* 5.22 (Chamber-OS 118): a card: 'footer' column's cells carry data-card="footer"; other columns unchanged. */
   {
     const e = React.createElement;

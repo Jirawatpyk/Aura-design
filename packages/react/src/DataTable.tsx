@@ -368,7 +368,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         autoTitle = i;
         break;
       }
-  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' | 'hide' | 'footer' {
+  function cardPart(c: Col, i: number): 'title' | 'pill' | 'actions' | 'field' | 'hide' | 'footer' | 'wide' {
     if (c.card) return c.card;
     if (i === autoTitle) return 'title';
     if (c.key === pillKey && !ownPill) return 'pill';
@@ -399,12 +399,13 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       lv = hideLevel(c);
     return {
       'data-card': part,
-      'data-label': part === 'field' ? c.label || undefined : undefined,
+      'data-label': part === 'field' || part === 'wide' ? c.label || undefined : undefined,
       'data-hide': lv ? String(lv) : undefined,
     };
   }
   const hasFields = vis.some(function (c: Col, i: number) {
-    return cardPart(c, i) === 'field';
+    const p = cardPart(c, i);
+    return p === 'field' || p === 'wide';
   });
   const hasFlex = vis.some(function (c: Col) {
     return widthOf(c) == null;

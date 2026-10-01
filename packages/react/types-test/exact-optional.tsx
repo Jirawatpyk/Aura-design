@@ -430,3 +430,17 @@ export function Addendum22({ flag }: { flag: boolean | undefined }) {
     />
   );
 }
+
+export function Addenda23to25({ flag }: { flag: boolean | undefined }) {
+  return (
+    <>
+      <Aura.DataTable<{ id: string }>
+        label="R"
+        rows={[]}
+        rowKey="id"
+        columns={[{ key: 'r', label: 'REASON', card: flag ? 'wide' : undefined }]}
+      />
+      <Aura.ActionBar selected={1} onClearSelection={() => {}} touchHeight={flag} />
+    </>
+  );
+}

@@ -214,6 +214,22 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     StatHeading: h(A.Stat, { label: 'Membership', headingLevel: 2, value: 'Active', caption: 'Gold' }),
     EmptyStateQuiet: h(A.EmptyState, { title: 'No benefits', headingLevel: false }),
     ButtonGated: h(A.Button, { 'aria-disabled': true }, 'Erase'),
+    /* 5.23 (Chamber-OS 120–122) */
+    DataTableCardWide: h(A.DataTable, {
+      label: 'Tier upgrades',
+      rows: [{ id: 'M-301', member: 'Nordic Timber Oy', reason: 'Turnover above threshold' }],
+      rowKey: 'id',
+      stackBelow: 640,
+      columns: [
+        { key: 'member', label: 'MEMBER' },
+        { key: 'reason', label: 'REASON', width: 320, card: 'wide' },
+      ],
+    }),
+    ActionBarTouchClear: h(
+      A.ActionBar,
+      { selected: 2, onClearSelection: noop, touchHeight: true },
+      h(A.Button, { size: 'sm', touchHeight: true }, 'Mark paid'),
+    ),
     /* 5.22 (Chamber-OS 118, 119) */
     DataTableCardFooter: h(A.DataTable, {
       label: 'Renewals',
