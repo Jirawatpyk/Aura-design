@@ -20,8 +20,9 @@ export interface ButtonProps extends React$1.ButtonHTMLAttributes<HTMLButtonElem
 	fullWidth?: boolean | undefined;
 	/** `sm` is 32px with tighter padding, for toolbars, table rows and card footers. Default `md` (44px). */
 	size?: ButtonSize | undefined;
-	/** 44px tall below 640px (the viewport's), whatever `size` — a small button that phones get at full touch height
-	 * (5.15, Chamber-OS 100). From 640px up it keeps its size. */
+	/** 44px tall below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24), whatever
+	 * `size` — a small button that touch screens get at full touch height (5.15, Chamber-OS 100). With a mouse from
+	 * 640px up it keeps its size. */
 	touchHeight?: boolean | undefined;
 }
 /** A link that looks like a Button: give `Button` an `href` and it renders an `<a>` (navigation, not actions). */
@@ -41,8 +42,9 @@ export interface ButtonLinkProps extends Omit<React$1.AnchorHTMLAttributes<HTMLA
 	fullWidth?: boolean | undefined;
 	/** `sm` is 32px with tighter padding. Default `md` (44px). */
 	size?: ButtonSize | undefined;
-	/** 44px tall below 640px (the viewport's), whatever `size` — a small button that phones get at full touch height
-	 * (5.15, Chamber-OS 100). From 640px up it keeps its size. */
+	/** 44px tall below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24), whatever
+	 * `size` — a small button that touch screens get at full touch height (5.15, Chamber-OS 100). With a mouse from
+	 * 640px up it keeps its size. */
 	touchHeight?: boolean | undefined;
 	/** A router's link to render instead of `<a>`, e.g. `Link` from `next/link` (client-side navigation). It gets `href`, `className`, the children and the ref. */
 	linkComponent?: React$1.ElementType | undefined;
@@ -321,8 +323,8 @@ export interface IconButtonProps extends React$1.ButtonHTMLAttributes<HTMLButton
 	label: string;
 	/** Icon size. Default `sm` (16). */
 	size?: "sm" | "md" | undefined;
-	/** 44×44 below 640px (the viewport's) instead of 32×32 — a phone sheet's close button, a card's ⋯ trigger
-	 * (5.15, Chamber-OS 100). */
+	/** 44×44 instead of 32×32 below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24) —
+	 * a phone sheet's close button, a card's ⋯ trigger (5.15, Chamber-OS 100). */
 	touchHeight?: boolean | undefined;
 }
 export interface MenuItem {
@@ -1074,7 +1076,7 @@ export interface DrawerProps extends Pick<React$1.HTMLAttributes<HTMLDivElement>
 	 * built-in "Close" in the provider's language. (5.9) */
 	closeLabel?: string | undefined;
 	/** Attributes for the close button, e.g. `{ 'data-testid': 'pay-sheet-close' }` (5.9), or `touchHeight: true` for a
-	 * 44px close button on phones (5.15). */
+	 * 44px close button on phones and tablets (5.15, 5.24). */
 	closeProps?: (ButtonAttributes & {
 		touchHeight?: boolean | undefined;
 	}) | undefined;
@@ -1203,8 +1205,8 @@ export interface ActionBarProps {
 	selected?: number | undefined;
 	/** Adds a "Clear" button next to the count. */
 	onClearSelection?: (() => void) | undefined;
-	/** 5.23 (Chamber-OS 122): the bar's own Clear button takes Button's `touchHeight` — 44px below 640px — to match
-	 * action buttons that use it. */
+	/** 5.23 (Chamber-OS 122): the bar's own Clear button takes Button's `touchHeight` — 44px below 640px or on a
+	 * coarse pointer — to match action buttons that use it. */
 	touchHeight?: boolean | undefined;
 	/** Name of the region. Default "Actions". */
 	label?: string | undefined;

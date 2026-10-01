@@ -312,8 +312,10 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 .aura-icon-btn:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
-/* 5.15 (Chamber-OS 100): touchHeight — visibly 44px on phones, for buttons and icon buttons a phone design wants full size. */
-@media (max-width: 639.98px) {
+/* 5.15 (Chamber-OS 100): touchHeight — visibly 44px on phones, for buttons and icon buttons a phone design wants full size.
+ * 5.24 (Chamber-OS 123): also wherever the primary pointer is coarse — a tablet at 768–1366px is a finger, not a mouse.
+ * A mouse on a wide screen (pointer: fine) keeps the compact size. */
+@media (max-width: 639.98px), (pointer: coarse) {
   .aura-btn.aura-btn--touch { height: var(--aura-touch-target); }
   .aura-btn.aura-btn--touch.aura-btn--full { height: auto; min-height: var(--aura-touch-target); }
   .aura-icon-btn.aura-icon-btn--touch { width: var(--aura-touch-target); height: var(--aura-touch-target); }

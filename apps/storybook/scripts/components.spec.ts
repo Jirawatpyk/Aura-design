@@ -4852,3 +4852,42 @@ test.describe('5.23: Chamber-OS addenda 23–25', () => {
     await expect(bar.getByRole('button', { name: 'Mark paid' })).toHaveCount(0);
   });
 });
+
+test.describe('5.24: Chamber-OS addendum 26', () => {
+  const box = (l: import('@playwright/test').Locator) => l.boundingBox().then((b) => b!);
+  const parts = [
+    { name: 'Done', w: null },
+    { name: 'More for T-12', w: 44 },
+    { name: /^Clear/, w: null },
+    { name: 'Escalate', w: null },
+  ] as const;
+  for (const width of [768, 1024, 1280]) {
+    test(`123: touchHeight is 44px on a coarse pointer at ${width}px; parts without it stay 32px`, async ({
+      browser,
+    }) => {
+      const ctx = await browser.newContext({ viewport: { width, height: 900 }, hasTouch: true, isMobile: true });
+      const page = await ctx.newPage();
+      await story(page, 'aura-new-in-5-24--touch-tablet');
+      expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+      expect(await page.evaluate(() => innerWidth)).toBeGreaterThanOrEqual(640);
+      for (const { name, w } of parts) {
+        const b = await box(page.getByRole('button', { name }));
+        expect(Math.round(b.height)).toBe(44);
+        if (w) expect(Math.round(b.width)).toBe(w);
+      }
+      for (const name of ['Compact', 'More, compact']) {
+        expect(Math.round((await box(page.getByRole('button', { name, exact: true }))).height)).toBe(32);
+      }
+      await ctx.close();
+    });
+  }
+
+  test('123: with a mouse at 1280px touchHeight keeps the compact 32px', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-24--touch-tablet');
+    expect(await page.evaluate(() => matchMedia('(pointer: fine)').matches)).toBe(true);
+    for (const { name } of parts) {
+      expect(Math.round((await box(page.getByRole('button', { name }))).height)).toBe(32);
+    }
+  });
+});
