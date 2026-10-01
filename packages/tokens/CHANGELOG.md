@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.23.0
+
+### Minor Changes
+
+- fe6748e: Chamber-OS addenda 23–25: DataTable columns take `card: 'wide'` (a full-width wrapping field in stacked cards); underline Tabs show their whole 2px active indicator (it was clipped to 1px by the list's sideways scroll); ActionBar takes `touchHeight` for its own Clear button.
+
 ## 5.22.0
 
 ### Minor Changes
