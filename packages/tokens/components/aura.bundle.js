@@ -4396,21 +4396,146 @@ window.Aura = (() => {
   );
 
   // src/FilterBar.tsx
-  var React27 = __toESM(require_react(), 1);
+  var React28 = __toESM(require_react(), 1);
 
   // src/Tag.tsx
+  var React27 = __toESM(require_react(), 1);
+
+  // src/Tooltip.tsx
   var React26 = __toESM(require_react(), 1);
-  function textOf2(node) {
+  var import_react_dom7 = __toESM(require_react_dom(), 1);
+  var Tooltip = React26.forwardRef(function Tooltip2(props, ref) {
+    const id = uid(), st = React26.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
+    const anchor = React26.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip = React26.useRef(null), timer = React26.useRef(void 0);
+    const pos = React26.useState(null), mounted = useMounted();
+    function show2(now) {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(
+        function() {
+          set(true);
+        },
+        now ? 0 : props.delay == null ? 400 : props.delay
+      );
+    }
+    function hide() {
+      clearTimeout(timer.current);
+      set(false);
+    }
+    function hideSoon() {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(function() {
+        set(false);
+      }, 120);
+    }
+    React26.useEffect(function() {
+      return function() {
+        clearTimeout(timer.current);
+      };
+    }, []);
+    function place() {
+      if (!anchor.current || !tip.current) return;
+      const r = anchor.current.getBoundingClientRect(), t = tip.current.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight, gap = 8, m = 8;
+      let side = props.side || "top";
+      if (side === "top" && r.top - t.height - gap < m && r.bottom + gap + t.height <= vh - m) side = "bottom";
+      else if (side === "bottom" && r.bottom + gap + t.height > vh - m && r.top - t.height - gap >= m) side = "top";
+      else if (side === "left" && r.left - t.width - gap < m && r.right + gap + t.width <= vw - m) side = "right";
+      else if (side === "right" && r.right + gap + t.width > vw - m && r.left - t.width - gap >= m) side = "left";
+      const clampX = function(x) {
+        return Math.max(m, Math.min(x, vw - t.width - m));
+      };
+      const clampY = function(y) {
+        return Math.max(m, Math.min(y, vh - t.height - m));
+      };
+      let top, left;
+      if (side === "top" || side === "bottom") {
+        top = clampY(side === "top" ? r.top - t.height - gap : r.bottom + gap);
+        left = clampX(r.left + r.width / 2 - t.width / 2);
+      } else {
+        left = side === "left" ? r.left - t.width - gap : r.right + gap;
+        left = clampX(left);
+        top = clampY(r.top + r.height / 2 - t.height / 2);
+      }
+      pos[1]({ top, left });
+    }
+    useIsoLayoutEffect(
+      function() {
+        if (!open) return;
+        place();
+        window.addEventListener("scroll", place, true);
+        window.addEventListener("resize", place);
+        return function() {
+          window.removeEventListener("scroll", place, true);
+          window.removeEventListener("resize", place);
+        };
+      },
+      [open, mounted]
+    );
+    React26.useEffect(
+      function() {
+        if (!open) return;
+        function esc(e) {
+          if (e.key === "Escape") hide();
+        }
+        document.addEventListener("keydown", esc);
+        return function() {
+          document.removeEventListener("keydown", esc);
+        };
+      },
+      [open]
+    );
+    const child = React26.Children.only(props.children);
+    const trigger = /* @__PURE__ */ React26.createElement(
+      "span",
+      {
+        ref: anchorMerged,
+        className: "aura-tooltip-anchor",
+        onMouseEnter: function() {
+          show2(false);
+        },
+        onMouseLeave: hideSoon,
+        onFocus: function() {
+          show2(true);
+        },
+        onBlur: hide
+      },
+      React26.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
+    );
+    return /* @__PURE__ */ React26.createElement(React26.Fragment, null, trigger, open && mounted ? (0, import_react_dom7.createPortal)(
+      /* @__PURE__ */ React26.createElement(
+        "div",
+        {
+          ref: tip,
+          id,
+          role: "tooltip",
+          onMouseEnter: function() {
+            clearTimeout(timer.current);
+          },
+          onMouseLeave: hideSoon,
+          className: "aura-tooltip aura-tooltip--hoverable",
+          style: { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 }
+        },
+        props.content
+      ),
+      document.body
+    ) : null);
+  });
+
+  // src/Tag.tsx
+  function textOf2(node, all) {
     if (node == null || typeof node === "boolean") return "";
     if (typeof node === "string" || typeof node === "number") return String(node);
-    if (Array.isArray(node)) return node.map(textOf2).join("");
-    if (React26.isValidElement(node)) {
+    if (Array.isArray(node))
+      return node.map(function(n3) {
+        return textOf2(n3, all);
+      }).join("");
+    if (React27.isValidElement(node)) {
       const p = node.props;
-      return p["aria-hidden"] === true || p["aria-hidden"] === "true" ? "" : textOf2(p.children);
+      return !all && (p["aria-hidden"] === true || p["aria-hidden"] === "true") ? "" : textOf2(p.children, all);
     }
     return "";
   }
-  var Tag = React26.forwardRef(function Tag2(props, ref) {
+  var Tag = React27.forwardRef(function Tag2(props, ref) {
     const t = useStrings();
     const selectable = props.onClick != null || props.selected != null;
     const rest = omit(props, [
@@ -4423,12 +4548,32 @@ window.Aura = (() => {
       "removeLabel",
       "touchHeight"
     ]);
+    const textRef = React27.useRef(null);
+    const cutState = React27.useState(false), isCut = cutState[0];
+    const check = React27.useCallback(function() {
+      const el = textRef.current;
+      if (el) cutState[1](el.scrollWidth > el.clientWidth + 1);
+    }, []);
+    useIsoLayoutEffect(check);
+    useIsoLayoutEffect(
+      function() {
+        const el = textRef.current;
+        if (!el || typeof ResizeObserver === "undefined") return;
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        return function() {
+          ro.disconnect();
+        };
+      },
+      [check]
+    );
+    const fullText = isCut ? textOf2(props.children, true).replace(/\s+/g, " ").trim() : "";
     const inner = [
-      props.icon ? /* @__PURE__ */ React26.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
-      /* @__PURE__ */ React26.createElement("span", { key: "t", className: "aura-tag__text" }, props.children)
+      props.icon ? /* @__PURE__ */ React27.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
+      /* @__PURE__ */ React27.createElement("span", { key: "t", ref: textRef, className: "aura-tag__text", title: fullText || void 0 }, props.children)
     ];
     if (selectable) {
-      return /* @__PURE__ */ React26.createElement(
+      return /* @__PURE__ */ React27.createElement(
         "button",
         {
           ...rest,
@@ -4443,7 +4588,7 @@ window.Aura = (() => {
             props.className
           )
         },
-        props.selected ? /* @__PURE__ */ React26.createElement(Icon, { name: /* @__PURE__ */ React26.createElement(IconCheck, null), size: 14 }) : inner[0],
+        props.selected ? /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconCheck, null), size: 14 }) : inner[0],
         inner[1]
       );
     }
@@ -4453,29 +4598,32 @@ window.Aura = (() => {
         "tag-remove-label",
         'Tag: the remove button has no name \u2014 its children have no text. Pass removeLabel (e.g. "Remove Acme AB").'
       );
-    return /* @__PURE__ */ React26.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? /* @__PURE__ */ React26.createElement(
-      "button",
-      {
-        type: "button",
-        className: "aura-tag__remove",
-        "aria-label": props.removeLabel || t.remove(name),
-        onClick: props.onRemove
-      },
-      /* @__PURE__ */ React26.createElement(Icon, { name: /* @__PURE__ */ React26.createElement(IconX, null), size: 12 })
-    ) : null);
+    return /* @__PURE__ */ React27.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? function() {
+      const btn = /* @__PURE__ */ React27.createElement(
+        "button",
+        {
+          type: "button",
+          className: "aura-tag__remove",
+          "aria-label": props.removeLabel || t.remove(name),
+          onClick: props.onRemove
+        },
+        /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconX, null), size: 12 })
+      );
+      return /* @__PURE__ */ React27.createElement(Tooltip, { content: fullText, open: fullText ? void 0 : false }, btn);
+    }() : null);
   });
 
   // src/FilterBar.tsx
-  var FilterBar = React27.forwardRef(function FilterBar2(props, ref) {
+  var FilterBar = React28.forwardRef(function FilterBar2(props, ref) {
     const t = useStrings();
     const id = uid();
     const hasSearch = !!props.onSearchChange;
-    const draft = React27.useState(props.search || "");
-    const timer = React27.useRef(null);
-    const sent = React27.useRef(props.search || "");
-    const onChange = React27.useRef(props.onSearchChange);
+    const draft = React28.useState(props.search || "");
+    const timer = React28.useRef(null);
+    const sent = React28.useRef(props.search || "");
+    const onChange = React28.useRef(props.onSearchChange);
     onChange.current = props.onSearchChange;
-    React27.useEffect(
+    React28.useEffect(
       function() {
         if ((props.search || "") !== sent.current) {
           sent.current = props.search || "";
@@ -4484,7 +4632,7 @@ window.Aura = (() => {
       },
       [props.search]
     );
-    React27.useEffect(function() {
+    React28.useEffect(function() {
       return function() {
         if (timer.current) clearTimeout(timer.current);
       };
@@ -4509,7 +4657,7 @@ window.Aura = (() => {
     const filters = props.filters || [];
     const anything = filters.length > 0 || !!(props.search || draft[0]);
     const count = props.resultCount == null ? null : typeof props.resultCount === "number" ? t.results(props.resultCount) : props.resultCount;
-    return /* @__PURE__ */ React27.createElement(
+    return /* @__PURE__ */ React28.createElement(
       "div",
       {
         ref,
@@ -4523,7 +4671,7 @@ window.Aura = (() => {
           props.className
         )
       },
-      /* @__PURE__ */ React27.createElement("div", { className: "aura-filterbar__row" }, hasSearch ? /* @__PURE__ */ React27.createElement("div", { className: "aura-input has-icon aura-filterbar__search" }, /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconSearch, null), className: "aura-input__icon" }), /* @__PURE__ */ React27.createElement(
+      /* @__PURE__ */ React28.createElement("div", { className: "aura-filterbar__row" }, hasSearch ? /* @__PURE__ */ React28.createElement("div", { className: "aura-input has-icon aura-filterbar__search" }, /* @__PURE__ */ React28.createElement(Icon, { name: /* @__PURE__ */ React28.createElement(IconSearch, null), className: "aura-input__icon" }), /* @__PURE__ */ React28.createElement(
         "input",
         {
           id,
@@ -4544,10 +4692,10 @@ window.Aura = (() => {
             }
           }
         }
-      ), draft[0] ? /* @__PURE__ */ React27.createElement(
+      ), draft[0] ? /* @__PURE__ */ React28.createElement(
         IconButton,
         {
-          icon: /* @__PURE__ */ React27.createElement(IconX, null),
+          icon: /* @__PURE__ */ React28.createElement(IconX, null),
           label: t.clear((props.searchLabel || t.search).toLowerCase()),
           className: "aura-filterbar__clear-search",
           onClick: function() {
@@ -4555,10 +4703,10 @@ window.Aura = (() => {
             send("");
           }
         }
-      ) : null) : null, props.children ? /* @__PURE__ */ React27.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React27.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React27.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React27.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
-      filters.length || props.onClearAll && anything ? /* @__PURE__ */ React27.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
-        return /* @__PURE__ */ React27.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);
-      }), props.onClearAll && anything ? /* @__PURE__ */ React27.createElement(
+      ) : null) : null, props.children ? /* @__PURE__ */ React28.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React28.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React28.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React28.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
+      filters.length || props.onClearAll && anything ? /* @__PURE__ */ React28.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
+        return /* @__PURE__ */ React28.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);
+      }), props.onClearAll && anything ? /* @__PURE__ */ React28.createElement(
         "button",
         {
           type: "button",
@@ -4576,11 +4724,11 @@ window.Aura = (() => {
   });
 
   // src/Command.tsx
-  var React29 = __toESM(require_react(), 1);
-  var import_react_dom7 = __toESM(require_react_dom(), 1);
+  var React30 = __toESM(require_react(), 1);
+  var import_react_dom8 = __toESM(require_react_dom(), 1);
 
   // src/useModal.tsx
-  var React28 = __toESM(require_react(), 1);
+  var React29 = __toESM(require_react(), 1);
   var locks = 0;
   var savedOverflow = "";
   function lockScroll() {
@@ -4607,11 +4755,11 @@ window.Aura = (() => {
   }
   function useModal(open, ref, opts) {
     const mounted = useMounted();
-    const prev = React28.useRef(null);
+    const prev = React29.useRef(null);
     const o = opts || {};
-    const latest = React28.useRef(o);
+    const latest = React29.useRef(o);
     latest.current = o;
-    React28.useEffect(
+    React29.useEffect(
       function() {
         if (!open || !mounted) return;
         prev.current = document.activeElement;
@@ -4674,21 +4822,21 @@ window.Aura = (() => {
     const t = useStrings();
     const density = useDensity();
     const id = uid(), listId = id + "-list";
-    const box = React29.useRef(null);
-    const input = React29.useRef(null);
-    const qState = React29.useState(""), act = React29.useState(null);
+    const box = React30.useRef(null);
+    const input = React30.useRef(null);
+    const qState = React30.useState(""), act = React30.useState(null);
     const query = props.query !== void 0 ? props.query : qState[0];
     function setQuery(v) {
       if (props.query === void 0) qState[1](v);
       if (props.onQueryChange) props.onQueryChange(v);
     }
-    const openRef = React29.useRef(props.open);
+    const openRef = React30.useRef(props.open);
     openRef.current = props.open;
     const close = function() {
       props.onOpenChange(false);
     };
     const modal = useModal(props.open, box, { onEscape: close });
-    React29.useEffect(
+    React30.useEffect(
       function() {
         if (props.hotkey === false) return;
         function onKey2(e) {
@@ -4704,7 +4852,7 @@ window.Aura = (() => {
       },
       [props.hotkey, props.onOpenChange]
     );
-    React29.useEffect(
+    React30.useEffect(
       function() {
         if (!props.open) {
           if (query) setQuery("");
@@ -4744,7 +4892,7 @@ window.Aura = (() => {
     const optId = function(i2) {
       return id + "-o" + i2;
     };
-    React29.useEffect(
+    React30.useEffect(
       function() {
         if (!box.current || active < 0) return;
         const el = box.current.querySelector("#" + CSS.escape(optId(active)));
@@ -4788,8 +4936,8 @@ window.Aura = (() => {
     }
     if (!modal.ready) return null;
     let i = -1;
-    return (0, import_react_dom7.createPortal)(
-      /* @__PURE__ */ React29.createElement(
+    return (0, import_react_dom8.createPortal)(
+      /* @__PURE__ */ React30.createElement(
         "div",
         {
           className: "aura-dialog-layer aura-command-layer",
@@ -4799,8 +4947,8 @@ window.Aura = (() => {
             e.stopPropagation();
           }
         },
-        /* @__PURE__ */ React29.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }),
-        /* @__PURE__ */ React29.createElement(
+        /* @__PURE__ */ React30.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }),
+        /* @__PURE__ */ React30.createElement(
           "div",
           {
             ref: box,
@@ -4810,7 +4958,7 @@ window.Aura = (() => {
             tabIndex: -1,
             className: cx("aura-command", props.className)
           },
-          /* @__PURE__ */ React29.createElement("div", { className: "aura-command__search" }, /* @__PURE__ */ React29.createElement(Icon, { name: /* @__PURE__ */ React29.createElement(IconSearch, null), className: "aura-command__search-icon" }), /* @__PURE__ */ React29.createElement(
+          /* @__PURE__ */ React30.createElement("div", { className: "aura-command__search" }, /* @__PURE__ */ React30.createElement(Icon, { name: /* @__PURE__ */ React30.createElement(IconSearch, null), className: "aura-command__search-icon" }), /* @__PURE__ */ React30.createElement(
             "input",
             {
               ref: input,
@@ -4833,8 +4981,8 @@ window.Aura = (() => {
               },
               onKeyDown: onKey
             }
-          ), /* @__PURE__ */ React29.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
-          /* @__PURE__ */ React29.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React29.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React29.createElement(Icon, { name: /* @__PURE__ */ React29.createElement(IconLoaderCircle, null), className: "aura-spin" }), t.searching) : null, !flat2.length ? props.loading ? null : /* @__PURE__ */ React29.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React29.createElement(
+          ), /* @__PURE__ */ React30.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
+          /* @__PURE__ */ React30.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React30.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React30.createElement(Icon, { name: /* @__PURE__ */ React30.createElement(IconLoaderCircle, null), className: "aura-spin" }), t.searching) : null, !flat2.length ? props.loading ? null : /* @__PURE__ */ React30.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React30.createElement(
             "div",
             {
               id: listId,
@@ -4844,7 +4992,7 @@ window.Aura = (() => {
             },
             groups.map(function(g, gi) {
               const gid = id + "-g" + gi;
-              return /* @__PURE__ */ React29.createElement(
+              return /* @__PURE__ */ React30.createElement(
                 "div",
                 {
                   key: g.name || gi,
@@ -4852,11 +5000,11 @@ window.Aura = (() => {
                   "aria-labelledby": g.name ? gid : void 0,
                   className: "aura-command__group"
                 },
-                g.name ? /* @__PURE__ */ React29.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
+                g.name ? /* @__PURE__ */ React30.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
                 g.items.map(function(it) {
                   i++;
                   const n3 = i;
-                  return /* @__PURE__ */ React29.createElement(
+                  return /* @__PURE__ */ React30.createElement(
                     "div",
                     {
                       key: it.id,
@@ -4881,141 +5029,21 @@ window.Aura = (() => {
                         run(it);
                       }
                     },
-                    it.icon ? /* @__PURE__ */ React29.createElement(Icon, { name: it.icon }) : null,
-                    /* @__PURE__ */ React29.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React29.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React29.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc" }, it.description) : null),
-                    it.shortcut ? /* @__PURE__ */ React29.createElement("kbd", { className: "aura-command__kbd", id: it.description ? optId(n3) + "-kbd" : void 0 }, it.shortcut) : null
+                    it.icon ? /* @__PURE__ */ React30.createElement(Icon, { name: it.icon }) : null,
+                    /* @__PURE__ */ React30.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React30.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React30.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc" }, it.description) : null),
+                    it.shortcut ? /* @__PURE__ */ React30.createElement("kbd", { className: "aura-command__kbd", id: it.description ? optId(n3) + "-kbd" : void 0 }, it.shortcut) : null
                   );
                 })
               );
             })
           )),
-          /* @__PURE__ */ React29.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat2.length ? t.noMatches : props.loading === false && query ? t.results(flat2.length) : ""),
-          /* @__PURE__ */ React29.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React29.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
+          /* @__PURE__ */ React30.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat2.length ? t.noMatches : props.loading === false && query ? t.results(flat2.length) : ""),
+          /* @__PURE__ */ React30.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React30.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
         )
       ),
       document.body
     );
   }
-
-  // src/Tooltip.tsx
-  var React30 = __toESM(require_react(), 1);
-  var import_react_dom8 = __toESM(require_react_dom(), 1);
-  var Tooltip = React30.forwardRef(function Tooltip2(props, ref) {
-    const id = uid(), st = React30.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
-    const anchor = React30.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip = React30.useRef(null), timer = React30.useRef(void 0);
-    const pos = React30.useState(null), mounted = useMounted();
-    function show2(now) {
-      clearTimeout(timer.current);
-      timer.current = setTimeout(
-        function() {
-          set(true);
-        },
-        now ? 0 : props.delay == null ? 400 : props.delay
-      );
-    }
-    function hide() {
-      clearTimeout(timer.current);
-      set(false);
-    }
-    function hideSoon() {
-      clearTimeout(timer.current);
-      timer.current = setTimeout(function() {
-        set(false);
-      }, 120);
-    }
-    React30.useEffect(function() {
-      return function() {
-        clearTimeout(timer.current);
-      };
-    }, []);
-    function place() {
-      if (!anchor.current || !tip.current) return;
-      const r = anchor.current.getBoundingClientRect(), t = tip.current.getBoundingClientRect();
-      const vw = window.innerWidth, vh = window.innerHeight, gap = 8, m = 8;
-      let side = props.side || "top";
-      if (side === "top" && r.top - t.height - gap < m && r.bottom + gap + t.height <= vh - m) side = "bottom";
-      else if (side === "bottom" && r.bottom + gap + t.height > vh - m && r.top - t.height - gap >= m) side = "top";
-      else if (side === "left" && r.left - t.width - gap < m && r.right + gap + t.width <= vw - m) side = "right";
-      else if (side === "right" && r.right + gap + t.width > vw - m && r.left - t.width - gap >= m) side = "left";
-      const clampX = function(x) {
-        return Math.max(m, Math.min(x, vw - t.width - m));
-      };
-      const clampY = function(y) {
-        return Math.max(m, Math.min(y, vh - t.height - m));
-      };
-      let top, left;
-      if (side === "top" || side === "bottom") {
-        top = clampY(side === "top" ? r.top - t.height - gap : r.bottom + gap);
-        left = clampX(r.left + r.width / 2 - t.width / 2);
-      } else {
-        left = side === "left" ? r.left - t.width - gap : r.right + gap;
-        left = clampX(left);
-        top = clampY(r.top + r.height / 2 - t.height / 2);
-      }
-      pos[1]({ top, left });
-    }
-    useIsoLayoutEffect(
-      function() {
-        if (!open) return;
-        place();
-        window.addEventListener("scroll", place, true);
-        window.addEventListener("resize", place);
-        return function() {
-          window.removeEventListener("scroll", place, true);
-          window.removeEventListener("resize", place);
-        };
-      },
-      [open, mounted]
-    );
-    React30.useEffect(
-      function() {
-        if (!open) return;
-        function esc(e) {
-          if (e.key === "Escape") hide();
-        }
-        document.addEventListener("keydown", esc);
-        return function() {
-          document.removeEventListener("keydown", esc);
-        };
-      },
-      [open]
-    );
-    const child = React30.Children.only(props.children);
-    const trigger = /* @__PURE__ */ React30.createElement(
-      "span",
-      {
-        ref: anchorMerged,
-        className: "aura-tooltip-anchor",
-        onMouseEnter: function() {
-          show2(false);
-        },
-        onMouseLeave: hideSoon,
-        onFocus: function() {
-          show2(true);
-        },
-        onBlur: hide
-      },
-      React30.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
-    );
-    return /* @__PURE__ */ React30.createElement(React30.Fragment, null, trigger, open && mounted ? (0, import_react_dom8.createPortal)(
-      /* @__PURE__ */ React30.createElement(
-        "div",
-        {
-          ref: tip,
-          id,
-          role: "tooltip",
-          onMouseEnter: function() {
-            clearTimeout(timer.current);
-          },
-          onMouseLeave: hideSoon,
-          className: "aura-tooltip aura-tooltip--hoverable",
-          style: { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 }
-        },
-        props.content
-      ),
-      document.body
-    ) : null);
-  });
 
   // src/Dialog.tsx
   var React31 = __toESM(require_react(), 1);

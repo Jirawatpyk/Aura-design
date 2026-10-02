@@ -5468,3 +5468,89 @@ test.describe('5.26: Chamber-OS addendum 32', () => {
     expect(r).toEqual(['auto', true]);
   });
 });
+
+test.describe('5.28: Chamber-OS addenda 35–36', () => {
+  const ID = 'aura-new-in-5-28--filter-chips';
+  const chip = (page: import('@playwright/test').Page, text: string) =>
+    page.locator('.aura-filterbar').first().locator('.aura-filterbar__chips .aura-tag').filter({ hasText: text });
+  const cutOf = (l: import('@playwright/test').Locator) =>
+    l.locator('.aura-tag__text').evaluate((el) => [el.scrollWidth > el.clientWidth + 1, el.getAttribute('title')]);
+
+  test('132: in the chips row a chip takes its whole text; outside FilterBar the 24ch cap stays, with the full text on hover', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, ID);
+    for (const t of [
+      'Submitted: 28 Aug – 3 Sept 2026',
+      'Member: Midsommar Hospitality Co., Ltd.',
+      'Plan: Premium Corporate (2026)',
+      'Head Office',
+    ])
+      expect(await cutOf(chip(page, t))).toEqual([false, null]);
+    const plain = page.getByTestId('plain').locator('.aura-tag');
+    expect(await cutOf(plain)).toEqual([true, 'Member: Midsommar Hospitality Co., Ltd.']);
+  });
+
+  test("132: a chip wider than the row is cut; its text shows on hover and on the remove button's focus", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID);
+    const LONG = 'Member: Midsommar Hospitality and Conference Centre Co., Ltd. (Head Office, Bangkok)';
+    const c = chip(page, 'Head Office');
+    const box = (await c.boundingBox())!;
+    const row = (await page.locator('.aura-filterbar__chips').first().boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(row.x + row.width + 0.5);
+    expect(await cutOf(c)).toEqual([true, LONG]);
+    /* Its × stays whole and in the row. */
+    expect(Math.round((await c.locator('.aura-tag__remove').boundingBox())!.width)).toBe(20);
+    const remove = page.getByRole('button', { name: 'Remove ' + LONG }).first();
+    await remove.focus();
+    await expect(page.getByRole('tooltip')).toHaveText(LONG);
+    /* No page overflow from the chip. */
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  });
+
+  test('132: a long chip inside a wrapper in a grid never widens the page; a new label updates the hover text', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    const w = page.getByTestId('wrapped-bar').locator('.aura-tag');
+    expect((await cutOf(w))[0]).toBe(true);
+    await page.getByRole('button', { name: 'Rename' }).click();
+    await expect(w.locator('.aura-tag__text')).toHaveAttribute('title', /Branch Office, Chiang Mai/);
+  });
+
+  test('132: the remove button keeps focus when its chip starts being cut', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const remove = page.getByRole('button', { name: /^Remove Member: Midsommar Hospitality and Conference/ }).first();
+    await remove.focus();
+    await page.setViewportSize({ width: 390, height: 900 });
+    await expect(remove).toBeFocused();
+    await expect(page.getByRole('tooltip')).toBeVisible();
+  });
+
+  test('133: "Clear all" is 44px tall on a phone and on a coarse pointer; with a mouse it stays a compact link', async ({
+    browser,
+  }) => {
+    for (const [width, touch, tall] of [
+      [390, false, true],
+      [1024, true, true],
+      [1280, false, false],
+    ] as const) {
+      const ctx = await browser.newContext({ viewport: { width, height: 800 }, hasTouch: touch, isMobile: touch });
+      const page = await ctx.newPage();
+      await story(page, ID);
+      const b = page.getByRole('button', { name: /Clear/ }).last();
+      const h = Math.round((await b.boundingBox())!.height);
+      if (tall) expect(h).toBe(44);
+      else expect(h).toBeLessThan(32);
+      await expect(b).toHaveCSS('text-decoration-line', 'underline');
+      await ctx.close();
+    }
+  });
+});

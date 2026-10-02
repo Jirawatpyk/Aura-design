@@ -516,6 +516,8 @@ export interface FormErrorSummaryProps {
 /** An applied filter, shown as a removable chip. */
 export interface ActiveFilter {
   id: string;
+  /** The chip's text, "{filter}: {value}". It takes its own width in the chips row; only a chip wider than the row is
+   * cut, and then its full text shows on hover and on the remove button's focus (5.28). */
   label: React.ReactNode;
   onRemove: () => void;
 }

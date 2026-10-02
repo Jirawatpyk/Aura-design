@@ -321,6 +321,7 @@ a.aura-icon-btn { text-decoration: none; }
   .aura-btn.aura-btn--touch.aura-btn--full { height: auto; min-height: var(--aura-touch-target); }
   .aura-icon-btn.aura-icon-btn--touch { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-tag.aura-tag--touch { min-height: var(--aura-touch-target); }
+  .aura-filterbar__clear { min-height: var(--aura-touch-target); } /* 5.28 (Chamber-OS 133) */
 }
 /* Touch: same 32px look, a 44px hit area around it (WCAG 2.5.5). */
 @media (pointer: coarse) {
@@ -1503,6 +1504,12 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterbar__count { font-size: 13px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .aura-filterbar__actions { display: flex; align-items: center; gap: var(--aura-space-2); }
 .aura-filterbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
+/* 5.28 (Chamber-OS 132): an applied-filter chip takes its text's width, cut only when it is wider than the row. */
+.aura-filterbar__chips > .aura-tag { max-width: 100%; min-width: 0; }
+/* A long chip mustn't widen the bar or anything around it: the row's width comes from the bar, never from its chips.
+ * (So a FilterBar with only chips needs a width from its parent — it is full width in a block.) */
+.aura-filterbar__chips { contain: inline-size; }
+.aura-filterbar__chips > .aura-tag .aura-tag__text { max-width: none; min-width: 0; }
 .aura-filterbar__clear {
   border: 0; background: transparent; padding: 4px var(--aura-space-2); border-radius: var(--aura-radius-sm);
   font: inherit; font-size: 13px; font-weight: 500; color: var(--aura-fg-accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
