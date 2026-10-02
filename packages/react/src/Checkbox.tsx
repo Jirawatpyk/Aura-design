@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cx, devWarnOnce, omit, uid, useMergedRef, useMaybeControlled } from './internal.js';
+import { cx, devWarnOnce, omit, touchClass, uid, useMergedRef, useMaybeControlled } from './internal.js';
 import { Icon } from './Icon.js';
 import type { CheckboxProps } from './types.js';
 import { IconCheck, IconMinus } from './icons.js';
@@ -29,6 +29,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
     'tabIndex',
     'disabled',
     'hitArea',
+    'touchHeight',
   ]);
   /* The visible text is the children. `label` alone is still only the accessible name in 5.x; 6.0 shows it beside
    * the box like Switch and TextField. A bare box says so with hideLabel. */
@@ -53,6 +54,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
       className={cx(
         'aura-check',
         labelled && 'aura-check--labelled',
+        labelled && touchClass(props.touchHeight),
         hit && 'has-hit',
         props.disabled && 'is-disabled',
         props.className,

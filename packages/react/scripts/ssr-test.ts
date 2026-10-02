@@ -279,6 +279,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (skRow !== 'aura-table__row aura-table__row--skeleton aura-table__row--auto' || !/data-label="REASON"/.test(sk) || (sk.match(/aura-skel aura-skel--text/g) || []).length !== 2 || !/aura-skel aura-skel--action is-footer/.test(sk) || (sk.match(/aura-skel aura-skel--action"/g) || []).length !== 1) bad('DataTable skeleton (auto):', sk);
     const skT = m(e(A.DataTable, { label: 'L', rows: [], rowKey: 'm', loading: true, skeletonRows: 1, columns: [{ key: 'a', label: '', card: 'footer', skeletonTouch: true }, { key: 'p', label: 'P', pill: true, skeletonLines: 3 }, { key: 'n', label: 'N', skeletonLines: Infinity }] }));
     if (!/aura-skel aura-skel--action is-footer is-touch/.test(skT) || !/aura-skel aura-skel--pill"/.test(skT) || (skT.match(/aura-skel--text/g) || []).length !== 10) bad('DataTable skeletonTouch / pill / line cap:', skT);
+    /* 5.30 (Chamber-OS 135): touchHeight on fields and choice rows is a class on the root, never a DOM attribute. */
+    const tf = m(e(A.TextField, { label: 'Cert', id: 'c1', hint: 'h', touchHeight: 'always' }));
+    const tt = m(e(A.Textarea, { label: 'N', id: 'n1', touchHeight: true }));
+    const rg = m(e(A.RadioGroup, { label: 'R', id: 'r1', options: ['a'], touchHeight: 'always' }));
+    const cbx = m(e(A.Checkbox, { touchHeight: 'always' }, 'Yes')), cbBare = m(e(A.Checkbox, { label: 'x', hideLabel: true, touchHeight: 'always' }));
+    const sel = m(e(A.Select, { label: 'S', id: 's1', options: ['a'], touchHeight: 'always' }));
+    if (!/^<div class="aura-field is-touch-always">/.test(tf) || !/aria-describedby="c1-hint"/.test(tf) || /touch[hH]eight/.test(tf + tt + rg + cbx + cbBare + sel) || !/^<div class="aura-field is-touch">/.test(tt) || !/class="aura-field aura-radio-group is-touch-always"/.test(rg) || !/class="aura-check aura-check--labelled is-touch-always"/.test(cbx) || /is-touch/.test(cbBare) || !/^<div class="aura-field is-touch-always">/.test(sel)) bad('touchHeight on fields:', tf, tt, rg, cbx, cbBare, sel);
+    if (/is-touch/.test(m(e(A.TextField, { label: 'Cert' })))) bad('default TextField got a touch class');
     const sk0 = m(e(A.DataTable, { label: 'L', rows: [], rowKey: 'm', loading: true, skeletonRows: 1, columns: [{ key: 'm', label: 'MEMBER' }] }));
     if (!/<div class="aura-table__row aura-table__row--skeleton" aria-hidden="true"/.test(sk0) || /--auto|aura-skel-lines/.test(sk0)) bad('default DataTable skeleton changed:', sk0);
     const c0 = m(e(A.Card, { title: 'T', titleId: 't1' }, 'b'));

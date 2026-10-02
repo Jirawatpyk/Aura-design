@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { FIELD_KEYS, Field, describedBy } from './Field.js';
 import { Icon } from './Icon.js';
 import { useDensity } from './locale.js';
-import { cx, devWarnOnce, omit, uid, useIsoLayoutEffect, useMergedRef, useMounted } from './internal.js';
+import { cx, devWarnOnce, omit, touchClass, uid, useIsoLayoutEffect, useMergedRef, useMounted } from './internal.js';
 import type { SelectOption, SelectProps } from './types.js';
 import { IconCheck, IconChevronDown } from './icons.js';
 
@@ -523,7 +523,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         required={props.required}
         optional={props.optional}
         disabled={props.disabled}
-        className={props.className}
+        className={cx(touchClass(props.touchHeight), props.className)}
       >
         {child}
       </Field>

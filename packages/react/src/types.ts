@@ -412,6 +412,9 @@ export interface CheckboxProps extends Omit<
    * `target` (24×24, WCAG 2.5.8, as DataTable's selection column) or `{ x, y }` — px added on each side, so
    * `{ x: 12, y: 8 }` is a 40×32 area. The box looks the same; a labelled checkbox's whole label is its target. */
   hitArea?: 'box' | 'target' | { x: number; y: number } | undefined;
+  /** A labelled checkbox's row is 44px (5.30, Chamber-OS 135), the one-line label centred: `true` below 640px or on a
+   * coarse pointer, `'always'` at every width. A bare box (no visible label) uses `hitArea` instead. */
+  touchHeight?: TouchHeight | undefined;
 }
 
 /** 32px round button holding one icon. */
@@ -474,6 +477,8 @@ export interface MenuProps {
 }
 
 /* ---------- Forms ---------- */
+/** `true`: 44px below 640px or on a coarse pointer; `'always'`: 44px at every width (5.30). */
+export type TouchHeight = boolean | 'always';
 interface FieldProps {
   /** Visible label; also the accessible name. */
   label: string;
@@ -491,6 +496,10 @@ export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttribut
   icon?: IconInput | undefined;
   /** Trailing unit, e.g. "THB". */
   suffix?: React.ReactNode | undefined;
+  /** 44px box (5.30, Chamber-OS 135): `true` below 640px or on a coarse pointer, as Button's `touchHeight`; `'always'`
+   * at every width, also with a mouse in compact density — for a form whose spec asks for 44px targets everywhere.
+   * Default: the density's input height. */
+  touchHeight?: TouchHeight | undefined;
 }
 /** A password input with a show/hide button. All TextField props; `ref` reaches the input (react-hook-form `register`). */
 export interface PasswordFieldProps extends Omit<TextFieldProps, 'type' | 'suffix'> {
@@ -609,8 +618,11 @@ export interface CommandProps {
   loading?: boolean | undefined;
   className?: string | undefined;
 }
-export interface TextareaProps
-  extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {}
+export interface TextareaProps extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {
+  /** Accepted like the other fields' (5.30, Chamber-OS 135), so a form can pass it to every field. A Textarea is
+   * always at least 96px tall, well over the 44px target, so it changes nothing you can see. */
+  touchHeight?: TouchHeight | undefined;
+}
 export type SelectOption = string | { value: string; label: string; disabled?: boolean | undefined };
 /** 5.3: opens AURA's own list (light and dark alike) over a real `<select>`, which keeps `name`, `required`, the ref,
  * `onChange`, react-hook-form `register` and form posts. `multiple` or `size > 1` keeps the native list box. */
@@ -628,6 +640,10 @@ export interface SelectProps
    * option on the read-only ground, with no chevron; no click or key opens the list. The value is still submitted
    * with the form (unlike `disabled`). Before JavaScript runs, the other options from `options` are disabled. */
   readOnly?: boolean | undefined;
+  /** 44px box (5.30, Chamber-OS 135): `true` below 640px or on a coarse pointer, as Button's `touchHeight`; `'always'`
+   * at every width, also with a mouse in compact density — for a form whose spec asks for 44px targets everywhere.
+   * Default: the density's input height. */
+  touchHeight?: TouchHeight | undefined;
 }
 /** A compact filter for FilterBar (5.12): "Status All ▾", as wide as its words. */
 export interface FilterSelectProps extends Omit<
@@ -661,6 +677,9 @@ export interface RadioGroupProps extends FieldProps {
   disabled?: boolean | undefined;
   id?: string | undefined;
   className?: string | undefined;
+  /** 44px rows (5.30, Chamber-OS 135), the one-line label centred: `true` below 640px or on a coarse pointer (touch
+   * screens already get it), `'always'` at every width, also with a mouse. Default: as tall as the control and label. */
+  touchHeight?: TouchHeight | undefined;
 }
 export interface SwitchProps {
   label?: string | undefined;

@@ -158,6 +158,9 @@ window.Aura = (() => {
         out[k] = src[k];
     return out;
   }
+  function touchClass(t) {
+    return t === "always" ? "is-touch-always" : !!t && "is-touch";
+  }
   var TONES = ["neutral", "accent", "success", "warning", "danger"];
   function tone(t) {
     return TONES.indexOf(t) >= 0 ? t : "neutral";
@@ -1627,7 +1630,8 @@ window.Aura = (() => {
       "className",
       "tabIndex",
       "disabled",
-      "hitArea"
+      "hitArea",
+      "touchHeight"
     ]);
     const text2 = props.children;
     const labelled = text2 != null && text2 !== "";
@@ -1646,6 +1650,7 @@ window.Aura = (() => {
         className: cx(
           "aura-check",
           labelled && "aura-check--labelled",
+          labelled && touchClass(props.touchHeight),
           hit && "has-hit",
           props.disabled && "is-disabled",
           props.className
@@ -1721,7 +1726,8 @@ window.Aura = (() => {
     "id",
     "suffix",
     "options",
-    "placeholder"
+    "placeholder",
+    "touchHeight"
   ];
 
   // src/TextField.tsx
@@ -1739,7 +1745,7 @@ window.Aura = (() => {
         required: props.required,
         optional: props.optional,
         disabled: props.disabled,
-        className: props.className
+        className: cx(touchClass(props.touchHeight), props.className)
       },
       /* @__PURE__ */ React13.createElement("div", { className: cx("aura-input", props.icon && "has-icon", props.suffix && "has-suffix") }, props.icon ? /* @__PURE__ */ React13.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, /* @__PURE__ */ React13.createElement(
         "input",
@@ -1773,7 +1779,7 @@ window.Aura = (() => {
         required: props.required,
         optional: props.optional,
         disabled: props.disabled,
-        className: props.className
+        className: cx(touchClass(props.touchHeight), props.className)
       },
       /* @__PURE__ */ React14.createElement(
         "textarea",
@@ -2207,7 +2213,7 @@ window.Aura = (() => {
         required: props.required,
         optional: props.optional,
         disabled: props.disabled,
-        className: props.className
+        className: cx(touchClass(props.touchHeight), props.className)
       },
       child
     );
@@ -3439,7 +3445,12 @@ window.Aura = (() => {
       "fieldset",
       {
         ref: setRef,
-        className: cx("aura-field aura-radio-group", props.error && "is-invalid", props.className),
+        className: cx(
+          "aura-field aura-radio-group",
+          props.error && "is-invalid",
+          touchClass(props.touchHeight),
+          props.className
+        ),
         "aria-describedby": describedBy(id, props),
         "aria-invalid": props.error ? true : void 0,
         disabled: props.disabled

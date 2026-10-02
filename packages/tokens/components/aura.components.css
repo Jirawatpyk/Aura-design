@@ -1476,7 +1476,26 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-check--labelled .aura-check__input { top: calc((var(--aura-touch-target) - 20px) / 2 + 3px); }
   .aura-switch-row:not(.is-disabled):not(.is-readonly) { cursor: pointer; }
   .aura-radio-group__list { gap: 0; }
-  .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); }
+  .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); align-items: flex-start; }
+}
+/* 5.30 (Chamber-OS 135): `touchHeight` on TextField, Textarea, Select, RadioGroup and Checkbox — 44px boxes and choice
+ * rows (a one-line label centred), below 640px or on a coarse pointer (is-touch) or at every width (is-touch-always).
+ * The field's own --aura-input-height wins over any density around it. */
+.aura-field.is-touch-always { --aura-input-height: var(--aura-touch-target); }
+.aura-radio-group.is-touch-always .aura-choice, .aura-check--labelled.is-touch-always {
+  box-sizing: border-box; min-height: var(--aura-touch-target); padding-block: calc((var(--aura-touch-target) - 20px) / 2);
+}
+.aura-check--labelled.is-touch-always .aura-check__input { top: calc((var(--aura-touch-target) - 20px) / 2 + 3px); }
+.aura-radio-group.is-touch-always .aura-radio-group__list { gap: 0; }
+.aura-radio-group.is-touch-always .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); align-items: flex-start; }
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-field.is-touch { --aura-input-height: var(--aura-touch-target); }
+  .aura-radio-group.is-touch .aura-choice, .aura-check--labelled.is-touch {
+    box-sizing: border-box; min-height: var(--aura-touch-target); padding-block: calc((var(--aura-touch-target) - 20px) / 2);
+  }
+  .aura-check--labelled.is-touch .aura-check__input { top: calc((var(--aura-touch-target) - 20px) / 2 + 3px); }
+  .aura-radio-group.is-touch .aura-radio-group__list { gap: 0; }
+  .aura-radio-group.is-touch .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); align-items: flex-start; }
 }
 
 /* PasswordField: the show/hide IconButton sits in the suffix slot, 6px from the edge */

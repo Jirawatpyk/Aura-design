@@ -75,4 +75,5 @@ export const FIELD_KEYS: string[] = [
   'suffix',
   'options',
   'placeholder',
+  'touchHeight',
 ];

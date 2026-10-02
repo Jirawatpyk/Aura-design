@@ -5777,3 +5777,71 @@ test.describe('5.30: visual polish', () => {
     expect(await css(page.getByTestId('en-in-th').locator('.aura-pill'), 'font-size')).toBe('11px');
   });
 });
+
+test.describe('5.30: Chamber-OS addendum 38', () => {
+  const ID = 'aura-new-in-5-30-addendum-38--touch-fields';
+  const h = (l: import('@playwright/test').Locator) => l.evaluate((e) => Math.round(e.getBoundingClientRect().height));
+  const centred = (row: import('@playwright/test').Locator) =>
+    row.evaluate((r) => {
+      const b = r.getBoundingClientRect();
+      const t = (r.querySelector('.aura-choice__label, .aura-check__label') as HTMLElement).getBoundingClientRect();
+      return Math.abs(t.top + t.height / 2 - (b.top + b.height / 2));
+    });
+
+  test("135: touchHeight='always' — 44px boxes and choice rows with a mouse at 1280, inside compact density", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1400 });
+    await story(page, ID);
+    const a = page.getByTestId('always');
+    for (const name of ['Certificate number', 'Type CONFIRM to issue'])
+      expect(await h(a.getByRole('textbox', { name, exact: true }).locator('xpath=..'))).toBe(44);
+    expect(await h(a.locator('.aura-select').first())).toBe(44);
+    /* Textarea accepts the prop (no DOM attribute) and is 96px+ tall anyway. */
+    expect(await h(a.getByRole('textbox', { name: 'Note' }))).toBeGreaterThanOrEqual(96);
+    expect(await a.getByRole('textbox', { name: 'Note' }).getAttribute('touchheight')).toBeNull();
+    /* The first two options are one line (44px, label centred); the one with a description grows. */
+    const rows = a.locator('.aura-choice');
+    expect(await h(rows.nth(0))).toBe(44);
+    expect(await centred(rows.nth(0))).toBeLessThanOrEqual(1);
+    expect(await h(rows.nth(1))).toBeGreaterThan(44);
+    /* A Checkbox label sits on a 21px line, so its row is 45px — at least 44, the label still centred. */
+    const check = a.locator('.aura-check--labelled');
+    expect([44, 45]).toContain(await h(check));
+    expect(await centred(check)).toBeLessThanOrEqual(1);
+    /* The whole row is still the target: a click on its left padding area picks the option. */
+    const third = rows.nth(2);
+    const box = (await third.boundingBox())!;
+    await page.mouse.click(box.x + 120, box.y + 4);
+    await expect(a.getByRole('radio', { name: 'Not zero-rated' })).toBeChecked();
+    /* Hint and error ids are unchanged. */
+    const cert = a.getByRole('textbox', { name: 'Certificate number', exact: true });
+    const certId = await cert.getAttribute('id');
+    await expect(cert).toHaveAttribute('aria-describedby', certId + '-hint');
+    const typed = a.getByRole('textbox', { name: 'Type CONFIRM to issue' });
+    await expect(typed).toHaveAttribute('aria-describedby', (await typed.getAttribute('id')) + '-error');
+  });
+
+  test('135: the default stays compact and touchHeight={true} grows only below 640px or on touch', async ({
+    browser,
+  }) => {
+    for (const [width, touch, grown] of [
+      [1280, false, false],
+      [600, false, true],
+      [1024, true, true],
+    ] as const) {
+      const ctx = await browser.newContext({ viewport: { width, height: 1400 }, hasTouch: touch, isMobile: touch });
+      const page = await ctx.newPage();
+      await story(page, ID);
+      const t = page.getByTestId('touch');
+      expect(await h(t.locator('.aura-input').first())).toBe(grown ? 44 : 36);
+      expect(await h(t.locator('.aura-choice').first())).toBe(grown ? 44 : 20);
+      expect(await h(t.locator('.aura-check--labelled'))).toBe(grown ? 45 : 21);
+      const d = page.getByTestId('default');
+      /* Default: compact 36px with a mouse; touch screens already get 44 (unchanged). */
+      expect(await h(d.locator('.aura-input').first())).toBe(touch ? 44 : 36);
+      expect(await h(d.locator('.aura-choice').first())).toBe(touch ? 44 : 20);
+      await ctx.close();
+    }
+  });
+});

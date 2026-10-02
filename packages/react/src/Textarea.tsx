@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FIELD_KEYS, Field, describedBy } from './Field.js';
-import { omit, uid } from './internal.js';
+import { cx, omit, touchClass, uid } from './internal.js';
 import type { TextareaProps } from './types.js';
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(props, ref) {
@@ -16,7 +16,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
       required={props.required}
       optional={props.optional}
       disabled={props.disabled}
-      className={props.className}
+      className={cx(touchClass(props.touchHeight), props.className)}
     >
       <textarea
         rows={4}

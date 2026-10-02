@@ -186,7 +186,16 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
-## 5.30 — Visual polish (audit, Oct 2026)
+## 5.30 — Visual polish (audit, Oct 2026) and Chamber-OS addendum 38
+
+One release: both parts below ship together in 5.30.0.
+
+### 44px fields and choice rows (addendum 38)
+
+- **`touchHeight` on TextField, Textarea, Select, RadioGroup and Checkbox** (item 135): `touchHeight="always"` gives a 44px input box and 44px choice rows at every width — also with a mouse and inside `density="compact"` — for a form whose spec asks for 44px targets everywhere (Chamber-OS's issue dialog: zero-rate radios, certificate number, typed phrase). `touchHeight` (`true`) does it only below 640px or on a coarse pointer, as Button's `touchHeight`; touch screens already had 44px fields and rows. A one-line option's label is centred in its row (a Checkbox row is 45px: its label sits on a 21px line); a row with a description grows. On a Checkbox it applies to a labelled box; a bare box uses `hitArea`. Textarea accepts it too, but is always at least 96px tall, so nothing changes there. In a horizontal RadioGroup each option keeps its own height (one-line options stay centred beside a taller one with a description).
+- **How:** the field's root gets `is-touch-always` / `is-touch`, which sets its own `--aura-input-height` to `--aura-touch-target` (44px) — any control inside that reads the input height follows, whatever density is around it. Label, hint and error ids are unchanged; Button's `touchHeight` is unchanged.
+
+### Visual polish
 
 A visual audit of every Storybook story in light, dark and at 390px. This release takes the system-wide fixes; colour hues and layout defaults are unchanged.
 

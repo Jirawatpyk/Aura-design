@@ -14,6 +14,11 @@ export function omit<T extends object, K extends string>(src: T, keys: readonly 
   return out as Omit<T, K>;
 }
 
+/* 5.30 (Chamber-OS 135): a field's or choice row's `touchHeight` → its class. */
+export function touchClass(t: boolean | 'always' | undefined): string | false {
+  return t === 'always' ? 'is-touch-always' : !!t && 'is-touch';
+}
+
 /* Badge / Progress tone → class suffix. */
 const TONES: string[] = ['neutral', 'accent', 'success', 'warning', 'danger'];
 

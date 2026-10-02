@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FIELD_KEYS, Field, describedBy } from './Field.js';
 import { Icon } from './Icon.js';
-import { cx, omit, uid } from './internal.js';
+import { cx, omit, touchClass, uid } from './internal.js';
 import type { TextFieldProps } from './types.js';
 
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(props, ref) {
@@ -17,7 +17,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
       required={props.required}
       optional={props.optional}
       disabled={props.disabled}
-      className={props.className}
+      className={cx(touchClass(props.touchHeight), props.className)}
     >
       <div className={cx('aura-input', props.icon && 'has-icon', props.suffix && 'has-suffix')}>
         {props.icon ? <Icon name={props.icon} className="aura-input__icon" /> : null}

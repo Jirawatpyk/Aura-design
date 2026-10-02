@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export { cx, omit, tone, devWarnOnce } from './classes.js';
+export { cx, omit, tone, devWarnOnce, touchClass } from './classes.js';
 
 /* Controlled-or-not state: use the prop when given, else keep it here.
  * 5.1.1: the setter is stable and always calls the latest onChange, so effects that keep it (outside-click handlers)
