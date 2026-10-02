@@ -5072,3 +5072,156 @@ test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)',
     expect(await ax(page, ['option'])).toEqual([['option', 'Members G M', 'Member list']]);
   });
 });
+
+test.describe('5.29: Chamber-OS addendum 30', () => {
+  type Geo = Record<string, number | string>;
+  /* The card's inner box (inside its border), the bleeding frame's box and borders, and the first cell's text. */
+  const geo = (page: import('@playwright/test').Page, id: string, frame: string) =>
+    page.getByTestId(id).evaluate((card, frame) => {
+      const c = card.getBoundingClientRect(),
+        cs = getComputedStyle(card),
+        f = card.querySelector(frame)!,
+        b = f.getBoundingClientRect(),
+        fs = getComputedStyle(f),
+        bw = parseFloat(cs.borderLeftWidth),
+        text = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
+        cell = card.querySelector('.aura-table__td, .aura-tbl__td')!,
+        range = document.createRange();
+      range.selectNodeContents(cell.querySelector('span, div') || cell);
+      const t = range.getBoundingClientRect();
+      return {
+        left: Math.round(b.left - c.left - bw),
+        right: Math.round(c.right - bw - b.right),
+        bottom: Math.round(c.bottom - bw - b.bottom),
+        side: fs.borderLeftWidth + ' ' + fs.borderRightWidth,
+        top: fs.borderTopWidth,
+        under: fs.borderBottomWidth,
+        radius: fs.borderTopLeftRadius + ' ' + fs.borderBottomLeftRadius,
+        level: Math.round(t.left - text.left),
+      } as Geo;
+    }, frame);
+
+  test('127: a bleeding DataTable spans the card, keeps its top rule, and the card closes it when it is last', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-29--table-bleed');
+    const radius = await page.getByTestId('last').evaluate((c) => parseFloat(getComputedStyle(c).borderTopLeftRadius));
+    expect(await geo(page, 'last', '.aura-table')).toEqual({
+      left: 0,
+      right: 0,
+      bottom: 0,
+      side: '0px 0px',
+      top: '1px',
+      under: '0px',
+      radius: '0px ' + (radius - 1) + 'px',
+      level: 0,
+    });
+    /* A footer follows: the bottom rule stays and the card keeps its padding below. */
+    const f = await geo(page, 'footer', '.aura-table');
+    expect([f.left, f.right, f.side, f.top, f.under, f.radius, f.level]).toEqual([
+      0,
+      0,
+      '0px 0px',
+      '1px',
+      '1px',
+      '0px 0px',
+      0,
+    ]);
+    expect(f.bottom as number).toBeGreaterThan(24);
+    /* Table: the same, with its 24px outer cells level with the card's content. */
+    expect(await geo(page, 'static', '.aura-tbl-wrap')).toEqual({
+      left: 0,
+      right: 0,
+      bottom: 0,
+      side: '0px 0px',
+      top: '1px',
+      under: '0px',
+      radius: '0px ' + (radius - 1) + 'px',
+      level: 0,
+    });
+  });
+
+  test('127: outside a Card bleed does nothing; bordered={false} drops the frame and keeps the header band', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-29--table-bleed');
+    const frame = (id: string) =>
+      page
+        .getByTestId(id)
+        .locator('.aura-table')
+        .evaluate((t) => {
+          const s = getComputedStyle(t),
+            p = t.parentElement!.closest('[data-testid]')!.getBoundingClientRect(),
+            b = t.getBoundingClientRect();
+          return [s.borderLeftWidth, s.borderBottomWidth, s.borderTopLeftRadius, Math.round(b.width - p.width)];
+        });
+    expect(await frame('outside')).toEqual(['1px', '1px', '20px', 0]);
+    expect(await frame('borderless')).toEqual(['0px', '0px', '0px', 0]);
+    const band = await page
+      .getByTestId('borderless')
+      .locator('.aura-table__head')
+      .evaluate((h) => getComputedStyle(h).borderBottomWidth);
+    expect(band).toBe('1px');
+  });
+
+  test('127: below flushBelow bleed does nothing — the stacked cards keep the page gutter', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-5-29--table-bleed');
+    const r = await page.getByTestId('last').evaluate((card) => {
+      const c = card.getBoundingClientRect(),
+        f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
+        box = card.querySelector('.aura-bleed')!.getBoundingClientRect(),
+        row = card.querySelector('.aura-table__row')!.getBoundingClientRect();
+      return [
+        Math.round(box.left - f.left),
+        Math.round(f.right - box.right),
+        Math.round(row.left - f.left),
+        Math.round(c.bottom - box.bottom),
+      ];
+    });
+    /* Level with the filters on both sides; the card's 16px padding stays below. */
+    expect(r).toEqual([0, 0, 0, 17]);
+  });
+
+  test('127: a stackable Table bleeds the full width, and stacked as a list its rows stay level', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-29--table-bleed');
+    const g = await geo(page, 'static', '.aura-tbl-wrap');
+    expect([g.left, g.right, g.level]).toEqual([0, 0, 0]);
+    await page.setViewportSize({ width: 700, height: 900 });
+    const r = await page.getByTestId('static').evaluate((card) => {
+      const c = card.getBoundingClientRect(),
+        bw = parseFloat(getComputedStyle(card).borderLeftWidth),
+        f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
+        wrap = card.querySelector('.aura-tbl-wrap')!.getBoundingClientRect(),
+        row = card.querySelector('.aura-tbl__body .aura-tbl__row')!,
+        range = document.createRange();
+      range.selectNodeContents(row.querySelector('.aura-tbl__td')!);
+      const t = range.getBoundingClientRect();
+      return [Math.round(wrap.left - c.left - bw), Math.round(c.right - bw - wrap.right), Math.round(t.left - f.left)];
+    });
+    expect(r).toEqual([0, 0, 0]);
+    /* Wrapped in a div it doesn't bleed and looks as without the prop: framed, rows 16px in. */
+    const w = await page.getByTestId('wrapped').evaluate((card) => {
+      const f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
+        wrap = card.querySelector('.aura-tbl-wrap')!,
+        range = document.createRange();
+      range.selectNodeContents(wrap.querySelector('.aura-tbl__td')!);
+      return [getComputedStyle(wrap).borderLeftWidth, Math.round(range.getBoundingClientRect().left - f.left)];
+    });
+    expect(w).toEqual(['1px', 17]);
+  });
+
+  test('127: stacked inside a framed Card the cards keep its padding', async ({ page }) => {
+    await page.setViewportSize({ width: 600, height: 900 });
+    await story(page, 'aura-new-in-5-29--table-bleed');
+    const r = await page.getByTestId('footer').evaluate((card) => {
+      const f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
+        row = card.querySelector('.aura-table__row')!.getBoundingClientRect();
+      return [Math.round(row.left - f.left), Math.round(f.right - row.right)];
+    });
+    expect(r).toEqual([0, 0]);
+  });
+});

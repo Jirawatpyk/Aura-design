@@ -67,6 +67,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     stackBelow,
     align,
     bordered,
+    bleed,
     stackStyle,
     rowHeight,
     className,
@@ -108,7 +109,14 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
   const table = (
     <div
       ref={wrap}
-      className={cx('aura-tbl-wrap', stackBelow && 'is-stackable', bordered === false && 'is-flush')}
+      className={cx(
+        'aura-tbl-wrap',
+        stackBelow && 'is-stackable',
+        bordered === false && 'is-flush',
+        /* 5.29 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
+        bleed && 'aura-bleed-frame',
+        bleed && !cards && 'aura-bleed',
+      )}
       data-density={density || pageDensity}
       tabIndex={scrolls ? 0 : undefined}
       /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
@@ -146,7 +154,11 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
       </table>
     </div>
   );
-  return cards ? <div className={'aura-tbl-cards aura-tbl-cards--' + stackBelow}>{table}</div> : table;
+  return cards ? (
+    <div className={cx('aura-tbl-cards aura-tbl-cards--' + stackBelow, bleed && 'aura-bleed')}>{table}</div>
+  ) : (
+    table
+  );
 });
 
 function section(tag: 'thead' | 'tbody' | 'tfoot', cls: string) {

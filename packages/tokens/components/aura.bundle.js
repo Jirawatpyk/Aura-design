@@ -6340,6 +6340,10 @@ window.Aura = (() => {
         "data-density": props.density,
         className: cx(
           "aura-table",
+          /* 5.29 (Chamber-OS 127): bleed and bordered={false}; the outermost element carries aura-bleed. */
+          props.bleed && "aura-bleed-frame",
+          props.bleed && !levels.length && "aura-bleed",
+          props.bordered === false && "aura-table--borderless",
           stacked && "aura-table--stacked",
           noCardSel && "aura-table--cards-nosel",
           scrolledX[0] && "is-scrolled-x",
@@ -6437,7 +6441,7 @@ window.Aura = (() => {
         out
       );
     }
-    return /* @__PURE__ */ React31.createElement("div", { ref, className: cx("aura-table-box", props.className) }, out);
+    return /* @__PURE__ */ React31.createElement("div", { ref, className: cx("aura-table-box", props.bleed && "aura-bleed", props.className) }, out);
   });
   var DataTable2 = DataTableImpl;
 
@@ -7308,6 +7312,7 @@ window.Aura = (() => {
       stackBelow,
       align,
       bordered,
+      bleed,
       stackStyle,
       rowHeight,
       className,
@@ -7343,7 +7348,14 @@ window.Aura = (() => {
       "div",
       {
         ref: wrap,
-        className: cx("aura-tbl-wrap", stackBelow && "is-stackable", bordered === false && "is-flush"),
+        className: cx(
+          "aura-tbl-wrap",
+          stackBelow && "is-stackable",
+          bordered === false && "is-flush",
+          /* 5.29 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
+          bleed && "aura-bleed-frame",
+          bleed && !cards && "aura-bleed"
+        ),
         "data-density": density || pageDensity,
         tabIndex: scrolls ? 0 : void 0,
         role: scrolls && (caption != null || rest["aria-label"]) ? "region" : void 0,
@@ -7370,7 +7382,7 @@ window.Aura = (() => {
         labels ? /* @__PURE__ */ React44.createElement(StackLabels.Provider, { value: labels }, children) : outer ? /* @__PURE__ */ React44.createElement(StackLabels.Provider, { value: null }, children) : children
       )
     );
-    return cards ? /* @__PURE__ */ React44.createElement("div", { className: "aura-tbl-cards aura-tbl-cards--" + stackBelow }, table) : table;
+    return cards ? /* @__PURE__ */ React44.createElement("div", { className: cx("aura-tbl-cards aura-tbl-cards--" + stackBelow, bleed && "aura-bleed") }, table) : table;
   });
   function section(tag, cls) {
     const C = React44.forwardRef(function TableSection(props, ref) {

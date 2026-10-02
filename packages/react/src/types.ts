@@ -238,6 +238,14 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
   density?: 'comfortable' | 'compact' | undefined;
   /** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. With `height` (virtual rows) the server can only send the first screenful; the rest of the cards arrive on hydration. */
   stackBelow?: number | undefined;
+  /** Edge to edge inside a Card (5.29, Chamber-OS 127): as a direct child of a Card's content, the table spans the
+   * card's full inner width — no side borders, no radius — keeping its header band and top rule; as the card's last
+   * content (no footer, nothing after it) it drops its bottom rule and the card's radius closes it. Below the Card's
+   * `flushBelow` width, and outside a Card, it does nothing. */
+  bleed?: boolean | undefined;
+  /** `false` drops the frame — border and radius — keeping the header band and the 24px gutter, for a table that sits
+   * in a section without bleeding (5.29). Default `true`. */
+  bordered?: boolean | undefined;
   className?: string | undefined;
 }
 
@@ -1252,6 +1260,12 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
   /** `false` (5.13) drops the frame — border, radius, background — and the outer cells' side padding, so the table
    * lines up with the content around it, e.g. flush inside a Card under its heading. Default `true`. */
   bordered?: boolean | undefined;
+  /** Edge to edge inside a Card (5.29, Chamber-OS 127): as a direct child of a Card's content, the table spans the
+   * card's full inner width — no side borders, no radius — keeping its header band and top rule, and its outer
+   * cells' 24px padding keeps the text level with the card's content. As the card's last content it drops its
+   * bottom rule and the card's radius closes it. Below the Card's `flushBelow` width, and outside a Card, it does
+   * nothing. With `bordered={false}` too, the outer cells take the card's padding while it bleeds. */
+  bleed?: boolean | undefined;
   /** How stacked rows look (5.15, Chamber-OS 85): `list` (default) — one frame, rows divided by rules; `cards` —
    * each row its own framed card, spaced like DataTable's cards, with no frame around them. From the `stackBelow`
    * width up the table is unchanged. The table then sits in one more `div` (`.aura-tbl-cards`). */

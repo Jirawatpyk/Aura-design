@@ -52,6 +52,22 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.29 (Chamber-OS 127): bleed marks the outermost element (aura-bleed) and the frame (aura-bleed-frame). */
+  {
+    const e = React.createElement;
+    const cols = [{ key: 'm', label: 'M' }];
+    const flat = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bleed: true }));
+    const boxed = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bleed: true, stackBelow: 640 }));
+    const plain = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bordered: false }));
+    const tcards = renderToString(e(A.Table, { caption: 'T', bleed: true, bordered: false, stackBelow: 'md', stackStyle: 'cards' }, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))));
+    const ok =
+      /^<div[^>]*class="aura-table aura-bleed-frame aura-bleed"/.test(flat) &&
+      /^<div class="aura-table-box aura-bleed">/.test(boxed) && /class="aura-table aura-bleed-frame"/.test(boxed) &&
+      /class="aura-table aura-table--borderless"/.test(plain) && !/bleed/.test(plain) &&
+      /^<div class="aura-tbl-cards aura-tbl-cards--md aura-bleed">/.test(tcards) && /aura-tbl-wrap[^"]*is-flush[^"]*aura-bleed-frame/.test(tcards) &&
+      !/ bleed=| bordered=/.test(flat + boxed + plain + tcards);
+    if (!ok) { console.log(label, 'bleed classes:', flat.slice(0, 300), boxed.slice(0, 300), plain.slice(0, 200), tcards.slice(0, 300)); fail++; }
+  }
   /* 5.27 (Chamber-OS 126): Container passes id / data-* / aria-*, nothing else; align="start" adds is-start. */
   {
     const e = React.createElement;
