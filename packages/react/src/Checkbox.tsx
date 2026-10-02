@@ -41,6 +41,10 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
     );
   /* 5.1.1: linked even without an id (a bare hideLabel box lost its description). */
   const descId = props.description ? (props.id || auto) + '-desc' : undefined;
+  /* 5.26 (Chamber-OS 125): a shown description is read as a description, not as part of the name — the name is
+   * the visible label alone, unless the caller names the box itself. */
+  const labelId =
+    labelled && descId && !props['aria-label'] && !props['aria-labelledby'] ? (props.id || auto) + '-label' : undefined;
   /* 5.15: a larger invisible input around a bare box; the box itself doesn't change. */
   const ha = props.hitArea;
   const hit = !labelled && ha && ha !== 'box' ? (ha === 'target' ? { x: 4, y: 4 } : ha) : null;
@@ -71,7 +75,8 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
         tabIndex={props.tabIndex}
         disabled={props.disabled}
         aria-describedby={cx(props['aria-describedby'], descId) || undefined}
-        aria-label={labelled ? undefined : props.label}
+        aria-label={(labelled ? undefined : props.label) || props['aria-label'] || undefined}
+        aria-labelledby={labelId || props['aria-labelledby']}
         onChange={function (e: React.ChangeEvent<HTMLInputElement>) {
           st[1](e.target.checked);
         }}
@@ -90,7 +95,9 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(functi
       ) : null}
       {labelled ? (
         <span className="aura-check__text">
-          <span className="aura-check__label">{text}</span>
+          <span className="aura-check__label" id={labelId}>
+            {text}
+          </span>
           {props.description ? (
             <span className="aura-check__desc" id={descId}>
               {props.description}

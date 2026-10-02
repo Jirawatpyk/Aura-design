@@ -380,7 +380,9 @@ export interface CheckboxProps extends Omit<
   hideLabel?: boolean | undefined;
   /** The visible label beside the box. */
   children?: React.ReactNode | undefined;
-  /** Second line under the visible label, linked by `aria-describedby` after any id you pass there (5.11). */
+  /** Second line under the visible label, linked by `aria-describedby` after any id you pass there (5.11). Since 5.26
+   * it is not part of the name: the box is named by the visible label alone, or by your `aria-label` /
+   * `aria-labelledby` (Chamber-OS 125). */
   description?: React.ReactNode | undefined;
   onChange?: ((checked: boolean) => void) | undefined;
   disabled?: boolean | undefined;
@@ -621,6 +623,8 @@ export interface FilterSelectProps extends Omit<
    * readers keep the option's own text. */
   allLabel?: string | undefined;
 }
+/** A RadioGroup option. `description` is a second line under the label; since 5.26 the radio is named by `label`
+ * alone and the description is read after it (`aria-describedby`), also when the option is disabled (Chamber-OS 125). */
 export type ChoiceOption =
   string | { value: string; label: string; description?: string | undefined; disabled?: boolean | undefined };
 export interface RadioGroupProps extends FieldProps {

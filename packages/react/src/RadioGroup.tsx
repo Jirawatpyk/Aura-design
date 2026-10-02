@@ -49,8 +49,11 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
         </legend>
       ) : null}
       <div className={cx('aura-radio-group__list', props.orientation === 'horizontal' && 'is-horizontal')}>
-        {(props.options || []).map(function (o: ChoiceOption) {
+        {(props.options || []).map(function (o: ChoiceOption, i: number) {
           const v: Exclude<ChoiceOption, string> = typeof o === 'object' ? o : { value: o, label: o };
+          /* 5.26 (Chamber-OS 125): with a description the name is the label alone and the description is read
+           * after it. The <label> still wraps both, so a click on the description selects the option. */
+          const oid = v.description ? id + '-opt-' + i : '';
           return (
             <label key={v.value} className={cx('aura-choice', v.disabled && 'is-disabled')}>
               <input
@@ -60,14 +63,22 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
                 value={v.value}
                 disabled={v.disabled}
                 required={props.required || undefined}
+                aria-labelledby={oid ? oid + '-label' : undefined}
+                aria-describedby={oid ? oid + '-desc' : undefined}
                 checked={st[0] === v.value}
                 onChange={function () {
                   st[1](v.value);
                 }}
               />
               <span className="aura-choice__text">
-                <span className="aura-choice__label">{v.label}</span>
-                {v.description ? <span className="aura-choice__desc">{v.description}</span> : null}
+                <span className="aura-choice__label" id={oid ? oid + '-label' : undefined}>
+                  {v.label}
+                </span>
+                {v.description ? (
+                  <span className="aura-choice__desc" id={oid + '-desc'}>
+                    {v.description}
+                  </span>
+                ) : null}
               </span>
             </label>
           );

@@ -1636,6 +1636,7 @@ window.Aura = (() => {
         "Checkbox `label` is only the accessible name: it is not shown. In 6.0 it will be shown beside the box, like Switch and TextField. For visible text now pass it as children; for a bare box (a table row) add `hideLabel`."
       );
     const descId = props.description ? (props.id || auto) + "-desc" : void 0;
+    const labelId = labelled && descId && !props["aria-label"] && !props["aria-labelledby"] ? (props.id || auto) + "-label" : void 0;
     const ha = props.hitArea;
     const hit = !labelled && ha && ha !== "box" ? ha === "target" ? { x: 4, y: 4 } : ha : null;
     return /* @__PURE__ */ React10.createElement(
@@ -1664,7 +1665,8 @@ window.Aura = (() => {
           tabIndex: props.tabIndex,
           disabled: props.disabled,
           "aria-describedby": cx(props["aria-describedby"], descId) || void 0,
-          "aria-label": labelled ? void 0 : props.label,
+          "aria-label": (labelled ? void 0 : props.label) || props["aria-label"] || void 0,
+          "aria-labelledby": labelId || props["aria-labelledby"],
           onChange: function(e) {
             st[1](e.target.checked);
           }
@@ -1672,7 +1674,7 @@ window.Aura = (() => {
       ),
       /* @__PURE__ */ React10.createElement("span", { className: "aura-check__box", "aria-hidden": true }, props.indeterminate ? /* @__PURE__ */ React10.createElement(Icon, { name: /* @__PURE__ */ React10.createElement(IconMinus, null), size: 12, strokeWidth: 3 }) : on ? /* @__PURE__ */ React10.createElement(Icon, { name: /* @__PURE__ */ React10.createElement(IconCheck, null), size: 12, strokeWidth: 3 }) : null),
       !labelled && props.description ? /* @__PURE__ */ React10.createElement("span", { className: "aura-sr-only", id: descId }, props.description) : null,
-      labelled ? /* @__PURE__ */ React10.createElement("span", { className: "aura-check__text" }, /* @__PURE__ */ React10.createElement("span", { className: "aura-check__label" }, text2), props.description ? /* @__PURE__ */ React10.createElement("span", { className: "aura-check__desc", id: descId }, props.description) : null) : null
+      labelled ? /* @__PURE__ */ React10.createElement("span", { className: "aura-check__text" }, /* @__PURE__ */ React10.createElement("span", { className: "aura-check__label", id: labelId }, text2), props.description ? /* @__PURE__ */ React10.createElement("span", { className: "aura-check__desc", id: descId }, props.description) : null) : null
     );
   });
 
@@ -2459,8 +2461,9 @@ window.Aura = (() => {
         disabled: props.disabled
       },
       props.label ? /* @__PURE__ */ React17.createElement("legend", { className: "aura-field__label" }, props.label, props.required ? /* @__PURE__ */ React17.createElement("span", { className: "aura-field__req", "aria-hidden": true }, " *") : null) : null,
-      /* @__PURE__ */ React17.createElement("div", { className: cx("aura-radio-group__list", props.orientation === "horizontal" && "is-horizontal") }, (props.options || []).map(function(o) {
+      /* @__PURE__ */ React17.createElement("div", { className: cx("aura-radio-group__list", props.orientation === "horizontal" && "is-horizontal") }, (props.options || []).map(function(o, i) {
         const v = typeof o === "object" ? o : { value: o, label: o };
+        const oid = v.description ? id + "-opt-" + i : "";
         return /* @__PURE__ */ React17.createElement("label", { key: v.value, className: cx("aura-choice", v.disabled && "is-disabled") }, /* @__PURE__ */ React17.createElement(
           "input",
           {
@@ -2470,12 +2473,14 @@ window.Aura = (() => {
             value: v.value,
             disabled: v.disabled,
             required: props.required || void 0,
+            "aria-labelledby": oid ? oid + "-label" : void 0,
+            "aria-describedby": oid ? oid + "-desc" : void 0,
             checked: st[0] === v.value,
             onChange: function() {
               st[1](v.value);
             }
           }
-        ), /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__label" }, v.label), v.description ? /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__desc" }, v.description) : null));
+        ), /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__label", id: oid ? oid + "-label" : void 0 }, v.label), v.description ? /* @__PURE__ */ React17.createElement("span", { className: "aura-choice__desc", id: oid + "-desc" }, v.description) : null));
       })),
       props.error ? /* @__PURE__ */ React17.createElement("p", { className: "aura-field__error", id: id + "-error" }, /* @__PURE__ */ React17.createElement(Icon, { name: /* @__PURE__ */ React17.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React17.createElement("p", { className: "aura-field__hint", id: id + "-hint" }, props.hint) : null
     );

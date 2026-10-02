@@ -4938,3 +4938,45 @@ test.describe('5.25: Chamber-OS addendum 27', () => {
       expect([h.compact, h.plain]).toEqual([32, 32]);
     });
 });
+
+test.describe('5.26: Chamber-OS addendum 28', () => {
+  type AX = { role?: { value: string }; name?: { value: string }; description?: { value: string } };
+  async function axAll(page: import('@playwright/test').Page, role: string) {
+    const cdp = await page.context().newCDPSession(page);
+    const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as { nodes: AX[] };
+    return nodes
+      .filter((n) => n.role?.value === role)
+      .map((n) => [n.name?.value ?? '', n.description?.value ?? ''] as [string, string]);
+  }
+
+  test("125: an option's description is its description, not part of its name (Chrome's tree)", async ({ page }) => {
+    await story(page, 'aura-new-in-5-26--choice-descriptions');
+    expect(await axAll(page, 'radio')).toEqual([
+      ['Membership', 'Annual membership fee for a member.'],
+      ['Event fee', 'A ticket or sponsorship for one event.'],
+      ['Paid now', ''],
+      ['Bill first', 'Needs a tax ID'],
+      ['ค่าสมาชิก', 'ค่าสมาชิกรายปีของสมาชิก'],
+    ]);
+    expect(await axAll(page, 'checkbox')).toEqual([['Email the member', 'Sent with the next invoice run.']]);
+    /* The same through Playwright's own computation, as Chamber-OS's tests will query it. */
+    const membership = page.getByRole('radio', { name: 'Membership', exact: true });
+    await expect(membership).toHaveAccessibleDescription('Annual membership fee for a member.');
+    await expect(page.getByRole('radio', { name: 'Bill first', exact: true })).toBeDisabled();
+  });
+
+  test('125: a click on the description still selects the option; Space and arrows still work', async ({ page }) => {
+    await story(page, 'aura-new-in-5-26--choice-descriptions');
+    const event = page.getByRole('radio', { name: 'Event fee', exact: true });
+    await page.getByText('A ticket or sponsorship for one event.').click();
+    await expect(event).toBeChecked();
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByRole('radio', { name: 'Membership', exact: true })).toBeChecked();
+    const email = page.getByRole('checkbox', { name: 'Email the member', exact: true });
+    await page.getByText('Sent with the next invoice run.').click();
+    await expect(email).toBeChecked();
+    await expect(email).toBeFocused();
+    await page.keyboard.press('Space');
+    await expect(email).not.toBeChecked();
+  });
+});

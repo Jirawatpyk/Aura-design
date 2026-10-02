@@ -52,6 +52,23 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.26 (Chamber-OS 125): a described radio or checkbox is named by its label span and described by its hint span. */
+  {
+    const e = React.createElement;
+    const rg = renderToString(e(A.RadioGroup, { label: 'For', options: [{ value: 'm', label: 'Membership', description: 'Annual fee' }, { value: 'e', label: 'Event' }] }));
+    const ins = rg.match(/<input[^>]*>/g) || [];
+    const ref = (s: string, a: string) => (new RegExp(a + '="([^"]+)"').exec(s) || [])[1];
+    const l = ref(ins[0] || '', 'aria-labelledby'), d = ref(ins[0] || '', 'aria-describedby');
+    const okRadio = !!l && !!d && rg.includes('id="' + l + '">Membership<') && rg.includes('id="' + d + '">Annual fee<') && !/aria-labelledby|aria-describedby/.test(ins[1] || '');
+    const cb = renderToString(e(A.Checkbox, { description: 'Sent next run' }, 'Email'));
+    const cl = ref(cb, 'aria-labelledby');
+    const okBox = !!cl && cb.includes('id="' + cl + '">Email<') && /aria-describedby="[^"]+-desc"/.test(cb);
+    /* A caller's aria-label is kept: on a bare box, and on a labelled one (which then isn't relabelled). */
+    const bare = renderToString(e(A.Checkbox, { hideLabel: true, 'aria-label': 'Select row' }));
+    const own = renderToString(e(A.Checkbox, { 'aria-label': 'Custom', description: 'd' }, 'Visible'));
+    const okOwn = /aria-label="Select row"/.test(bare) && /aria-label="Custom"/.test(own) && !/aria-labelledby/.test(own);
+    if (!okRadio || !okBox || !okOwn) { console.log(label, 'choice description wiring:', rg, cb, bare, own); fail++; }
+  }
   /* 5.25 (Chamber-OS 124): a toggle Tag takes touchHeight as a class; a plain one ignores it; never a DOM attribute. */
   {
     const e = React.createElement;
