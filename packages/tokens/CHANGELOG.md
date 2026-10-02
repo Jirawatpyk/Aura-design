@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.27.0
+
+### Minor Changes
+
+- a1d39ca: Chamber-OS addenda 33–34: `bleed` reaches through unpadded wrappers inside a Card, with `bleedEnd` for a table that ends the card from inside them; `Container` is exported from `/server`; the layered override guarantee covers a Container's padding.
+
 ## 5.26.0
 
 ### Minor Changes
