@@ -52,7 +52,7 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
-  /* 5.31 (Chamber-OS 129): stickyHeader pins to the page, or to a maxHeight box; neither prop reaches the DOM. */
+  /* 5.26 (Chamber-OS 129): stickyHeader pins to the page, or to a maxHeight box; neither prop reaches the DOM. */
   {
     const e = React.createElement;
     const body = e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')));
@@ -66,7 +66,7 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       !/sticky(H|h)eader=|maxheight=/i.test(pg + bx + vh);
     if (!ok) { console.log(label, 'Table stickyHeader:', pg.slice(0, 200), bx.slice(0, 200), vh.slice(0, 200), off.slice(0, 120)); fail++; }
   }
-  /* 5.30 (Chamber-OS 128): FilterDateRange's face is one named button; the value is formatted in the date locale. */
+  /* 5.26 (Chamber-OS 128): FilterDateRange's face is one named button; the value is formatted in the date locale. */
   {
     const e = React.createElement;
     const en = renderToString(e(A.FilterDateRange, { id: 'sub', label: 'Submitted', value: { start: '2026-09-01', end: '2026-09-30' } }));
@@ -78,7 +78,7 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       /aria-label="วันที่ส่ง: 25 ก.ย. – 3 ต.ค. 2569"/.test(th) && (en.match(/<button/g) || []).length === 1;
     if (!ok) { console.log(label, 'FilterDateRange face:', en, any, th); fail++; }
   }
-  /* 5.29 (Chamber-OS 127): bleed marks the outermost element (aura-bleed) and the frame (aura-bleed-frame). */
+  /* 5.26 (Chamber-OS 127): bleed marks the outermost element (aura-bleed) and the frame (aura-bleed-frame). */
   {
     const e = React.createElement;
     const cols = [{ key: 'm', label: 'M' }];
@@ -94,7 +94,7 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       !/ bleed=| bordered=/.test(flat + boxed + plain + tcards);
     if (!ok) { console.log(label, 'bleed classes:', flat.slice(0, 300), boxed.slice(0, 300), plain.slice(0, 200), tcards.slice(0, 300)); fail++; }
   }
-  /* 5.27 (Chamber-OS 126): Container passes id / data-* / aria-*, nothing else; align="start" adds is-start. */
+  /* 5.26 (Chamber-OS 126): Container passes id / data-* / aria-*, nothing else; align="start" adds is-start. */
   {
     const e = React.createElement;
     const c = renderToString(e(A.Container, { id: 'b', lang: 'th', dir: 'rtl', 'data-slot': 'layout-container', 'data-variant': 'form', 'aria-label': 'Form', align: 'start', size: 'narrow', foo: 'x' } as unknown as React.Attributes, 'x'));

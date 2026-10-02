@@ -71,7 +71,7 @@ export type DateText = {
   clearDates: string;
   chooseStart: string;
   chooseEnd: string;
-  /** FilterDateRange's empty value and its clearing choice (5.30). */
+  /** FilterDateRange's empty value and its clearing choice (5.26). */
   anyTime: string;
   /** Typed date outside min/max or disabled (5.1.1). */
   dateUnavailable: string;
@@ -161,7 +161,7 @@ export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOpt
   const loc = o.locale || 'en';
   return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, '');
 }
-/* 5.30 (Chamber-OS 128): a range in one string, sharing what the two ends share ("1 – 30 Sept 2026",
+/* 5.26 (Chamber-OS 128): a range in one string, sharing what the two ends share ("1 – 30 Sept 2026",
  * "25 ก.ย. – 3 ต.ค. 2569"); one day when both ends are the same. */
 export function formatDateRange(start: ISODate, end: ISODate, opts?: FormatDateOptions): string {
   const o: FormatDateOptions = opts || {},

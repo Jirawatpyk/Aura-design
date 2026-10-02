@@ -238,7 +238,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
                           key={it.id}
                           id={optId(n)}
                           role="option"
-                          /* 5.28: the description is read after the name (label and shortcut), not inside it. */
+                          /* 5.26: the description is read after the name (label and shortcut), not inside it. */
                           aria-labelledby={
                             it.description
                               ? optId(n) + '-label' + (it.shortcut ? ' ' + optId(n) + '-kbd' : '')

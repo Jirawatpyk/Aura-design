@@ -100,7 +100,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
    * can scroll it too. */
   const sc = React.useState(false),
     scrolls = sc[0];
-  /* 5.31: a table wider than its box scrolls sideways; then a page-pinned header can't pin (see stickyHeader). */
+  /* 5.26: a table wider than its box scrolls sideways; then a page-pinned header can't pin (see stickyHeader). */
   const wide = React.useState(false);
   useIsoLayoutEffect(function () {
     const el = wrap.current;
@@ -126,10 +126,10 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
         'aura-tbl-wrap',
         stackBelow && 'is-stackable',
         bordered === false && 'is-flush',
-        /* 5.29 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
+        /* 5.26 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
         bleed && 'aura-bleed-frame',
         bleed && !cards && 'aura-bleed',
-        /* 5.31 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
+        /* 5.26 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
         stickyHeader && (maxHeight != null ? 'is-sticky-box' : 'is-sticky-page'),
         maxHeight != null && 'has-max',
         wide[0] && 'is-wide',
@@ -141,7 +141,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
       tabIndex={scrolls ? 0 : undefined}
       /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
       role={scrolls && (caption != null || rest['aria-label'] || rest['aria-labelledby']) ? 'region' : undefined}
-      /* 5.31: the table's own aria-labelledby names the box too. */
+      /* 5.26: the table's own aria-labelledby names the box too. */
       aria-labelledby={scrolls ? (caption != null ? capId : rest['aria-labelledby']) : undefined}
       aria-label={scrolls && caption == null ? rest['aria-label'] : undefined}
     >

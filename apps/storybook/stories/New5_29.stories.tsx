@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
 
-const meta: Meta = { title: 'AURA/New in 5.29' };
+const meta: Meta = { title: 'AURA/New in 5.26 addendum 30' };
 export default meta;
 
 type Member = { id: string; name: string; tier: string; status: string };

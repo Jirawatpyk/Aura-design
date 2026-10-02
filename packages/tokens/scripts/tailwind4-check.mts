@@ -92,7 +92,7 @@ async function sheetWidth(name: string): Promise<string> {
   await p.close();
   return w;
 }
-/* 5.27 (Chamber-OS 126): overriding a Container's max-width and margin with utilities is supported under @layer aura —
+/* 5.26 (Chamber-OS 126): overriding a Container's max-width and margin with utilities is supported under @layer aura —
  * a 672px column, centred or at the start edge, at a 1400px page; the unlayered stylesheet keeps 1280px centred. */
 async function column(name: string, cls: string): Promise<string> {
   const p = await browser.newPage({ viewport: { width: 1400, height: 600 } });

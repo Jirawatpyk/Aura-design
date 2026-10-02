@@ -11,7 +11,7 @@ import type { DateRange, FilterDateRangeProps, ISODate } from './types.js';
 
 const NONE: DateRange = { start: null, end: null };
 
-/** A compact date-range filter for FilterBar (5.30, Chamber-OS 128): a face like FilterSelect's — "Submitted Any
+/** A compact date-range filter for FilterBar (5.26, Chamber-OS 128): a face like FilterSelect's — "Submitted Any
  * time ▾" — that opens the range calendar, with optional presets, in one click. `onChange` runs once a range is
  * complete, a preset is picked or the range is cleared; never on a lone start day. */
 export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRangeProps>(

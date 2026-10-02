@@ -125,7 +125,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 .aura-table__row-link:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
 /* Server mode refresh: the previous page stays, inactive, under a progress bar until the next one arrives */
 .aura-table.is-refreshing .aura-table__row { opacity: 0.6; pointer-events: none; }
-.aura-table.aura-table--borderless { border: 0; border-radius: 0; } /* 5.29: bordered={false} */
+.aura-table.aura-table--borderless { border: 0; border-radius: 0; } /* 5.26: bordered={false} */
 .aura-table__busy-bar {
   position: absolute; z-index: 6; top: calc(var(--aura-table-row-height) - 2px); left: 0; right: 0; height: 2px; overflow: hidden;
   border-radius: var(--aura-radius-full); pointer-events: none;
@@ -654,7 +654,7 @@ a.aura-icon-btn { text-decoration: none; }
   padding: var(--aura-card-padding); background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-card-radius); box-shadow: var(--aura-shadow-enterprise);
   font-family: var(--font-sans); font-size: 14px;
-  --aura-card-bleed: var(--aura-card-padding); /* 5.29: how far a bleeding table reaches out; 0 where the card is flush */
+  --aura-card-bleed: var(--aura-card-padding); /* 5.26: how far a bleeding table reaches out; 0 where the card is flush */
 }
 .aura-card.is-interactive { cursor: pointer; transition: border-color var(--aura-duration-fast) var(--aura-ease); }
 .aura-card.is-interactive:hover { border-color: var(--aura-border-control); }
@@ -662,7 +662,7 @@ a.aura-icon-btn { text-decoration: none; }
 @media (max-width: 639.98px) { .aura-card.aura-card--flush-below-sm, .aura-card.aura-card--flush-below-sm:hover { border-color: transparent; background: transparent; box-shadow: none; --aura-card-bleed: 0px; } }
 @media (max-width: 767.98px) { .aura-card.aura-card--flush-below-md, .aura-card.aura-card--flush-below-md:hover { border-color: transparent; background: transparent; box-shadow: none; --aura-card-bleed: 0px; } }
 @media (max-width: 1023.98px) { .aura-card.aura-card--flush-below-lg, .aura-card.aura-card--flush-below-lg:hover { border-color: transparent; background: transparent; box-shadow: none; --aura-card-bleed: 0px; } }
-/* 5.29 (Chamber-OS 127): bleed — a table that is a direct child of a Card's content spans its inner width; the side
+/* 5.26 (Chamber-OS 127): bleed — a table that is a direct child of a Card's content spans its inner width; the side
  * borders and radius go (a 0px bleed — a flush card — keeps them: 1px - min(1px, 0) = 1px). As the card's last content
  * it also drops its bottom rule and the card's radius closes it. */
 /* Two classes deep so it beats a stackable Table's width: 100%. `* 1000` turns any bleed into a 0 radius; 0 keeps it. */
@@ -981,7 +981,7 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-container { box-sizing: border-box; width: 100%; max-width: var(--aura-container-max); margin: 0 auto; padding: 0 var(--aura-space-4); }
 .aura-container.is-narrow { max-width: var(--aura-container-narrow); }
-.aura-container.is-start { margin-inline: 0; } /* 5.27 (Chamber-OS 126): align="start" */
+.aura-container.is-start { margin-inline: 0; } /* 5.26 (Chamber-OS 126): align="start" */
 /* Breakpoints: sm 640 · md 768 · lg 1024 · xl 1280 (aura-bp-* tokens; media queries can't read variables) */
 @media (min-width: 640px) {
   .aura-stack { flex-direction: var(--aura-stack-dir-sm, var(--aura-stack-dir-base, column)); align-items: var(--aura-stack-align-sm, stretch); gap: var(--aura-stack-gap-sm, var(--aura-stack-gap-base, var(--aura-space-4))); }
@@ -1553,7 +1553,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); cursor: not-allowed; }
 .aura-filterselect.is-disabled .aura-filterselect__native { cursor: not-allowed; }
 @media (forced-colors: active) { .aura-filterselect__face { border-color: ButtonText; } }
-/* 5.30 (Chamber-OS 128) FilterDateRange: presets beside the range calendar; above it on phones. */
+/* 5.26 (Chamber-OS 128) FilterDateRange: presets beside the range calendar; above it on phones. */
 .aura-filterdate__pop { display: flex; gap: var(--aura-space-3); overflow-y: auto; }
 .aura-filterdate__presets { display: flex; flex-direction: column; gap: 2px; min-width: 8rem; padding-inline-end: var(--aura-space-3); border-inline-end: 1px solid var(--aura-border-subtle); }
 .aura-filterdate__preset { justify-content: flex-start; }
@@ -1730,7 +1730,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl .is-end { text-align: right; }
 .aura-tbl .is-center { text-align: center; }
 .aura-tbl .is-numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
-/* 5.31 (Chamber-OS 129) stickyHeader. To the page: the box must not be a scroll container, so it clips sideways
+/* 5.26 (Chamber-OS 129) stickyHeader. To the page: the box must not be a scroll container, so it clips sideways
  * instead (nothing overflows while it fits; JavaScript marks a table that doesn't, which scrolls as before). In a
  * maxHeight box: the box scrolls both ways and the header pins to its top. The rule under the band moves with it. */
 .aura-tbl-wrap.is-sticky-page:not(.is-wide) { overflow-x: clip; }
@@ -1787,7 +1787,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
   }
-  /* 5.29: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
+  /* 5.26: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
   .aura-card__body > .aura-bleed.aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body > .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
 }
 @container aura-tbl (width < 640px) {
@@ -1811,7 +1811,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
   }
-  /* 5.29: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
+  /* 5.26: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
   .aura-card__body > .aura-bleed.aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body > .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
 }
 
@@ -1864,7 +1864,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
  * screen readers; the labels are generated content with empty alt text, so they aren't read twice. */
 @container aura-stack (width < 9999.5px) {
   .aura-table { background: transparent; border: 0; border-radius: 0; overflow: visible; }
-  /* 5.29: stacked cards inside a framed Card keep its padding (0 where the Card is flush). */
+  /* 5.26: stacked cards inside a framed Card keep its padding (0 where the Card is flush). */
   .aura-card__body > .aura-bleed .aura-bleed-frame { padding-inline: var(--aura-card-bleed); }
   .aura-card__body:last-child > .aura-bleed:last-child .aura-bleed-frame { padding-bottom: var(--aura-card-bleed); }
   .aura-table__scroll { overflow: visible; height: auto; }

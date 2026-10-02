@@ -4981,12 +4981,12 @@ test.describe('5.26: Chamber-OS addendum 28', () => {
   });
 });
 
-test.describe('5.27: Chamber-OS addendum 29', () => {
+test.describe('5.26: Chamber-OS addendum 29', () => {
   test('126: Container align="start" sits at the start edge (left, right in RTL); the default stays centred', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1400, height: 700 });
-    await story(page, 'aura-new-in-5-27--container-align');
+    await story(page, 'aura-new-in-5-26-addendum-29--container-align');
     /* Measured inside the element's parent (the story's own frame may pad the page). */
     const rect = (l: import('@playwright/test').Locator) =>
       l.evaluate((el) => {
@@ -5007,7 +5007,7 @@ test.describe('5.27: Chamber-OS addendum 29', () => {
   });
 
   test('126: Container passes id, data-* and aria-* to its element', async ({ page }) => {
-    await story(page, 'aura-new-in-5-27--container-align');
+    await story(page, 'aura-new-in-5-26-addendum-29--container-align');
     const board = page.locator('#board');
     await expect(board).toHaveAttribute('data-slot', 'layout-container');
     await expect(board).toHaveAttribute('data-variant', 'form');
@@ -5017,7 +5017,7 @@ test.describe('5.27: Chamber-OS addendum 29', () => {
   });
 });
 
-test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)', () => {
+test.describe('5.26: descriptions are not names (Accordion, Combobox, Command)', () => {
   type AX = { role?: { value: string }; name?: { value: string }; description?: { value: string } };
   async function ax(page: import('@playwright/test').Page, roles: string[]) {
     const cdp = await page.context().newCDPSession(page);
@@ -5030,7 +5030,7 @@ test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)',
   test("Accordion: a header button and its panel are named by the title; the description is the button's description", async ({
     page,
   }) => {
-    await story(page, 'aura-new-in-5-28--descriptions-not-names');
+    await story(page, 'aura-new-in-5-26-descriptions--descriptions-not-names');
     await page.getByRole('button', { name: 'Fees', exact: true }).click();
     const got = (await ax(page, ['button', 'region'])).filter(([, n]) => /Fees|Contacts/.test(n)).sort();
     expect(got).toEqual(
@@ -5043,7 +5043,7 @@ test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)',
   });
 
   test('Combobox: an option is named by its label and described by its second line', async ({ page }) => {
-    await story(page, 'aura-new-in-5-28--descriptions-not-names');
+    await story(page, 'aura-new-in-5-26-descriptions--descriptions-not-names');
     await page.getByRole('combobox', { name: 'Member' }).click();
     await expect(page.getByRole('option', { name: 'Acme AB', exact: true })).toHaveAccessibleDescription(
       'Stockholm · Corporate',
@@ -5058,7 +5058,7 @@ test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)',
   });
 
   test('Command: an item keeps its shortcut in the name and reads the description after it', async ({ page }) => {
-    await story(page, 'aura-new-in-5-28--descriptions-not-names');
+    await story(page, 'aura-new-in-5-26-descriptions--descriptions-not-names');
     await page.getByRole('button', { name: 'Open commands' }).click();
     const opts = await ax(page, ['option']);
     expect(opts).toEqual([
@@ -5073,7 +5073,7 @@ test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)',
   });
 });
 
-test.describe('5.29: Chamber-OS addendum 30', () => {
+test.describe('5.26: Chamber-OS addendum 30', () => {
   type Geo = Record<string, number | string>;
   /* The card's inner box (inside its border), the bleeding frame's box and borders, and the first cell's text. */
   const geo = (page: import('@playwright/test').Page, id: string, frame: string) =>
@@ -5105,7 +5105,7 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await story(page, 'aura-new-in-5-29--table-bleed');
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
     const radius = await page.getByTestId('last').evaluate((c) => parseFloat(getComputedStyle(c).borderTopLeftRadius));
     expect(await geo(page, 'last', '.aura-table')).toEqual({
       left: 0,
@@ -5146,7 +5146,7 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await story(page, 'aura-new-in-5-29--table-bleed');
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
     const frame = (id: string) =>
       page
         .getByTestId(id)
@@ -5168,7 +5168,7 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
 
   test('127: below flushBelow bleed does nothing — the stacked cards keep the page gutter', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 900 });
-    await story(page, 'aura-new-in-5-29--table-bleed');
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
     const r = await page.getByTestId('last').evaluate((card) => {
       const c = card.getBoundingClientRect(),
         f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
@@ -5187,7 +5187,7 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
 
   test('127: a stackable Table bleeds the full width, and stacked as a list its rows stay level', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await story(page, 'aura-new-in-5-29--table-bleed');
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
     const g = await geo(page, 'static', '.aura-tbl-wrap');
     expect([g.left, g.right, g.level]).toEqual([0, 0, 0]);
     await page.setViewportSize({ width: 700, height: 900 });
@@ -5216,7 +5216,7 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
 
   test('127: stacked inside a framed Card the cards keep its padding', async ({ page }) => {
     await page.setViewportSize({ width: 600, height: 900 });
-    await story(page, 'aura-new-in-5-29--table-bleed');
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
     const r = await page.getByTestId('footer').evaluate((card) => {
       const f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
         row = card.querySelector('.aura-table__row')!.getBoundingClientRect();
@@ -5226,8 +5226,8 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
   });
 });
 
-test.describe('5.30: Chamber-OS addendum 31', () => {
-  const ID = 'aura-new-in-5-30--filter-dates';
+test.describe('5.26: Chamber-OS addendum 31', () => {
+  const ID = 'aura-new-in-5-26-addendum-31--filter-dates';
   const log = (page: import('@playwright/test').Page) => page.getByTestId('log').locator('li').allTextContents();
 
   test('128: the face sits like a FilterSelect, is one named button, and opens the calendar in one click', async ({
@@ -5320,12 +5320,12 @@ test.describe('5.30: Chamber-OS addendum 31', () => {
   });
 });
 
-test.describe('5.31: Chamber-OS addendum 32', () => {
+test.describe('5.26: Chamber-OS addendum 32', () => {
   test("129: stickyHeader pins the header under AppShell's bar while the page scrolls, band and rule with it", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 700 });
-    await story(page, 'aura-new-in-5-31--sticky-header-page');
+    await story(page, 'aura-new-in-5-26-addendum-32--sticky-header-page');
     const th = page.getByRole('columnheader', { name: 'PLAN' });
     const bar = await page.locator('.aura-shell__bar').evaluate((b) => b.getBoundingClientRect().height);
     await page.mouse.wheel(0, 900);
@@ -5355,7 +5355,7 @@ test.describe('5.31: Chamber-OS addendum 32', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    await story(page, 'aura-new-in-5-26-addendum-32--sticky-header-box');
     const box = page.getByTestId('box').locator('.aura-tbl-wrap');
     expect(Math.round((await box.boundingBox())!.height)).toBe(240);
     await box.evaluate((el) => (el.scrollTop = 400));
@@ -5373,7 +5373,7 @@ test.describe('5.31: Chamber-OS addendum 32', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    await story(page, 'aura-new-in-5-26-addendum-32--sticky-header-box');
     const th = page.getByTestId('grow').getByRole('columnheader', { name: 'PLAN' });
     expect(await th.evaluate((el) => getComputedStyle(el).borderBottomWidth)).toBe('0px');
     const w = page.getByTestId('grow').locator('.aura-tbl-wrap');
@@ -5390,7 +5390,7 @@ test.describe('5.31: Chamber-OS addendum 32', () => {
 
   test('129: maxHeight caps stacked cards too; nothing spills onto what follows', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 900 });
-    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    await story(page, 'aura-new-in-5-26-addendum-32--sticky-header-box');
     const box = (await page.getByTestId('stacked').locator('.aura-tbl-wrap').boundingBox())!;
     const after = (await page.getByTestId('after').boundingBox())!;
     expect(Math.round(box.height)).toBe(200);
@@ -5399,7 +5399,7 @@ test.describe('5.31: Chamber-OS addendum 32', () => {
 
   test('129: a table wider than its box still scrolls sideways (nothing is clipped)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    await story(page, 'aura-new-in-5-26-addendum-32--sticky-header-box');
     const w = page.getByTestId('wide').locator('.aura-tbl-wrap');
     await expect(w).toHaveClass(/is-wide/);
     const r = await w.evaluate((el) => [getComputedStyle(el).overflowX, el.scrollWidth > el.clientWidth]);

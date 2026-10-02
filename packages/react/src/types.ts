@@ -238,13 +238,13 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
   density?: 'comfortable' | 'compact' | undefined;
   /** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. With `height` (virtual rows) the server can only send the first screenful; the rest of the cards arrive on hydration. */
   stackBelow?: number | undefined;
-  /** Edge to edge inside a Card (5.29, Chamber-OS 127): as a direct child of a Card's content, the table spans the
+  /** Edge to edge inside a Card (5.26, Chamber-OS 127): as a direct child of a Card's content, the table spans the
    * card's full inner width — no side borders, no radius — keeping its header band and top rule; as the card's last
    * content (no footer, nothing after it) it drops its bottom rule and the card's radius closes it. Below the Card's
    * `flushBelow` width, and outside a Card, it does nothing. */
   bleed?: boolean | undefined;
   /** `false` drops the frame — border and radius — keeping the header band and the 24px gutter, for a table that sits
-   * in a section without bleeding (5.29). Default `true`. */
+   * in a section without bleeding (5.26). Default `true`. */
   bordered?: boolean | undefined;
   className?: string | undefined;
 }
@@ -557,7 +557,7 @@ export interface CommandItem {
   /** Items with the same group are listed together under its heading, in first-seen order. */
   group?: string | undefined;
   icon?: IconInput | undefined;
-  /** A second line; read after the item's name (label and shortcut), not as part of it (5.28). */
+  /** A second line; read after the item's name (label and shortcut), not as part of it (5.26). */
   description?: string | undefined;
   /** Extra words that find it ("invoice" → Billing). */
   keywords?: string[] | undefined;
@@ -942,7 +942,7 @@ export interface DropdownMenuProps {
 export interface ComboboxOption {
   value: string;
   label: string;
-  /** Second line in the list; also searched. Read after the option's name, not as part of it (5.28). */
+  /** Second line in the list; also searched. Read after the option's name, not as part of it (5.26). */
   description?: string | undefined;
   /** Extra search terms (English name, phone, code…). */
   keywords?: string[] | undefined;
@@ -1140,12 +1140,12 @@ export interface DateRange {
   start: ISODate | null;
   end: ISODate | null;
 }
-/** A FilterDateRange preset: a name and the range it sets (5.30). */
+/** A FilterDateRange preset: a name and the range it sets (5.26). */
 export interface DateRangePreset {
   label: string;
   range: DateRange;
 }
-/** A compact date-range filter for FilterBar (5.30, Chamber-OS 128): "Submitted Any time ▾", one click to the range
+/** A compact date-range filter for FilterBar (5.26, Chamber-OS 128): "Submitted Any time ▾", one click to the range
  * calendar. Dates as DateRangePicker: `locale` / `calendar` from the provider (Thai shows Buddhist-era years), `min`,
  * `max`, `timeZone`, `weekStartsOn`. */
 export interface FilterDateRangeProps
@@ -1298,13 +1298,13 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
   /** `false` (5.13) drops the frame — border, radius, background — and the outer cells' side padding, so the table
    * lines up with the content around it, e.g. flush inside a Card under its heading. Default `true`. */
   bordered?: boolean | undefined;
-  /** Edge to edge inside a Card (5.29, Chamber-OS 127): as a direct child of a Card's content, the table spans the
+  /** Edge to edge inside a Card (5.26, Chamber-OS 127): as a direct child of a Card's content, the table spans the
    * card's full inner width — no side borders, no radius — keeping its header band and top rule, and its outer
    * cells' 24px padding keeps the text level with the card's content. As the card's last content it drops its
    * bottom rule and the card's radius closes it. Below the Card's `flushBelow` width, and outside a Card, it does
    * nothing. With `bordered={false}` too, the outer cells take the card's padding while it bleeds. */
   bleed?: boolean | undefined;
-  /** Keep the header row in view while the rows scroll (5.31, Chamber-OS 129), with its band, its bottom rule and
+  /** Keep the header row in view while the rows scroll (5.26, Chamber-OS 129), with its band, its bottom rule and
    * above the body. Without `maxHeight` it pins to the page's scroll, under an AppShell's top bar
    * (`--aura-shell-bar-height`; set `--aura-table-sticky-top` for another offset). A table wider than its box
    * scrolls sideways instead and its header can't pin to the page then: give it `maxHeight`. Inside your own scroll
@@ -1312,7 +1312,7 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
    * scrolls both ways and the header pins to its top. One header row. Stacked rows (`stackBelow`) have no visible header, so it
    * does nothing there. Default off. */
   stickyHeader?: boolean | undefined;
-  /** Caps the table's box (px, or any CSS length such as `60vh`); the rows scroll inside it. (5.31) */
+  /** Caps the table's box (px, or any CSS length such as `60vh`); the rows scroll inside it. (5.26) */
   maxHeight?: number | string | undefined;
   /** How stacked rows look (5.15, Chamber-OS 85): `list` (default) — one frame, rows divided by rules; `cards` —
    * each row its own framed card, spaced like DataTable's cards, with no frame around them. From the `stackBelow`
@@ -1601,7 +1601,7 @@ export interface PaginationProps {
 export interface AccordionItem {
   id: string;
   title: React.ReactNode;
-  /** A second line under the title; read as the header button's description, not its name (5.28). */
+  /** A second line under the title; read as the header button's description, not its name (5.26). */
   description?: React.ReactNode | undefined;
   content: React.ReactNode;
   icon?: IconInput | undefined;

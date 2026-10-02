@@ -186,34 +186,38 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
-## 5.31 — Chamber-OS addendum 32
+## 5.26 — Chamber-OS addenda 28–32
+
+One release: everything below shipped together in 5.26.0.
+
+### Table `stickyHeader` (addendum 32)
 
 - **Table `stickyHeader`** (item 129): the header row stays in view while the rows scroll — its band, the rule under it (drawn as an inset shadow, which moves with it) and above the body. Default off. **What it sticks to:** without `maxHeight` it pins to the page's scroll, under an AppShell's top bar (`--aura-shell-bar-height`: 56px with a `header`; 0 without a bar, and 0 from 1024px in a menu-only shell); set `--aura-table-sticky-top` for another offset — `0px` inside your own scroll container within an AppShell (Dialog and Drawer need nothing), or use `maxHeight` there. To pin to the page the box can't be a scroll container, so it clips sideways instead; a table wider than its box (JavaScript marks it) scrolls sideways as before and then its header can't pin to the page — give such a table `maxHeight`. With **`maxHeight`** (px or any length, e.g. `60vh`) the box scrolls both ways, its header pins to the box's top, and the box becomes a focusable region for the keyboard, named by the `caption` or `aria-label` (development builds warn without one). Under `bleed` the pinned band spans the card's inner width. One header row pins; a header with several rows isn't supported. Stacked rows (`stackBelow`) have no visible header, so it does nothing there (`maxHeight` still caps and scrolls them).
 - **DataTable's header** is sticky inside DataTable's own scroll box, which scrolls vertically only with `height`; without `height` it does not pin to the page. Unchanged here.
 
-## 5.30 — Chamber-OS addendum 31
+### `FilterDateRange` (addendum 31)
 
 - **`FilterDateRange`** (item 128): a compact date-range filter for `FilterBar`. Its face matches `FilterSelect`'s — the name, the value, a chevron ("Submitted Any time", "Submitted 1 – 30 Sept 2026") — at the same height, wrapping with the others on a phone. One click opens the range calendar in a popover, as DateRangePicker's opens (also on phones). Optional `presets` (`{ label, range }[]`: Last 7 days, This month…) sit beside the calendar (above it on phones) with an "Any time" choice that clears it. `onChange` runs once a range is complete, a preset is picked or the range is cleared — never on a lone start day — so it can write `?from=&to=` directly. The face is one button named with both parts ("Submitted: Any time"), with `aria-haspopup="dialog"` and `aria-expanded`; the popover is a dialog named by the filter, Escape closes it without a change and focus returns to the face. Dates as DateRangePicker: the provider's `locale` and `calendar` (Thai shows Buddhist-era years, on the face too), `min` / `max`, `timeZone`, `today`, `weekStartsOn`, `isDateDisabled`. The face shares what both ends share ("25 Sept – 3 Oct 2026"). A preset reaching past `min` / `max` is disabled; picking the range already chosen just closes. `data-*`, `aria-*` and `style` reach the face. There is no typed input and no form field (no `name`): write the range in `onChange`, or use DateRangePicker where a form field is wanted.
 - Budget raised on purpose: styles.css 28 → 30 kB.
 
-## 5.29 — Chamber-OS addendum 30
+### `bleed` (addendum 30)
 
 - **`bleed` on DataTable and Table** (item 127): edge to edge inside a Card — a list card with its filters in the card's padding and the table across its full inner width (Polaris IndexTable, GitHub issues). As a direct child of the Card's content the table loses its side borders and radius and is pulled out by the card's padding; its header band and top rule stay, and cell text stays level with the card's content (DataTable's 24px gutter, Table's 24px outer cells). When it is the card's last content (no Card `footer`, nothing after it) the bottom rule goes too and the card's radius closes it; a pager or footer after it keeps the rule. Below the Card's `flushBelow` width, and outside a Card, it does nothing; stacked rows inside a framed Card keep its padding. Wrap nothing between the Card and the table, or it won't bleed. The reach is the Card's padding token: change a Card's padding with `--aura-card-padding` (with a unit, `0px`), not a padding utility, or the table overshoots or falls short; `flushBelow` with `max-sm:p-0` is fine. On phones (<640px) a Card without `flushBelow` has 16px padding while DataTable's gutter stays 24px, so its text sits 8px in from the card's content there; Table's outer cells stay 24px too.
 - **DataTable `bordered={false}`**: drops the frame (border and radius) and keeps the header band and the 24px gutter, for a table in a section that doesn't bleed. Table's `bordered={false}` is unchanged.
 - Budgets raised on purpose: the whole library and the `window.Aura` bundle 62 → 64 kB.
 
-## 5.28 — descriptions are read after the name
+### Descriptions are read after the name
 
 - **Accordion, Combobox and Command** follow 5.26's RadioGroup: an item's `description` was part of its accessible name ("Fees Two unpaid invoices", "Acme AB Stockholm · Corporate"). Now the name is the title or label alone and the description is read after it (`aria-describedby`). An Accordion panel is named by its title. A Command item keeps its shortcut in its name ("New invoice N I"), as before. The heading around an Accordion header is named by the title too. An Accordion title is now always one inline line (a `Badge` in a rich title stays beside the text instead of taking its own stretched row). Otherwise the layout is unchanged, and items without a description are named as before. Tests that matched the joined text need the label alone plus `toHaveAccessibleDescription`.
 
-## 5.27 — Chamber-OS addendum 29
+### Container (addendum 29)
 
 - **Overriding a Container's width and margin is supported** (item 126): with `styles.layer.css`, utilities that set `max-width` or `margin` on a `Container` (`max-w-[672px]`, `mx-0`, `ms-0`) win over `.aura-container`, and that is now a guarantee rather than a side effect. AURA keeps every `.aura-container` rule in `@layer aura`, never uses `!important` on it and never adds an unlayered rule for it; `npm run check:tailwind4` fails if a 672px column, centred or at the start edge, stops working at a 1400px page. With the unlayered `styles.css` the component wins instead (as for every component), so use `size` / `align` or the layered stylesheet. The side padding (16 / 24 / 32px at <640 / ≥640 / ≥1024) and its removal directly inside a padded `AppShell` are unchanged.
 - **`align="start"`**: the column sits at the start edge (left; right in right-to-left) instead of being centred — a form board beside the page's start. Default `center`.
 - **Attributes reach the element**: `id`, `lang`, `dir`, `aria-*` and `data-*` (e.g. `data-slot="layout-container" data-variant="form"`), so an app's layout checks can read a Container. Other props are still not passed.
 - Budget raised on purpose: styles.css 27 → 28 kB.
 
-## 5.26 — Chamber-OS addendum 28
+### Choice descriptions (addendum 28)
 
 - **A choice's description is no longer part of its name** (item 125): a RadioGroup option with `description` was named "Membership Annual membership fee for a member." because both lines sat inside its `<label>`. The radio is now named by its label alone (`aria-labelledby`) and the description is read after it (`aria-describedby`), also on a disabled option ("Bill first", "Needs a tax ID"). A labelled Checkbox with `description` had the same fault (its description was read twice, in the name and as the description) and gets the same fix. The layout is unchanged, and a click on the description still selects. A regex or substring on the label part still matches; one that matched the hint text must move to `toHaveAccessibleDescription`, and an exact `name: 'Membership'` now works. Also fixed: a Checkbox's own `aria-label` was dropped (a `hideLabel` box named only by `aria-label="Select row"` had no name); it is now kept. On a box with visible text your `aria-label` now replaces that text as the name, so start it with the visible words (WCAG 2.5.3). Options without a description render as before.
 

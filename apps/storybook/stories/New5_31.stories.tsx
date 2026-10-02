@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
 
-const meta: Meta = { title: 'AURA/New in 5.31', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'AURA/New in 5.26 addendum 32', parameters: { layout: 'fullscreen' } };
 export default meta;
 
 const ROWS = Array.from({ length: 40 }, (_, i) => ({

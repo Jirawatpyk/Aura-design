@@ -62,7 +62,7 @@ export const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(functi
               <button
                 type="button"
                 id={bid}
-                /* 5.28: named by its title; the description is read after it. */
+                /* 5.26: named by its title; the description is read after it. */
                 aria-labelledby={it.description ? bid + '-title' : undefined}
                 aria-describedby={it.description ? bid + '-desc' : undefined}
                 aria-expanded={on}

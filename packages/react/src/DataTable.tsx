@@ -1586,7 +1586,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       data-density={props.density}
       className={cx(
         'aura-table',
-        /* 5.29 (Chamber-OS 127): bleed and bordered={false}; the outermost element carries aura-bleed. */
+        /* 5.26 (Chamber-OS 127): bleed and bordered={false}; the outermost element carries aura-bleed. */
         props.bleed && 'aura-bleed-frame',
         props.bleed && !levels.length && 'aura-bleed',
         props.bordered === false && 'aura-table--borderless',

@@ -6504,7 +6504,7 @@ window.Aura = (() => {
         "data-density": props.density,
         className: cx(
           "aura-table",
-          /* 5.29 (Chamber-OS 127): bleed and bordered={false}; the outermost element carries aura-bleed. */
+          /* 5.26 (Chamber-OS 127): bleed and bordered={false}; the outermost element carries aura-bleed. */
           props.bleed && "aura-bleed-frame",
           props.bleed && !levels.length && "aura-bleed",
           props.bordered === false && "aura-table--borderless",
@@ -7527,10 +7527,10 @@ window.Aura = (() => {
           "aura-tbl-wrap",
           stackBelow && "is-stackable",
           bordered === false && "is-flush",
-          /* 5.29 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
+          /* 5.26 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
           bleed && "aura-bleed-frame",
           bleed && !cards && "aura-bleed",
-          /* 5.31 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
+          /* 5.26 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
           stickyHeader && (maxHeight != null ? "is-sticky-box" : "is-sticky-page"),
           maxHeight != null && "has-max",
           wide[0] && "is-wide"

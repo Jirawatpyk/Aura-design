@@ -305,7 +305,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
           id={optId(i)}
           role="option"
           data-idx={i}
-          /* 5.28: a description is read after the option's name, not as part of it. */
+          /* 5.26: a description is read after the option's name, not as part of it. */
           aria-labelledby={o.description ? optId(i) + '-label' : undefined}
           aria-describedby={o.description ? optId(i) + '-desc' : undefined}
           aria-selected={isSel}

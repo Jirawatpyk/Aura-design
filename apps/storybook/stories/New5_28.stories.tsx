@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
 
-const meta: Meta = { title: 'AURA/New in 5.28' };
+const meta: Meta = { title: 'AURA/New in 5.26 descriptions' };
 export default meta;
 
 /* After 125 (5.26): Accordion, Combobox and Command read a description after the name, not inside it. */
