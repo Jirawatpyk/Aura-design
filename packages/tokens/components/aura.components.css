@@ -662,21 +662,22 @@ a.aura-icon-btn { text-decoration: none; }
 @media (max-width: 639.98px) { .aura-card.aura-card--flush-below-sm, .aura-card.aura-card--flush-below-sm:hover { border-color: transparent; background: transparent; box-shadow: none; --aura-card-bleed: 0px; } }
 @media (max-width: 767.98px) { .aura-card.aura-card--flush-below-md, .aura-card.aura-card--flush-below-md:hover { border-color: transparent; background: transparent; box-shadow: none; --aura-card-bleed: 0px; } }
 @media (max-width: 1023.98px) { .aura-card.aura-card--flush-below-lg, .aura-card.aura-card--flush-below-lg:hover { border-color: transparent; background: transparent; box-shadow: none; --aura-card-bleed: 0px; } }
-/* 5.26 (Chamber-OS 127): bleed — a table that is a direct child of a Card's content spans its inner width; the side
+/* 5.26 (Chamber-OS 127): bleed — a table anywhere in a Card's content (5.27, 130: through the app's own unpadded
+ * wrappers; a nested Card resets the reach) spans its inner width; the side
  * borders and radius go (a 0px bleed — a flush card — keeps them: 1px - min(1px, 0) = 1px). As the card's last content
  * it also drops its bottom rule and the card's radius closes it. */
 /* Two classes deep so it beats a stackable Table's width: 100%. `* 1000` turns any bleed into a 0 radius; 0 keeps it. */
-.aura-card .aura-card__body > .aura-bleed { margin-inline: calc(-1 * var(--aura-card-bleed)); width: auto; }
+.aura-card .aura-card__body .aura-bleed { margin-inline: calc(-1 * var(--aura-card-bleed)); width: auto; }
 /* A Table with bordered={false} too: its outer cells take the bleed (0 where the card is flush, as before). */
-.aura-card__body > .aura-bleed .aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :first-child,
-.aura-card__body > .aura-bleed.aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :first-child { padding-inline-start: var(--aura-card-bleed); }
-.aura-card__body > .aura-bleed .aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :last-child,
-.aura-card__body > .aura-bleed.aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :last-child { padding-inline-end: var(--aura-card-bleed); }
-.aura-card__body > .aura-bleed.aura-bleed-frame, .aura-card__body > .aura-bleed .aura-bleed-frame {
+.aura-card__body .aura-bleed .aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :first-child,
+.aura-card__body .aura-bleed.aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :first-child { padding-inline-start: var(--aura-card-bleed); }
+.aura-card__body .aura-bleed .aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :last-child,
+.aura-card__body .aura-bleed.aura-tbl-wrap.is-flush > .aura-tbl > * > .aura-tbl__row > :last-child { padding-inline-end: var(--aura-card-bleed); }
+.aura-card__body .aura-bleed.aura-bleed-frame, .aura-card__body .aura-bleed .aura-bleed-frame {
   border-inline-width: calc(1px - min(1px, var(--aura-card-bleed))); border-radius: max(0px, var(--aura-card-radius) - var(--aura-card-bleed) * 1000);
 }
-.aura-card__body:last-child > .aura-bleed:last-child { margin-bottom: calc(-1 * var(--aura-card-bleed)); }
-.aura-card__body:last-child > .aura-bleed:last-child.aura-bleed-frame, .aura-card__body:last-child > .aura-bleed:last-child .aura-bleed-frame {
+:is(.aura-card__body:last-child > .aura-bleed:last-child, .aura-card__body:last-child .aura-bleed.aura-bleed-end) { margin-bottom: calc(-1 * var(--aura-card-bleed)); }
+:is(.aura-card__body:last-child > .aura-bleed:last-child, .aura-card__body:last-child .aura-bleed.aura-bleed-end).aura-bleed-frame, :is(.aura-card__body:last-child > .aura-bleed:last-child, .aura-card__body:last-child .aura-bleed.aura-bleed-end) .aura-bleed-frame {
   border-bottom-width: calc(1px - min(1px, var(--aura-card-bleed)));
   border-bottom-left-radius: calc(var(--aura-card-radius) - min(1px, var(--aura-card-bleed)));
   border-bottom-right-radius: calc(var(--aura-card-radius) - min(1px, var(--aura-card-bleed)));
@@ -1788,7 +1789,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
   }
   /* 5.26: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
-  .aura-card__body > .aura-bleed.aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body > .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
+  .aura-card__body .aura-bleed.aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
 }
 @container aura-tbl (width < 640px) {
   .aura-tbl--stack-sm, .aura-tbl--stack-sm > .aura-tbl__body, .aura-tbl--stack-sm > .aura-tbl__foot, .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { display: block; }
@@ -1812,7 +1813,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
   }
   /* 5.26: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
-  .aura-card__body > .aura-bleed.aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body > .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
+  .aura-card__body .aura-bleed.aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
 }
 
 /* 5.15 (Chamber-OS 85): stackStyle="cards" — each stacked row its own card (DataTable's card spacing), no outer frame.
@@ -1820,8 +1821,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl-cards { container: aura-tbl / inline-size; width: 100%; }
 @container aura-tbl (width < 768px) {
   .aura-tbl-cards--md > .aura-tbl-wrap { border: 0; border-radius: 0; background: transparent; overflow: visible; }
-  .aura-card__body > .aura-bleed.aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-md, .aura-card__body > .aura-bleed > .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-md { padding-inline: var(--aura-card-bleed); }
-  .aura-card__body:last-child > .aura-bleed:last-child .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-md { padding-bottom: var(--aura-card-bleed); }
+  .aura-card__body .aura-bleed.aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-md, .aura-card__body .aura-bleed > .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-md { padding-inline: var(--aura-card-bleed); }
+  :is(.aura-card__body:last-child > .aura-bleed:last-child, .aura-card__body:last-child .aura-bleed.aura-bleed-end) .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-md { padding-bottom: var(--aura-card-bleed); }
   .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
   .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row, .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row {
     margin-bottom: var(--aura-space-2); padding: var(--aura-tbl-card-py, var(--aura-space-4)) var(--aura-space-4);
@@ -1833,8 +1834,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 }
 @container aura-tbl (width < 640px) {
   .aura-tbl-cards--sm > .aura-tbl-wrap { border: 0; border-radius: 0; background: transparent; overflow: visible; }
-  .aura-card__body > .aura-bleed.aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-sm, .aura-card__body > .aura-bleed > .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-sm { padding-inline: var(--aura-card-bleed); }
-  .aura-card__body:last-child > .aura-bleed:last-child .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-sm { padding-bottom: var(--aura-card-bleed); }
+  .aura-card__body .aura-bleed.aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-sm, .aura-card__body .aura-bleed > .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-sm { padding-inline: var(--aura-card-bleed); }
+  :is(.aura-card__body:last-child > .aura-bleed:last-child, .aura-card__body:last-child .aura-bleed.aura-bleed-end) .aura-bleed-frame > .aura-tbl--cards.aura-tbl--stack-sm { padding-bottom: var(--aura-card-bleed); }
   .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
   .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row {
     margin-bottom: var(--aura-space-2); padding: var(--aura-tbl-card-py, var(--aura-space-4)) var(--aura-space-4);
@@ -1865,8 +1866,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @container aura-stack (width < 9999.5px) {
   .aura-table { background: transparent; border: 0; border-radius: 0; overflow: visible; }
   /* 5.26: stacked cards inside a framed Card keep its padding (0 where the Card is flush). */
-  .aura-card__body > .aura-bleed .aura-bleed-frame { padding-inline: var(--aura-card-bleed); }
-  .aura-card__body:last-child > .aura-bleed:last-child .aura-bleed-frame { padding-bottom: var(--aura-card-bleed); }
+  .aura-card__body .aura-bleed .aura-bleed-frame { padding-inline: var(--aura-card-bleed); }
+  :is(.aura-card__body:last-child > .aura-bleed:last-child, .aura-card__body:last-child .aura-bleed.aura-bleed-end) .aura-bleed-frame { padding-bottom: var(--aura-card-bleed); }
   .aura-table__scroll { overflow: visible; height: auto; }
   .aura-table__busy-bar { top: 0; }
   .aura-table__picker { display: none; }

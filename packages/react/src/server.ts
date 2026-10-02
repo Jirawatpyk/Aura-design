@@ -32,6 +32,9 @@ export {
   buttonClass,
 } from './display.js';
 export { Icon, registerIcons } from './Icon.js';
+/* 5.27 (Chamber-OS 131): Container is stateless too — the page column for Server Components. */
+export { Container } from './Container.js';
+export type { ContainerProps } from './Container.js';
 export type {
   AlertProps,
   AvatarProps,

@@ -84,6 +84,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const cols = [{ key: 'm', label: 'M' }];
     const flat = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bleed: true }));
     const boxed = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bleed: true, stackBelow: 640 }));
+    const ended = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bleed: true, bleedEnd: true, stackBelow: 640 }));
+    if (!/^<div class="aura-table-box aura-bleed aura-bleed-end">/.test(ended) || /bleedend=/i.test(ended)) { console.log(label, 'bleedEnd:', ended.slice(0, 200)); fail++; }
+    const flatEnd = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bleed: true, bleedEnd: true }));
+    const tEnd = renderToString(e(A.Table, { caption: 'T', bleed: true, bleedEnd: true }, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))));
+    const tCardsEnd = renderToString(e(A.Table, { caption: 'T', bleed: true, bleedEnd: true, stackBelow: 'md', stackStyle: 'cards' }, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))));
+    if (!/^<div[^>]*class="aura-table aura-bleed-frame aura-bleed aura-bleed-end"/.test(flatEnd) || !/class="aura-tbl-wrap aura-bleed-frame aura-bleed aura-bleed-end"/.test(tEnd) || !/^<div class="aura-tbl-cards aura-tbl-cards--md aura-bleed aura-bleed-end">/.test(tCardsEnd) || /bleedend=/i.test(flatEnd + tEnd + tCardsEnd)) { console.log(label, 'bleedEnd placement:', flatEnd.slice(0, 160), tEnd.slice(0, 160), tCardsEnd.slice(0, 160)); fail++; }
     const plain = renderToString(e(A.DataTable, { label: 'R', rows: [{ id: 1, m: 'x' }], rowKey: 'id', columns: cols, bordered: false }));
     const tcards = renderToString(e(A.Table, { caption: 'T', bleed: true, bordered: false, stackBelow: 'md', stackStyle: 'cards' }, e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))));
     const ok =
@@ -258,6 +264,9 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const ch = m(e(A.Card, { header: pill, title: 'Ignored', titleId: 't1', flushBelow: 'lg' }, 'b'));
     if (!/^<section class="aura-card aura-card--flush-below-lg"><div class="aura-card__head"><div class="aura-card__heading"><span class="aura-pill/.test(ch) || /<h\d|Ignored|aria-labelledby/.test(ch)) bad('Card header/flushBelow:', ch);
     if (m(e(S.Card, { header: pill, flushBelow: 'lg' }, 'b')) !== m(e(A.Card, { header: pill, flushBelow: 'lg' }, 'b'))) bad('/server Card header differs');
+    /* 5.27 (Chamber-OS 131): /server Container is the root one's HTML. */
+    const cp = { as: 'section', size: 'narrow', align: 'start', 'data-slot': 'layout-container', 'aria-label': 'Form' };
+    if (!S.Container || m(e(S.Container, cp, 'c')) !== m(e(A.Container, cp, 'c'))) bad('/server Container differs');
     const c0 = m(e(A.Card, { title: 'T', titleId: 't1' }, 'b'));
     if (!/^<section class="aura-card" aria-labelledby="t1"><div class="aura-card__head"><div class="aura-card__heading"><h3 class="aura-card__title" id="t1">T<\/h3>/.test(c0)) bad('default Card changed:', c0);
     /* 89 */

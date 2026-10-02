@@ -35,7 +35,7 @@ await build({ entryPoints: [path.join(src, 'index.ts')], outfile: path.join(dist
 /* @jirawatpyk/aura-react/server (4.17): the pure helpers bundled on their own, with no 'use client', so Server
  * Components can call them. 5.8: plus the hook-free display components (display.tsx, Icon.tsx) — React stays
  * external; the build fails if any other component module (hooks, context) sneaks in. */
-const SERVER_TSX = ['display.tsx', 'Icon.tsx', 'iconSvg.tsx'];
+const SERVER_TSX = ['display.tsx', 'Icon.tsx', 'iconSvg.tsx', 'Container.tsx'];
 for (const [format, file] of [['esm', 'index.js'], ['cjs', 'index.cjs']] as [Format, string][]) {
   const r = await build({ entryPoints: [path.join(src, 'server.ts')], outfile: path.join(dist, 'server', file), bundle: true, format, platform: 'neutral', target: 'es2019', external, logLevel: 'error', metafile: true, ...jsx });
   const inputs = Object.keys(r.metafile!.inputs);

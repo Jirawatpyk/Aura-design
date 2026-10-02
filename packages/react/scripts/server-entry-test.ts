@@ -85,6 +85,20 @@ for (const [name, A] of [
       tree(A.Stat({ label: 'Membership', headingLevel: 2, value: 'Active' })),
       tree(A.Stat({ label: 'Quota', loading: true })),
       tree(A.Avatar({ name: 'Anna Berg' })),
+      /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
+      tree(
+        A.Container.render(
+          {
+            as: 'section',
+            size: 'narrow',
+            align: 'start',
+            'data-slot': 'layout-container',
+            'data-variant': 'form',
+            children: 'Column',
+          },
+          null,
+        ),
+      ),
     ].join('');
     for (const want of [
       'id="renewal-prefs"',
@@ -100,6 +114,10 @@ for (const [name, A] of [
       'aura-stat__skel',
       'aura-avatar',
       '>AB<',
+      'class="aura-container is-narrow is-start"',
+      'data-slot="layout-container"',
+      'data-variant="form"',
+      '<section',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')

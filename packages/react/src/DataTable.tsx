@@ -1589,6 +1589,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         /* 5.26 (Chamber-OS 127): bleed and bordered={false}; the outermost element carries aura-bleed. */
         props.bleed && 'aura-bleed-frame',
         props.bleed && !levels.length && 'aura-bleed',
+        props.bleed && props.bleedEnd && !levels.length && 'aura-bleed-end',
         props.bordered === false && 'aura-table--borderless',
         stacked && 'aura-table--stacked',
         noCardSel && 'aura-table--cards-nosel',
@@ -1701,7 +1702,15 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     );
   }
   return (
-    <div ref={ref} className={cx('aura-table-box', props.bleed && 'aura-bleed', props.className)}>
+    <div
+      ref={ref}
+      className={cx(
+        'aura-table-box',
+        props.bleed && 'aura-bleed',
+        props.bleed && props.bleedEnd && 'aura-bleed-end',
+        props.className,
+      )}
+    >
       {out}
     </div>
   );

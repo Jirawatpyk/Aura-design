@@ -5203,7 +5203,7 @@ test.describe('5.26: Chamber-OS addendum 30', () => {
       return [Math.round(wrap.left - c.left - bw), Math.round(c.right - bw - wrap.right), Math.round(t.left - f.left)];
     });
     expect(r).toEqual([0, 0, 0]);
-    /* Wrapped in a div it doesn't bleed and looks as without the prop: framed, rows 16px in. */
+    /* 5.27 (130): inside an unpadded wrapper it bleeds too — no side frame, rows level with the filters. */
     const w = await page.getByTestId('wrapped').evaluate((card) => {
       const f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
         wrap = card.querySelector('.aura-tbl-wrap')!,
@@ -5211,7 +5211,7 @@ test.describe('5.26: Chamber-OS addendum 30', () => {
       range.selectNodeContents(wrap.querySelector('.aura-tbl__td')!);
       return [getComputedStyle(wrap).borderLeftWidth, Math.round(range.getBoundingClientRect().left - f.left)];
     });
-    expect(w).toEqual(['1px', 17]);
+    expect(w).toEqual(['0px', 0]);
   });
 
   test('127: stacked inside a framed Card the cards keep its padding', async ({ page }) => {
@@ -5221,6 +5221,68 @@ test.describe('5.26: Chamber-OS addendum 30', () => {
       const f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
         row = card.querySelector('.aura-table__row')!.getBoundingClientRect();
       return [Math.round(row.left - f.left), Math.round(f.right - row.right)];
+    });
+    expect(r).toEqual([0, 0]);
+  });
+});
+
+test.describe('5.27: Chamber-OS addendum 33', () => {
+  const frame = (page: import('@playwright/test').Page, id: string) =>
+    page.getByTestId(id).evaluate((card) => {
+      const c = card.getBoundingClientRect(),
+        bw = parseFloat(getComputedStyle(card).borderLeftWidth),
+        t = card.querySelector('.aura-table')!,
+        b = t.getBoundingClientRect(),
+        s = getComputedStyle(t);
+      return {
+        left: Math.round(b.left - c.left - bw),
+        right: Math.round(c.right - bw - b.right),
+        bottom: Math.round(c.bottom - bw - b.bottom),
+        side: s.borderLeftWidth,
+        under: s.borderBottomWidth,
+      };
+    });
+
+  test('130: bleed reaches through unpadded wrappers (gap column, container query, tabpanel); a pager after keeps the rule', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
+    const g = await frame(page, 'nested-pager');
+    expect([g.left, g.right, g.side, g.under]).toEqual([0, 0, '0px', '1px']);
+    expect(g.bottom).toBeGreaterThan(24);
+  });
+
+  test('130: bleedEnd closes the card from inside wrappers; a nested Card resets the reach', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
+    expect(await frame(page, 'nested-end')).toEqual({ left: 0, right: 0, bottom: 0, side: '0px', under: '0px' });
+    /* The inner Card's table reaches the inner card's edges, not the outer one's. */
+    const inner = await frame(page, 'inner');
+    expect([inner.left, inner.right, inner.bottom]).toEqual([0, 0, 0]);
+  });
+
+  test('130: bleedEnd with a Card footer keeps the rule; a framed inner Card in a flush outer one keeps its own reach', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
+    const f = await frame(page, 'end-footer');
+    expect([f.left, f.right, f.under]).toEqual([0, 0, '1px']);
+    expect(f.bottom).toBeGreaterThan(24);
+    /* At 390 the outer Card is flush (reach 0) but the inner one is framed (16px): its table reaches the inner edges. */
+    await page.setViewportSize({ width: 390, height: 900 });
+    const inner = await frame(page, 'inner');
+    expect([inner.left, inner.right]).toEqual([0, 0]);
+  });
+
+  test('130: below flushBelow a wrapped bleed still does nothing', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-5-26-addendum-30--table-bleed');
+    const r = await page.getByTestId('nested-pager').evaluate((card) => {
+      const f = card.querySelector('[data-testid=filters]')!.getBoundingClientRect(),
+        box = card.querySelector('.aura-bleed')!.getBoundingClientRect();
+      return [Math.round(box.left - f.left), Math.round(f.right - box.right)];
     });
     expect(r).toEqual([0, 0]);
   });

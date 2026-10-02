@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cx } from './internal.js';
+import { cx } from './classes.js';
 import type { DataAttributes } from './types.js';
 
 const h = React.createElement;
@@ -14,8 +14,9 @@ export interface ContainerProps
    * the page's start (5.26, Chamber-OS 126). Default `center`. */
   align?: 'center' | 'start' | undefined;
   as?: keyof React.JSX.IntrinsicElements | undefined;
-  /** Utilities that set `max-width` or `margin` (e.g. `max-w-[672px] mx-0`) are supported with `styles.layer.css`,
-   * where a utility beats `.aura-container` (5.26). */
+  /** Utilities that set `max-width`, `margin` or `padding` (e.g. `max-w-[672px] mx-0`, your own gutter) are supported
+   * with `styles.layer.css`, where a utility beats `.aura-container` (5.26; padding 5.27). Also exported from
+   * `/server` for Server Components (5.27). */
   className?: string | undefined;
   style?: React.CSSProperties | undefined;
   children?: React.ReactNode | undefined;

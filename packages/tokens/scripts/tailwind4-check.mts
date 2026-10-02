@@ -53,7 +53,7 @@ const SHADCN = `@custom-variant dark (&:is(.dark *));
 @theme inline { --color-background: #ffffff; --color-foreground: #0a0a0a; --color-border: #e4e4e7; --color-chart-1: #e76e50; --color-chart-2: #2a9d90; --color-chart-3: #274754; --color-chart-4: #e8c468; --color-chart-5: #f4a462; --font-sans: "Geist", ui-sans-serif, sans-serif; --font-mono: "Geist Mono", monospace; --radius-lg: 10px; }`;
 const HTML = `<body class="bg-background text-foreground"><div id="s1" class="border border-border bg-chart-1 font-sans rounded-lg p-4">shadcn card</div>
 <code id="s2" class="font-mono text-chart-3">code</code><div class="dark"><p id="s3" class="text-chart-2 dark:text-chart-5 bg-chart-4">dark text</p></div>
-<button id="a1" class="aura-btn aura-btn--primary rounded-none">AURA</button><svg id="a3" class="aura-icon aura-combo__check text-chart-1"></svg><div hidden class="max-w-[200px]"></div><div hidden class="max-w-[672px] mx-0 ms-0 mx-auto"></div><div id="a4" class="aura-combo__option"><svg id="a5" class="aura-icon aura-combo__check text-chart-1"></svg></div><span id="a2" class="bg-aura-bg-surface text-aura-fg-primary font-aura-sans border border-aura-border-strong">prefixed</span></body>`;
+<button id="a1" class="aura-btn aura-btn--primary rounded-none">AURA</button><svg id="a3" class="aura-icon aura-combo__check text-chart-1"></svg><div hidden class="max-w-[200px]"></div><div hidden class="max-w-[672px] mx-0 ms-0 mx-auto px-[13px]"></div><div id="a4" class="aura-combo__option"><svg id="a5" class="aura-icon aura-combo__check text-chart-1"></svg></div><span id="a2" class="bg-aura-bg-surface text-aura-fg-primary font-aura-sans border border-aura-border-strong">prefixed</span></body>`;
 const pages = {
   alone: `@import "tailwindcss";\n${SHADCN}`,
   both: `@layer aura-tokens, theme, base, aura, components, utilities;\n@import "tailwindcss";\n@import "@jirawatpyk/aura-tokens/aura.css" layer(aura-tokens);\n@import "@jirawatpyk/aura-tokens/tailwind.prefixed.css";\n@import "@jirawatpyk/aura-react/styles.layer.css";\n${SHADCN}`,
@@ -106,6 +106,18 @@ for (const [cls, want] of [['', '60/1280'], ['mx-0', '0/1280'], ['max-w-[672px]'
   if (got !== want) fails.push(`@layer aura: .aura-container ${cls || '(alone)'} should be left/width ${want}, got ${got}`);
 }
 if ((await column('unlayered', 'max-w-[672px] mx-0')) !== '60/1280') fails.push('control: unlayered styles.css should keep .aura-container at 1280 centred');
+/* 5.27 (Chamber-OS 131): its side padding too — an app's own page gutter as a utility, at 700px (between AURA's steps),
+ * also directly inside a padded AppShell content area (where AURA zeroes it). */
+async function gutter(name: string, wrap: string): Promise<string> {
+  const p = await browser.newPage({ viewport: { width: 700, height: 600 } });
+  await p.setContent(`<!doctype html><html><head><style>${compiled[name]}</style></head><body style="margin:0">${wrap.replace('$', '<div id="c" class="aura-container px-[13px]">x</div>')}</body></html>`);
+  const r = await p.evaluate(() => getComputedStyle(document.getElementById('c')!).paddingLeft);
+  await p.close();
+  return r;
+}
+for (const wrap of ['$', '<main class="aura-shell__content">$</main>'])
+  if ((await gutter('both', wrap)) !== '13px') fails.push(`@layer aura: px-[13px] should set .aura-container's padding (${wrap})`);
+if ((await gutter('unlayered', '$')) !== '24px') fails.push('control: unlayered styles.css should keep .aura-container padding at 24px at 700px');
 const sheet = await sheetWidth('both');
 if (sheet !== '200px') fails.push(`a max-w utility should override the phone sheet inside @layer aura (got ${sheet})`);
 const alone = await styles('alone'), both = await styles('both'), after = await styles('after'), unlayered = await styles('unlayered');

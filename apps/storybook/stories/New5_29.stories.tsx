@@ -26,6 +26,17 @@ const Members = (p: { bleed?: boolean; bordered?: boolean }) => (
     columns={columns}
   />
 );
+const MembersEnd = () => (
+  <Aura.DataTable<Member>
+    label="Tier upgrades"
+    rows={MEMBERS}
+    rowKey="id"
+    stackBelow={640}
+    bleed
+    bleedEnd
+    columns={columns}
+  />
+);
 const Filters = () => (
   <div className="aura-text-caption" data-testid="filters">
     Status All · Tier All
@@ -71,6 +82,40 @@ export const TableBleed: StoryObj = {
               </Aura.Tr>
             </Aura.TBody>
           </Aura.Table>
+        </div>
+      </Aura.Card>
+      {/* 5.27 (130): Chamber-OS's list cards — a gap wrapper, a container-query div, a tabpanel — then a pager, or
+          nothing after the table (bleedEnd). */}
+      <Aura.Card data-testid="nested-pager" flushBelow="sm">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Filters />
+          <div style={{ containerType: 'inline-size' }}>
+            <div role="tabpanel" aria-label="Open">
+              <Members bleed />
+            </div>
+          </div>
+          <Aura.Button size="sm" variant="ghost">
+            Next 50
+          </Aura.Button>
+        </div>
+      </Aura.Card>
+      <Aura.Card data-testid="nested-end">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Filters />
+          <div>
+            <MembersEnd />
+          </div>
+        </div>
+      </Aura.Card>
+      <Aura.Card data-testid="nested-card" flushBelow="sm">
+        <Filters />
+        <Aura.Card data-testid="inner">
+          <Members bleed />
+        </Aura.Card>
+      </Aura.Card>
+      <Aura.Card data-testid="end-footer" footer={<Aura.Button size="sm">Export</Aura.Button>}>
+        <div>
+          <MembersEnd />
         </div>
       </Aura.Card>
       <div data-testid="outside">

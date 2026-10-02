@@ -236,11 +236,15 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	density?: "comfortable" | "compact" | undefined;
 	/** Table width in px below which rows render as stacked cards (phones). Try 640. It follows the table's own width, not the window. Since 4.20 the cards are the same markup as the grid, laid out by a container query, so any width is right before hydration and each row is in the HTML once. With `height` (virtual rows) the server can only send the first screenful; the rest of the cards arrive on hydration. */
 	stackBelow?: number | undefined;
-	/** Edge to edge inside a Card (5.26, Chamber-OS 127): as a direct child of a Card's content, the table spans the
-	 * card's full inner width — no side borders, no radius — keeping its header band and top rule; as the card's last
-	 * content (no footer, nothing after it) it drops its bottom rule and the card's radius closes it. Below the Card's
+	/** Edge to edge inside a Card (5.26, Chamber-OS 127): anywhere in a Card's content — also inside your own wrappers,
+	 * as long as they add no padding or frame and don't clip or scroll (5.27, 130) — the table spans the card's full inner width, no side borders
+	 * or radius, keeping its header band and top rule. As a direct child that is the card's last content (no footer,
+	 * nothing after it), or with `bleedEnd`, it drops its bottom rule and the card's radius closes it. Below the Card's
 	 * `flushBelow` width, and outside a Card, it does nothing. */
 	bleed?: boolean | undefined;
+	/** With `bleed`: the table ends the card even though it sits inside your wrappers — no bottom rule, the card's radius
+	 * closes it. Only when nothing follows it in the card and the Card has no `footer` (5.27). */
+	bleedEnd?: boolean | undefined;
 	/** `false` drops the frame — border and radius — keeping the header band and the 24px gutter, for a table that sits
 	 * in a section without bleeding (5.26). Default `true`. */
 	bordered?: boolean | undefined;
@@ -1195,12 +1199,16 @@ export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableEl
 	/** `false` (5.13) drops the frame — border, radius, background — and the outer cells' side padding, so the table
 	 * lines up with the content around it, e.g. flush inside a Card under its heading. Default `true`. */
 	bordered?: boolean | undefined;
-	/** Edge to edge inside a Card (5.26, Chamber-OS 127): as a direct child of a Card's content, the table spans the
-	 * card's full inner width — no side borders, no radius — keeping its header band and top rule, and its outer
-	 * cells' 24px padding keeps the text level with the card's content. As the card's last content it drops its
-	 * bottom rule and the card's radius closes it. Below the Card's `flushBelow` width, and outside a Card, it does
-	 * nothing. With `bordered={false}` too, the outer cells take the card's padding while it bleeds. */
+	/** Edge to edge inside a Card (5.26, Chamber-OS 127): anywhere in a Card's content — also inside your own wrappers,
+	 * as long as they add no padding or frame and don't clip or scroll (5.27, 130) — the table spans the card's full inner width, no side borders
+	 * or radius, keeping its header band and top rule, and its 24px outer cells keep the text level with the card's
+	 * content. As a direct child that is the card's last content, or with `bleedEnd`, it drops its bottom rule and the
+	 * card's radius closes it. Below the Card's `flushBelow` width, and outside a Card, it does nothing. With
+	 * `bordered={false}` too, the outer cells take the card's padding while it bleeds. */
 	bleed?: boolean | undefined;
+	/** With `bleed`: the table ends the card even though it sits inside your wrappers — only when nothing follows it in
+	 * the card and the Card has no `footer` (5.27). */
+	bleedEnd?: boolean | undefined;
 	/** Keep the header row in view while the rows scroll (5.26, Chamber-OS 129), with its band, its bottom rule and
 	 * above the body. Without `maxHeight` it pins to the page's scroll, under an AppShell's top bar
 	 * (`--aura-shell-bar-height`; set `--aura-table-sticky-top` for another offset). A table wider than its box
@@ -1720,8 +1728,9 @@ export interface ContainerProps extends Pick<React$1.HTMLAttributes<HTMLElement>
 	 * the page's start (5.26, Chamber-OS 126). Default `center`. */
 	align?: "center" | "start" | undefined;
 	as?: keyof React$1.JSX.IntrinsicElements | undefined;
-	/** Utilities that set `max-width` or `margin` (e.g. `max-w-[672px] mx-0`) are supported with `styles.layer.css`,
-	 * where a utility beats `.aura-container` (5.26). */
+	/** Utilities that set `max-width`, `margin` or `padding` (e.g. `max-w-[672px] mx-0`, your own gutter) are supported
+	 * with `styles.layer.css`, where a utility beats `.aura-container` (5.26; padding 5.27). Also exported from
+	 * `/server` for Server Components (5.27). */
 	className?: string | undefined;
 	style?: React$1.CSSProperties | undefined;
 	children?: React$1.ReactNode | undefined;

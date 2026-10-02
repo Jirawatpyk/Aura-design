@@ -68,6 +68,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     align,
     bordered,
     bleed,
+    bleedEnd,
     stickyHeader,
     maxHeight,
     stackStyle,
@@ -129,6 +130,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
         /* 5.26 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
         bleed && 'aura-bleed-frame',
         bleed && !cards && 'aura-bleed',
+        bleed && bleedEnd && !cards && 'aura-bleed-end',
         /* 5.26 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
         stickyHeader && (maxHeight != null ? 'is-sticky-box' : 'is-sticky-page'),
         maxHeight != null && 'has-max',
@@ -176,7 +178,15 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     </div>
   );
   return cards ? (
-    <div className={cx('aura-tbl-cards aura-tbl-cards--' + stackBelow, bleed && 'aura-bleed')}>{table}</div>
+    <div
+      className={cx(
+        'aura-tbl-cards aura-tbl-cards--' + stackBelow,
+        bleed && 'aura-bleed',
+        bleed && bleedEnd && 'aura-bleed-end',
+      )}
+    >
+      {table}
+    </div>
   ) : (
     table
   );
