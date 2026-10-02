@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.28.0
+
+### Minor Changes
+
+- 854df51: Chamber-OS addenda 35–36: FilterBar chips take their text's width (cut only when wider than the row), a cut Tag shows its full text on hover and on its remove button's focus, and FilterBar's "Clear all" is 44px tall on phones and coarse pointers.
+
 ## 5.27.0
 
 ### Minor Changes
