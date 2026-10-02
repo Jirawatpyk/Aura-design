@@ -1648,11 +1648,17 @@ export declare const Avatar: React$1.ForwardRefExoticComponent<AvatarProps & Rea
 export declare const Stack: React$1.ForwardRefExoticComponent<StackProps & React$1.RefAttributes<HTMLElement>>;
 /** Grid — equal columns. columns may be responsive ({ base: 1, md: 2, lg: 3 }), or use minItemWidth to fit as many as fit. */
 export declare const Grid: React$1.ForwardRefExoticComponent<GridProps & React$1.RefAttributes<HTMLElement>>;
-/** Centred page column. */
-export interface ContainerProps {
+/** Centred page column. To name it (`aria-label`), render a landmark with `as="section"` (or `main`, `nav`): a
+ * plain `div` may not carry a name. */
+export interface ContainerProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "lang" | "dir">, React$1.AriaAttributes, DataAttributes {
 	/** `narrow` caps it at aura-container-narrow (720px). Default `default` (1280px). */
 	size?: "default" | "narrow" | undefined;
+	/** `start` puts the column at the start edge (left; right in RTL) instead of centring it — a form board beside
+	 * the page's start (5.27, Chamber-OS 126). Default `center`. */
+	align?: "center" | "start" | undefined;
 	as?: keyof React$1.JSX.IntrinsicElements | undefined;
+	/** Utilities that set `max-width` or `margin` (e.g. `max-w-[672px] mx-0`) are supported with `styles.layer.css`,
+	 * where a utility beats `.aura-container` (5.27). */
 	className?: string | undefined;
 	style?: React$1.CSSProperties | undefined;
 	children?: React$1.ReactNode | undefined;

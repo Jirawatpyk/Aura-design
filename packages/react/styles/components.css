@@ -960,6 +960,7 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-container { box-sizing: border-box; width: 100%; max-width: var(--aura-container-max); margin: 0 auto; padding: 0 var(--aura-space-4); }
 .aura-container.is-narrow { max-width: var(--aura-container-narrow); }
+.aura-container.is-start { margin-inline: 0; } /* 5.27 (Chamber-OS 126): align="start" */
 /* Breakpoints: sm 640 · md 768 · lg 1024 · xl 1280 (aura-bp-* tokens; media queries can't read variables) */
 @media (min-width: 640px) {
   .aura-stack { flex-direction: var(--aura-stack-dir-sm, var(--aura-stack-dir-base, column)); align-items: var(--aura-stack-align-sm, stretch); gap: var(--aura-stack-gap-sm, var(--aura-stack-gap-base, var(--aura-space-4))); }

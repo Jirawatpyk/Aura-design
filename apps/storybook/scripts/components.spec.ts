@@ -4980,3 +4980,39 @@ test.describe('5.26: Chamber-OS addendum 28', () => {
     await expect(email).not.toBeChecked();
   });
 });
+
+test.describe('5.27: Chamber-OS addendum 29', () => {
+  test('126: Container align="start" sits at the start edge (left, right in RTL); the default stays centred', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1400, height: 700 });
+    await story(page, 'aura-new-in-5-27--container-align');
+    /* Measured inside the element's parent (the story's own frame may pad the page). */
+    const rect = (l: import('@playwright/test').Locator) =>
+      l.evaluate((el) => {
+        const b = el.getBoundingClientRect(),
+          p = el.parentElement!.getBoundingClientRect();
+        return { left: Math.round(b.left - p.left), right: Math.round(p.right - b.right), width: Math.round(b.width) };
+      });
+    const centred = await rect(page.getByTestId('centred'));
+    expect(centred.width).toBe(1280);
+    expect(Math.abs(centred.left - centred.right)).toBeLessThanOrEqual(1);
+    expect(centred.left).toBeGreaterThan(0);
+    const board = await rect(page.getByRole('region', { name: 'Member form' }));
+    expect([board.left, board.width]).toEqual([0, 720]);
+    expect(board.right).toBeGreaterThan(0);
+    const rtl = await rect(page.getByTestId('rtl'));
+    expect([rtl.right, rtl.width]).toEqual([0, 720]);
+    expect(rtl.left).toBeGreaterThan(0);
+  });
+
+  test('126: Container passes id, data-* and aria-* to its element', async ({ page }) => {
+    await story(page, 'aura-new-in-5-27--container-align');
+    const board = page.locator('#board');
+    await expect(board).toHaveAttribute('data-slot', 'layout-container');
+    await expect(board).toHaveAttribute('data-variant', 'form');
+    await expect(board).toHaveAttribute('aria-label', 'Member form');
+    await expect(board).toHaveClass('aura-container is-narrow is-start');
+    expect(await board.evaluate((el) => el.tagName)).toBe('SECTION');
+  });
+});

@@ -52,6 +52,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.27 (Chamber-OS 126): Container passes id / data-* / aria-*, nothing else; align="start" adds is-start. */
+  {
+    const e = React.createElement;
+    const c = renderToString(e(A.Container, { id: 'b', lang: 'th', dir: 'rtl', 'data-slot': 'layout-container', 'data-variant': 'form', 'aria-label': 'Form', align: 'start', size: 'narrow', foo: 'x' } as unknown as React.Attributes, 'x'));
+    const d = renderToString(e(A.Container, null, 'x'));
+    if (!/^<div id="b" lang="th" dir="rtl" data-slot="layout-container" data-variant="form" aria-label="Form" class="aura-container is-narrow is-start">x<\/div>$/.test(c) || /foo|align/.test(c) || d !== '<div class="aura-container">x</div>') { console.log(label, 'Container attrs:', c, d); fail++; }
+  }
   /* 5.26 (Chamber-OS 125): a described radio or checkbox is named by its label span and described by its hint span. */
   {
     const e = React.createElement;

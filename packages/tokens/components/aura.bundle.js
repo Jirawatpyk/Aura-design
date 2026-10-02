@@ -7057,13 +7057,23 @@ window.Aura = (() => {
   var React40 = __toESM(require_react(), 1);
   var h7 = React40.createElement;
   var Container = React40.forwardRef(function Container2(props, ref) {
+    const attrs = {};
+    Object.keys(props).forEach(function(k) {
+      if (k === "id" || k === "lang" || k === "dir" || /^(aria|data)-/.test(k))
+        attrs[k] = props[k];
+    });
     return h7(
       props.as || "div",
-      {
+      Object.assign(attrs, {
         ref,
-        className: cx("aura-container", props.size === "narrow" && "is-narrow", props.className),
+        className: cx(
+          "aura-container",
+          props.size === "narrow" && "is-narrow",
+          props.align === "start" && "is-start",
+          props.className
+        ),
         style: props.style
-      },
+      }),
       props.children
     );
   });
