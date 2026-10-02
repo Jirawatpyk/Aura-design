@@ -38,7 +38,7 @@ function Upgrades(props: { loading?: boolean; label: string; plain?: boolean }) 
           render: (r) => (
             <>
               <div>{r.reason}</div>
-              <div className="aura-text-caption">Turnover ฿142M · met 14 Sep</div>
+              <div className="aura-text-caption">Turnover THB 142M, met 14 Sep</div>
             </>
           ),
         },

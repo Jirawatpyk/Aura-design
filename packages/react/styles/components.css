@@ -1963,10 +1963,10 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__row:has(> [data-card='footer']:not(.is-blank)) { padding-bottom: var(--aura-space-4); }
   .aura-table__row--skeleton .aura-table__td { display: flex; }
   /* 5.29: a skeleton field shows its label above a bar on the field's value line (15px: 13px text, normal line
-   * height), as a real field does; the title keeps the 20px line. */
+   * height — 1lh, so it follows the font), as a real field does; the title keeps the 20px line. */
   .aura-table__row--skeleton .aura-table__td[data-label] { flex-direction: column; align-items: stretch; }
   .aura-table__row--skeleton .aura-table__td > .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 5px 0; }
-  .aura-table__row--skeleton .aura-table__td[data-label] .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 2.5px 0; }
+  .aura-table__row--skeleton .aura-table__td[data-label] .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 2.5px 0; margin: calc((1lh - 10px) / 2) 0; }
   .aura-table__row--skeleton .aura-table__td > .aura-skel-lines { align-items: flex-start; }
   .aura-table__total { background: var(--aura-bg-canvas); }
   .aura-table__total > .is-blank { display: none; }
