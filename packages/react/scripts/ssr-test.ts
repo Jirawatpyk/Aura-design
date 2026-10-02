@@ -267,6 +267,20 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     /* 5.27 (Chamber-OS 131): /server Container is the root one's HTML. */
     const cp = { as: 'section', size: 'narrow', align: 'start', 'data-slot': 'layout-container', 'aria-label': 'Form' };
     if (!S.Container || m(e(S.Container, cp, 'c')) !== m(e(A.Container, cp, 'c'))) bad('/server Container differs');
+    /* 5.29 (Chamber-OS 134): skeleton rows follow rowHeight="auto", keep card labels, draw skeletonLines bars and action bars. */
+    const skCols = [
+      { key: 'm', label: 'MEMBER' },
+      { key: 'r', label: 'REASON', skeletonLines: 2 },
+      { key: 'a', label: '', card: 'footer' },
+      { key: 'x', label: '', actions: true },
+    ];
+    const sk = m(e(A.DataTable, { label: 'L', rows: [], rowKey: 'm', loading: true, skeletonRows: 1, rowHeight: 'auto', stackBelow: 640, columns: skCols }));
+    const skRow = (/<div class="(aura-table__row aura-table__row--skeleton[^"]*)" aria-hidden="true"/.exec(sk) || [])[1];
+    if (skRow !== 'aura-table__row aura-table__row--skeleton aura-table__row--auto' || !/data-label="REASON"/.test(sk) || (sk.match(/aura-skel aura-skel--text/g) || []).length !== 2 || !/aura-skel aura-skel--action is-footer/.test(sk) || (sk.match(/aura-skel aura-skel--action"/g) || []).length !== 1) bad('DataTable skeleton (auto):', sk);
+    const skT = m(e(A.DataTable, { label: 'L', rows: [], rowKey: 'm', loading: true, skeletonRows: 1, columns: [{ key: 'a', label: '', card: 'footer', skeletonTouch: true }, { key: 'p', label: 'P', pill: true, skeletonLines: 3 }, { key: 'n', label: 'N', skeletonLines: Infinity }] }));
+    if (!/aura-skel aura-skel--action is-footer is-touch/.test(skT) || !/aura-skel aura-skel--pill"/.test(skT) || (skT.match(/aura-skel--text/g) || []).length !== 10) bad('DataTable skeletonTouch / pill / line cap:', skT);
+    const sk0 = m(e(A.DataTable, { label: 'L', rows: [], rowKey: 'm', loading: true, skeletonRows: 1, columns: [{ key: 'm', label: 'MEMBER' }] }));
+    if (!/<div class="aura-table__row aura-table__row--skeleton" aria-hidden="true"/.test(sk0) || /--auto|aura-skel-lines/.test(sk0)) bad('default DataTable skeleton changed:', sk0);
     const c0 = m(e(A.Card, { title: 'T', titleId: 't1' }, 'b'));
     if (!/^<section class="aura-card" aria-labelledby="t1"><div class="aura-card__head"><div class="aura-card__heading"><h3 class="aura-card__title" id="t1">T<\/h3>/.test(c0)) bad('default Card changed:', c0);
     /* 89 */

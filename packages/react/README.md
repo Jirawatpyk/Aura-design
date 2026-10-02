@@ -186,6 +186,14 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.29 — Chamber-OS addendum 37
+
+- **DataTable loading rows match the rows they stand in for** (item 134), so the layout doesn't jump when the rows arrive:
+  - **Height:** with `rowHeight="auto"` skeleton rows get the same `--auto` class and minimum height as real rows. A column's new **`skeletonLines`** (default 1, at most 10; a `pill` column keeps one pill) draws that many bars, one per text line — `skeletonLines: 2` for a reason and its evidence. On an `align: 'end'` column they line up at the end. Each bar sits on a 20px body line in the grid (a caption line is 16–18px, so a row can come out a few px taller than the real one) and on the 15px value line in a card.
+  - **Stacked cards:** skeleton cards keep each field's label (`data-label`) above its bar, as a real card does.
+  - **Row actions:** an `actions` cell draws one square and a `card: 'footer'` cell a bar across the cell (in a card, the full row, as a Button there fills it), at the small button's height (32px), in the grid as well as in cards. When the column's buttons use `touchHeight`, give the column the new **`skeletonTouch`**: its bars are then 44px below 640px and on a coarse pointer, as those buttons are. A footer that holds only an IconButton still gets the full-width bar; the heights match.
+  - **Unchanged:** skeleton rows stay `aria-hidden`, the pulse stops under reduced motion, `skeletonRows`, `bleed` / `bleedEnd`. Without `rowHeight="auto"` the grid's skeleton rows keep the fixed row height.
+
 ## 5.28 — Chamber-OS addenda 35–36
 
 - **Applied-filter chips show their whole text** (item 132): in `FilterBar`'s chips row a chip takes its text's own width ("Submitted: 28 Aug – 3 Sept 2026", "Member: Midsommar Hospitality Co., Ltd."); only a chip wider than the row is cut, with an ellipsis, and a long chip never widens the FilterBar or its parents (the chips row takes its width from the bar; a bar holding only chips needs a width from its parent, as a block has). A Tag outside FilterBar keeps its 24ch cap. **Whenever a Tag's text is cut** — the 24ch cap or the row — the full text shows on hover (`title`) and, on a removable Tag, in a Tooltip on the remove button's hover and focus; the remove button's name already carries the full text for screen readers. On touch screens a cut chip can't be hovered — keep labels short enough for a phone row where you can.

@@ -1366,18 +1366,47 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           </span>,
         );
       vis.forEach(function (c: Col, j: number) {
+        /* 5.29 (Chamber-OS 134): a skeleton row stands in for a real one — the same auto height, the card labels,
+         * as many text lines as the column shows, and a button-height bar where the row's actions go. */
+        const part = cardPart(c, j);
+        const action = part === 'footer' || part === 'actions';
+        const lines = c.pill ? 1 : Math.max(1, Math.min(10, Math.floor(Number(c.skeletonLines)) || 1));
+        const bar = function (n: number) {
+          return (
+            <span
+              key={n}
+              className={cx('aura-skel', c.pill && 'aura-skel--pill', lines > 1 && 'aura-skel--text')}
+              style={c.pill ? undefined : { width: SKELETON_WIDTHS[(i + j + n) % SKELETON_WIDTHS.length] }}
+            />
+          );
+        };
+        const bars: React.ReactNode[] = [];
+        for (let b = 0; b < lines; b++) bars.push(bar(b));
         sk.push(
           <span
             key={c.key}
-            className={cx('aura-table__td', c.align === 'end' && 'is-end', isPinned(c) && 'is-pinned')}
+            className={cx(
+              'aura-table__td',
+              autoRows && 'aura-table__td--auto',
+              c.align === 'end' && 'is-end',
+              isPinned(c) && 'is-pinned',
+            )}
             style={cellStyle(c, j)}
             {...cardAttrs(c, j)}
-            data-label={undefined}
           >
-            <span
-              className={cx('aura-skel', c.pill && 'aura-skel--pill')}
-              style={c.pill ? undefined : { width: SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length] }}
-            />
+            {action ? (
+              <span
+                className={cx(
+                  'aura-skel aura-skel--action',
+                  part === 'footer' && 'is-footer',
+                  c.skeletonTouch && 'is-touch',
+                )}
+              />
+            ) : lines > 1 ? (
+              <span className="aura-skel-lines">{bars}</span>
+            ) : (
+              bars[0]
+            )}
           </span>,
         );
       });
@@ -1386,7 +1415,12 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         <span key="__gr" className={cx('aura-table__gutter aura-table__gutter--end', controls && 'has-picker')} />,
       );
       skRows.push(
-        <div key={'sk' + i} className="aura-table__row aura-table__row--skeleton" aria-hidden={true} style={rowStyle}>
+        <div
+          key={'sk' + i}
+          className={cx('aura-table__row aura-table__row--skeleton', autoRows && 'aura-table__row--auto')}
+          aria-hidden={true}
+          style={rowStyle}
+        >
           {sk}
         </div>,
       );

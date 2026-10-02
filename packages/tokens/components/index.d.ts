@@ -114,6 +114,14 @@ export interface DataTableColumn<Row extends Record<string, any> = Record<string
 	 * after the half-width fields (in column order; `cardOrder` doesn't move it), its label above and its text wrapping —
 	 * a reason with its evidence. Default: today's rule. The grid is unchanged by any of them. */
 	card?: "hide" | "field" | "title" | "pill" | "footer" | "wide" | undefined;
+	/** How many text lines its loading skeleton draws (5.29, Chamber-OS 134) — 2 for a cell that shows two lines (a
+	 * reason and its evidence), so the skeleton row is as tall as the real one with `rowHeight="auto"`. Default 1, at
+	 * most 10; ignored on a `pill` column. */
+	skeletonLines?: number | undefined;
+	/** For a `card: 'footer'` or `actions` column whose buttons use `touchHeight` (5.29, Chamber-OS 134): its loading
+	 * skeleton's bar is 44px below 640px and on a coarse pointer, as those buttons are. Without it the bar is the small
+	 * button's 32px. */
+	skeletonTouch?: boolean | undefined;
 	/** The order of fields in a stacked card (5.13), lowest first; the grid's column order is unchanged. Fields
 	 * without one sort by their column index (0-based). Screen readers and arrow keys follow the grid's order. */
 	cardOrder?: number | undefined;

@@ -338,6 +338,16 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-skel--pill { width: 72px; height: 20px; }
 .aura-skel--box { width: var(--aura-icon-sm); height: var(--aura-icon-sm); border-radius: var(--aura-radius-xs); }
 @media (prefers-reduced-motion: reduce) { .aura-skel { animation: none; } }
+/* 5.29 (Chamber-OS 134): a DataTable skeleton row stands in for the real one — text lines (skeletonLines) on the 20px
+ * line, and a button-height bar where row actions go: 32px, or 44px under the touchHeight rule with the column's
+ * skeletonTouch; full width in a card footer. */
+.aura-skel--action { flex: none; width: var(--aura-button-height-sm); height: var(--aura-button-height-sm); border-radius: var(--aura-radius-md); }
+.aura-skel--action.is-footer { width: 100%; }
+.aura-table__td.is-end > .aura-skel-lines { align-items: flex-end; }
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-skel--action.is-touch { height: var(--aura-touch-target); }
+  .aura-skel--action.is-touch:not(.is-footer) { width: var(--aura-touch-target); }
+}
 .aura-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* Empty state */
@@ -1952,6 +1962,12 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   /* 5.22: a footer row ends the card with no margin under it, so the card keeps its full 16px. */
   .aura-table__row:has(> [data-card='footer']:not(.is-blank)) { padding-bottom: var(--aura-space-4); }
   .aura-table__row--skeleton .aura-table__td { display: flex; }
+  /* 5.29: a skeleton field shows its label above a bar on the field's value line (15px: 13px text, normal line
+   * height), as a real field does; the title keeps the 20px line. */
+  .aura-table__row--skeleton .aura-table__td[data-label] { flex-direction: column; align-items: stretch; }
+  .aura-table__row--skeleton .aura-table__td > .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 5px 0; }
+  .aura-table__row--skeleton .aura-table__td[data-label] .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 2.5px 0; }
+  .aura-table__row--skeleton .aura-table__td > .aura-skel-lines { align-items: flex-start; }
   .aura-table__total { background: var(--aura-bg-canvas); }
   .aura-table__total > .is-blank { display: none; }
   .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); background: var(--aura-bg-surface); }

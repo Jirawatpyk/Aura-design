@@ -6339,23 +6339,45 @@ window.Aura = (() => {
             /* @__PURE__ */ React32.createElement("span", { key: "__sel", className: cx("aura-table__sel", nPinned && "is-pinned") }, /* @__PURE__ */ React32.createElement("span", { className: "aura-skel aura-skel--box" }))
           );
         vis.forEach(function(c, j) {
+          const part = cardPart(c, j);
+          const action = part === "footer" || part === "actions";
+          const lines = c.pill ? 1 : Math.max(1, Math.min(10, Math.floor(Number(c.skeletonLines)) || 1));
+          const bar = function(n4) {
+            return /* @__PURE__ */ React32.createElement(
+              "span",
+              {
+                key: n4,
+                className: cx("aura-skel", c.pill && "aura-skel--pill", lines > 1 && "aura-skel--text"),
+                style: c.pill ? void 0 : { width: SKELETON_WIDTHS[(i + j + n4) % SKELETON_WIDTHS.length] }
+              }
+            );
+          };
+          const bars = [];
+          for (let b = 0; b < lines; b++) bars.push(bar(b));
           sk.push(
             /* @__PURE__ */ React32.createElement(
               "span",
               {
                 key: c.key,
-                className: cx("aura-table__td", c.align === "end" && "is-end", isPinned(c) && "is-pinned"),
+                className: cx(
+                  "aura-table__td",
+                  autoRows && "aura-table__td--auto",
+                  c.align === "end" && "is-end",
+                  isPinned(c) && "is-pinned"
+                ),
                 style: cellStyle(c, j),
-                ...cardAttrs(c, j),
-                "data-label": void 0
+                ...cardAttrs(c, j)
               },
-              /* @__PURE__ */ React32.createElement(
+              action ? /* @__PURE__ */ React32.createElement(
                 "span",
                 {
-                  className: cx("aura-skel", c.pill && "aura-skel--pill"),
-                  style: c.pill ? void 0 : { width: SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length] }
+                  className: cx(
+                    "aura-skel aura-skel--action",
+                    part === "footer" && "is-footer",
+                    c.skeletonTouch && "is-touch"
+                  )
                 }
-              )
+              ) : lines > 1 ? /* @__PURE__ */ React32.createElement("span", { className: "aura-skel-lines" }, bars) : bars[0]
             )
           );
         });
@@ -6364,7 +6386,16 @@ window.Aura = (() => {
           /* @__PURE__ */ React32.createElement("span", { key: "__gr", className: cx("aura-table__gutter aura-table__gutter--end", controls && "has-picker") })
         );
         skRows.push(
-          /* @__PURE__ */ React32.createElement("div", { key: "sk" + i, className: "aura-table__row aura-table__row--skeleton", "aria-hidden": true, style: rowStyle }, sk)
+          /* @__PURE__ */ React32.createElement(
+            "div",
+            {
+              key: "sk" + i,
+              className: cx("aura-table__row aura-table__row--skeleton", autoRows && "aura-table__row--auto"),
+              "aria-hidden": true,
+              style: rowStyle
+            },
+            sk
+          )
         );
       }
     } else if (!rows.length) {

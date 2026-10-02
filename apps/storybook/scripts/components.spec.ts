@@ -5554,3 +5554,139 @@ test.describe('5.28: Chamber-OS addenda 35–36', () => {
     }
   });
 });
+
+test.describe('5.29: Chamber-OS addendum 37', () => {
+  const ID = 'aura-new-in-5-29--loading-rows';
+  const rowsOf = (page: import('@playwright/test').Page, id: string) =>
+    page.getByTestId(id).locator('.aura-table__row--skeleton, .aura-table__row--auto:not(.aura-table__row--skeleton)');
+  const heights = (l: import('@playwright/test').Locator) =>
+    l.evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+
+  test('134: with rowHeight="auto" a skeleton row is as tall as the real row, two bars for skeletonLines: 2', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const sk = rowsOf(page, 'skeleton');
+    await expect(sk).toHaveCount(2);
+    await expect(sk.first()).toHaveClass(/aura-table__row--auto/);
+    await expect(sk.first()).toHaveAttribute('aria-hidden', 'true');
+    await expect(sk.first().locator('.aura-skel-lines > .aura-skel')).toHaveCount(2);
+    const [s, r] = [await heights(sk), await heights(rowsOf(page, 'real'))];
+    expect(r).toHaveLength(2);
+    for (let i = 0; i < 2; i++) expect(Math.abs(s[i]! - r[i]!)).toBeLessThanOrEqual(4);
+    /* With a mouse the action bars are button-sized (32px), like the real sm buttons. */
+    const acts = await sk
+      .first()
+      .locator('.aura-skel--action')
+      .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+    expect(acts).toEqual([32, 32]);
+  });
+
+  test('134: a stacked skeleton card keeps the field labels, is as tall as the real card, and its footer bar is 44px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 1400 });
+    await story(page, ID);
+    const sk = rowsOf(page, 'skeleton');
+    const labels = await sk
+      .first()
+      .locator('[data-label]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('data-label')));
+    expect(labels).toEqual(['FROM', 'TO', 'REASON']);
+    const before = await sk
+      .first()
+      .locator('[data-label="FROM"]')
+      .evaluate((e) => getComputedStyle(e, '::before').content);
+    expect(before).not.toBe('none');
+    const [s, r] = [await heights(sk), await heights(rowsOf(page, 'real'))];
+    for (let i = 0; i < 2; i++) expect(Math.abs(s[i]! - r[i]!)).toBeLessThanOrEqual(4);
+    const foot = (await sk.first().locator('.aura-skel--action.is-footer').boundingBox())!;
+    const card = (await sk.first().boundingBox())!;
+    expect(Math.round(foot.height)).toBe(44);
+    expect(foot.width).toBeGreaterThan(card.width - 40);
+    const more = (await sk.first().locator('.aura-skel--action:not(.is-footer)').boundingBox())!;
+    expect([Math.round(more.width), Math.round(more.height)]).toEqual([44, 44]);
+  });
+
+  test('134: the action bars follow the touchHeight rule — 44px on a coarse pointer, 32px with a mouse', async ({
+    browser,
+  }) => {
+    for (const [width, touch, h] of [
+      [1024, true, 44],
+      [1280, false, 32],
+    ] as const) {
+      const ctx = await browser.newContext({ viewport: { width, height: 900 }, hasTouch: touch, isMobile: touch });
+      const page = await ctx.newPage();
+      await story(page, ID);
+      const real = page.getByTestId('real').getByRole('button', { name: 'Accept M-301' });
+      expect(Math.round((await real.boundingBox())!.height)).toBe(h);
+      const bars = await rowsOf(page, 'skeleton')
+        .first()
+        .locator('.aura-skel--action')
+        .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+      expect(bars).toEqual([h, h]);
+      await ctx.close();
+    }
+  });
+
+  test('134: when the rows arrive the table barely moves (phone and desktop)', async ({ page }) => {
+    for (const width of [390, 1280]) {
+      await page.setViewportSize({ width, height: 1400 });
+      await story(page, ID);
+      const t = page.getByTestId('toggle');
+      const a = (await t.boundingBox())!.height;
+      await page.getByRole('button', { name: 'Toggle loading' }).click();
+      await expect(t.locator('.aura-table__row--skeleton')).toHaveCount(0);
+      const b = (await t.boundingBox())!.height;
+      expect(Math.abs(a - b)).toBeLessThanOrEqual(8);
+    }
+  });
+
+  test('134: without skeletonTouch the action bars stay 32px on phones and touch screens, as compact buttons do', async ({
+    browser,
+  }) => {
+    for (const [width, touch] of [
+      [390, true],
+      [600, false],
+      [1024, true],
+    ] as const) {
+      const ctx = await browser.newContext({ viewport: { width, height: 1400 }, hasTouch: touch, isMobile: touch });
+      const page = await ctx.newPage();
+      await story(page, ID);
+      const sk = rowsOf(page, 'plain-skeleton');
+      const bars = await sk
+        .first()
+        .locator('.aura-skel--action')
+        .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+      expect(bars).toEqual([32, 32]);
+      const [s, r] = [await heights(sk), await heights(rowsOf(page, 'plain-real'))];
+      expect(r).toHaveLength(2);
+      for (let i = 0; i < 2; i++) expect(Math.abs(s[i]! - r[i]!)).toBeLessThanOrEqual(4);
+      await ctx.close();
+    }
+  });
+
+  test('134: skeletonLines bars follow align="end"; a pill column keeps one 20px pill', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1400 });
+    await story(page, ID);
+    const row = page.getByTestId('amounts').locator('.aura-table__row--skeleton').first();
+    const cells = row.locator('.aura-table__td');
+    const amt = cells.nth(1);
+    const cell = (await amt.boundingBox())!;
+    const pad = await amt.evaluate((e) => parseFloat(getComputedStyle(e).paddingRight));
+    for (const b of await amt.locator('.aura-skel').all()) {
+      const bb = (await b.boundingBox())!;
+      expect(Math.abs(bb.x + bb.width - (cell.x + cell.width - pad))).toBeLessThanOrEqual(1);
+    }
+    const pills = cells.nth(2).locator('.aura-skel');
+    await expect(pills).toHaveCount(1);
+    expect(Math.round((await pills.boundingBox())!.height)).toBe(20);
+  });
+
+  test('134: the pulse still stops under reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await story(page, ID);
+    await expect(rowsOf(page, 'skeleton').first().locator('.aura-skel').first()).toHaveCSS('animation-name', 'none');
+  });
+});
