@@ -305,6 +305,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
           id={optId(i)}
           role="option"
           data-idx={i}
+          /* 5.28: a description is read after the option's name, not as part of it. */
+          aria-labelledby={o.description ? optId(i) + '-label' : undefined}
+          aria-describedby={o.description ? optId(i) + '-desc' : undefined}
           aria-selected={isSel}
           aria-disabled={blocked || undefined}
           className={cx(
@@ -325,8 +328,14 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         >
           {o.icon ? <Icon name={o.icon} /> : null}
           <span className="aura-combo__text">
-            <span className="aura-combo__label">{o.label}</span>
-            {o.description ? <span className="aura-combo__desc">{o.description}</span> : null}
+            <span className="aura-combo__label" id={o.description ? optId(i) + '-label' : undefined}>
+              {o.label}
+            </span>
+            {o.description ? (
+              <span className="aura-combo__desc" id={optId(i) + '-desc'}>
+                {o.description}
+              </span>
+            ) : null}
           </span>
           {isSel ? <Icon name={<IconCheck />} className="aura-combo__check" /> : null}
         </li>

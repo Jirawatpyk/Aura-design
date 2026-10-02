@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.28 — descriptions are read after the name
+
+- **Accordion, Combobox and Command** follow 5.26's RadioGroup: an item's `description` was part of its accessible name ("Fees Two unpaid invoices", "Acme AB Stockholm · Corporate"). Now the name is the title or label alone and the description is read after it (`aria-describedby`). An Accordion panel is named by its title. A Command item keeps its shortcut in its name ("New invoice N I"), as before. The heading around an Accordion header is named by the title too. An Accordion title is now always one inline line (a `Badge` in a rich title stays beside the text instead of taking its own stretched row). Otherwise the layout is unchanged, and items without a description are named as before. Tests that matched the joined text need the label alone plus `toHaveAccessibleDescription`.
+
 ## 5.27 — Chamber-OS addendum 29
 
 - **Overriding a Container's width and margin is supported** (item 126): with `styles.layer.css`, utilities that set `max-width` or `margin` on a `Container` (`max-w-[672px]`, `mx-0`, `ms-0`) win over `.aura-container`, and that is now a guarantee rather than a side effect. AURA keeps every `.aura-container` rule in `@layer aura`, never uses `!important` on it and never adds an unlayered rule for it; `npm run check:tailwind4` fails if a 672px column, centred or at the start edge, stops working at a 1400px page. With the unlayered `styles.css` the component wins instead (as for every component), so use `size` / `align` or the layered stylesheet. The side padding (16 / 24 / 32px at <640 / ≥640 / ≥1024) and its removal directly inside a padded `AppShell` are unchanged.

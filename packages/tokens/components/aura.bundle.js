@@ -2760,6 +2760,8 @@ window.Aura = (() => {
             id: optId(i),
             role: "option",
             "data-idx": i,
+            "aria-labelledby": o.description ? optId(i) + "-label" : void 0,
+            "aria-describedby": o.description ? optId(i) + "-desc" : void 0,
             "aria-selected": isSel,
             "aria-disabled": blocked || void 0,
             className: cx(
@@ -2779,7 +2781,7 @@ window.Aura = (() => {
             }
           },
           o.icon ? /* @__PURE__ */ React19.createElement(Icon, { name: o.icon }) : null,
-          /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__label" }, o.label), o.description ? /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__desc" }, o.description) : null),
+          /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__label", id: o.description ? optId(i) + "-label" : void 0 }, o.label), o.description ? /* @__PURE__ */ React19.createElement("span", { className: "aura-combo__desc", id: optId(i) + "-desc" }, o.description) : null),
           isSel ? /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconCheck, null), className: "aura-combo__check" }) : null
         );
       }
@@ -4696,6 +4698,8 @@ window.Aura = (() => {
                       key: it.id,
                       id: optId(n3),
                       role: "option",
+                      "aria-labelledby": it.description ? optId(n3) + "-label" + (it.shortcut ? " " + optId(n3) + "-kbd" : "") : void 0,
+                      "aria-describedby": it.description ? optId(n3) + "-desc" : void 0,
                       "aria-selected": n3 === active,
                       "aria-disabled": it.disabled || void 0,
                       className: cx(
@@ -4714,8 +4718,8 @@ window.Aura = (() => {
                       }
                     },
                     it.icon ? /* @__PURE__ */ React28.createElement(Icon, { name: it.icon }) : null,
-                    /* @__PURE__ */ React28.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React28.createElement("span", { className: "aura-command__label" }, it.label), it.description ? /* @__PURE__ */ React28.createElement("span", { className: "aura-command__desc" }, it.description) : null),
-                    it.shortcut ? /* @__PURE__ */ React28.createElement("kbd", { className: "aura-command__kbd" }, it.shortcut) : null
+                    /* @__PURE__ */ React28.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React28.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React28.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc" }, it.description) : null),
+                    it.shortcut ? /* @__PURE__ */ React28.createElement("kbd", { className: "aura-command__kbd", id: it.description ? optId(n3) + "-kbd" : void 0 }, it.shortcut) : null
                   );
                 })
               );
@@ -8696,6 +8700,8 @@ window.Aura = (() => {
         {
           type: "button",
           id: bid,
+          "aria-labelledby": it.description ? bid + "-title" : void 0,
+          "aria-describedby": it.description ? bid + "-desc" : void 0,
           "aria-expanded": on,
           "aria-controls": pid,
           disabled: it.disabled,
@@ -8704,9 +8710,19 @@ window.Aura = (() => {
           }
         },
         it.icon ? /* @__PURE__ */ React57.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
-        /* @__PURE__ */ React57.createElement("span", { className: "aura-accordion__title" }, it.title, it.description ? /* @__PURE__ */ React57.createElement("span", { className: "aura-accordion__desc" }, it.description) : null),
+        /* @__PURE__ */ React57.createElement("span", { className: "aura-accordion__title" }, /* @__PURE__ */ React57.createElement("span", { id: it.description ? bid + "-title" : void 0 }, it.title), it.description ? /* @__PURE__ */ React57.createElement("span", { className: "aura-accordion__desc", id: bid + "-desc" }, it.description) : null),
         /* @__PURE__ */ React57.createElement(Icon, { name: /* @__PURE__ */ React57.createElement(IconChevronDown, null), className: "aura-accordion__chevron" })
-      )), /* @__PURE__ */ React57.createElement("div", { id: pid, role: "region", "aria-labelledby": bid, className: "aura-accordion__panel", hidden: !on }, it.content));
+      )), /* @__PURE__ */ React57.createElement(
+        "div",
+        {
+          id: pid,
+          role: "region",
+          "aria-labelledby": it.description ? bid + "-title" : bid,
+          className: "aura-accordion__panel",
+          hidden: !on
+        },
+        it.content
+      ));
     }));
   });
 

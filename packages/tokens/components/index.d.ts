@@ -470,6 +470,7 @@ export interface CommandItem {
 	/** Items with the same group are listed together under its heading, in first-seen order. */
 	group?: string | undefined;
 	icon?: IconInput | undefined;
+	/** A second line; read after the item's name (label and shortcut), not as part of it (5.28). */
 	description?: string | undefined;
 	/** Extra words that find it ("invoice" → Billing). */
 	keywords?: string[] | undefined;
@@ -845,7 +846,7 @@ export interface DropdownMenuProps {
 export interface ComboboxOption {
 	value: string;
 	label: string;
-	/** Second line in the list; also searched. */
+	/** Second line in the list; also searched. Read after the option's name, not as part of it (5.28). */
 	description?: string | undefined;
 	/** Extra search terms (English name, phone, code…). */
 	keywords?: string[] | undefined;
@@ -1425,6 +1426,7 @@ export interface PaginationProps {
 export interface AccordionItem {
 	id: string;
 	title: React$1.ReactNode;
+	/** A second line under the title; read as the header button's description, not its name (5.28). */
 	description?: React$1.ReactNode | undefined;
 	content: React$1.ReactNode;
 	icon?: IconInput | undefined;

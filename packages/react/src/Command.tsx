@@ -238,6 +238,13 @@ export function Command(props: CommandProps): React.ReactElement | null {
                           key={it.id}
                           id={optId(n)}
                           role="option"
+                          /* 5.28: the description is read after the name (label and shortcut), not inside it. */
+                          aria-labelledby={
+                            it.description
+                              ? optId(n) + '-label' + (it.shortcut ? ' ' + optId(n) + '-kbd' : '')
+                              : undefined
+                          }
+                          aria-describedby={it.description ? optId(n) + '-desc' : undefined}
                           aria-selected={n === active}
                           aria-disabled={it.disabled || undefined}
                           className={cx(
@@ -257,10 +264,20 @@ export function Command(props: CommandProps): React.ReactElement | null {
                         >
                           {it.icon ? <Icon name={it.icon} /> : null}
                           <span className="aura-command__text">
-                            <span className="aura-command__label">{it.label}</span>
-                            {it.description ? <span className="aura-command__desc">{it.description}</span> : null}
+                            <span className="aura-command__label" id={it.description ? optId(n) + '-label' : undefined}>
+                              {it.label}
+                            </span>
+                            {it.description ? (
+                              <span className="aura-command__desc" id={optId(n) + '-desc'}>
+                                {it.description}
+                              </span>
+                            ) : null}
                           </span>
-                          {it.shortcut ? <kbd className="aura-command__kbd">{it.shortcut}</kbd> : null}
+                          {it.shortcut ? (
+                            <kbd className="aura-command__kbd" id={it.description ? optId(n) + '-kbd' : undefined}>
+                              {it.shortcut}
+                            </kbd>
+                          ) : null}
                         </div>
                       );
                     })}

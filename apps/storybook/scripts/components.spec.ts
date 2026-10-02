@@ -5016,3 +5016,59 @@ test.describe('5.27: Chamber-OS addendum 29', () => {
     expect(await board.evaluate((el) => el.tagName)).toBe('SECTION');
   });
 });
+
+test.describe('5.28: descriptions are not names (Accordion, Combobox, Command)', () => {
+  type AX = { role?: { value: string }; name?: { value: string }; description?: { value: string } };
+  async function ax(page: import('@playwright/test').Page, roles: string[]) {
+    const cdp = await page.context().newCDPSession(page);
+    const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as { nodes: AX[] };
+    return nodes
+      .filter((n) => roles.includes(n.role?.value ?? ''))
+      .map((n) => [n.role!.value, n.name?.value ?? '', n.description?.value ?? '']);
+  }
+
+  test("Accordion: a header button and its panel are named by the title; the description is the button's description", async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-28--descriptions-not-names');
+    await page.getByRole('button', { name: 'Fees', exact: true }).click();
+    const got = (await ax(page, ['button', 'region'])).filter(([, n]) => /Fees|Contacts/.test(n)).sort();
+    expect(got).toEqual(
+      [
+        ['button', 'Contacts', ''],
+        ['button', 'Fees', 'Two unpaid invoices'],
+        ['region', 'Fees', ''],
+      ].sort(),
+    );
+  });
+
+  test('Combobox: an option is named by its label and described by its second line', async ({ page }) => {
+    await story(page, 'aura-new-in-5-28--descriptions-not-names');
+    await page.getByRole('combobox', { name: 'Member' }).click();
+    await expect(page.getByRole('option', { name: 'Acme AB', exact: true })).toHaveAccessibleDescription(
+      'Stockholm · Corporate',
+    );
+    expect(await ax(page, ['option'])).toEqual([
+      ['option', 'Acme AB', 'Stockholm · Corporate'],
+      ['option', 'Nordic Timber Oy', 'Helsinki · SME'],
+    ]);
+    /* Filtered: the ids are re-indexed and still point at the right option's spans. */
+    await page.getByRole('combobox', { name: 'Member' }).fill('nordic');
+    expect(await ax(page, ['option'])).toEqual([['option', 'Nordic Timber Oy', 'Helsinki · SME']]);
+  });
+
+  test('Command: an item keeps its shortcut in the name and reads the description after it', async ({ page }) => {
+    await story(page, 'aura-new-in-5-28--descriptions-not-names');
+    await page.getByRole('button', { name: 'Open commands' }).click();
+    const opts = await ax(page, ['option']);
+    expect(opts).toEqual([
+      ['option', 'New invoice N I', 'Bill a member'],
+      ['option', 'Members G M', 'Member list'],
+      ['option', 'Settings', ''],
+    ]);
+    /* Filtered: Members moves from the second place to the first, and its ids follow it. */
+    await page.keyboard.type('members');
+    await expect(page.getByRole('option')).toHaveCount(1);
+    expect(await ax(page, ['option'])).toEqual([['option', 'Members G M', 'Member list']]);
+  });
+});

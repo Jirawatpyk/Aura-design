@@ -62,6 +62,9 @@ export const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(functi
               <button
                 type="button"
                 id={bid}
+                /* 5.28: named by its title; the description is read after it. */
+                aria-labelledby={it.description ? bid + '-title' : undefined}
+                aria-describedby={it.description ? bid + '-desc' : undefined}
                 aria-expanded={on}
                 aria-controls={pid}
                 disabled={it.disabled}
@@ -71,13 +74,23 @@ export const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(functi
               >
                 {it.icon ? <Icon name={it.icon} className="aura-accordion__lead" /> : null}
                 <span className="aura-accordion__title">
-                  {it.title}
-                  {it.description ? <span className="aura-accordion__desc">{it.description}</span> : null}
+                  <span id={it.description ? bid + '-title' : undefined}>{it.title}</span>
+                  {it.description ? (
+                    <span className="aura-accordion__desc" id={bid + '-desc'}>
+                      {it.description}
+                    </span>
+                  ) : null}
                 </span>
                 <Icon name={<IconChevronDown />} className="aura-accordion__chevron" />
               </button>
             </HT>
-            <div id={pid} role="region" aria-labelledby={bid} className="aura-accordion__panel" hidden={!on}>
+            <div
+              id={pid}
+              role="region"
+              aria-labelledby={it.description ? bid + '-title' : bid}
+              className="aura-accordion__panel"
+              hidden={!on}
+            >
               {it.content}
             </div>
           </div>
