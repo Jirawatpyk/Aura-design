@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.29.0
+
+### Minor Changes
+
+- 08942f8: Chamber-OS addendum 37: DataTable loading rows stand in for the real ones — they follow `rowHeight="auto"`, draw a column's `skeletonLines` bars, keep their field labels in stacked cards, and draw a button-sized bar for `card: 'footer'` and `actions` cells (44px under the touchHeight rule).
+
 ## 5.28.0
 
 ### Minor Changes
