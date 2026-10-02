@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.26.0 — 2026-10-02
+
+### Minor changes
+
+- 6e7ddb0: Chamber-OS addendum 28: a RadioGroup option's `description` (and a labelled Checkbox's) is read as its accessible description, not as part of its name — the name is the visible label alone. Layout and click behaviour are unchanged.
+- 68f1e30: Chamber-OS addendum 29: Container takes `align="start"` and passes `id`, `lang`, `dir`, `aria-*` and `data-*` to its element; overriding its `max-width` / `margin` with utilities under `styles.layer.css` is now documented as supported and checked by `check:tailwind4`.
+- bbdbbc3: Chamber-OS addendum 30: DataTable and Table take `bleed` — edge to edge inside a Card (no side borders or radius, pulled out by the card's padding; as the card's last content the card's radius closes it; nothing below `flushBelow` or outside a Card). DataTable takes `bordered={false}`.
+- 79c2051: Chamber-OS addendum 31: `FilterDateRange` — a compact date-range filter for FilterBar with a FilterSelect-style face ("Submitted Any time"), one click to the range calendar, optional presets and an "Any time" choice; `onChange` only on a complete range, a preset or clearing.
+- b184d28: Chamber-OS addendum 32: Table takes `stickyHeader` (pins the header row to the page under AppShell's bar, or to its own box with the new `maxHeight`). Default off.
+- e768a2d: Accordion, Combobox and Command read an item's `description` as its accessible description, not as part of its name (as RadioGroup since 5.26). An Accordion panel is named by its title; a Command item keeps its shortcut in its name.
+
 ## 5.25.0 — 2026-10-01
 
 ### Minor changes
