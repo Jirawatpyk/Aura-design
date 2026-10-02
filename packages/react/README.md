@@ -186,6 +186,20 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.30 — Visual polish (audit, Oct 2026)
+
+A visual audit of every Storybook story in light, dark and at 390px. This release takes the system-wide fixes; colour hues and layout defaults are unchanged.
+
+- **Dark mode:** the primary button, checked box, selected day, completed step, `bg-surface-strong` and `bg-inverted` (tooltips, counts) are off-white `zinc-200` instead of pure white, which was the brightest thing on a dark page. Primary hover is `zinc-100`.
+- **Status fills:** Blocked is `red-800` in light (quieter in a long table, and further from the lime Ready fill); Warning is `amber-600` in dark too (amber-500 glowed). Ready, Warning and Blocked still differ by lightness, not only hue.
+- **Neutral fills show on the light canvas:** `--aura-status-neutral-bg` is `zinc-200` (was `zinc-100` on a `zinc-50` page), so the neutral StatusPill, tab counts, Avatar and SideNav initials are one step darker in light. The neutral Badge and the EmptyState icon disc use it too.
+- **DataTable header band** has its own token, `--aura-table-head-bg`: the canvas in light, `#111114` in dark — between the page and the card, so it no longer reads as a hole. Table's header and totals rows (also the totals card) and DataTable's totals row use it.
+- **Disabled filled buttons** (primary, danger, creative) use new tokens `--aura-button-disabled-bg` / `-fg`: a grey fill with muted text at full opacity, not a faded copy (faded red read as pink, faded ink as a separate grey button); the creative shadow goes. Secondary, ghost and danger-secondary keep the fade. In forced colours every disabled button shows GrayText and the fade.
+- **Buttons are always the AURA sans** (`font-family: var(--font-sans)`), also outside a root that sets the font. An app that sets its own font on `body` should set `--font-sans` too, or its buttons stay Inter.
+- **Table caption** has 12px below it, so it no longer touches the header.
+- **DataTable skeleton action bars** take the button's own shape (`--aura-button-radius`).
+- **Thai:** where the language is Thai (`lang="th"` on the page or a part), StatusPill, Badge and tab counts are 12px (the loading pill matches), BottomNav labels 12px, Stepper descriptions 13px with a 1.6 line, SideNav labels on a 22px line. A `lang="en"` part inside keeps the Latin sizes.
+
 ## 5.29 — Chamber-OS addendum 37
 
 - **DataTable loading rows match the rows they stand in for** (item 134), so the layout doesn't jump when the rows arrive:

@@ -32,12 +32,12 @@ test.describe('Button', () => {
     await expect(b).toHaveAttribute('aria-busy', 'true');
     await expect(b.locator('.aura-spin')).toBeVisible();
   });
-  test('dark theme flips the primary fill and the creative shadow turns violet', async ({ page }) => {
+  test('dark theme flips the primary fill to off-white and the creative shadow turns violet', async ({ page }) => {
     await story(page, 'aura-actions-button--all-states', 'dark');
     const bg = await page
       .getByRole('button', { name: 'Enterprise' })
       .evaluate((e) => getComputedStyle(e).backgroundColor);
-    expect(bg).toBe('rgb(255, 255, 255)');
+    expect(bg).toBe('rgb(228, 228, 231)'); // 5.30: off-white zinc-200, not pure white
     const sh = await page.getByRole('button', { name: 'Creative' }).evaluate((e) => getComputedStyle(e).boxShadow);
     expect(sh).toContain('167, 139, 250');
   });
@@ -5690,5 +5690,90 @@ test.describe('5.29: Chamber-OS addendum 37', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await story(page, ID);
     await expect(rowsOf(page, 'skeleton').first().locator('.aura-skel').first()).toHaveCSS('animation-name', 'none');
+  });
+});
+
+test.describe('5.30: visual polish', () => {
+  const ID = 'aura-new-in-5-30--visual-polish';
+  const css = (l: import('@playwright/test').Locator, p: string) =>
+    l.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), p);
+
+  test('dark: the primary fill is off-white, not pure white; the DataTable header band sits between canvas and card', async ({
+    page,
+  }) => {
+    await story(page, ID, 'dark');
+    expect(await css(page.getByRole('button', { name: 'Save' }), 'background-color')).toBe('rgb(228, 228, 231)');
+    const head = page.locator('.aura-table__head').first();
+    expect(await css(head, 'background-color')).toBe('rgb(17, 17, 20)');
+    expect(await css(page.locator('.aura-tbl__head .aura-tbl__th').first(), 'background-color')).toBe(
+      'rgb(17, 17, 20)',
+    );
+  });
+
+  test('light: Blocked is red-800, the neutral pill and badge show on the canvas, the header band is the canvas', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    const pills = page.getByTestId('pills');
+    expect(await css(pills.locator('.aura-pill').filter({ hasText: 'Overdue' }), 'background-color')).toBe(
+      'rgb(153, 27, 27)',
+    );
+    expect(await css(pills.locator('.aura-pill').filter({ hasText: 'Lapsed' }), 'background-color')).toBe(
+      'rgb(228, 228, 231)',
+    );
+    expect(await css(pills.locator('.aura-badge'), 'background-color')).toBe('rgb(228, 228, 231)');
+    expect(await css(page.locator('.aura-table__head').first(), 'background-color')).toBe('rgb(250, 250, 250)');
+  });
+
+  test('a disabled filled button is a grey fill at full opacity; outline buttons keep the fade', async ({ page }) => {
+    for (const theme of ['light', 'dark'] as const) {
+      await story(page, ID, theme);
+      for (const name of ['Disabled primary', 'Disabled danger', 'Disabled creative']) {
+        const b = page.getByRole('button', { name });
+        expect(await css(b, 'opacity')).toBe('1');
+        expect(await css(b, 'background-color')).toBe(theme === 'light' ? 'rgb(228, 228, 231)' : 'rgb(39, 39, 42)');
+        expect(await css(b, 'box-shadow')).toBe('none');
+      }
+      expect(await css(page.getByRole('button', { name: 'Disabled secondary' }), 'opacity')).toBe('0.5');
+      /* An aria-disabled (focusable, gated) primary gets the same grey fill, also on hover. */
+      const gated = page.getByRole('button', { name: 'Gated primary' });
+      await gated.hover();
+      expect(await css(gated, 'background-color')).toBe(theme === 'light' ? 'rgb(228, 228, 231)' : 'rgb(39, 39, 42)');
+      expect(await css(gated, 'opacity')).toBe('1');
+    }
+  });
+
+  test('forced colours: a disabled or gated filled button is GrayText and faded, unlike an enabled one', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await story(page, ID);
+    for (const name of ['Disabled primary', 'Gated primary']) {
+      const b = page.getByRole('button', { name });
+      expect(await css(b, 'opacity')).toBe('0.5');
+    }
+    expect(await css(page.getByRole('button', { name: 'Save' }), 'opacity')).toBe('1');
+  });
+
+  test('a button outside a styled root is still Inter; the Table caption has room under it', async ({ page }) => {
+    await story(page, ID);
+    expect(await css(page.getByTestId('serif-root').getByRole('button'), 'font-family')).toMatch(/^Inter/);
+    expect(await css(page.locator('.aura-tbl__caption').first(), 'padding-bottom')).toBe('12px');
+  });
+
+  test('a skeleton action bar has the button shape (pill)', async ({ page }) => {
+    await story(page, 'aura-new-in-5-29--loading-rows');
+    const bar = page.getByTestId('skeleton').locator('.aura-skel--action').first();
+    expect(await css(bar, 'border-top-left-radius')).toBe('9999px');
+  });
+
+  test('Thai (lang="th"): pills and badges are 12px', async ({ page }) => {
+    await story(page, ID);
+    const th = page.getByTestId('thai');
+    expect(await css(th.locator('.aura-pill').first(), 'font-size')).toBe('12px');
+    expect(await css(th.locator('.aura-badge'), 'font-size')).toBe('12px');
+    expect(await css(page.getByTestId('pills').locator('.aura-pill').first(), 'font-size')).toBe('11px');
+    /* An English part inside the Thai one keeps the Latin size. */
+    expect(await css(page.getByTestId('en-in-th').locator('.aura-pill'), 'font-size')).toBe('11px');
   });
 });

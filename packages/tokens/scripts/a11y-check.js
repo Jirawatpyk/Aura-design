@@ -62,7 +62,7 @@ function ratio(fg, bg) {
 }
 
 const TEXT = 4.5, UI = 3;
-const grounds = ['bg-surface', 'bg-canvas', 'bg-surface-hover'];
+const grounds = ['bg-surface', 'bg-canvas', 'bg-surface-hover', 'table-head-bg'];
 /** @type {[string, string, number][]} */
 const pairs = [];
 for (const fg of ['fg-primary', 'fg-secondary', 'fg-tertiary', 'fg-accent', 'fg-danger', 'fg-positive', 'fg-warning']) for (const bg of grounds) pairs.push([fg, bg, TEXT]);

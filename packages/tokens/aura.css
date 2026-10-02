@@ -70,13 +70,13 @@
   --aura-mesh-ground: var(--aura-white);
   --aura-on-texture: var(--aura-ink);
   --aura-grain: var(--aura-ink);
-  --aura-status-neutral-bg: var(--aura-zinc-100);
+  --aura-status-neutral-bg: var(--aura-zinc-200);
   --aura-status-neutral-fg: var(--aura-zinc-700);
   --aura-status-progress-bg: var(--aura-violet-100);
   --aura-status-progress-fg: var(--aura-violet-800);
   --aura-status-ready-bg: var(--aura-lime-200);
   --aura-status-ready-fg: var(--aura-ink);
-  --aura-status-blocked-bg: var(--aura-red-700);
+  --aura-status-blocked-bg: var(--aura-red-800);
   --aura-status-blocked-fg: var(--aura-white);
   --aura-status-warning-bg: var(--aura-amber-600);
   --aura-status-warning-fg: var(--aura-ink);
@@ -129,6 +129,9 @@
   --aura-card-border: var(--aura-zinc-200);
   --aura-progress-track: var(--aura-bg-skeleton);
   --aura-progress-track-edge: var(--aura-button-secondary-border);
+  --aura-table-head-bg: var(--aura-bg-canvas);
+  --aura-button-disabled-bg: var(--aura-zinc-200);
+  --aura-button-disabled-fg: var(--aura-fg-tertiary);
   --aura-shadow-enterprise: 0 1px 2px rgba(0,0,0,0.05);
   --aura-shadow-overlay: 0 16px 48px rgba(8,8,10,0.16), 0 2px 8px rgba(8,8,10,0.08);
   --aura-shadow-creative: 4px 4px 0px #18181b;
@@ -140,9 +143,9 @@
 .dark, [data-theme="dark"] {
   --aura-bg-surface: var(--aura-zinc-900);
   --aura-bg-surface-hover: var(--aura-zinc-800);
-  --aura-bg-surface-strong: var(--aura-zinc-0);
+  --aura-bg-surface-strong: var(--aura-zinc-200);
   --aura-bg-canvas: var(--aura-zinc-950);
-  --aura-bg-inverted: var(--aura-zinc-0);
+  --aura-bg-inverted: var(--aura-zinc-200);
   --aura-fg-primary: var(--aura-zinc-0);
   --aura-fg-secondary: var(--aura-zinc-400);
   --aura-fg-tertiary: var(--aura-zinc-450);
@@ -159,7 +162,7 @@
   --aura-status-progress-fg: var(--aura-violet-300);
   --aura-status-ready-bg: #2b351f;
   --aura-status-ready-fg: var(--aura-lime-300);
-  --aura-status-warning-bg: var(--aura-amber-500);
+  --aura-status-blocked-bg: var(--aura-red-700);
   --aura-bg-selected: #2c283a;
   --aura-border-control: var(--aura-zinc-400);
   --aura-bg-skeleton: var(--aura-zinc-700);
@@ -193,14 +196,17 @@
   --aura-chart-seq-5: #dcd5fe;
   --aura-chart-grid: var(--aura-zinc-800);
   --aura-chart-axis: var(--aura-zinc-400);
-  --aura-button-primary-bg: var(--aura-zinc-0);
+  --aura-button-primary-bg: var(--aura-zinc-200);
   --aura-button-primary-fg: var(--aura-zinc-900);
-  --aura-button-primary-bg-hover: var(--aura-zinc-200);
+  --aura-button-primary-bg-hover: var(--aura-zinc-100);
   --aura-button-secondary-border: var(--aura-zinc-500);
   --aura-button-danger-bg: var(--aura-red-600);
   --aura-button-danger-bg-hover: var(--aura-red-700);
   --aura-progress-track: var(--aura-bg-skeleton);
   --aura-progress-track-edge: var(--aura-button-secondary-border);
+  --aura-table-head-bg: #111114;
+  --aura-button-disabled-bg: var(--aura-zinc-800);
+  --aura-button-disabled-fg: var(--aura-fg-tertiary);
   --aura-shadow-overlay: 0 16px 48px rgba(0,0,0,0.56), 0 2px 8px rgba(0,0,0,0.32);
   --aura-shadow-creative: 4px 4px 0px #a78bfa;
   --aura-shadow-creative-hover: 6px 6px 0px #a78bfa;
@@ -213,9 +219,9 @@
   [data-theme="system"] {
     --aura-bg-surface: var(--aura-zinc-900);
     --aura-bg-surface-hover: var(--aura-zinc-800);
-    --aura-bg-surface-strong: var(--aura-zinc-0);
+    --aura-bg-surface-strong: var(--aura-zinc-200);
     --aura-bg-canvas: var(--aura-zinc-950);
-    --aura-bg-inverted: var(--aura-zinc-0);
+    --aura-bg-inverted: var(--aura-zinc-200);
     --aura-fg-primary: var(--aura-zinc-0);
     --aura-fg-secondary: var(--aura-zinc-400);
     --aura-fg-tertiary: var(--aura-zinc-450);
@@ -232,7 +238,7 @@
     --aura-status-progress-fg: var(--aura-violet-300);
     --aura-status-ready-bg: #2b351f;
     --aura-status-ready-fg: var(--aura-lime-300);
-    --aura-status-warning-bg: var(--aura-amber-500);
+    --aura-status-blocked-bg: var(--aura-red-700);
     --aura-bg-selected: #2c283a;
     --aura-border-control: var(--aura-zinc-400);
     --aura-bg-skeleton: var(--aura-zinc-700);
@@ -266,14 +272,17 @@
     --aura-chart-seq-5: #dcd5fe;
     --aura-chart-grid: var(--aura-zinc-800);
     --aura-chart-axis: var(--aura-zinc-400);
-    --aura-button-primary-bg: var(--aura-zinc-0);
+    --aura-button-primary-bg: var(--aura-zinc-200);
     --aura-button-primary-fg: var(--aura-zinc-900);
-    --aura-button-primary-bg-hover: var(--aura-zinc-200);
+    --aura-button-primary-bg-hover: var(--aura-zinc-100);
     --aura-button-secondary-border: var(--aura-zinc-500);
     --aura-button-danger-bg: var(--aura-red-600);
     --aura-button-danger-bg-hover: var(--aura-red-700);
     --aura-progress-track: var(--aura-bg-skeleton);
     --aura-progress-track-edge: var(--aura-button-secondary-border);
+    --aura-table-head-bg: #111114;
+    --aura-button-disabled-bg: var(--aura-zinc-800);
+    --aura-button-disabled-fg: var(--aura-fg-tertiary);
     --aura-shadow-overlay: 0 16px 48px rgba(0,0,0,0.56), 0 2px 8px rgba(0,0,0,0.32);
     --aura-shadow-creative: 4px 4px 0px #a78bfa;
     --aura-shadow-creative-hover: 6px 6px 0px #a78bfa;

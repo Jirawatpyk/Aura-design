@@ -12,7 +12,7 @@
   border: 0;
   background: transparent;
   color: inherit;
-  font-family: inherit;
+  font-family: var(--font-sans); /* 5.30: not inherit — a trigger outside a styled root fell back to Arial */
   font-size: 13px;
   font-weight: 500;
   line-height: 1;
@@ -44,6 +44,19 @@ button.aura-btn--secondary[aria-disabled='true']:hover, button.aura-btn--ghost[a
 button.aura-btn--danger-secondary[aria-disabled='true']:hover { background: transparent; }
 button.aura-btn--danger[aria-disabled='true']:hover { background: var(--aura-button-danger-bg); }
 button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-shadow-creative); transform: none; }
+/* 5.30: a disabled filled button (primary, danger, creative) is a quiet grey fill with muted text, not a faded copy of
+ * itself — faded ink read as a separate grey button, faded red as pink. Outline and ghost buttons keep the fade. */
+.aura-btn:is(.aura-btn--primary, .aura-btn--danger, .aura-btn--creative):is(:disabled, [aria-disabled='true']:not(.is-loading)),
+.aura-btn:is(.aura-btn--primary, .aura-btn--danger, .aura-btn--creative):is(:disabled, [aria-disabled='true']:not(.is-loading)):hover {
+  opacity: 1; background: var(--aura-button-disabled-bg); color: var(--aura-button-disabled-fg); border-color: transparent; box-shadow: none;
+}
+/* Forced colours drop the fills: filled buttons get a 1px edge (as outline buttons have), and a disabled or gated one
+ * (still focusable) shows GrayText and keeps the fade, without changing size. */
+@media (forced-colors: active) {
+  .aura-btn:is(.aura-btn--primary, .aura-btn--danger) { border: 1px solid ButtonText; }
+  .aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)),
+  .aura-btn.aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)):hover { color: GrayText; border-color: GrayText; opacity: var(--aura-disabled-opacity); }
+}
 .aura-btn.is-loading:active { transform: none; }
 
 /* Focus — ADDED: the source defines none. Solid 2px ring, 2px offset, on every interactive element. */
@@ -96,7 +109,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 .aura-table__head {
   position: sticky; top: 0; z-index: 3; box-sizing: border-box;   /* the hairline is inside the row height */
   display: flex; height: var(--aura-table-row-height); min-width: var(--aura-row-min, 0);
-  background: var(--aura-bg-canvas);
+  background: var(--aura-table-head-bg);
   border-bottom: 1px solid var(--aura-border-default);
   font-family: var(--font-mono); font-size: 12px; color: var(--aura-fg-secondary);
 }
@@ -169,7 +182,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 .aura-table__gutter--end { position: static; }
 .aura-table__picker {
   position: absolute; top: 0; right: 0; z-index: 5; width: var(--aura-space-12); height: calc(var(--aura-table-row-height) - 1px);
-  display: flex; align-items: center; justify-content: center; background: var(--aura-bg-canvas); border-top-right-radius: calc(var(--aura-card-radius) - 1px);
+  display: flex; align-items: center; justify-content: center; background: var(--aura-table-head-bg); border-top-right-radius: calc(var(--aura-card-radius) - 1px);
 }
 .aura-table__gutter--end.has-picker {
   width: var(--aura-space-12); position: sticky; left: auto; right: 0;
@@ -341,7 +354,7 @@ a.aura-icon-btn { text-decoration: none; }
 /* 5.29 (Chamber-OS 134): a DataTable skeleton row stands in for the real one — text lines (skeletonLines) on the 20px
  * line, and a button-height bar where row actions go: 32px, or 44px under the touchHeight rule with the column's
  * skeletonTouch; full width in a card footer. */
-.aura-skel--action { flex: none; width: var(--aura-button-height-sm); height: var(--aura-button-height-sm); border-radius: var(--aura-radius-md); }
+.aura-skel--action { flex: none; width: var(--aura-button-height-sm); height: var(--aura-button-height-sm); border-radius: var(--aura-button-radius); } /* 5.30: the button's own shape */
 .aura-skel--action.is-footer { width: 100%; }
 .aura-table__td.is-end > .aura-skel-lines { align-items: flex-end; }
 @media (max-width: 639.98px), (pointer: coarse) {
@@ -1051,7 +1064,7 @@ a.aura-tab { text-decoration: none; }
 .aura-shell__content:not(.is-flush) > .aura-container { padding-left: 0; padding-right: 0; }
 
 /* Totals row (4.19): under the body, a strong top edge; sticky at the bottom of a `height` table with stickyFooter. */
-.aura-table__total { background: var(--aura-bg-canvas); border-top: 1px solid var(--aura-border-strong); font-weight: 600; }
+.aura-table__total { background: var(--aura-table-head-bg); border-top: 1px solid var(--aura-border-strong); font-weight: 600; }
 .aura-table__total.is-sticky { position: sticky; bottom: 0; z-index: 3; }
 .aura-table__total .aura-table__td.is-end { font-variant-numeric: tabular-nums; }
 .aura-tooltip--above { transform: translateY(-100%); max-width: min(var(--aura-tooltip-max), 90vw); white-space: normal; }
@@ -1145,7 +1158,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-badge {
   display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 var(--aura-space-2); box-sizing: border-box;
   border-radius: var(--aura-radius-full); border: 1px solid transparent; font-family: var(--font-sans); font-size: 11px; font-weight: 600; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums;
-  background: var(--aura-bg-surface-hover); color: var(--aura-fg-secondary);
+  background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg); /* 5.30: surface-hover vanished on the light canvas */
 }
 .aura-badge--accent { background: var(--aura-alert-info-bg); color: var(--aura-alert-info-fg); }
 .aura-badge--success { background: var(--aura-alert-success-bg); color: var(--aura-alert-success-fg); }
@@ -1208,7 +1221,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--aura-space-2); padding: var(--aura-space-12) var(--aura-space-6); font-family: var(--font-sans); color: var(--aura-fg-primary); }
 .aura-empty.is-sm { padding: var(--aura-space-6) var(--aura-space-4); }
 .aura-empty.is-bordered { border: 1px dashed var(--aura-border-control); border-radius: var(--aura-radius-lg); }
-.aura-empty__icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; margin-bottom: var(--aura-space-2); border-radius: var(--aura-radius-full); background: var(--aura-bg-surface-hover); color: var(--aura-fg-secondary); }
+.aura-empty__icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; margin-bottom: var(--aura-space-2); border-radius: var(--aura-radius-full); background: var(--aura-status-neutral-bg); color: var(--aura-fg-secondary); }
 .aura-empty.is-sm .aura-empty__icon { width: 36px; height: 36px; }
 .aura-empty__title { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
 .aura-empty__text { margin: 0; max-width: 44ch; font-size: 14px; line-height: 1.6; color: var(--aura-fg-secondary); }
@@ -1732,17 +1745,17 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   background: var(--aura-bg-surface); color: var(--aura-fg-primary); font-family: var(--font-sans);
 }
 .aura-tbl { width: 100%; border-collapse: collapse; border-spacing: 0; font-size: 13px; line-height: 20px; }
-.aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) 0; text-align: left; font-size: 14px; font-weight: 600; }
+.aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) var(--aura-space-3); text-align: left; font-size: 14px; font-weight: 600; }
 .aura-tbl__th, .aura-tbl__td { padding: var(--aura-tbl-cell-py, var(--aura-space-3)) var(--aura-space-4); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
 .aura-tbl__th:first-child, .aura-tbl__td:first-child { padding-left: var(--aura-space-6); }
 .aura-tbl__th:last-child, .aura-tbl__td:last-child { padding-right: var(--aura-space-6); }
 .aura-tbl__head .aura-tbl__th {
-  background: var(--aura-bg-canvas); border-bottom: 1px solid var(--aura-border-default);
+  background: var(--aura-table-head-bg); border-bottom: 1px solid var(--aura-border-default);
   font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--aura-fg-secondary); white-space: nowrap;
 }
 .aura-tbl__body .aura-tbl__row + .aura-tbl__row > * { border-top: 1px solid var(--aura-border-default); }
 .aura-tbl__body .aura-tbl__th { font-weight: 500; }
-.aura-tbl__foot > .aura-tbl__row > * { background: var(--aura-bg-canvas); font-weight: 600; }
+.aura-tbl__foot > .aura-tbl__row > * { background: var(--aura-table-head-bg); font-weight: 600; }
 .aura-tbl__foot > .aura-tbl__row:first-child > * { border-top: 1px solid var(--aura-border-strong); }
 .aura-tbl__foot > .aura-tbl__row + .aura-tbl__row > * { border-top: 1px solid var(--aura-border-default); }
 .aura-tbl .is-end { text-align: right; }
@@ -1787,7 +1800,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @container aura-tbl (width < 768px) {
   .aura-tbl--stack-md, .aura-tbl--stack-md > .aura-tbl__body, .aura-tbl--stack-md > .aura-tbl__foot, .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td { display: block; }
   .aura-tbl--stack-md > .aura-tbl__head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .aura-tbl--stack-md > .aura-tbl__caption { display: block; padding: var(--aura-space-4) var(--aura-space-4) 0; }
+  .aura-tbl--stack-md > .aura-tbl__caption { display: block; padding: var(--aura-space-4) var(--aura-space-4) var(--aura-space-3); }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row { height: auto; padding: var(--aura-tbl-cell-py, var(--aura-space-3)) var(--aura-space-4); }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row + .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row:first-child { border-top: 1px solid var(--aura-border-default); }
   .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
@@ -1811,7 +1824,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @container aura-tbl (width < 640px) {
   .aura-tbl--stack-sm, .aura-tbl--stack-sm > .aura-tbl__body, .aura-tbl--stack-sm > .aura-tbl__foot, .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { display: block; }
   .aura-tbl--stack-sm > .aura-tbl__head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .aura-tbl--stack-sm > .aura-tbl__caption { display: block; padding: var(--aura-space-4) var(--aura-space-4) 0; }
+  .aura-tbl--stack-sm > .aura-tbl__caption { display: block; padding: var(--aura-space-4) var(--aura-space-4) var(--aura-space-3); }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row { height: auto; padding: var(--aura-tbl-cell-py, var(--aura-space-3)) var(--aura-space-4); }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row + .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row:first-child { border-top: 1px solid var(--aura-border-default); }
   .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
@@ -1845,7 +1858,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     margin-bottom: var(--aura-space-2); padding: var(--aura-tbl-card-py, var(--aura-space-4)) var(--aura-space-4);
     border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); background: var(--aura-bg-surface);
   }
-  .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row { background: var(--aura-bg-canvas); }
+  .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row { background: var(--aura-table-head-bg); }
   .aura-tbl--cards.aura-tbl--stack-md > :last-child > .aura-tbl__row:last-child { margin-bottom: 0; }
   .aura-tbl-wrap.is-flush > .aura-tbl--cards.aura-tbl--stack-md > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
 }
@@ -1858,7 +1871,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     margin-bottom: var(--aura-space-2); padding: var(--aura-tbl-card-py, var(--aura-space-4)) var(--aura-space-4);
     border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); background: var(--aura-bg-surface);
   }
-  .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row { background: var(--aura-bg-canvas); }
+  .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row { background: var(--aura-table-head-bg); }
   .aura-tbl--cards.aura-tbl--stack-sm > :last-child > .aura-tbl__row:last-child { margin-bottom: 0; }
   .aura-tbl-wrap.is-flush > .aura-tbl--cards.aura-tbl--stack-sm > .aura-tbl__caption { padding: 0 0 var(--aura-space-3); }
 }
@@ -1968,7 +1981,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__row--skeleton .aura-table__td > .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 5px 0; }
   .aura-table__row--skeleton .aura-table__td[data-label] .aura-skel:not(.aura-skel--pill):not(.aura-skel--action) { margin: 2.5px 0; margin: calc((1lh - 10px) / 2) 0; }
   .aura-table__row--skeleton .aura-table__td > .aura-skel-lines { align-items: flex-start; }
-  .aura-table__total { background: var(--aura-bg-canvas); }
+  .aura-table__total { background: var(--aura-table-head-bg); }
   .aura-table__total > .is-blank { display: none; }
   .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); background: var(--aura-bg-surface); }
   .aura-table__empty { background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); }
@@ -1998,3 +2011,12 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-tabs--segmented .aura-tab.aura-segmented__option.is-selected { outline: none; border: 2px solid Highlight; }
   .aura-tabs--segmented .aura-tab.aura-segmented__option:focus-visible { outline: 2px dashed CanvasText; outline-offset: -5px; }
 }
+
+/* 5.30: Thai needs more room than Latin — tone marks and vowels stack above and below the line. Where the page or a
+ * part of it is Thai (lang="th"), small labels are at least 12px and lines are taller. */
+.aura-pill:lang(th), .aura-badge:lang(th), .aura-tab__count:lang(th) { font-size: 12px; }
+.aura-pill:lang(th) { line-height: 18px; }
+.aura-skel--pill:lang(th) { height: 22px; } /* the loading pill stays as tall as the Thai one */
+.aura-bottomnav__item:lang(th) { font-size: 12px; line-height: 18px; }
+.aura-stepper__desc:lang(th) { font-size: 13px; line-height: 1.6; }
+.aura-nav__label:lang(th) { line-height: 22px; }
