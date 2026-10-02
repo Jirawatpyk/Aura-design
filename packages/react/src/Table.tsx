@@ -68,6 +68,8 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     align,
     bordered,
     bleed,
+    stickyHeader,
+    maxHeight,
     stackStyle,
     rowHeight,
     className,
@@ -77,6 +79,11 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
   /* 5.15: stacked rows as separate cards. The frame around them has to go while stacked, and a container query
    * can't style its own container, so the width is measured one level up. */
   const cards = !!stackBelow && stackStyle === 'cards';
+  if (maxHeight != null && caption == null && !rest['aria-label'] && !rest['aria-labelledby'])
+    devWarnOnce(
+      'tbl-max-name',
+      'Table maxHeight: the box scrolls, so keyboard users get it as a focusable region — give the table a `caption` (captionHidden keeps it for screen readers) or an `aria-label` to name it.',
+    );
   const labels = stackBelow ? headerLabels(children) : null;
   if (labels && !labels.length)
     devWarnOnce(
@@ -93,15 +100,21 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
    * can scroll it too. */
   const sc = React.useState(false),
     scrolls = sc[0];
+  /* 5.31: a table wider than its box scrolls sideways; then a page-pinned header can't pin (see stickyHeader). */
+  const wide = React.useState(false);
   useIsoLayoutEffect(function () {
     const el = wrap.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
     function check() {
-      sc[1](el!.scrollWidth > el!.clientWidth + 1);
+      const sideways = el!.scrollWidth > el!.clientWidth + 1;
+      wide[1](sideways);
+      sc[1](sideways || el!.scrollHeight > el!.clientHeight + 1);
     }
     check();
     const ro = new ResizeObserver(check);
     ro.observe(el);
+    /* The table can grow inside a box that keeps its size (data, a longer label, a font swap). */
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
     return function () {
       ro.disconnect();
     };
@@ -116,12 +129,20 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
         /* 5.29 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
         bleed && 'aura-bleed-frame',
         bleed && !cards && 'aura-bleed',
+        /* 5.31 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
+        stickyHeader && (maxHeight != null ? 'is-sticky-box' : 'is-sticky-page'),
+        maxHeight != null && 'has-max',
+        wide[0] && 'is-wide',
       )}
+      style={
+        maxHeight != null ? { maxHeight: typeof maxHeight === 'number' ? maxHeight + 'px' : maxHeight } : undefined
+      }
       data-density={density || pageDensity}
       tabIndex={scrolls ? 0 : undefined}
       /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
-      role={scrolls && (caption != null || rest['aria-label']) ? 'region' : undefined}
-      aria-labelledby={scrolls && caption != null ? capId : undefined}
+      role={scrolls && (caption != null || rest['aria-label'] || rest['aria-labelledby']) ? 'region' : undefined}
+      /* 5.31: the table's own aria-labelledby names the box too. */
+      aria-labelledby={scrolls ? (caption != null ? capId : rest['aria-labelledby']) : undefined}
       aria-label={scrolls && caption == null ? rest['aria-label'] : undefined}
     >
       <table

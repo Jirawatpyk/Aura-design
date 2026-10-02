@@ -52,6 +52,20 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.31 (Chamber-OS 129): stickyHeader pins to the page, or to a maxHeight box; neither prop reaches the DOM. */
+  {
+    const e = React.createElement;
+    const body = e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')));
+    const pg = renderToString(e(A.Table, { caption: 'T', stickyHeader: true }, body));
+    const bx = renderToString(e(A.Table, { caption: 'T', stickyHeader: true, maxHeight: 240 }, body));
+    const vh = renderToString(e(A.Table, { caption: 'T', maxHeight: '60vh' }, body));
+    const off = renderToString(e(A.Table, { caption: 'T' }, body));
+    const ok =
+      /class="aura-tbl-wrap is-sticky-page"/.test(pg) && /class="aura-tbl-wrap is-sticky-box has-max"[^>]*style="max-height:240px"/.test(bx) &&
+      /class="aura-tbl-wrap has-max"[^>]*style="max-height:60vh"/.test(vh) && /class="aura-tbl-wrap"/.test(off) &&
+      !/sticky(H|h)eader=|maxheight=/i.test(pg + bx + vh);
+    if (!ok) { console.log(label, 'Table stickyHeader:', pg.slice(0, 200), bx.slice(0, 200), vh.slice(0, 200), off.slice(0, 120)); fail++; }
+  }
   /* 5.30 (Chamber-OS 128): FilterDateRange's face is one named button; the value is formatted in the date locale. */
   {
     const e = React.createElement;

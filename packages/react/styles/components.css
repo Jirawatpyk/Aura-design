@@ -1730,6 +1730,22 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl .is-end { text-align: right; }
 .aura-tbl .is-center { text-align: center; }
 .aura-tbl .is-numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 5.31 (Chamber-OS 129) stickyHeader. To the page: the box must not be a scroll container, so it clips sideways
+ * instead (nothing overflows while it fits; JavaScript marks a table that doesn't, which scrolls as before). In a
+ * maxHeight box: the box scrolls both ways and the header pins to its top. The rule under the band moves with it. */
+.aura-tbl-wrap.is-sticky-page:not(.is-wide) { overflow-x: clip; }
+.aura-tbl-wrap.has-max, .aura-tbl-cards > .aura-tbl-wrap.has-max { overflow: auto; box-sizing: border-box; }
+.aura-tbl-wrap.is-sticky-page > .aura-tbl > .aura-tbl__head .aura-tbl__th, .aura-tbl-wrap.is-sticky-box > .aura-tbl > .aura-tbl__head .aura-tbl__th {
+  position: sticky; top: var(--aura-table-sticky-top, var(--aura-shell-bar-height, 0px)); z-index: 2;
+  border-bottom-width: 0; box-shadow: inset 0 -1px 0 var(--aura-border-default); /* one rule, at rest and pinned */
+}
+/* Forced colours drop the shadow; a pseudo-element line moves with the pinned cell (a collapsed border doesn't). */
+@media (forced-colors: active) {
+  .aura-tbl-wrap.is-sticky-page > .aura-tbl > .aura-tbl__head .aura-tbl__th::after, .aura-tbl-wrap.is-sticky-box > .aura-tbl > .aura-tbl__head .aura-tbl__th::after {
+    content: ''; position: absolute; inset: auto 0 0 0; border-bottom: 1px solid CanvasText;
+  }
+}
+.aura-tbl-wrap.is-sticky-box > .aura-tbl > .aura-tbl__head .aura-tbl__th { top: 0; }
 .aura-tbl-wrap:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
 /* 5.13 (Chamber-OS 81): align="middle" centres body and footer cells on their row; bordered={false} drops the frame and
  * the outer cells' side padding, so the table lines up with what's around it (a Card's heading). */

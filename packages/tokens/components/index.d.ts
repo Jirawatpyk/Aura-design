@@ -1201,6 +1201,16 @@ export interface TableProps extends Omit<React$1.TableHTMLAttributes<HTMLTableEl
 	 * bottom rule and the card's radius closes it. Below the Card's `flushBelow` width, and outside a Card, it does
 	 * nothing. With `bordered={false}` too, the outer cells take the card's padding while it bleeds. */
 	bleed?: boolean | undefined;
+	/** Keep the header row in view while the rows scroll (5.31, Chamber-OS 129), with its band, its bottom rule and
+	 * above the body. Without `maxHeight` it pins to the page's scroll, under an AppShell's top bar
+	 * (`--aura-shell-bar-height`; set `--aura-table-sticky-top` for another offset). A table wider than its box
+	 * scrolls sideways instead and its header can't pin to the page then: give it `maxHeight`. Inside your own scroll
+	 * container within an AppShell set `--aura-table-sticky-top: 0px` or use `maxHeight`. With `maxHeight` the box
+	 * scrolls both ways and the header pins to its top. One header row. Stacked rows (`stackBelow`) have no visible header, so it
+	 * does nothing there. Default off. */
+	stickyHeader?: boolean | undefined;
+	/** Caps the table's box (px, or any CSS length such as `60vh`); the rows scroll inside it. (5.31) */
+	maxHeight?: number | string | undefined;
 	/** How stacked rows look (5.15, Chamber-OS 85): `list` (default) — one frame, rows divided by rules; `cards` —
 	 * each row its own framed card, spaced like DataTable's cards, with no frame around them. From the `stackBelow`
 	 * width up the table is unchanged. The table then sits in one more `div` (`.aura-tbl-cards`). */

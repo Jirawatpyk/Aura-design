@@ -5319,3 +5319,90 @@ test.describe('5.30: Chamber-OS addendum 31', () => {
     expect(d.y + d.height).toBeLessThanOrEqual(360);
   });
 });
+
+test.describe('5.31: Chamber-OS addendum 32', () => {
+  test("129: stickyHeader pins the header under AppShell's bar while the page scrolls, band and rule with it", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await story(page, 'aura-new-in-5-31--sticky-header-page');
+    const th = page.getByRole('columnheader', { name: 'PLAN' });
+    const bar = await page.locator('.aura-shell__bar').evaluate((b) => b.getBoundingClientRect().height);
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(800);
+    const r = await th.evaluate((el) => {
+      const s = getComputedStyle(el),
+        card = el.closest('[data-testid=card]')!.getBoundingClientRect(),
+        row = el.closest('tr')!.getBoundingClientRect();
+      return {
+        top: Math.round(el.getBoundingClientRect().top),
+        bg: s.backgroundColor,
+        rule: s.boxShadow.includes('inset'),
+        span: [Math.round(row.left - card.left), Math.round(card.right - row.right)],
+      };
+    });
+    expect(r.top).toBe(Math.round(bar));
+    expect(r.bg).not.toBe('rgba(0, 0, 0, 0)');
+    expect(r.rule).toBe(true);
+    /* Under bleed the band spans the card's inner width (inside its 1px border). */
+    expect(r.span).toEqual([1, 1]);
+    /* Above the body: the cell at the header's spot is the header. */
+    const hit = await page.evaluate((y) => document.elementFromPoint(300, y + 10)?.closest('th, td')?.tagName, r.top);
+    expect(hit).toBe('TH');
+  });
+
+  test('129: with maxHeight the box scrolls and the header pins to its top; the default stays put', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    const box = page.getByTestId('box').locator('.aura-tbl-wrap');
+    expect(Math.round((await box.boundingBox())!.height)).toBe(240);
+    await box.evaluate((el) => (el.scrollTop = 400));
+    const d = await box.evaluate((el) =>
+      Math.round(el.querySelector('th')!.getBoundingClientRect().top - el.getBoundingClientRect().top),
+    );
+    expect(d).toBe(1);
+    /* A keyboard user can scroll it: a named, focusable region. */
+    await expect(page.getByRole('region', { name: 'Boxed plans' })).toHaveAttribute('tabindex', '0');
+    const plain = page.getByTestId('plain').getByRole('columnheader', { name: 'PLAN' });
+    expect(await plain.evaluate((el) => getComputedStyle(el).position)).toBe('static');
+  });
+
+  test('129: one rule under the header at rest; a table that grows wider later becomes scrollable', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    const th = page.getByTestId('grow').getByRole('columnheader', { name: 'PLAN' });
+    expect(await th.evaluate((el) => getComputedStyle(el).borderBottomWidth)).toBe('0px');
+    const w = page.getByTestId('grow').locator('.aura-tbl-wrap');
+    await expect(w).not.toHaveClass(/is-wide/);
+    await th.evaluate(
+      (el) => (el.textContent = 'PLAN NAME AS REGISTERED WITH THE CHAMBER, IN FULL, FOR THE INVOICE HEADER'.repeat(2)),
+    );
+    await expect(w).toHaveClass(/is-wide/);
+    expect(await w.evaluate((el) => [getComputedStyle(el).overflowX, el.scrollWidth > el.clientWidth])).toEqual([
+      'auto',
+      true,
+    ]);
+  });
+
+  test('129: maxHeight caps stacked cards too; nothing spills onto what follows', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    const box = (await page.getByTestId('stacked').locator('.aura-tbl-wrap').boundingBox())!;
+    const after = (await page.getByTestId('after').boundingBox())!;
+    expect(Math.round(box.height)).toBe(200);
+    expect(after.y).toBeGreaterThanOrEqual(box.y + box.height);
+  });
+
+  test('129: a table wider than its box still scrolls sideways (nothing is clipped)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-new-in-5-31--sticky-header-box');
+    const w = page.getByTestId('wide').locator('.aura-tbl-wrap');
+    await expect(w).toHaveClass(/is-wide/);
+    const r = await w.evaluate((el) => [getComputedStyle(el).overflowX, el.scrollWidth > el.clientWidth]);
+    expect(r).toEqual(['auto', true]);
+  });
+});

@@ -7477,6 +7477,8 @@ window.Aura = (() => {
       align,
       bordered,
       bleed,
+      stickyHeader,
+      maxHeight,
       stackStyle,
       rowHeight,
       className,
@@ -7484,6 +7486,11 @@ window.Aura = (() => {
       ...rest
     } = props;
     const cards = !!stackBelow && stackStyle === "cards";
+    if (maxHeight != null && caption == null && !rest["aria-label"] && !rest["aria-labelledby"])
+      devWarnOnce(
+        "tbl-max-name",
+        "Table maxHeight: the box scrolls, so keyboard users get it as a focusable region \u2014 give the table a `caption` (captionHidden keeps it for screen readers) or an `aria-label` to name it."
+      );
     const labels = stackBelow ? headerLabels(children) : null;
     if (labels && !labels.length)
       devWarnOnce(
@@ -7495,15 +7502,19 @@ window.Aura = (() => {
     const capId = uid();
     const wrap = React45.useRef(null);
     const sc = React45.useState(false), scrolls = sc[0];
+    const wide = React45.useState(false);
     useIsoLayoutEffect(function() {
       const el = wrap.current;
       if (!el || typeof ResizeObserver === "undefined") return;
       function check() {
-        sc[1](el.scrollWidth > el.clientWidth + 1);
+        const sideways = el.scrollWidth > el.clientWidth + 1;
+        wide[1](sideways);
+        sc[1](sideways || el.scrollHeight > el.clientHeight + 1);
       }
       check();
       const ro = new ResizeObserver(check);
       ro.observe(el);
+      if (el.firstElementChild) ro.observe(el.firstElementChild);
       return function() {
         ro.disconnect();
       };
@@ -7518,12 +7529,17 @@ window.Aura = (() => {
           bordered === false && "is-flush",
           /* 5.29 (Chamber-OS 127): the frame that bleeds; the outermost element carries aura-bleed. */
           bleed && "aura-bleed-frame",
-          bleed && !cards && "aura-bleed"
+          bleed && !cards && "aura-bleed",
+          /* 5.31 (Chamber-OS 129): stickyHeader pins to the page, or inside the box when it has a maxHeight. */
+          stickyHeader && (maxHeight != null ? "is-sticky-box" : "is-sticky-page"),
+          maxHeight != null && "has-max",
+          wide[0] && "is-wide"
         ),
+        style: maxHeight != null ? { maxHeight: typeof maxHeight === "number" ? maxHeight + "px" : maxHeight } : void 0,
         "data-density": density || pageDensity,
         tabIndex: scrolls ? 0 : void 0,
-        role: scrolls && (caption != null || rest["aria-label"]) ? "region" : void 0,
-        "aria-labelledby": scrolls && caption != null ? capId : void 0,
+        role: scrolls && (caption != null || rest["aria-label"] || rest["aria-labelledby"]) ? "region" : void 0,
+        "aria-labelledby": scrolls ? caption != null ? capId : rest["aria-labelledby"] : void 0,
         "aria-label": scrolls && caption == null ? rest["aria-label"] : void 0
       },
       /* @__PURE__ */ React45.createElement(
