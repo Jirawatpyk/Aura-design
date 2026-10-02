@@ -5225,3 +5225,97 @@ test.describe('5.29: Chamber-OS addendum 30', () => {
     expect(r).toEqual([0, 0]);
   });
 });
+
+test.describe('5.30: Chamber-OS addendum 31', () => {
+  const ID = 'aura-new-in-5-30--filter-dates';
+  const log = (page: import('@playwright/test').Page) => page.getByTestId('log').locator('li').allTextContents();
+
+  test('128: the face sits like a FilterSelect, is one named button, and opens the calendar in one click', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const face = page.getByRole('button', { name: 'Submitted: Any time', exact: true });
+    await expect(face).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(face).toHaveAttribute('aria-expanded', 'false');
+    const [a, b] = await Promise.all([
+      page.getByRole('combobox', { name: 'Status' }).boundingBox(),
+      face.boundingBox(),
+    ]);
+    expect([Math.round(b!.height), Math.round(b!.y)]).toEqual([Math.round(a!.height), Math.round(a!.y)]);
+    await face.click();
+    const dlg = page.getByRole('dialog', { name: 'Submitted' });
+    await expect(dlg).toBeVisible();
+    await expect(face).toHaveAttribute('aria-expanded', 'true');
+    await expect(dlg.locator('[data-date="2026-09-18"]')).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Any time' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('128: onChange runs once a range is complete, never on the start day; focus returns to the face', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    const face = page.getByRole('button', { name: /^Submitted: / });
+    await face.click();
+    const dlg = page.getByRole('dialog', { name: 'Submitted' });
+    await dlg.locator('[data-date="2026-09-30"]').click();
+    await expect(dlg.getByText('Choose the end date')).toBeVisible();
+    expect(await log(page)).toEqual([]);
+    await dlg.locator('[data-date="2026-09-01"]').click();
+    await expect(dlg).toHaveCount(0);
+    expect(await log(page)).toEqual(['2026-09-01/2026-09-30']);
+    await expect(face).toHaveAccessibleName('Submitted: 1 – 30 Sept 2026');
+    await expect(face).toBeFocused();
+    /* A preset sets a whole range; "Any time" clears it — each one onChange. */
+    await face.click();
+    await expect(dlg.getByRole('button', { name: 'This month' })).toHaveAttribute('aria-pressed', 'true');
+    /* A preset reaching past min can't be picked. */
+    await expect(dlg.getByRole('button', { name: 'Last year' })).toBeDisabled();
+    await dlg.getByRole('button', { name: 'Last 7 days' }).click();
+    await expect(face).toHaveAccessibleName('Submitted: 12 – 18 Sept 2026');
+    /* Picking it again just closes: no second onChange. */
+    await face.click();
+    await dlg.getByRole('button', { name: 'Last 7 days' }).click();
+    await expect(dlg).toHaveCount(0);
+    await face.click();
+    await dlg.getByRole('button', { name: 'Any time' }).click();
+    expect(await log(page)).toEqual(['2026-09-01/2026-09-30', '2026-09-12/2026-09-18', '-/-']);
+    await expect(face).toHaveAccessibleName('Submitted: Any time');
+    /* Escape closes without a change. */
+    await face.click();
+    await dlg.locator('[data-date="2026-09-10"]').click();
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(face).toBeFocused();
+    expect(await log(page)).toHaveLength(3);
+  });
+
+  test('128: Thai shows Buddhist-era years on the face and in the calendar', async ({ page }) => {
+    await story(page, ID);
+    const face = page.getByRole('button', { name: 'วันที่ส่ง: 25 ก.ย. – 3 ต.ค. 2569', exact: true });
+    await expect(face).toBeVisible();
+    await face.click();
+    await expect(page.getByRole('dialog', { name: 'วันที่ส่ง' }).getByText(/2569/).first()).toBeVisible();
+  });
+
+  test('128: on a phone the face wraps with the others and the calendar stays on screen', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const face = page.getByRole('button', { name: /^Submitted: / });
+    const fb = (await face.boundingBox())!;
+    expect(fb.x + fb.width).toBeLessThanOrEqual(390);
+    await face.click();
+    const d = (await page.getByRole('dialog', { name: 'Submitted' }).boundingBox())!;
+    expect(d.x).toBeGreaterThanOrEqual(0);
+    expect(d.x + d.width).toBeLessThanOrEqual(390);
+  });
+
+  test('128: on a short screen the popover scrolls instead of running off it', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 360 });
+    await story(page, ID);
+    await page.getByRole('button', { name: /^Submitted: / }).click();
+    const d = (await page.getByRole('dialog', { name: 'Submitted' }).boundingBox())!;
+    expect(d.y).toBeGreaterThanOrEqual(0);
+    expect(d.y + d.height).toBeLessThanOrEqual(360);
+  });
+});

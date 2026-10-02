@@ -1140,6 +1140,44 @@ export interface DateRange {
   start: ISODate | null;
   end: ISODate | null;
 }
+/** A FilterDateRange preset: a name and the range it sets (5.30). */
+export interface DateRangePreset {
+  label: string;
+  range: DateRange;
+}
+/** A compact date-range filter for FilterBar (5.30, Chamber-OS 128): "Submitted Any time ▾", one click to the range
+ * calendar. Dates as DateRangePicker: `locale` / `calendar` from the provider (Thai shows Buddhist-era years), `min`,
+ * `max`, `timeZone`, `weekStartsOn`. */
+export interface FilterDateRangeProps
+  extends
+    DateDisplayOptions,
+    Pick<React.HTMLAttributes<HTMLButtonElement>, 'style'>,
+    React.AriaAttributes,
+    DataAttributes {
+  /** The filter's name: first on the face ("Submitted"), the popover's name, and the start of the face's accessible
+   * name ("Submitted: Any time"). */
+  label: string;
+  value?: DateRange | undefined;
+  defaultValue?: DateRange | undefined;
+  /** Runs once a range is complete, a preset is picked, or "Any time" clears it — never on a lone start day, and
+   * not when the same range is picked again. There is no form field: write the range to the URL or state here. */
+  onChange?: ((value: DateRange) => void) | undefined;
+  /** Choices beside the calendar (Last 7 days, This month…), each setting a whole range; one that reaches past
+   * `min` / `max` or onto an `isDateDisabled` day is shown disabled. */
+  presets?: DateRangePreset[] | undefined;
+  /** The empty value and the choice that clears it. Default "Any time" in the date locale. */
+  anyLabel?: string | undefined;
+  min?: ISODate | 'today' | undefined;
+  max?: ISODate | 'today' | undefined;
+  isDateDisabled?: ((iso: ISODate) => boolean) | undefined;
+  weekStartsOn?: 0 | 1 | undefined;
+  timeZone?: string | undefined;
+  /** Today, given outright (ISO); wins over `timeZone`. */
+  today?: ISODate | undefined;
+  disabled?: boolean | undefined;
+  id?: string | undefined;
+  className?: string | undefined;
+}
 export interface DateRangePickerProps extends DateFieldProps {
   value?: DateRange | undefined;
   defaultValue?: DateRange | undefined;

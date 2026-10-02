@@ -58,7 +58,7 @@ export function useFormatDate(): (iso: ISODate | null | undefined, opts?: Format
 }
 /* Whether a date may be chosen: inside min/max ('today' resolved in the time zone) and not disabled. Shared by
  * the calendar grid and typed input (5.1.1: typed dates skipped these checks). */
-function allowedDate(
+export function allowedDate(
   iso: ISODate,
   o: {
     min?: string | null | undefined;
@@ -382,8 +382,8 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
   );
 });
 
-/* ---------- popover field shared by DatePicker and DateRangePicker ---------- */
-function useCalendarPopover(boxRef: React.RefObject<HTMLDivElement | null>) {
+/* ---------- popover field shared by DatePicker, DateRangePicker and FilterDateRange ---------- */
+export function useCalendarPopover(boxRef: React.RefObject<HTMLDivElement | null>) {
   const openState = React.useState(false),
     open = openState[0],
     setOpen = openState[1];

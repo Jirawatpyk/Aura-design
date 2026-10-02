@@ -50,6 +50,11 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     TextField: h(A.TextField, { label: 'ชื่อลูกค้า', hint: 'ชื่อ–นามสกุล' }),
     Textarea: h(A.Textarea, { label: 'Notes' }),
     Select: h(A.Select, { label: 'Category', options: ['Product', 'Service'] }),
+    FilterDateRange: h(A.FilterDateRange, {
+      label: 'Submitted',
+      defaultValue: { start: '2026-09-01', end: '2026-09-30' },
+      presets: [{ label: 'Last 7 days', range: { start: '2026-09-24', end: '2026-09-30' } }],
+    }),
     FilterSelect: h(A.FilterSelect, {
       label: 'Status',
       allLabel: 'All',

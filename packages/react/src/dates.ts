@@ -71,6 +71,8 @@ export type DateText = {
   clearDates: string;
   chooseStart: string;
   chooseEnd: string;
+  /** FilterDateRange's empty value and its clearing choice (5.30). */
+  anyTime: string;
   /** Typed date outside min/max or disabled (5.1.1). */
   dateUnavailable: string;
 };
@@ -91,6 +93,7 @@ export const DATE_TEXT: Record<string, DateText> = {
     clearDates: 'ล้างช่วงวันที่',
     chooseStart: 'เลือกวันเริ่มต้น',
     chooseEnd: 'เลือกวันสิ้นสุด',
+    anyTime: 'ทุกช่วงเวลา',
     dateUnavailable: 'เลือกวันที่นี้ไม่ได้ ลองเปิดปฏิทินดูวันที่เลือกได้',
   },
   en: {
@@ -109,6 +112,7 @@ export const DATE_TEXT: Record<string, DateText> = {
     clearDates: 'Clear dates',
     chooseStart: 'Choose the start date',
     chooseEnd: 'Choose the end date',
+    anyTime: 'Any time',
     dateUnavailable: "That date can't be chosen. Open the calendar to see the dates you can pick.",
   },
   sv: {
@@ -127,6 +131,7 @@ export const DATE_TEXT: Record<string, DateText> = {
     clearDates: 'Rensa datumen',
     chooseStart: 'Välj startdatum',
     chooseEnd: 'Välj slutdatum',
+    anyTime: 'När som helst',
     dateUnavailable: 'Det datumet går inte att välja. Öppna kalendern för att se vilka datum som går.',
   },
 };
@@ -155,6 +160,30 @@ export function formatDate(iso: ISODate | null | undefined, opts?: FormatDateOpt
   /* A plain function has no provider to read: English unless `locale` says otherwise (5.0; Thai before). */
   const loc = o.locale || 'en';
   return fmt(localeTag(loc, o.calendar || defaultCalendar(loc)), f, d).replace(ERA, '');
+}
+/* 5.30 (Chamber-OS 128): a range in one string, sharing what the two ends share ("1 – 30 Sept 2026",
+ * "25 ก.ย. – 3 ต.ค. 2569"); one day when both ends are the same. */
+export function formatDateRange(start: ISODate, end: ISODate, opts?: FormatDateOptions): string {
+  const o: FormatDateOptions = opts || {},
+    a = fromISO(start),
+    b = fromISO(end);
+  if (!a || !b) return '';
+  if (start > end) return formatDateRange(end, start, opts);
+  const loc = o.locale || 'en',
+    tag = localeTag(loc, o.calendar || defaultCalendar(loc)),
+    f = PRESETS.short;
+  const k = tag + JSON.stringify(f);
+  if (!fmtCache[k]) fmtCache[k] = new Intl.DateTimeFormat(tag, f);
+  const F = fmtCache[k] as Intl.DateTimeFormat & { formatRange?: (x: Date, y: Date) => string };
+  return F.formatRange
+    ? F.formatRange(a, b)
+        .replace(/\s?(พ\.ศ\.|\bBE\b)\s?/g, ' ')
+        /* One dash style in every locale, as DateRangePicker shows it: plain spaces around an en dash. */
+        .replace(/[\s\u2009\u202f]*[–-][\s\u2009\u202f]*/g, ' – ')
+        .trim()
+    : start === end
+      ? formatDate(start, o)
+      : formatDate(start, o) + ' – ' + formatDate(end, o);
 }
 export let MONTHS: Record<string, number> | null = null;
 export function monthIndex(word: string): number {

@@ -52,6 +52,18 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tag = renderToString(React.createElement(A.Tag, { onRemove: () => {} }, React.createElement('strong', null, 'Acme'), ' AB'));
     if (!/aria-label="Remove Acme AB"/.test(tag)) { console.log(label, 'Tag remove name:', tag); fail++; }
   }
+  /* 5.30 (Chamber-OS 128): FilterDateRange's face is one named button; the value is formatted in the date locale. */
+  {
+    const e = React.createElement;
+    const en = renderToString(e(A.FilterDateRange, { id: 'sub', label: 'Submitted', value: { start: '2026-09-01', end: '2026-09-30' } }));
+    const any = renderToString(e(A.FilterDateRange, { label: 'Submitted' }));
+    const th = renderToString(e(A.AuraProvider, { locale: 'th' }, e(A.FilterDateRange, { label: 'วันที่ส่ง', value: { start: '2026-09-25', end: '2026-10-03' } })));
+    const ok =
+      /<button id="sub" type="button" class="aura-filterselect__face" aria-label="Submitted: 1 – 30 Sept 2026" aria-haspopup="dialog" aria-expanded="false">/.test(en) &&
+      /aria-label="Submitted: Any time"/.test(any) && /aura-filterselect__value">Any time</.test(any) &&
+      /aria-label="วันที่ส่ง: 25 ก.ย. – 3 ต.ค. 2569"/.test(th) && (en.match(/<button/g) || []).length === 1;
+    if (!ok) { console.log(label, 'FilterDateRange face:', en, any, th); fail++; }
+  }
   /* 5.29 (Chamber-OS 127): bleed marks the outermost element (aura-bleed) and the frame (aura-bleed-frame). */
   {
     const e = React.createElement;

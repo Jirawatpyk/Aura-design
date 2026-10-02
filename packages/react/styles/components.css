@@ -1553,6 +1553,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); cursor: not-allowed; }
 .aura-filterselect.is-disabled .aura-filterselect__native { cursor: not-allowed; }
 @media (forced-colors: active) { .aura-filterselect__face { border-color: ButtonText; } }
+/* 5.30 (Chamber-OS 128) FilterDateRange: presets beside the range calendar; above it on phones. */
+.aura-filterdate__pop { display: flex; gap: var(--aura-space-3); overflow-y: auto; }
+.aura-filterdate__presets { display: flex; flex-direction: column; gap: 2px; min-width: 8rem; padding-inline-end: var(--aura-space-3); border-inline-end: 1px solid var(--aura-border-subtle); }
+.aura-filterdate__preset { justify-content: flex-start; }
+.aura-filterdate__preset.is-selected { background: var(--aura-bg-selected); }
+@media (forced-colors: active) { .aura-filterdate__preset.is-selected { outline: 2px solid Highlight; outline-offset: -2px; } }
+@media (max-width: 639.98px) {
+  .aura-filterdate__pop { flex-direction: column; }
+  .aura-filterdate__presets { flex-direction: row; flex-wrap: wrap; min-width: 0; padding: 0 0 var(--aura-space-2); border: 0; border-bottom: 1px solid var(--aura-border-subtle); }
+}
 
 /* Command palette: a search field over a grouped list, above everything else (it can open from a Dialog) */
 .aura-dialog-layer.aura-command-layer { z-index: var(--aura-z-menu); align-items: flex-start; padding: 12vh var(--aura-space-4) var(--aura-space-4); }
