@@ -5990,10 +5990,12 @@ test.describe('5.30: Chamber-OS addenda 39–40', () => {
     await page.evaluate(() => window.scrollBy(0, 1));
     await page.evaluate(() => window.scrollBy(0, 12));
     await expect(page.getByRole('menuitem')).toHaveCount(3);
-    expect(await gap(page, trigger)).toBe(before);
+    /* The scroll event (and so the move) lands on the next frame: wait for it. */
+    await expect.poll(() => gap(page, trigger)).toBe(before);
     await page.setViewportSize({ width: 900, height: 620 });
     await expect(page.getByRole('menuitem')).toHaveCount(3);
-    expect(await gap(page, trigger)).toBe(before);
+    /* The scroll event (and so the move) lands on the next frame: wait for it. */
+    await expect.poll(() => gap(page, trigger)).toBe(before);
     /* Escape still closes it and gives focus back to the trigger. */
     await page.keyboard.press('Escape');
     await expect(menu(page)).toHaveCount(0);
@@ -6023,8 +6025,8 @@ test.describe('5.30: Chamber-OS addenda 39–40', () => {
     const box = page.getByTestId('box');
     await box.evaluate((e) => e.scrollBy(0, 20));
     await expect(menu(page)).toBeVisible();
-    expect(await gap(page, trigger)).toBeGreaterThanOrEqual(0);
-    expect(await gap(page, trigger)).toBeLessThanOrEqual(8);
+    await expect.poll(() => gap(page, trigger)).toBeGreaterThanOrEqual(0);
+    await expect.poll(() => gap(page, trigger)).toBeLessThanOrEqual(8);
     await box.evaluate((e) => e.scrollBy(0, 200));
     await expect(menu(page)).toHaveCount(0);
   });
