@@ -2,6 +2,15 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.30.0
+
+### Minor Changes
+
+- df98706: Chamber-OS addenda 39–40: an open menu moves with its trigger on scroll and resize and closes only once the trigger is out of view (no focus return then); StatusPill text is a fixed 500 weight.
+- 24637a1: Chamber-OS addendum 38: `touchHeight` on TextField, Textarea, Select, RadioGroup and Checkbox — `'always'` gives 44px input boxes and choice rows at every width (also with a mouse in compact density); `true` only below 640px or on a coarse pointer.
+- 1464963: Visual polish from the Oct 2026 audit: off-white primary and inverted fills in dark mode, a quieter Blocked fill, visible neutral fills on the light canvas, a `--aura-table-head-bg` header band, grey disabled filled buttons, buttons always in Inter, Table caption spacing, pill-shaped skeleton action bars, and larger Thai labels under `lang="th"`.
+- 94985e4: Visual polish, part 2: checked and selected controls use the new violet `--aura-control-checked-bg`; Tables show a scroll shadow and DataTables fade an edge with more columns; table cells wrap whole words; quieter totals rules and a bold last total; SegmentedControl as tall as a field with a raised selected thumb; FilterSelect field inset from 640px; quieter show-password icon, larger chip ×, accent plain links. Thai: field labels, hints, choice descriptions and stacked card labels get Thai sizes and line room under `lang="th"`.
+
 ## 5.29.0
 
 ### Minor Changes
