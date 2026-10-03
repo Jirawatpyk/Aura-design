@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.31.0
+
+### Minor Changes
+
+- a51542c: Chamber-OS addendum 42: checked controls follow the brand. createTheme / ThemeStyle / aura-theme emit contrast-checked `--aura-control-checked-bg/-fg` for light and dark; in aura.css the light value aliases `--aura-accent-violet` (unchanged by default).
+
 ## 5.30.0
 
 ### Minor Changes
