@@ -4818,7 +4818,7 @@ test.describe('5.23: Chamber-OS addenda 23–25', () => {
             .map(Number);
           return { rgb: m.slice(0, 3), a: m.length > 3 ? m[3]! : 1 };
         };
-        const out = { active: rgb('var(--aura-fg-primary)'), track: rgb('var(--aura-border-default)') };
+        const out = { active: rgb('var(--aura-control-checked-bg)'), track: rgb('var(--aura-border-default)') }; // 5.30: violet
         probe.remove();
         return out;
       });
@@ -5842,6 +5842,131 @@ test.describe('5.30: Chamber-OS addendum 38', () => {
       expect(await h(d.locator('.aura-input').first())).toBe(touch ? 44 : 36);
       expect(await h(d.locator('.aura-choice').first())).toBe(touch ? 44 : 20);
       await ctx.close();
+    }
+  });
+});
+
+test.describe('5.30: audit items 4 and 8–20', () => {
+  const ID = 'aura-new-in-5-30-polish--polish';
+  const css = (l: import('@playwright/test').Locator, p: string) =>
+    l.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), p);
+
+  for (const [theme, violet] of [
+    ['light', 'rgb(109, 40, 217)'],
+    ['dark', 'rgb(196, 181, 253)'],
+  ] as const)
+    test(`4: "chosen" is violet in every control (${theme}); the primary button stays ink / off-white`, async ({
+      page,
+    }) => {
+      await story(page, ID, theme);
+      const c = page.getByTestId('chosen');
+      expect(await css(c.locator('.aura-check__box').first(), 'background-color')).toBe(violet);
+      expect(await css(c.locator('.aura-radio:checked'), 'border-top-color')).toBe(violet);
+      expect(await css(c.locator('.aura-switch.is-on'), 'background-color')).toBe(violet);
+      expect(await css(c.locator('.aura-tab.is-active'), 'border-bottom-color')).toBe(violet);
+      expect(await css(c.locator('.aura-page.is-current'), 'background-color')).toBe(violet);
+      expect(await css(c.locator('.aura-stepper__item.is-done .aura-stepper__marker'), 'background-color')).toBe(
+        violet,
+      );
+      expect(await css(page.getByRole('button', { name: 'Save' }), 'background-color')).toBe(
+        theme === 'light' ? 'rgb(24, 24, 27)' : 'rgb(228, 228, 231)',
+      );
+    });
+
+  test('8–10: a narrow Table scrolls with an edge shadow, never breaks a word into letters; Total reads as the total', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1600 });
+    await story(page, ID);
+    const wrap = page.getByTestId('narrow').locator('.aura-tbl-wrap');
+    expect(await wrap.evaluate((e) => e.scrollWidth > e.clientWidth)).toBe(true);
+    expect(await css(wrap, 'background-image')).toContain('linear-gradient');
+    /* 10ch cells (from 640px viewport): "Helsinki", "Stockholm" and "Corporate" each stay on one line. */
+    for (const t of ['Helsinki', 'Stockholm', 'Corporate'])
+      expect(
+        await wrap.getByRole('cell', { name: t, exact: true }).evaluate((td) => {
+          const r = document.createRange();
+          r.selectNodeContents(td);
+          return new Set(Array.from(r.getClientRects()).map((x) => Math.round(x.top))).size;
+        }),
+      ).toBe(1);
+    /* …and a long email still breaks to fit a 600px box instead of widening the table. */
+    const mail = page.getByTestId('email').locator('.aura-tbl-wrap');
+    expect(await mail.evaluate((e) => e.scrollWidth <= e.clientWidth + 1)).toBe(true);
+    const foot = wrap.locator('.aura-tbl__foot .aura-tbl__row');
+    expect(await css(foot.first().locator('> *').first(), 'border-top-width')).toBe('2px');
+    expect(await css(foot.last().locator('> *').first(), 'font-weight')).toBe('700');
+    /* Phones keep fitting the box: no 10ch floor below 640px. */
+    await page.setViewportSize({ width: 375, height: 1600 });
+    expect(await css(wrap.locator('.aura-tbl__td').first(), 'min-width')).toBe('0px');
+  });
+
+  test('9: a DataTable with columns past its edge fades the end edge until scrolled to the end', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1600 });
+    await story(page, ID);
+    const t = page.getByTestId('narrow-grid').locator('.aura-table');
+    await expect(t).toHaveClass(/has-more-x/);
+    /* The shadow sits over the grid's end edge, inside its scrollbars; the scroll box itself isn't masked, so its
+     * scrollbars stay visible. */
+    const scroll = t.locator('.aura-table__scroll');
+    expect(await css(scroll, 'mask-image')).toBe('none');
+    const edge = (await t.locator('.aura-table__edge').boundingBox())!;
+    const box = await scroll.evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      return { right: r.left + e.clientLeft + e.clientWidth, top: r.top, h: e.clientHeight };
+    });
+    expect(Math.abs(edge.x + edge.width - box.right)).toBeLessThanOrEqual(1);
+    expect(Math.abs(edge.y - box.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(edge.height - box.h)).toBeLessThanOrEqual(1);
+    await scroll.evaluate((e) => e.scrollTo({ left: e.scrollWidth }));
+    await expect(t).not.toHaveClass(/has-more-x/);
+    await expect(t.locator('.aura-table__edge')).toHaveCount(0);
+  });
+
+  test('11–12: the SegmentedControl is as tall as the field beside it; the selected option is bold on a raised thumb', async ({
+    page,
+  }) => {
+    for (const theme of ['light', 'dark'] as const) {
+      await story(page, ID, theme);
+      const row = page.getByTestId('row');
+      const field = (await row.locator('.aura-input').boundingBox())!;
+      const seg = (await row.locator('.aura-segmented').boundingBox())!;
+      expect(Math.round(seg.height)).toBe(Math.round(field.height));
+      const sel = row.locator('.aura-segmented__option.is-selected');
+      expect(await css(sel, 'font-weight')).toBe('600');
+      expect(await css(sel, 'background-color')).toBe(theme === 'light' ? 'rgb(255, 255, 255)' : 'rgb(63, 63, 70)');
+    }
+  });
+
+  test('11: from 640px a FilterSelect face has a field inset and 14px text; phones keep the tight face', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1600 });
+    await story(page, ID);
+    const face = page.locator('.aura-filterselect__face').first();
+    expect([await css(face, 'padding-left'), await css(face, 'font-size')]).toEqual(['12px', '14px']);
+    await page.setViewportSize({ width: 375, height: 1600 });
+    expect([await css(face, 'padding-left'), await css(face, 'font-size')]).toEqual(['8px', '13px']);
+  });
+
+  test('14, 17, 18: quiet show-password icon, a 14px chip ×, plain links in the accent colour', async ({ page }) => {
+    for (const theme of ['light', 'dark'] as const) {
+      await story(page, ID, theme);
+      const eye = page.locator('.aura-password .aura-icon-btn');
+      const secondary = await page.evaluate(() => {
+        const p = document.createElement('span');
+        p.style.color = 'var(--aura-fg-secondary)';
+        document.body.appendChild(p);
+        const c = getComputedStyle(p).color;
+        p.remove();
+        return c;
+      });
+      expect(await css(eye, 'color')).toBe(secondary);
+      const x = page.getByTestId('tags').locator('.aura-tag__remove svg').first();
+      expect(Math.round((await x.boundingBox())!.width)).toBe(14);
+      expect(await css(page.getByTestId('prose').getByRole('link'), 'color')).toBe(
+        theme === 'light' ? 'rgb(109, 40, 217)' : 'rgb(196, 181, 253)',
+      );
     }
   });
 });

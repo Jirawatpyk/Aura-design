@@ -4618,7 +4618,7 @@ window.Aura = (() => {
           "aria-label": props.removeLabel || t.remove(name),
           onClick: props.onRemove
         },
-        /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconX, null), size: 12 })
+        /* @__PURE__ */ React27.createElement(Icon, { name: /* @__PURE__ */ React27.createElement(IconX, null), size: 14 })
       );
       return /* @__PURE__ */ React27.createElement(Tooltip, { content: fullText, open: fullText ? void 0 : false }, btn);
     }() : null);
@@ -5419,6 +5419,28 @@ window.Aura = (() => {
       return px != null && below(boxWidth[0], px);
     }
     const scrollRef = React32.useRef(null);
+    const edgeState = React32.useState("");
+    const checkMoreX = function() {
+      const el = scrollRef.current;
+      if (!el) return;
+      const more = Math.abs(el.scrollLeft) + el.clientWidth < el.scrollWidth - 1;
+      const next = more ? [el.offsetTop, el.clientHeight, el.offsetWidth - el.clientWidth].join(" ") : "";
+      if (next !== edgeState[0]) edgeState[1](next);
+    };
+    const checkRef = React32.useRef(checkMoreX);
+    checkRef.current = checkMoreX;
+    React32.useEffect(function() {
+      const el = scrollRef.current;
+      if (!el || typeof ResizeObserver === "undefined") return;
+      const ro = new ResizeObserver(function() {
+        checkRef.current();
+      });
+      ro.observe(el);
+      if (el.firstElementChild) ro.observe(el.firstElementChild);
+      return function() {
+        ro.disconnect();
+      };
+    }, []);
     const tipState = React32.useState(null), tip = tipState[0], setTip = tipState[1];
     function showFull(e) {
       const el = e.target.closest ? e.target.closest(".aura-table__td") : null;
@@ -6582,12 +6604,25 @@ window.Aura = (() => {
           stacked && "aura-table--stacked",
           noCardSel && "aura-table--cards-nosel",
           scrolledX[0] && "is-scrolled-x",
+          edgeState[0] && !stacked && "has-more-x",
           refreshing && "is-refreshing",
           !levels.length && props.className
         ),
         style: levels.length ? { ["--aura-q-back"]: String(levels[levels.length - 1].px / Q) } : void 0
       },
       refreshing ? /* @__PURE__ */ React32.createElement("span", { className: "aura-table__busy-bar", "aria-hidden": true }) : null,
+      edgeState[0] && !stacked ? /* @__PURE__ */ React32.createElement(
+        "span",
+        {
+          className: "aura-table__edge",
+          "aria-hidden": true,
+          style: {
+            "--aura-edge-top": edgeState[0].split(" ")[0] + "px",
+            "--aura-edge-h": edgeState[0].split(" ")[1] + "px",
+            "--aura-edge-sb": edgeState[0].split(" ")[2] + "px"
+          }
+        }
+      ) : null,
       /* @__PURE__ */ React32.createElement(
         "div",
         {
@@ -6623,6 +6658,7 @@ window.Aura = (() => {
               setScrollTop(t2.scrollTop);
             const sx = t2.scrollLeft > 0;
             if (sx !== scrolledX[0]) scrolledX[1](sx);
+            checkMoreX();
           }
         },
         /* @__PURE__ */ React32.createElement(

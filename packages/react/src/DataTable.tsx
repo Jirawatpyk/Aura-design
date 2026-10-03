@@ -262,6 +262,30 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     return px != null && below(boxWidth[0], px);
   }
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  /* 5.30: more columns off the end edge — a soft shadow over the grid's end edge says it scrolls sideways. Measured on
+   * scroll and when the box or its header row (the columns' total width) resizes; placed inside the scrollbars. */
+  const edgeState = React.useState<string>('');
+  const checkMoreX = function (): void {
+    const el = scrollRef.current;
+    if (!el) return;
+    const more = Math.abs(el.scrollLeft) + el.clientWidth < el.scrollWidth - 1;
+    const next = more ? [el.offsetTop, el.clientHeight, el.offsetWidth - el.clientWidth].join(' ') : '';
+    if (next !== edgeState[0]) edgeState[1](next);
+  };
+  const checkRef = React.useRef(checkMoreX);
+  checkRef.current = checkMoreX;
+  React.useEffect(function () {
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(function () {
+      checkRef.current();
+    });
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return function () {
+      ro.disconnect();
+    };
+  }, []);
   /* Row height comes from CSS (--aura-table-row-height: 48, 40 in compact density, 48 again on touch), so the
    * virtual window always matches what the browser draws. Server render assumes 48. */
   /* Full text of a truncated cell (4.19): shown on hover or keyboard focus when the text is cut off by the ellipsis.
@@ -1628,6 +1652,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         stacked && 'aura-table--stacked',
         noCardSel && 'aura-table--cards-nosel',
         scrolledX[0] && 'is-scrolled-x',
+        edgeState[0] && !stacked && 'has-more-x',
         refreshing && 'is-refreshing',
         !levels.length && props.className,
       )}
@@ -1638,6 +1663,19 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       }
     >
       {refreshing ? <span className="aura-table__busy-bar" aria-hidden={true} /> : null}
+      {edgeState[0] && !stacked ? (
+        <span
+          className="aura-table__edge"
+          aria-hidden={true}
+          style={
+            {
+              '--aura-edge-top': edgeState[0].split(' ')[0] + 'px',
+              '--aura-edge-h': edgeState[0].split(' ')[1] + 'px',
+              '--aura-edge-sb': edgeState[0].split(' ')[2] + 'px',
+            } as React.CSSProperties
+          }
+        />
+      ) : null}
       <div
         ref={function (el: HTMLDivElement | null): void {
           scrollRef.current = el;
@@ -1676,6 +1714,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             setScrollTop(t.scrollTop);
           const sx = t.scrollLeft > 0;
           if (sx !== scrolledX[0]) scrolledX[1](sx);
+          checkMoreX();
         }}
       >
         <div

@@ -69,6 +69,8 @@ for (const fg of ['fg-primary', 'fg-secondary', 'fg-tertiary', 'fg-accent', 'fg-
 pairs.push(['fg-primary', 'bg-selected', TEXT], ['fg-secondary', 'bg-selected', TEXT]);
 pairs.push(['fg-inverted', 'bg-surface-strong', TEXT], ['fg-inverted', 'bg-inverted', TEXT]);
 pairs.push(['button-primary-fg', 'button-primary-bg', TEXT], ['button-primary-fg', 'button-primary-bg-hover', TEXT]);
+pairs.push(['control-checked-fg', 'control-checked-bg', TEXT]);
+for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['control-checked-bg', bg, UI]);
 for (const t of ['neutral', 'progress', 'ready', 'warning', 'blocked']) pairs.push([`status-${t}-fg`, `status-${t}-bg`, TEXT]);
 for (const t of ['info', 'success', 'warning', 'danger']) pairs.push([`alert-${t}-fg`, `alert-${t}-bg`, TEXT], ['fg-primary', `alert-${t}-bg`, TEXT]);
 pairs.push(['on-texture', 'mesh-from', TEXT], ['on-texture', 'mesh-to', TEXT]);
