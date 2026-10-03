@@ -6105,3 +6105,145 @@ test.describe('5.30: audit D — Thai', () => {
     expect(await css(page.getByTestId('narrow').locator('.aura-tbl__td').first(), 'font-size')).toBe('13px');
   });
 });
+
+test.describe('5.31: Chamber-OS addendum 41', () => {
+  const ID = 'aura-new-in-5-31-addendum-41--label-addon';
+  const top = (l: import('@playwright/test').Locator) => l.evaluate((e) => e.getBoundingClientRect().top);
+  const bottom = (l: import('@playwright/test').Locator) => l.evaluate((e) => e.getBoundingClientRect().bottom);
+
+  test('138: labelAddon sits between the label and the box, in the field gap; hint and error stay below', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await story(page, ID);
+    const v = page.getByTestId('void');
+    const label = v.locator('.aura-field__label'),
+      addon = v.locator('.aura-field__addon'),
+      box = v.locator('.aura-input'),
+      hint = v.locator('.aura-field__hint');
+    await expect(addon.getByTestId('phrase')).toHaveText('SC-2026-000119');
+    /* Order on screen: label, addon, box, hint — each 6px apart (the field's gap). */
+    expect(Math.round((await top(addon)) - (await bottom(label)))).toBe(6);
+    expect(Math.round((await top(box)) - (await bottom(addon)))).toBe(6);
+    expect(Math.round((await top(hint)) - (await bottom(box)))).toBe(6);
+    /* The Textarea and PasswordField take it the same way. */
+    for (const t of ['refund', 'password']) {
+      const f = page.getByTestId(t);
+      expect(await top(f.locator('.aura-field__addon'))).toBeGreaterThan(await bottom(f.locator('.aura-field__label')));
+      expect(await top(f.locator('.aura-input').first())).toBeGreaterThan(
+        await bottom(f.locator('.aura-field__addon')),
+      );
+    }
+    await expect(page.getByTestId('plain').locator('.aura-field__addon')).toHaveCount(0);
+  });
+
+  test('138: the addon leads aria-describedby, before the hint or error and the caller’s own ids', async ({ page }) => {
+    await story(page, ID);
+    const v = page.getByTestId('void');
+    const input = v.getByRole('textbox', { name: 'Type the bill number to confirm' });
+    const id = await input.getAttribute('id');
+    await expect(input).toHaveAttribute('aria-describedby', `${id}-addon ${id}-hint void-note`);
+    await expect(v.locator('.aura-field__addon')).toHaveAttribute('id', id + '-addon');
+    await expect(input).toHaveAccessibleDescription(/^SC-2026-000119 Copy Voiding can't be undone\. The member/);
+    /* A wrong phrase: the error takes the hint's place; the addon stays first. */
+    await input.fill('SC-2026-0001');
+    await v.getByRole('button', { name: 'Void invoice' }).click();
+    await expect(input).toHaveAttribute('aria-describedby', `${id}-addon ${id}-error void-note`);
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    /* Textarea and PasswordField. */
+    const ta = page.getByTestId('refund').getByRole('textbox');
+    await expect(ta).toHaveAttribute('aria-describedby', (await ta.getAttribute('id')) + '-addon');
+    const pw = page.getByTestId('password').locator('input');
+    await expect(pw).toHaveAttribute('aria-describedby', (await pw.getAttribute('id')) + '-addon');
+    await expect(pw).toHaveAccessibleDescription('At least 12 characters.');
+    /* No addon: unchanged. */
+    const plain = page.getByTestId('plain').getByRole('textbox');
+    await expect(plain).toHaveAttribute('aria-describedby', (await plain.getAttribute('id')) + '-hint');
+    /* Never a DOM attribute. */
+    expect(await page.locator('[labeladdon], [labelAddon]').count()).toBe(0);
+  });
+
+  test('138: the copy button comes before the box in tab order and the label still focuses the box', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    const v = page.getByTestId('void');
+    const copy = v.getByRole('button', { name: 'Copy' });
+    await copy.focus();
+    await page.keyboard.press('Tab');
+    await expect(v.getByRole('textbox', { name: 'Type the bill number to confirm' })).toBeFocused();
+    await v.locator('.aura-field__label').click();
+    await expect(v.getByRole('textbox', { name: 'Type the bill number to confirm' })).toBeFocused();
+    await copy.click();
+    await expect(v.getByRole('button', { name: 'Copied' })).toBeVisible();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('138: Thai addon text gets the 1.6 line height; dark theme is clean', async ({ page }) => {
+    await story(page, ID);
+    const th = page.getByTestId('thai').locator('.aura-field__addon');
+    expect(await th.evaluate((e) => getComputedStyle(e).lineHeight)).toBe('20.8px');
+    expect(
+      await page
+        .getByTestId('void')
+        .locator('.aura-field__addon')
+        .evaluate((e) => getComputedStyle(e).lineHeight),
+    ).toBe('19.5px');
+    await story(page, ID, 'dark');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});
+
+test.describe('5.31: Chamber-OS addendum 42', () => {
+  const ID = 'aura-new-in-5-31-addendum-41--brand-checked';
+  /* The "chosen" colour of each part, read from where it shows. */
+  const chosen = (root: import('@playwright/test').Locator) =>
+    root.evaluate((r) => {
+      const cs = (sel: string) => getComputedStyle(r.querySelector(sel) as Element);
+      return {
+        check: cs('.aura-check__input:checked + .aura-check__box').backgroundColor,
+        radio: cs('.aura-radio:checked').borderTopColor,
+        switch: cs('.aura-switch.is-on').backgroundColor,
+        tab: cs('.aura-tab.is-active').borderBottomColor,
+        page: cs('.aura-page.is-current').backgroundColor,
+        step: cs('.aura-stepper__item.is-done .aura-stepper__marker').backgroundColor,
+        day: cs('.aura-cal__day.is-selected').backgroundColor,
+        mark: cs('.aura-page.is-current').color,
+      };
+    });
+  const all = (c: Record<string, string>, bg: string, mark: string) => {
+    const { mark: m, ...rest } = c;
+    for (const [k, v] of Object.entries(rest)) expect(v, k).toBe(bg);
+    expect(m).toBe(mark);
+  };
+
+  test('139: a brand theme colours every checked control with the brand; AURA’s default stays violet', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1200 });
+    await story(page, ID);
+    all(await chosen(page.getByTestId('brand')), 'rgb(46, 99, 151)', 'rgb(255, 255, 255)'); // #2e6397 = the accent
+    all(await chosen(page.getByTestId('default')), 'rgb(109, 40, 217)', 'rgb(255, 255, 255)'); // violet-700
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('139: dark — the brand’s light step with an ink mark; default violet-300', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1200 });
+    await story(page, ID, 'dark');
+    all(await chosen(page.getByTestId('brand')), 'rgb(156, 197, 241)', 'rgb(24, 24, 27)'); // #9cc5f1
+    all(await chosen(page.getByTestId('default')), 'rgb(196, 181, 253)', 'rgb(24, 24, 27)');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('139: a hand-written theme that sets only --aura-accent-violet on :root moves light "chosen" with it', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    await page.addStyleTag({ content: ':root { --aura-accent-violet: #2e6397; }' });
+    /* Fills and the tab underline fade (short transitions): wait until every part has settled. */
+    const B = 'rgb(46, 99, 151)';
+    await expect
+      .poll(async () => chosen(page.getByTestId('default')))
+      .toEqual({ check: B, radio: B, switch: B, tab: B, page: B, step: B, day: B, mark: 'rgb(255, 255, 255)' });
+  });
+});

@@ -496,6 +496,13 @@ export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttribut
   icon?: IconInput | undefined;
   /** Trailing unit, e.g. "THB". */
   suffix?: React.ReactNode | undefined;
+  /** 5.31 (Chamber-OS addendum 41): a node between the label and the box — e.g. the phrase to type, with a copy
+   * button, on a typed confirmation. The hint and error stay below. Its box's id (`{id}-addon`) comes first in the
+   * input's `aria-describedby`, so its text is read after the label; keep any button names in it short. */
+  labelAddon?: React.ReactNode | undefined;
+  /** `false` keeps the addon out of `aria-describedby` — for one that isn't a description (a "Forgot password?"
+   * link), or to name only part of it: give that part an id and pass it in `aria-describedby`. Default `true`. */
+  labelAddonDescribes?: boolean | undefined;
   /** 44px box (5.30, Chamber-OS 135): `true` below 640px or on a coarse pointer, as Button's `touchHeight`; `'always'`
    * at every width, also with a mouse in compact density — for a form whose spec asks for 44px targets everywhere.
    * Default: the density's input height. */
@@ -619,6 +626,13 @@ export interface CommandProps {
   className?: string | undefined;
 }
 export interface TextareaProps extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {
+  /** 5.31 (Chamber-OS addendum 41): a node between the label and the box — e.g. the phrase to type, with a copy
+   * button, on a typed confirmation. The hint and error stay below. Its box's id (`{id}-addon`) comes first in the
+   * input's `aria-describedby`, so its text is read after the label; keep any button names in it short. */
+  labelAddon?: React.ReactNode | undefined;
+  /** `false` keeps the addon out of `aria-describedby` — for one that isn't a description (a "Forgot password?"
+   * link), or to name only part of it: give that part an id and pass it in `aria-describedby`. Default `true`. */
+  labelAddonDescribes?: boolean | undefined;
   /** Accepted like the other fields' (5.30, Chamber-OS 135), so a form can pass it to every field. A Textarea is
    * always at least 96px tall, well over the 44px target, so it changes nothing you can see. */
   touchHeight?: TouchHeight | undefined;

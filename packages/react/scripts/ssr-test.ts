@@ -287,6 +287,17 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const sel = m(e(A.Select, { label: 'S', id: 's1', options: ['a'], touchHeight: 'always' }));
     if (!/^<div class="aura-field is-touch-always">/.test(tf) || !/aria-describedby="c1-hint"/.test(tf) || /touch[hH]eight/.test(tf + tt + rg + cbx + cbBare + sel) || !/^<div class="aura-field is-touch">/.test(tt) || !/class="aura-field aura-radio-group is-touch-always"/.test(rg) || !/class="aura-check aura-check--labelled is-touch-always"/.test(cbx) || /is-touch/.test(cbBare) || !/^<div class="aura-field is-touch-always">/.test(sel)) bad('touchHeight on fields:', tf, tt, rg, cbx, cbBare, sel);
     if (/is-touch/.test(m(e(A.TextField, { label: 'Cert' })))) bad('default TextField got a touch class');
+    /* 5.31 (Chamber-OS 138): labelAddon sits between the label and the box, and leads aria-describedby. */
+    const la = m(e(A.TextField, { label: 'Type it', id: 'v1', hint: 'h', labelAddon: e('code', null, 'SC-1'), 'aria-describedby': 'own' }));
+    const laT = m(e(A.Textarea, { label: 'N', id: 'n2', error: 'bad', labelAddon: 'REFUND' }));
+    const laP = m(e(A.PasswordField, { label: 'P', id: 'p2', labelAddon: '12+' }));
+    if (!/<\/label><div class="aura-field__addon" id="v1-addon"><code>SC-1<\/code><\/div><div class="aura-input">/.test(la) || !/aria-describedby="v1-addon v1-hint own"/.test(la) || /labeladdon/i.test(la + laT + laP) || !/<\/label><div class="aura-field__addon" id="n2-addon">REFUND<\/div><textarea/.test(laT) || !/aria-describedby="n2-addon n2-error"/.test(laT) || !/id="p2-addon"/.test(laP) || !/aria-describedby="p2-addon"/.test(laP)) bad('labelAddon:', la, laT, laP);
+    const la0 = m(e(A.TextField, { label: 'Cert', id: 'c2', hint: 'h', labelAddon: false })), la00 = m(e(A.TextField, { label: 'Cert', id: 'c2', hint: 'h' }));
+    const laE = m(e(A.TextField, { label: 'Cert', id: 'c2', hint: 'h', labelAddon: '' }));
+    const laOff = m(e(A.TextField, { label: 'E', id: 'e1', hint: 'h', labelAddon: 'Forgot?', labelAddonDescribes: false }));
+    const laDup = m(e(A.TextField, { label: 'E', id: 'e2', hint: 'h', labelAddon: 'x', 'aria-describedby': 'e2-addon  own e2-hint' }));
+    if (laE !== la00 || !/id="e1-addon">Forgot\?<\/div>/.test(laOff) || !/aria-describedby="e1-hint"/.test(laOff) || /labeladdondescribes/i.test(laOff) || !/aria-describedby="e2-addon e2-hint own"/.test(laDup)) bad('labelAddon empty / opt-out / dedupe:', laE, laOff, laDup);
+    if (la0 !== la00 || /aura-field__addon/.test(la00) || !/aria-describedby="c2-hint"/.test(la00)) bad('default TextField changed by labelAddon:', la0, la00);
     const sk0 = m(e(A.DataTable, { label: 'L', rows: [], rowKey: 'm', loading: true, skeletonRows: 1, columns: [{ key: 'm', label: 'MEMBER' }] }));
     if (!/<div class="aura-table__row aura-table__row--skeleton" aria-hidden="true"/.test(sk0) || /--auto|aura-skel-lines/.test(sk0)) bad('default DataTable skeleton changed:', sk0);
     const c0 = m(e(A.Card, { title: 'T', titleId: 't1' }, 'b'));
@@ -539,6 +550,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const script = A.colorSchemeScript({ storageKey: 'k</script><script>x' });
     if (/<\/script/i.test(script) || !/addEventListener\('change'/.test(script)) { console.log(label, 'colorSchemeScript:', script); fail++; }
     renderToString(React.createElement(A.Tooltip, { content: 'tip', open: true }, React.createElement('button', null, 'b')));
+    /* 5.31 (Chamber-OS #139): a theme carries "chosen" too — light = the accent, dark = the brand's 300, checked. */
+    {
+      const th = A.createTheme({ brand: '#10487A' }), cc = th.checks.filter((c: { pair: string; pass: boolean }) => /control-checked/.test(c.pair));
+      const scoped = th.css('.tenant');
+      if (th.light['control-checked-bg'] !== th.light['accent-violet'] || th.light['control-checked-fg'] !== '#ffffff' || th.dark['control-checked-fg'] !== '#18181b' || !/^#[0-9a-f]{6}$/.test(th.dark['control-checked-bg'] || '') || th.dark['control-checked-bg'] === '#c4b5fd' || cc.length !== 6 || !cc.every((c: { pass: boolean }) => c.pass) || (th.css().match(/--aura-control-checked-bg:/g) || []).length !== 3 || (scoped.match(/--aura-control-checked-fg:/g) || []).length !== 3) { console.log(label, 'theme control-checked:', th.light, th.dark, cc); fail++; }
+    }
     /* Pieces that join into "*" + "/" after cleaning, and real selectors that must still work. */
     for (const name of ['Acme *<>/ body{display:none} /*', 'x **// y{} /*', 'a\\*/b']) {
       const c = A.createTheme({ brand: '#7c3aed', name }).css();

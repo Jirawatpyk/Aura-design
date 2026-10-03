@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FIELD_KEYS, Field, describedBy } from './Field.js';
+import { FIELD_KEYS, Field, joinDescribedBy } from './Field.js';
 import { cx, omit, touchClass, uid } from './internal.js';
 import type { TextareaProps } from './types.js';
 
@@ -15,6 +15,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
       error={props.error}
       required={props.required}
       optional={props.optional}
+      labelAddon={props.labelAddon}
       disabled={props.disabled}
       className={cx(touchClass(props.touchHeight), props.className)}
     >
@@ -27,10 +28,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
         placeholder={props.placeholder}
         required={props.required}
         aria-invalid={props.error ? true : (rest as Record<string, any>)['aria-invalid']}
-        aria-describedby={
-          [describedBy(id, props), (rest as Record<string, any>)['aria-describedby']].filter(Boolean).join(' ') ||
-          undefined
-        }
+        aria-describedby={joinDescribedBy(id, props, (rest as Record<string, any>)['aria-describedby'])}
       />
     </Field>
   );

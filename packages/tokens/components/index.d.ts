@@ -415,6 +415,13 @@ export interface TextFieldProps extends FieldProps, Omit<React$1.InputHTMLAttrib
 	icon?: IconInput | undefined;
 	/** Trailing unit, e.g. "THB". */
 	suffix?: React$1.ReactNode | undefined;
+	/** 5.31 (Chamber-OS addendum 41): a node between the label and the box — e.g. the phrase to type, with a copy
+	 * button, on a typed confirmation. The hint and error stay below. Its box's id (`{id}-addon`) comes first in the
+	 * input's `aria-describedby`, so its text is read after the label; keep any button names in it short. */
+	labelAddon?: React$1.ReactNode | undefined;
+	/** `false` keeps the addon out of `aria-describedby` — for one that isn't a description (a "Forgot password?"
+	 * link), or to name only part of it: give that part an id and pass it in `aria-describedby`. Default `true`. */
+	labelAddonDescribes?: boolean | undefined;
 	/** 44px box (5.30, Chamber-OS 135): `true` below 640px or on a coarse pointer, as Button's `touchHeight`; `'always'`
 	 * at every width, also with a mouse in compact density — for a form whose spec asks for 44px targets everywhere.
 	 * Default: the density's input height. */
@@ -540,6 +547,13 @@ export interface CommandProps {
 	className?: string | undefined;
 }
 export interface TextareaProps extends FieldProps, Omit<React$1.TextareaHTMLAttributes<HTMLTextAreaElement>, "required"> {
+	/** 5.31 (Chamber-OS addendum 41): a node between the label and the box — e.g. the phrase to type, with a copy
+	 * button, on a typed confirmation. The hint and error stay below. Its box's id (`{id}-addon`) comes first in the
+	 * input's `aria-describedby`, so its text is read after the label; keep any button names in it short. */
+	labelAddon?: React$1.ReactNode | undefined;
+	/** `false` keeps the addon out of `aria-describedby` — for one that isn't a description (a "Forgot password?"
+	 * link), or to name only part of it: give that part an id and pass it in `aria-describedby`. Default `true`. */
+	labelAddonDescribes?: boolean | undefined;
 	/** Accepted like the other fields' (5.30, Chamber-OS 135), so a form can pass it to every field. A Textarea is
 	 * always at least 96px tall, well over the 44px target, so it changes nothing you can see. */
 	touchHeight?: TouchHeight | undefined;
@@ -1634,6 +1648,9 @@ export interface FieldComponentProps extends Omit<FieldPropsPublic, "label"> {
 	/** The control's id: the label points at it, and the hint/error ids derive from it. */
 	id?: string | undefined;
 	children?: React$1.ReactNode | undefined;
+	/** 5.31 (Chamber-OS addendum 41): a node between the label and the control, in a `.aura-field__addon` box with the
+	 * id `{id}-addon`. TextField and Textarea add that id to the input's `aria-describedby`; a custom control should too. */
+	labelAddon?: React$1.ReactNode | undefined;
 	/** Render the label as another element (e.g. `span` for a group of controls) with this id. */
 	labelAs?: string | undefined;
 	labelId?: string | undefined;

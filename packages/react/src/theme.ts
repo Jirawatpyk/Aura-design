@@ -220,6 +220,17 @@ export function createTheme(opts: ThemeOptions): Theme {
     D['accent-lime'] = s[200];
     D['mesh-to'] = s[200];
   }
+  /* 5.31 (Chamber-OS #139): "chosen" (checked box, radio, switch, tab underline, current page, selected day, done step)
+   * follows the brand. Light: the accent itself; dark: the brand's 300 step, lightened to 3:1 on the dark grounds. The
+   * mark on it is white or ink, whichever reads better (4.5:1 checked). Emitted explicitly, so a scoped theme gets it
+   * too (aura.css's light alias resolves at :root). */
+  function onFill(bg: string): string {
+    return contrast(ZINC[0], bg) >= contrast(INK, bg) ? ZINC[0] : INK;
+  }
+  L['control-checked-bg'] = L['accent-violet']; // already 4.5:1 on the light grounds
+  L['control-checked-fg'] = onFill(L['control-checked-bg']);
+  D['control-checked-bg'] = fit(b[300], darkGrounds, 3, 1);
+  D['control-checked-fg'] = onFill(D['control-checked-bg']);
   const shadowLight = INK,
     shadowDark = D['accent-violet'];
   if (o.primary === 'brand') {
@@ -314,6 +325,31 @@ export function createTheme(opts: ThemeOptions): Theme {
     );
   }
   if (s) check('light', 'ink', 'accent-lime (signal)', 4.5, INK, s[200]);
+  [
+    [
+      'light',
+      L,
+      [
+        ['bg-surface', ZINC[0]],
+        ['bg-canvas', ZINC[50]],
+      ],
+    ],
+    [
+      'dark',
+      D,
+      [
+        ['bg-surface', ZINC[900]],
+        ['bg-canvas', ZINC[950]],
+      ],
+    ],
+  ].forEach(function (g) {
+    const t = g[0] as ThemeCheck['theme'],
+      m = g[1] as Record<string, string>;
+    (g[2] as string[][]).forEach(function (gr) {
+      check(t, 'control-checked-bg', gr[0]!, 3, m['control-checked-bg']!, gr[1]!);
+    });
+    check(t, 'control-checked-fg', 'control-checked-bg', 4.5, m['control-checked-fg']!, m['control-checked-bg']!);
+  });
 
   function css(selector?: string): string {
     /* 5.1.1: the selector and name go into a <style> element, often rendered on the server from tenant data, so

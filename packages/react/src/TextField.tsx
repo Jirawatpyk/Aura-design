@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FIELD_KEYS, Field, describedBy } from './Field.js';
+import { FIELD_KEYS, Field, joinDescribedBy } from './Field.js';
 import { Icon } from './Icon.js';
 import { cx, omit, touchClass, uid } from './internal.js';
 import type { TextFieldProps } from './types.js';
@@ -16,6 +16,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
       error={props.error}
       required={props.required}
       optional={props.optional}
+      labelAddon={props.labelAddon}
       disabled={props.disabled}
       className={cx(touchClass(props.touchHeight), props.className)}
     >
@@ -30,10 +31,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
           placeholder={props.placeholder}
           required={props.required}
           aria-invalid={props.error ? true : (rest as Record<string, any>)['aria-invalid']}
-          aria-describedby={
-            [describedBy(id, props), (rest as Record<string, any>)['aria-describedby']].filter(Boolean).join(' ') ||
-            undefined
-          }
+          aria-describedby={joinDescribedBy(id, props, (rest as Record<string, any>)['aria-describedby'])}
         />
         {props.suffix ? <span className="aura-input__suffix">{props.suffix}</span> : null}
       </div>

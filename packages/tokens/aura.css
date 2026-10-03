@@ -132,7 +132,7 @@
   --aura-table-head-bg: var(--aura-bg-canvas);
   --aura-button-disabled-bg: var(--aura-zinc-200);
   --aura-button-disabled-fg: var(--aura-fg-tertiary);
-  --aura-control-checked-bg: var(--aura-violet-700);
+  --aura-control-checked-bg: var(--aura-accent-violet);
   --aura-control-checked-fg: var(--aura-white);
   --aura-scroll-shadow: rgba(8,8,10,0.14);
   --aura-segmented-thumb-bg: var(--aura-zinc-0);

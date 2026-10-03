@@ -474,6 +474,8 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-field__hint, .aura-field__error { display: flex; align-items: flex-start; gap: var(--aura-space-1); margin: 0; font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
 .aura-field__error { color: var(--aura-fg-danger); }
 .aura-field__error .aura-icon { margin-top: 2px; }
+/* 5.31 (Chamber-OS addendum 41): TextField/Textarea `labelAddon`, between the label and the box, in the field's gap. */
+.aura-field__addon { min-width: 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-primary); }
 .aura-field.is-disabled .aura-field__label { color: var(--aura-fg-secondary); }
 
 .aura-input {
@@ -2077,7 +2079,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 /* 5.30 (audit D): field labels, hints and errors and choice descriptions get Thai line room; a stacked card's field
  * labels are 12px in the sans face (the mono face has no Thai), and a stacked DataTable card's values sit on a set
  * 1.6 line, so a loading card (its bars follow 1lh) is as tall as one with Thai text. */
-.aura-field__label:lang(th), .aura-field__hint:lang(th), .aura-field__error:lang(th) { line-height: 1.6; }
+.aura-field__label:lang(th), .aura-field__hint:lang(th), .aura-field__error:lang(th), .aura-field__addon:lang(th) { line-height: 1.6; }
 .aura-choice__desc:lang(th), .aura-check__desc:lang(th) { font-size: 13px; line-height: 1.6; }
 .aura-tbl__row > .aura-tbl__td[data-label]:lang(th)::before, .aura-table__td[data-label]:lang(th)::before { font-family: var(--font-sans); font-size: 12px; line-height: 18px; }
 .aura-table--stacked .aura-table__td[data-label]:lang(th) { line-height: 1.6; }

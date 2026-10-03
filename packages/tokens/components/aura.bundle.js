@@ -1755,12 +1755,27 @@ window.Aura = (() => {
         props.required ? /* @__PURE__ */ React12.createElement("span", { className: "aura-field__req", "aria-hidden": true }, " *") : null,
         props.optional ? /* @__PURE__ */ React12.createElement("span", { className: "aura-field__opt" }, " (" + t.optional + ")") : null
       ) : null,
+      hasAddon(props.labelAddon) ? /* @__PURE__ */ React12.createElement("div", { className: "aura-field__addon", id: props.id + "-addon" }, props.labelAddon) : null,
       props.children,
       props.error ? /* @__PURE__ */ React12.createElement("p", { className: "aura-field__error", id: props.id + "-error" }, /* @__PURE__ */ React12.createElement(Icon, { name: /* @__PURE__ */ React12.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React12.createElement("p", { className: "aura-field__hint", id: props.id + "-hint" }, props.hint) : null
     );
   });
   function describedBy(id, p) {
     return p.error ? id + "-error" : p.hint ? id + "-hint" : void 0;
+  }
+  function hasAddon(n3) {
+    return n3 != null && typeof n3 !== "boolean" && n3 !== "";
+  }
+  function joinDescribedBy(id, p, own) {
+    const ids = [
+      hasAddon(p.labelAddon) && p.labelAddonDescribes !== false ? id + "-addon" : "",
+      describedBy(id, p) || ""
+    ].concat(typeof own === "string" ? own.split(/\s+/) : []);
+    const out = [];
+    ids.forEach(function(x) {
+      if (x && out.indexOf(x) < 0) out.push(x);
+    });
+    return out.join(" ") || void 0;
   }
   var FIELD_KEYS = [
     "label",
@@ -1774,7 +1789,9 @@ window.Aura = (() => {
     "suffix",
     "options",
     "placeholder",
-    "touchHeight"
+    "touchHeight",
+    "labelAddon",
+    "labelAddonDescribes"
   ];
 
   // src/TextField.tsx
@@ -1791,6 +1808,7 @@ window.Aura = (() => {
         error: props.error,
         required: props.required,
         optional: props.optional,
+        labelAddon: props.labelAddon,
         disabled: props.disabled,
         className: cx(touchClass(props.touchHeight), props.className)
       },
@@ -1805,7 +1823,7 @@ window.Aura = (() => {
           placeholder: props.placeholder,
           required: props.required,
           "aria-invalid": props.error ? true : rest["aria-invalid"],
-          "aria-describedby": [describedBy(id, props), rest["aria-describedby"]].filter(Boolean).join(" ") || void 0
+          "aria-describedby": joinDescribedBy(id, props, rest["aria-describedby"])
         }
       ), props.suffix ? /* @__PURE__ */ React13.createElement("span", { className: "aura-input__suffix" }, props.suffix) : null)
     );
@@ -1825,6 +1843,7 @@ window.Aura = (() => {
         error: props.error,
         required: props.required,
         optional: props.optional,
+        labelAddon: props.labelAddon,
         disabled: props.disabled,
         className: cx(touchClass(props.touchHeight), props.className)
       },
@@ -1839,7 +1858,7 @@ window.Aura = (() => {
           placeholder: props.placeholder,
           required: props.required,
           "aria-invalid": props.error ? true : rest["aria-invalid"],
-          "aria-describedby": [describedBy(id, props), rest["aria-describedby"]].filter(Boolean).join(" ") || void 0
+          "aria-describedby": joinDescribedBy(id, props, rest["aria-describedby"])
         }
       )
     );
@@ -8582,6 +8601,13 @@ window.Aura = (() => {
       D["accent-lime"] = s[200];
       D["mesh-to"] = s[200];
     }
+    function onFill(bg) {
+      return contrast(ZINC[0], bg) >= contrast(INK, bg) ? ZINC[0] : INK;
+    }
+    L["control-checked-bg"] = L["accent-violet"];
+    L["control-checked-fg"] = onFill(L["control-checked-bg"]);
+    D["control-checked-bg"] = fit(b[300], darkGrounds, 3, 1);
+    D["control-checked-fg"] = onFill(D["control-checked-bg"]);
     const shadowLight = INK, shadowDark = D["accent-violet"];
     if (o.primary === "brand") {
       L["button-primary-bg"] = fit(b[600], [ZINC[0]], 4.5, -1);
@@ -8664,6 +8690,30 @@ window.Aura = (() => {
       );
     }
     if (s) check("light", "ink", "accent-lime (signal)", 4.5, INK, s[200]);
+    [
+      [
+        "light",
+        L,
+        [
+          ["bg-surface", ZINC[0]],
+          ["bg-canvas", ZINC[50]]
+        ]
+      ],
+      [
+        "dark",
+        D,
+        [
+          ["bg-surface", ZINC[900]],
+          ["bg-canvas", ZINC[950]]
+        ]
+      ]
+    ].forEach(function(g) {
+      const t = g[0], m = g[1];
+      g[2].forEach(function(gr) {
+        check(t, "control-checked-bg", gr[0], 3, m["control-checked-bg"], gr[1]);
+      });
+      check(t, "control-checked-fg", "control-checked-bg", 4.5, m["control-checked-fg"], m["control-checked-bg"]);
+    });
     function css(selector) {
       if (selector !== void 0 && /[<{};@\r\n]|\/\*|\*\//.test(selector))
         throw new Error('createTheme: "' + selector + '" is not a plain CSS selector');
