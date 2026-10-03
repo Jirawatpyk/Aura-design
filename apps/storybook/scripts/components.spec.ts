@@ -5970,3 +5970,136 @@ test.describe('5.30: audit items 4 and 8–20', () => {
     }
   });
 });
+
+test.describe('5.30: Chamber-OS addenda 39–40', () => {
+  const ID = 'aura-new-in-5-30-addenda-39-40--menu-on-scroll';
+  const menu = (page: import('@playwright/test').Page) => page.getByRole('menu');
+  const gap = async (page: import('@playwright/test').Page, trigger: import('@playwright/test').Locator) => {
+    const t = (await trigger.boundingBox())!;
+    const m = (await menu(page).boundingBox())!;
+    return Math.round(m.y - (t.y + t.height));
+  };
+
+  test('136: a small page scroll or a resize keeps the menu open and moves it with its trigger', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await story(page, ID);
+    const trigger = page.getByRole('button', { name: 'Invoice actions' });
+    await trigger.click();
+    await expect(page.getByRole('menuitem')).toHaveCount(3);
+    const before = await gap(page, trigger);
+    await page.evaluate(() => window.scrollBy(0, 1));
+    await page.evaluate(() => window.scrollBy(0, 12));
+    await expect(page.getByRole('menuitem')).toHaveCount(3);
+    expect(await gap(page, trigger)).toBe(before);
+    await page.setViewportSize({ width: 900, height: 620 });
+    await expect(page.getByRole('menuitem')).toHaveCount(3);
+    expect(await gap(page, trigger)).toBe(before);
+    /* Escape still closes it and gives focus back to the trigger. */
+    await page.keyboard.press('Escape');
+    await expect(menu(page)).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
+  test('136: once the trigger has scrolled out of view the menu closes, without taking focus back', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await story(page, ID);
+    const trigger = page.getByRole('button', { name: 'Invoice actions' });
+    await trigger.click();
+    await expect(menu(page)).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await expect(menu(page)).toHaveCount(0);
+    expect(await page.evaluate(() => window.scrollY)).toBe(400);
+    await expect(trigger).not.toBeFocused();
+  });
+
+  test('136: a trigger in a scrolling box: the menu follows it, and closes when the box hides it', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await story(page, ID);
+    const trigger = page.getByRole('button', { name: 'Row actions' });
+    await trigger.click();
+    await expect(menu(page)).toBeVisible();
+    const box = page.getByTestId('box');
+    await box.evaluate((e) => e.scrollBy(0, 20));
+    await expect(menu(page)).toBeVisible();
+    expect(await gap(page, trigger)).toBeGreaterThanOrEqual(0);
+    expect(await gap(page, trigger)).toBeLessThanOrEqual(8);
+    await box.evaluate((e) => e.scrollBy(0, 200));
+    await expect(menu(page)).toHaveCount(0);
+  });
+
+  test('136: outside pointerdown and choosing an item still close the menu', async ({ page }) => {
+    await story(page, ID);
+    const trigger = page.getByRole('button', { name: 'Invoice actions' });
+    await trigger.click();
+    await page.mouse.click(900, 600);
+    await expect(menu(page)).toHaveCount(0);
+    await trigger.click();
+    await page.getByRole('menuitem', { name: 'Mark paid' }).click();
+    await expect(menu(page)).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
+  test('137: StatusPill is 500 whatever its parent sets; Badge stays 600', async ({ page }) => {
+    await story(page, ID);
+    const w = (l: import('@playwright/test').Locator) => l.evaluate((e) => getComputedStyle(e).fontWeight);
+    expect(await w(page.getByTestId('heading').locator('.aura-pill'))).toBe('500');
+    expect(await w(page.getByTestId('plain').locator('.aura-pill'))).toBe('500');
+    expect(await w(page.getByTestId('heading').locator('.aura-badge'))).toBe('600');
+  });
+});
+
+test.describe('5.30: Chamber-OS addendum 39 — edges', () => {
+  const ID = 'aura-new-in-5-30-addenda-39-40--menu-on-scroll';
+  test('136: a fixed trigger inside a scrolling wrapper and a trigger past a one-axis clip stay open on scroll', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await story(page, ID);
+    for (const name of ['Bar actions', 'Below a clip']) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.getByRole('button', { name }).click();
+      await expect(page.getByRole('menu')).toBeVisible();
+      await page.evaluate(() => window.scrollBy(0, name === 'Bar actions' ? 120 : 2));
+      await expect(page.getByRole('menuitem')).toHaveCount(3);
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('menu')).toHaveCount(0);
+    }
+  });
+
+  test('136: inside a Dialog, a trigger scrolled out of view closes the menu and focus stays in the dialog', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    await page.getByRole('button', { name: 'Open dialog' }).click();
+    const trigger = page.getByRole('button', { name: 'Dialog actions' });
+    await trigger.click();
+    await expect(page.getByRole('menu')).toBeVisible();
+    await page.getByTestId('dialog-scroll').evaluate((e) => e.scrollBy(0, 300));
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    expect(await page.getByTestId('dialog-scroll').evaluate((e) => e.scrollTop)).toBe(300);
+  });
+});
+
+test.describe('5.30: audit D — Thai', () => {
+  test('field labels, hints and choice descriptions get Thai line room; stacked card labels are 12px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 2400 });
+    await story(page, 'aura-new-in-5-30-polish--polish');
+    const th = page.getByTestId('thai');
+    const css = (l: import('@playwright/test').Locator, p: string, pseudo?: string) =>
+      l.evaluate((e, [p, ps]) => getComputedStyle(e, ps || null).getPropertyValue(p), [p, pseudo || ''] as const);
+    const lh = async (l: import('@playwright/test').Locator) =>
+      parseFloat(await css(l, 'line-height')) / parseFloat(await css(l, 'font-size'));
+    expect(await lh(th.locator('.aura-field__label').first())).toBeGreaterThanOrEqual(1.59);
+    expect(await lh(th.locator('.aura-field__hint'))).toBeGreaterThanOrEqual(1.59);
+    expect(await css(th.locator('.aura-choice__desc'), 'font-size')).toBe('13px');
+    const cell = th.locator('.aura-tbl__td[data-label]').nth(1);
+    expect(await css(cell, 'font-size', '::before')).toBe('12px');
+    /* The English parts of the page keep their sizes. */
+    expect(await css(page.getByTestId('narrow').locator('.aura-tbl__td').first(), 'font-size')).toBe('13px');
+  });
+});

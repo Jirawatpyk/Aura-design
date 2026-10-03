@@ -411,6 +411,7 @@ a.aura-icon-btn { text-decoration: none; }
   border-radius: var(--aura-radius-full);
   padding: 2px var(--aura-space-2) 2px 6px;
   font-size: 11px;
+  font-weight: 500; /* 5.30 (Chamber-OS 137): medium everywhere, not the parent's weight; Badge stays 600 */
   line-height: 16px;
   white-space: nowrap;
   background: var(--aura-status-neutral-bg);
@@ -2073,6 +2074,13 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-bottomnav__item:lang(th) { font-size: 12px; line-height: 18px; }
 .aura-stepper__desc:lang(th) { font-size: 13px; line-height: 1.6; }
 .aura-nav__label:lang(th) { line-height: 22px; }
+/* 5.30 (audit D): field labels, hints and errors and choice descriptions get Thai line room; a stacked card's field
+ * labels are 12px in the sans face (the mono face has no Thai), and a stacked DataTable card's values sit on a set
+ * 1.6 line, so a loading card (its bars follow 1lh) is as tall as one with Thai text. */
+.aura-field__label:lang(th), .aura-field__hint:lang(th), .aura-field__error:lang(th) { line-height: 1.6; }
+.aura-choice__desc:lang(th), .aura-check__desc:lang(th) { font-size: 13px; line-height: 1.6; }
+.aura-tbl__row > .aura-tbl__td[data-label]:lang(th)::before, .aura-table__td[data-label]:lang(th)::before { font-family: var(--font-sans); font-size: 12px; line-height: 18px; }
+.aura-table--stacked .aura-table__td[data-label]:lang(th) { line-height: 1.6; }
 
 /* 5.30: a plain link (no class) inside AURA's surfaces takes the accent colour instead of the browser's blue. Zero
  * specificity, so any rule of yours for links wins. */

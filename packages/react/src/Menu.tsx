@@ -10,6 +10,58 @@ import { IconCheck } from './icons.js';
  * reachable; a menu with no item at all takes focus itself, so Escape and Tab still close it. */
 const ITEMS = '[role^="menuitem"]';
 
+/* 5.30: is any part of el visible — inside the viewport and inside every box around it that clips it? A box clips
+ * only along the axes its overflow isn't visible, and only an element it contains: a fixed element escapes every box
+ * but one that makes a containing block (transform, filter, contain…); an absolute one escapes static boxes. */
+function makesBlock(s: CSSStyleDeclaration): boolean {
+  return (
+    s.transform !== 'none' ||
+    s.translate !== 'none' ||
+    s.rotate !== 'none' ||
+    s.scale !== 'none' ||
+    s.filter !== 'none' ||
+    (s as CSSStyleDeclaration & { backdropFilter?: string }).backdropFilter !== 'none' ||
+    s.perspective !== 'none' ||
+    (s as CSSStyleDeclaration & { contentVisibility?: string }).contentVisibility === 'auto' ||
+    /paint|layout|strict|content/.test(s.contain) ||
+    /transform|translate|rotate|scale|filter|perspective/.test(s.willChange)
+  );
+}
+function inView(el: Element): boolean {
+  if (!el.isConnected) return false;
+  const r = el.getBoundingClientRect();
+  if (r.width === 0 && r.height === 0) return false;
+  let top = r.top,
+    bottom = r.bottom,
+    left = r.left,
+    right = r.right;
+  let pos = getComputedStyle(el).position;
+  for (let p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+    const s = getComputedStyle(p);
+    const block = makesBlock(s);
+    if (pos === 'fixed' && !block) continue;
+    if (pos === 'absolute' && s.position === 'static' && !block) continue;
+    if (s.display !== 'contents') {
+      const b = p.getBoundingClientRect();
+      if (s.overflowX !== 'visible') {
+        left = Math.max(left, b.left);
+        right = Math.min(right, b.right);
+      }
+      if (s.overflowY !== 'visible') {
+        top = Math.max(top, b.top);
+        bottom = Math.min(bottom, b.bottom);
+      }
+    }
+    /* From here on, what clips p clips el. */
+    pos = s.position === 'fixed' || s.position === 'absolute' ? s.position : 'static';
+  }
+  top = Math.max(top, 0);
+  left = Math.max(left, 0);
+  bottom = Math.min(bottom, window.innerHeight);
+  right = Math.min(right, window.innerWidth);
+  return bottom > top && right > left;
+}
+
 /** Popover list anchored to an element, rendered in a portal. */
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(props, ref) {
   const own = React.useRef<HTMLDivElement | null>(null),
@@ -23,28 +75,41 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     itemId = uid();
   const hasHeader = props.header != null && props.header !== false && props.header !== '';
   const Link = useLinkComponent(props.linkComponent);
+  /* Placement: below the trigger if it fits, else above; called on open and (5.30) on every scroll and resize. */
+  function place(): void {
+    const a = props.anchor,
+      m = own.current;
+    if (!a || !m) return;
+    const r = a.getBoundingClientRect(),
+      mh = m.scrollHeight,
+      mw = m.offsetWidth,
+      below = window.innerHeight - r.bottom - 12,
+      above = r.top - 12;
+    /* Below if it fits, else above if it fits, else the roomier side, scrolling (5.1.1: it ran off-screen). */
+    let top = r.bottom + 4,
+      maxHeight: number | undefined;
+    if (mh > below) {
+      if (mh <= above) top = r.top - mh - 4;
+      else if (above > below) {
+        maxHeight = above;
+        top = r.top - above - 4;
+      } else maxHeight = below;
+    }
+    const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+    setPos(function (p) {
+      return p && p.top === top && p.left === left && p.maxHeight === maxHeight
+        ? p
+        : { top: top, left: left, maxHeight: maxHeight };
+    });
+  }
+  const placeRef = React.useRef(place);
+  placeRef.current = place;
+  /* The listeners below are added once per open: they read the current trigger and onClose through this ref. */
+  const live = React.useRef({ anchor: props.anchor, onClose: props.onClose });
+  live.current = { anchor: props.anchor, onClose: props.onClose };
   useIsoLayoutEffect(
     function () {
-      const a = props.anchor,
-        m = own.current;
-      if (!a || !m) return;
-      const r = a.getBoundingClientRect(),
-        mh = m.scrollHeight,
-        mw = m.offsetWidth,
-        below = window.innerHeight - r.bottom - 12,
-        above = r.top - 12;
-      /* Below if it fits, else above if it fits, else the roomier side, scrolling (5.1.1: it ran off-screen). */
-      let top = r.bottom + 4,
-        maxHeight: number | undefined;
-      if (mh > below) {
-        if (mh <= above) top = r.top - mh - 4;
-        else if (above > below) {
-          maxHeight = above;
-          top = r.top - above - 4;
-        } else maxHeight = below;
-      }
-      const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
-      setPos({ top: top, left: left, maxHeight: maxHeight });
+      place();
     },
     [props.anchor, mounted, hasHeader],
   );
@@ -78,8 +143,18 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
         )
           props.onClose(false);
       }
+      /* 5.30 (Chamber-OS 136): a scroll or resize moves the menu with its trigger, as Popover does — a slight finger
+       * drag, the phone's address bar or keyboard no longer close it. Once the trigger is wholly out of view (the
+       * viewport, or a box around it that clips it) the menu closes, without taking focus back to it — except inside a
+       * Dialog or Drawer, where focus goes back to the trigger without scrolling. */
       function onScroll(e: Event) {
-        if (own.current && !own.current.contains(e.target as Node)) props.onClose(false);
+        if (own.current && e.target instanceof Node && own.current.contains(e.target)) return;
+        const a = live.current.anchor;
+        if (a && !inView(a)) {
+          live.current.onClose(false);
+          /* Inside a Dialog or Drawer focus must stay in it: back to the trigger, without scrolling to it. */
+          if (a instanceof HTMLElement && a.closest('[aria-modal="true"]')) a.focus({ preventScroll: true });
+        } else placeRef.current();
       }
       document.addEventListener('pointerdown', outside, true);
       window.addEventListener('scroll', onScroll, true);

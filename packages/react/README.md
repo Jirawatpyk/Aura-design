@@ -186,9 +186,14 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
-## 5.30 — Visual polish (audit, Oct 2026) and Chamber-OS addendum 38
+## 5.30 — Visual polish (audit, Oct 2026) and Chamber-OS addenda 38–40
 
-One release: both parts below ship together in 5.30.0.
+One release: everything below ships together in 5.30.0.
+
+### Menus stay open on scroll; StatusPill weight (addenda 39–40)
+
+- **An open menu follows its trigger** (item 136): DropdownMenu and every menu built on it (DataTable's row ⋯ and column menus) now move with the trigger on scroll and resize — a slight finger drag during a tap, the phone's address bar or keyboard no longer close it, as Popover already behaved. It closes once the trigger is wholly out of view (the page's, or a box around it that clips it — a fixed bar inside a scrolling wrapper isn't clipped by it, and `overflow-x: clip` only clips sideways), without taking focus back so the page doesn't jump; inside a Dialog or Drawer focus goes back to the trigger without scrolling, so it stays in the dialog. Escape, a pointerdown outside and choosing an item close it as before, with focus back on the trigger. No new prop.
+- **StatusPill is 500 (medium)** (item 137) wherever it sits — before, it took its parent's weight (regular beside a heading, bold inside bold text). Badge stays 600, so the two stay distinct.
 
 ### 44px fields and choice rows (addendum 38)
 
@@ -205,7 +210,7 @@ One release: both parts below ship together in 5.30.0.
 - **FilterSelect** (item 11): from 640px the face has a field's inset and 14px text, like the search box beside it; phones keep the tight face so three filters and a chip share a row.
 - **Smaller fixes**: the show-password button is fg-secondary like a field's other icons (item 14); a removable Tag's × is 14px (item 17); a plain link (no class) inside a Card, Stat, Alert, EmptyState, field, tab panel, AppShell main, table or Dialog takes the accent colour, at zero specificity so your own link rules win (item 18).
 - **Not changed, on purpose**: a ghost button that starts an ActionBar keeps its box at the bar's edge (Chamber-OS 116 relies on it); the Progress track keeps its 3:1 edge (WCAG 1.4.11); DatePicker's calendar button and TimePicker's clock stay where they are (one is a button, one a label icon).
-- Size budgets: `styles.css` 32 kB, DataTable 21 kB.
+- Size budgets: `styles.css` 32 kB, DataTable 21 kB, `aura.bundle.js` and the whole package 66 kB.
 
 ### Visual polish
 
@@ -219,7 +224,7 @@ A visual audit of every Storybook story in light, dark and at 390px. This releas
 - **Buttons are always the AURA sans** (`font-family: var(--font-sans)`), also outside a root that sets the font. An app that sets its own font on `body` should set `--font-sans` too, or its buttons stay Inter.
 - **Table caption** has 12px below it, so it no longer touches the header.
 - **DataTable skeleton action bars** take the button's own shape (`--aura-button-radius`).
-- **Thai:** where the language is Thai (`lang="th"` on the page or a part), StatusPill, Badge and tab counts are 12px (the loading pill matches), BottomNav labels 12px, Stepper descriptions 13px with a 1.6 line, SideNav labels on a 22px line. A `lang="en"` part inside keeps the Latin sizes.
+- **Thai:** where the language is Thai (`lang="th"` on the page or a part), StatusPill, Badge and tab counts are 12px (the loading pill matches), BottomNav labels 12px, Stepper descriptions 13px with a 1.6 line, SideNav labels on a 22px line, field labels, hints and errors on a 1.6 line, Radio and Checkbox descriptions 13px on a 1.6 line, and a stacked card's field labels 12px. A `lang="en"` part inside keeps the Latin sizes. These follow the `lang` attribute, not `AuraProvider locale`: set `<html lang="th">` (Next.js: the root layout's `<html lang>`), so portals (Dialog, Menu, Popover) get it too.
 
 ## 5.29 — Chamber-OS addendum 37
 

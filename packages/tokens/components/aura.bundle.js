@@ -1367,6 +1367,39 @@ window.Aura = (() => {
   var React8 = __toESM(require_react(), 1);
   var import_react_dom = __toESM(require_react_dom(), 1);
   var ITEMS = '[role^="menuitem"]';
+  function makesBlock(s) {
+    return s.transform !== "none" || s.translate !== "none" || s.rotate !== "none" || s.scale !== "none" || s.filter !== "none" || s.backdropFilter !== "none" || s.perspective !== "none" || s.contentVisibility === "auto" || /paint|layout|strict|content/.test(s.contain) || /transform|translate|rotate|scale|filter|perspective/.test(s.willChange);
+  }
+  function inView(el) {
+    if (!el.isConnected) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return false;
+    let top = r.top, bottom = r.bottom, left = r.left, right = r.right;
+    let pos = getComputedStyle(el).position;
+    for (let p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      const block = makesBlock(s);
+      if (pos === "fixed" && !block) continue;
+      if (pos === "absolute" && s.position === "static" && !block) continue;
+      if (s.display !== "contents") {
+        const b = p.getBoundingClientRect();
+        if (s.overflowX !== "visible") {
+          left = Math.max(left, b.left);
+          right = Math.min(right, b.right);
+        }
+        if (s.overflowY !== "visible") {
+          top = Math.max(top, b.top);
+          bottom = Math.min(bottom, b.bottom);
+        }
+      }
+      pos = s.position === "fixed" || s.position === "absolute" ? s.position : "static";
+    }
+    top = Math.max(top, 0);
+    left = Math.max(left, 0);
+    bottom = Math.min(bottom, window.innerHeight);
+    right = Math.min(right, window.innerWidth);
+    return bottom > top && right > left;
+  }
   var Menu = React8.forwardRef(function Menu2(props, ref) {
     const own = React8.useRef(null), merged = useMergedRef(ref, own);
     const posState = React8.useState(null);
@@ -1376,21 +1409,30 @@ window.Aura = (() => {
     const headerId = uid(), itemId = uid();
     const hasHeader = props.header != null && props.header !== false && props.header !== "";
     const Link = useLinkComponent(props.linkComponent);
+    function place() {
+      const a = props.anchor, m = own.current;
+      if (!a || !m) return;
+      const r = a.getBoundingClientRect(), mh = m.scrollHeight, mw = m.offsetWidth, below2 = window.innerHeight - r.bottom - 12, above = r.top - 12;
+      let top = r.bottom + 4, maxHeight;
+      if (mh > below2) {
+        if (mh <= above) top = r.top - mh - 4;
+        else if (above > below2) {
+          maxHeight = above;
+          top = r.top - above - 4;
+        } else maxHeight = below2;
+      }
+      const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+      setPos(function(p) {
+        return p && p.top === top && p.left === left && p.maxHeight === maxHeight ? p : { top, left, maxHeight };
+      });
+    }
+    const placeRef = React8.useRef(place);
+    placeRef.current = place;
+    const live = React8.useRef({ anchor: props.anchor, onClose: props.onClose });
+    live.current = { anchor: props.anchor, onClose: props.onClose };
     useIsoLayoutEffect(
       function() {
-        const a = props.anchor, m = own.current;
-        if (!a || !m) return;
-        const r = a.getBoundingClientRect(), mh = m.scrollHeight, mw = m.offsetWidth, below2 = window.innerHeight - r.bottom - 12, above = r.top - 12;
-        let top = r.bottom + 4, maxHeight;
-        if (mh > below2) {
-          if (mh <= above) top = r.top - mh - 4;
-          else if (above > below2) {
-            maxHeight = above;
-            top = r.top - above - 4;
-          } else maxHeight = below2;
-        }
-        const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
-        setPos({ top, left, maxHeight });
+        place();
       },
       [props.anchor, mounted, hasHeader]
     );
@@ -1420,7 +1462,12 @@ window.Aura = (() => {
             props.onClose(false);
         }
         function onScroll(e) {
-          if (own.current && !own.current.contains(e.target)) props.onClose(false);
+          if (own.current && e.target instanceof Node && own.current.contains(e.target)) return;
+          const a = live.current.anchor;
+          if (a && !inView(a)) {
+            live.current.onClose(false);
+            if (a instanceof HTMLElement && a.closest('[aria-modal="true"]')) a.focus({ preventScroll: true });
+          } else placeRef.current();
         }
         document.addEventListener("pointerdown", outside, true);
         window.addEventListener("scroll", onScroll, true);

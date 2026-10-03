@@ -128,6 +128,30 @@ export const Polish: StoryObj = {
             </Aura.TBody>
           </Aura.Table>
         </div>
+        <div lang="th" data-testid="thai" style={{ display: 'grid', gap: 16, maxWidth: 360 }}>
+          <Aura.TextField label="เลขที่ใบกำกับภาษี" hint="ตามที่พิมพ์บนใบกำกับ" />
+          <Aura.RadioGroup
+            label="เหตุผลอัตราศูนย์"
+            options={[{ value: 'x', label: 'ส่งออกสินค้า', description: 'ตามมาตรา 80/1 (1) แห่งประมวลรัษฎากร' }]}
+            defaultValue="x"
+          />
+          <Aura.Table caption="สมาชิก" stackBelow="sm">
+            <Aura.THead>
+              <Aura.Tr>
+                <Aura.Th>รหัส</Aura.Th>
+                <Aura.Th>ชื่อสมาชิก</Aura.Th>
+                <Aura.Th>ประเภท</Aura.Th>
+              </Aura.Tr>
+            </Aura.THead>
+            <Aura.TBody>
+              <Aura.Tr>
+                <Aura.Td mono>M-101</Aura.Td>
+                <Aura.Td>บริษัท เอเชียไทม์ จำกัด</Aura.Td>
+                <Aura.Td>นิติบุคคล</Aura.Td>
+              </Aura.Tr>
+            </Aura.TBody>
+          </Aura.Table>
+        </div>
         <div data-testid="narrow-grid" style={{ width: 360 }}>
           <Aura.DataTable<Row>
             label="Members grid"
