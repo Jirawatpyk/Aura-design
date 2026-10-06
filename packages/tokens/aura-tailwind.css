@@ -72,6 +72,7 @@
   --color-bg-surface-hover: var(--aura-bg-surface-hover);
   --color-bg-surface-strong: var(--aura-bg-surface-strong);
   --color-bg-canvas: var(--aura-bg-canvas);
+  --color-bg-canvas-hover: var(--aura-bg-canvas-hover);
   --color-bg-inverted: var(--aura-bg-inverted);
   --color-bg-selected: var(--aura-bg-selected);
   --color-bg-skeleton: var(--aura-bg-skeleton);

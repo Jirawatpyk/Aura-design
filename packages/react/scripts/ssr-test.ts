@@ -296,6 +296,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.33 (DxT Monitor 6, 7): AppShell headerHideFrom, PageHeader breadcrumb. */
+    {
+      const sh = m(e(A.AppShell, { header: 'Brand', headerHideFrom: 'lg', nav: e(A.SideNav, { items: [{ id: 'a', label: 'A' }] }) }, 'x'));
+      const sh0 = m(e(A.AppShell, { header: 'Brand', nav: e(A.SideNav, { items: [{ id: 'a', label: 'A' }] }) }, 'x'));
+      const pb = m(e(A.PageHeader, { breadcrumb: e(A.Breadcrumb, { items: [{ label: 'Sites', href: '#' }, { label: 'X' }] }), title: 'X' }));
+      if (!/class="aura-shell aura-shell--menu-bar"/.test(sh) || !/class="aura-shell__bar aura-shell__bar--menu-only"/.test(sh) || /menu-only|menu-bar|headerhidefrom/i.test(sh0) || /headerhidefrom/i.test(sh) || !/^<div class="aura-page-header"><div class="aura-page-header__text"><div class="aura-page-header__breadcrumb"><nav/.test(pb) || /<p[^>]*>[^]*<nav/.test(pb)) bad('DxT 6/7:', sh, sh0, pb);
+    }
     /* 5.32 (WCAG 2.5.3, axe 4.14): Accordion and BottomNav named from content, not aria-label(ledby). */
     {
       const acc = m(e(A.Accordion, { items: [{ id: 'f', title: 'Fees', description: 'Two unpaid', content: 'x' }] }));

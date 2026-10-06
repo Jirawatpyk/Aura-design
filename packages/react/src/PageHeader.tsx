@@ -16,6 +16,10 @@ export interface PageHeaderProps
     DataAttributes {
   /** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). */
   eyebrow?: React.ReactNode | undefined;
+  /** 5.33 (DxT Monitor #7): a `<Breadcrumb>` above the title, 4px from it like the eyebrow, in its own `div` (a `nav`
+   * can't sit in the eyebrow's `p`) and its own 13px sans. Detail pages show a breadcrumb or an eyebrow; with both,
+   * the breadcrumb comes first. */
+  breadcrumb?: React.ReactNode | undefined;
   /** The page's heading. */
   title: React.ReactNode;
   /** A line under the title — counts, last update, owner. */
@@ -43,6 +47,9 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
     h(
       'div',
       { className: 'aura-page-header__text' },
+      props.breadcrumb != null && props.breadcrumb !== false
+        ? h('div', { className: 'aura-page-header__breadcrumb' }, props.breadcrumb)
+        : null,
       props.eyebrow != null && props.eyebrow !== false
         ? h('p', { className: 'aura-page-header__eyebrow' }, props.eyebrow)
         : null,

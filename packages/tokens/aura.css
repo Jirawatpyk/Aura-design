@@ -52,6 +52,7 @@
   --aura-bg-surface-hover: var(--aura-zinc-50);
   --aura-bg-surface-strong: var(--aura-zinc-900);
   --aura-bg-canvas: var(--aura-zinc-50);
+  --aura-bg-canvas-hover: var(--aura-zinc-100);
   --aura-bg-inverted: var(--aura-zinc-900);
   --aura-fg-primary: var(--aura-zinc-900);
   --aura-fg-secondary: var(--aura-zinc-600);
@@ -149,6 +150,7 @@
   --aura-bg-surface-hover: var(--aura-zinc-800);
   --aura-bg-surface-strong: var(--aura-zinc-200);
   --aura-bg-canvas: var(--aura-zinc-950);
+  --aura-bg-canvas-hover: var(--aura-zinc-800);
   --aura-bg-inverted: var(--aura-zinc-200);
   --aura-fg-primary: var(--aura-zinc-0);
   --aura-fg-secondary: var(--aura-zinc-400);
@@ -229,6 +231,7 @@
     --aura-bg-surface-hover: var(--aura-zinc-800);
     --aura-bg-surface-strong: var(--aura-zinc-200);
     --aura-bg-canvas: var(--aura-zinc-950);
+    --aura-bg-canvas-hover: var(--aura-zinc-800);
     --aura-bg-inverted: var(--aura-zinc-200);
     --aura-fg-primary: var(--aura-zinc-0);
     --aura-fg-secondary: var(--aura-zinc-400);

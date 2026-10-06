@@ -186,6 +186,13 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.33 — DxT Monitor requests 5–8
+
+- **Hover shows on the canvas** (request 5): in light, `aura-bg-surface-hover` is zinc-50 — the canvas itself — so SideNav's rows, an IconButton or ghost Button in its header or footer (Sign out), and the same on the page's canvas (PageHeader actions, Pagination, a selectable Tag) showed no hover. A new token, `aura-bg-canvas-hover` (zinc-100 light, zinc-800 dark), is the hover inside AppShell and SideNav; cards, tables, inputs, the top bar, dialogs, drawers and popovers inside them keep `aura-bg-surface-hover`. Hover fills now read `--aura-hover`, falling back to the surface hover: outside AppShell, set `--aura-hover: var(--aura-bg-canvas-hover)` on your own canvas-coloured area.
+- **AppShell `headerHideFrom="lg"`** (request 6): the top bar, `header` and all, shows only below 1024px — where the menu button is — as a header-less bar does: from lg up it is hidden and `--aura-shell-bar-height` is 0. For apps whose phone pages draw a top bar (brand, avatar) and whose desktop pages don't. Default: the bar shows at every width.
+- **PageHeader `breadcrumb`** (request 7): a `<Breadcrumb>` above the title, 4px from it like the eyebrow, in its own `div` — a `nav` can't sit in the eyebrow's `p` (invalid HTML, a hydration error) — with Breadcrumb's own 13px sans. With an eyebrow too, the breadcrumb comes first.
+- **Phone drawer header = bar height** (request 8): in AppShell's phone drawer, a SideNav with `headerDivider` takes the top bar's height (56px, or more when the bar's header wraps), content centred, so its line meets the bar's line beside it; the close button is centred on it. The fixed desktop sidebar keeps 72px.
+
 ## 5.32 — Icon tips, PageHeader, SideNav header divider, pill skeletons (DxT Monitor requests 1–4)
 
 ### DxT Monitor requests 1, 3, 4

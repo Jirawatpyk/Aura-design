@@ -1210,6 +1210,10 @@ export interface AppShellProps {
 	nav?: React$1.ReactElement | undefined;
 	/** Top bar content (title, search, account menu). */
 	header?: React$1.ReactNode | undefined;
+	/** 5.33 (DxT Monitor #6): `'lg'` shows the top bar, `header` and all, only below 1024px — where the menu button is —
+	 * as when there is no `header`: from lg up it is hidden and `--aura-shell-bar-height` is 0. For apps whose phone
+	 * pages have a top bar (brand, avatar) and whose desktop pages don't. Default: the bar shows at every width. */
+	headerHideFrom?: "lg" | undefined;
 	children?: React$1.ReactNode | undefined;
 	navLabel?: string | undefined;
 	menuLabel?: string | undefined;
@@ -1802,6 +1806,10 @@ export declare const Container: React$1.ForwardRefExoticComponent<ContainerProps
 export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "lang" | "dir" | "role">, React$1.AriaAttributes, DataAttributes {
 	/** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). */
 	eyebrow?: React$1.ReactNode | undefined;
+	/** 5.33 (DxT Monitor #7): a `<Breadcrumb>` above the title, 4px from it like the eyebrow, in its own `div` (a `nav`
+	 * can't sit in the eyebrow's `p`) and its own 13px sans. Detail pages show a breadcrumb or an eyebrow; with both,
+	 * the breadcrumb comes first. */
+	breadcrumb?: React$1.ReactNode | undefined;
 	/** The page's heading. */
 	title: React$1.ReactNode;
 	/** A line under the title — counts, last update, owner. */

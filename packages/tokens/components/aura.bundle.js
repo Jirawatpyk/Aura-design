@@ -7637,6 +7637,7 @@ window.Aura = (() => {
       h8(
         "div",
         { className: "aura-page-header__text" },
+        props.breadcrumb != null && props.breadcrumb !== false ? h8("div", { className: "aura-page-header__breadcrumb" }, props.breadcrumb) : null,
         props.eyebrow != null && props.eyebrow !== false ? h8("p", { className: "aura-page-header__eyebrow" }, props.eyebrow) : null,
         h8("h" + level, { className: "aura-page-header__title", id: props.titleId }, props.title),
         props.meta != null && props.meta !== false ? h8("div", { className: "aura-page-header__meta" }, props.meta) : null
@@ -7669,12 +7670,15 @@ window.Aura = (() => {
     const barRef = React44.useRef(null);
     const mergedRef = useMergedRef(ref, rootRef);
     const hasBar = !!(props.header || props.nav);
+    const barH = React44.useState(null);
     useIsoLayoutEffect(
       function() {
         const root = rootRef.current, bar = barRef.current;
         if (!root || !bar) return;
         function sync() {
-          root.style.setProperty("--aura-shell-bar-height", bar.getBoundingClientRect().height + "px");
+          const h10 = bar.getBoundingClientRect().height;
+          root.style.setProperty("--aura-shell-bar-height", h10 + "px");
+          if (h10 > 0) barH[1](Math.round(h10));
         }
         sync();
         const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
@@ -7712,6 +7716,8 @@ window.Aura = (() => {
           /* 5.14: no top bar at all, or one that only holds the menu button (gone from lg up): the bar-height token is 0. */
           !props.header && !props.nav && "aura-shell--no-bar",
           !props.header && props.nav && "aura-shell--menu-bar",
+          /* 5.33 (DxT Monitor #6): a header bar for phones only. */
+          props.header && props.headerHideFrom === "lg" && "aura-shell--menu-bar",
           props.className
         )
       },
@@ -7726,23 +7732,35 @@ window.Aura = (() => {
           side: "left",
           size: "nav",
           "aria-label": props.navLabel || t.navigation,
-          dismissible: true
+          dismissible: true,
+          style: barH[0] ? { "--aura-shell-bar-height": barH[0] + "px" } : void 0
         },
         drawerNav
       ) : null,
-      /* @__PURE__ */ React44.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React44.createElement("header", { ref: barRef, className: cx("aura-shell__bar", !props.header && "aura-shell__bar--menu-only") }, props.nav ? /* @__PURE__ */ React44.createElement(
-        IconButton,
+      /* @__PURE__ */ React44.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React44.createElement(
+        "header",
         {
-          className: "aura-shell__menu",
-          icon: /* @__PURE__ */ React44.createElement(IconMenu, null),
-          label: props.menuLabel || t.openNav,
-          size: "md",
-          onClick: function() {
-            setOpen(true);
-          },
-          "aria-expanded": open
-        }
-      ) : null, /* @__PURE__ */ React44.createElement("div", { className: "aura-shell__bar-content" }, props.header)) : null, /* @__PURE__ */ React44.createElement(
+          ref: barRef,
+          className: cx(
+            "aura-shell__bar",
+            (!props.header || props.headerHideFrom === "lg") && "aura-shell__bar--menu-only"
+          )
+        },
+        props.nav ? /* @__PURE__ */ React44.createElement(
+          IconButton,
+          {
+            className: "aura-shell__menu",
+            icon: /* @__PURE__ */ React44.createElement(IconMenu, null),
+            label: props.menuLabel || t.openNav,
+            size: "md",
+            onClick: function() {
+              setOpen(true);
+            },
+            "aria-expanded": open
+          }
+        ) : null,
+        /* @__PURE__ */ React44.createElement("div", { className: "aura-shell__bar-content" }, props.header)
+      ) : null, /* @__PURE__ */ React44.createElement(
         "main",
         {
           className: cx("aura-shell__content", props.contentPadding === false && "is-flush"),

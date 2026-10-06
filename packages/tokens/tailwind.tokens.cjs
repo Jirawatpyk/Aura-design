@@ -64,6 +64,7 @@ module.exports = {
       "surface-hover": "var(--aura-bg-surface-hover)",
       "surface-strong": "var(--aura-bg-surface-strong)",
       "canvas": "var(--aura-bg-canvas)",
+      "canvas-hover": "var(--aura-bg-canvas-hover)",
       "inverted": "var(--aura-bg-inverted)",
       "selected": "var(--aura-bg-selected)",
       "skeleton": "var(--aura-bg-skeleton)",

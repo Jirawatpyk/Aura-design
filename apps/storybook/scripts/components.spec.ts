@@ -6694,3 +6694,147 @@ test.describe('5.32: WCAG 2.5.3 label in name (axe 4.14)', () => {
     await expect(page.getByRole('button', { name: 'Mitt konto', exact: true })).toHaveCount(1);
   });
 });
+
+test.describe('5.33: DxT Monitor requests 5–8', () => {
+  const ID = 'aura-new-in-5-33-dxt-monitor--monitor-frame';
+  const bg = (l: import('@playwright/test').Locator) => l.evaluate((e) => getComputedStyle(e).backgroundColor);
+  const box = (l: import('@playwright/test').Locator) =>
+    l.evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      return { x: r.left, y: r.top, w: r.width, h: r.height, b: r.bottom };
+    });
+
+  test('5: hover shows on the nav (rows and its buttons) in light and dark; a card keeps the surface hover', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    for (const [theme, want] of [
+      ['light', 'rgb(244, 244, 245)'],
+      ['dark', 'rgb(39, 39, 42)'],
+    ] as const) {
+      await story(page, ID, theme);
+      const nav = page.locator('.aura-shell__nav .aura-nav');
+      const navBg = await bg(nav);
+      const row = nav.getByRole('button', { name: 'Sites' }).or(nav.getByRole('link', { name: 'Sites' }));
+      await row.hover();
+      await expect.poll(() => bg(row)).toBe(want);
+      expect(want).not.toBe(navBg);
+      const out = nav.getByRole('button', { name: 'Sign out' });
+      await out.hover();
+      await expect.poll(() => bg(out)).toBe(want);
+      /* On the page's canvas too (PageHeader actions): an IconButton and a ghost Button. */
+      for (const name of ['Check now', 'History']) {
+        const b = page.getByTestId('page-header').getByRole('button', { name });
+        await b.hover();
+        await expect.poll(() => bg(b), name).toBe(want);
+      }
+      /* On a white card the surface hover is unchanged. */
+      const inCard = page.getByTestId('card').getByRole('button', { name: 'Edit check' });
+      await inCard.hover();
+      await expect.poll(() => bg(inCard)).toBe(theme === 'light' ? 'rgb(250, 250, 250)' : 'rgb(39, 39, 42)');
+    }
+  });
+
+  test("5: the DataTable header band (canvas-coloured in light) shows its buttons' hover", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, 'aura-data-datatable--virtual-grid');
+    const btn = page.locator('.aura-table__head .aura-table__menu-btn, .aura-table__picker button').first();
+    await btn.hover();
+    await expect.poll(() => bg(btn)).toBe('rgb(244, 244, 245)');
+    expect(await bg(page.locator('.aura-table__head').first())).not.toBe('rgb(244, 244, 245)');
+  });
+
+  test('6: headerHideFrom="lg" — no top bar from 1024px (bar height 0), the header bar with its menu below', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    await expect(page.locator('.aura-shell__bar')).toBeHidden();
+    expect(
+      await page
+        .locator('.aura-shell')
+        .evaluate((e) => getComputedStyle(e).getPropertyValue('--aura-shell-bar-height').trim()),
+    ).toBe('0px');
+    /* The content starts at the shell's top (the preview may offset the shell itself). */
+    const content = await box(page.locator('.aura-shell__content')),
+      shell = await box(page.locator('.aura-shell'));
+    expect(Math.round(content.y - shell.y)).toBe(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator('.aura-shell__bar')).toBeVisible();
+    await expect(page.getByTestId('phone-bar')).toBeVisible();
+    await expect(page.getByRole('button', { name: /navigation/i })).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator('.aura-shell')
+          .evaluate((e) => getComputedStyle(e).getPropertyValue('--aura-shell-bar-height').trim()),
+      )
+      .toBe('56px');
+  });
+
+  test('7: PageHeader breadcrumb — a nav in a div, 4px above the title, its own 13px sans', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const ph = page.getByTestId('page-header');
+    const slot = ph.locator('.aura-page-header__breadcrumb');
+    await expect(slot.getByRole('navigation')).toBeVisible();
+    expect(await slot.evaluate((e) => e.tagName)).toBe('DIV');
+    expect(await ph.locator('p nav').count()).toBe(0);
+    const s = await box(slot),
+      t = await box(ph.getByRole('heading', { level: 1 }));
+    expect(Math.round(t.y - s.b)).toBe(4);
+    const crumb = slot.getByRole('link', { name: 'Sites' });
+    expect(await crumb.evaluate((e) => getComputedStyle(e).fontFamily)).not.toMatch(/JetBrains/);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('8: in the phone drawer the divided header is the bar height, its line meeting the bar line; desktop keeps 72px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    expect(Math.round((await box(page.locator('.aura-shell__nav .aura-nav__header'))).h)).toBe(72);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('button', { name: /navigation/i }).click();
+    const drawer = page.locator('.aura-drawer--nav');
+    await expect(drawer).toBeVisible();
+    /* Read together: the drawer may still be sliding in. */
+    const m = await page.evaluate(() => {
+      const d = document.querySelector('.aura-drawer--nav')!;
+      const h = d.querySelector('.aura-nav__header')!.getBoundingClientRect(),
+        c = d.querySelector('.aura-drawer__head button')!.getBoundingClientRect(),
+        bar = document.querySelector('.aura-shell__bar')!.getBoundingClientRect(),
+        shell = document.querySelector('.aura-shell')!.getBoundingClientRect(),
+        panel = d.getBoundingClientRect();
+      /* Lines measured from the top of each: the drawer is fixed at the viewport's top, the shell (and its bar) at
+       * the page's — the same place in an app; the preview offsets the shell. */
+      return {
+        h: h.height,
+        hb: h.bottom - panel.top,
+        bb: bar.bottom - shell.top,
+        ht: h.top,
+        cMid: c.top + c.height / 2,
+      };
+    });
+    expect(Math.round(m.h)).toBe(56);
+    expect(Math.abs(m.hb - m.bb)).toBeLessThanOrEqual(1);
+    /* A taller (wrapping) phone bar: the drawer header follows it. */
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+    await page.getByTestId('phone-bar').evaluate((e) => ((e as HTMLElement).style.minHeight = '72px'));
+    await expect
+      .poll(() => page.locator('.aura-shell__bar').evaluate((e) => Math.round(e.getBoundingClientRect().height)))
+      .toBeGreaterThan(72);
+    await page.getByRole('button', { name: /navigation/i }).click();
+    await expect(drawer).toBeVisible();
+    const m2 = await page.evaluate(() => {
+      const d = document.querySelector('.aura-drawer--nav')!;
+      return {
+        h: d.querySelector('.aura-nav__header')!.getBoundingClientRect().height,
+        bar: document.querySelector('.aura-shell__bar')!.getBoundingClientRect().height,
+      };
+    });
+    expect(Math.abs(m2.h - m2.bar)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.cMid - (m.ht + 28))).toBeLessThanOrEqual(1);
+  });
+});

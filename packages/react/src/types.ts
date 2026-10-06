@@ -1310,6 +1310,10 @@ export interface AppShellProps {
   nav?: React.ReactElement | undefined;
   /** Top bar content (title, search, account menu). */
   header?: React.ReactNode | undefined;
+  /** 5.33 (DxT Monitor #6): `'lg'` shows the top bar, `header` and all, only below 1024px — where the menu button is —
+   * as when there is no `header`: from lg up it is hidden and `--aura-shell-bar-height` is 0. For apps whose phone
+   * pages have a top bar (brand, avatar) and whose desktop pages don't. Default: the bar shows at every width. */
+  headerHideFrom?: 'lg' | undefined;
   children?: React.ReactNode | undefined;
   navLabel?: string | undefined;
   menuLabel?: string | undefined;

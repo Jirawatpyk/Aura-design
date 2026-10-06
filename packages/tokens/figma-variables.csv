@@ -49,6 +49,7 @@ semantic/bg-surface,color,light,{primitive/zinc/0},"Default surface: cards, tabl
 semantic/bg-surface-hover,color,light,{primitive/zinc/50},"Hover fill for rows, secondary buttons and list items. aura-fg-primary and -secondary still pass on it (≥5.8:1).",FRAME_FILL
 semantic/bg-surface-strong,color,light,{primitive/zinc/900},"High-emphasis block (the wordmark tile, inverted callouts). Text on it: aura-fg-inverted. Dark zinc-200 rather than white (5.30).",FRAME_FILL
 semantic/bg-canvas,color,light,{primitive/zinc/50},"App background behind surfaces; the light data-table header band (via aura-table-head-bg, 5.30).",FRAME_FILL
+semantic/bg-canvas-hover,color,light,{primitive/zinc/100},"Hover fill on the canvas (5.33, DxT Monitor #5): in light, aura-bg-surface-hover is zinc-50 like the canvas, so a hover on the canvas didn't show. zinc-100 light, zinc-800 dark. SideNav uses it for its items and for the buttons in its header and footer. ADDED.",FRAME_FILL
 semantic/bg-inverted,color,light,{primitive/zinc/900},"Inverted ground: tooltips, BottomNav counts. Text on it: aura-fg-inverted (17.7:1 light; 14.0:1 dark on zinc-200, 5.30).",FRAME_FILL
 semantic/fg-primary,color,light,{primitive/zinc/900},Body and heading text on aura-bg-surface and aura-bg-canvas (≥16.9:1 both themes).,TEXT_FILL
 semantic/fg-secondary,color,light,{primitive/zinc/600},"Supporting text, labels, captions on aura-bg-surface / -canvas / -surface-hover (≥5.8:1 both themes).",TEXT_FILL
@@ -118,6 +119,7 @@ semantic/bg-surface,color,dark,{primitive/zinc/900},"Default surface: cards, tab
 semantic/bg-surface-hover,color,dark,{primitive/zinc/800},"Hover fill for rows, secondary buttons and list items. aura-fg-primary and -secondary still pass on it (≥5.8:1).",FRAME_FILL
 semantic/bg-surface-strong,color,dark,{primitive/zinc/200},"High-emphasis block (the wordmark tile, inverted callouts). Text on it: aura-fg-inverted. Dark zinc-200 rather than white (5.30).",FRAME_FILL
 semantic/bg-canvas,color,dark,{primitive/zinc/950},"App background behind surfaces; the light data-table header band (via aura-table-head-bg, 5.30).",FRAME_FILL
+semantic/bg-canvas-hover,color,dark,{primitive/zinc/800},"Hover fill on the canvas (5.33, DxT Monitor #5): in light, aura-bg-surface-hover is zinc-50 like the canvas, so a hover on the canvas didn't show. zinc-100 light, zinc-800 dark. SideNav uses it for its items and for the buttons in its header and footer. ADDED.",FRAME_FILL
 semantic/bg-inverted,color,dark,{primitive/zinc/200},"Inverted ground: tooltips, BottomNav counts. Text on it: aura-fg-inverted (17.7:1 light; 14.0:1 dark on zinc-200, 5.30).",FRAME_FILL
 semantic/fg-primary,color,dark,{primitive/zinc/0},Body and heading text on aura-bg-surface and aura-bg-canvas (≥16.9:1 both themes).,TEXT_FILL
 semantic/fg-secondary,color,dark,{primitive/zinc/400},"Supporting text, labels, captions on aura-bg-surface / -canvas / -surface-hover (≥5.8:1 both themes).",TEXT_FILL

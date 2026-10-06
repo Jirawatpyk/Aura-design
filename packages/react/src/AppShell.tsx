@@ -55,13 +55,18 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
   const barRef = React.useRef<HTMLElement | null>(null);
   const mergedRef = useMergedRef(ref, rootRef);
   const hasBar = !!(props.header || props.nav);
+  /* 5.33 (DxT Monitor #8): the phone drawer's divided nav header matches the bar, also when the header wraps; the
+   * drawer is portalled out of the shell, so it gets the height as its own variable. */
+  const barH = React.useState<number | null>(null);
   useIsoLayoutEffect(
     function () {
       const root = rootRef.current,
         bar = barRef.current;
       if (!root || !bar) return;
       function sync() {
-        root!.style.setProperty('--aura-shell-bar-height', bar!.getBoundingClientRect().height + 'px');
+        const h = bar!.getBoundingClientRect().height;
+        root!.style.setProperty('--aura-shell-bar-height', h + 'px');
+        if (h > 0) barH[1](Math.round(h));
       }
       sync();
       const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
@@ -101,6 +106,8 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
         /* 5.14: no top bar at all, or one that only holds the menu button (gone from lg up): the bar-height token is 0. */
         !props.header && !props.nav && 'aura-shell--no-bar',
         !props.header && props.nav && 'aura-shell--menu-bar',
+        /* 5.33 (DxT Monitor #6): a header bar for phones only. */
+        props.header && props.headerHideFrom === 'lg' && 'aura-shell--menu-bar',
         props.className,
       )}
     >
@@ -115,13 +122,20 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
           size="nav"
           aria-label={props.navLabel || t.navigation}
           dismissible={true}
+          style={barH[0] ? ({ '--aura-shell-bar-height': barH[0] + 'px' } as React.CSSProperties) : undefined}
         >
           {drawerNav}
         </Drawer>
       ) : null}
       <div className="aura-shell__main">
         {props.header || props.nav ? (
-          <header ref={barRef} className={cx('aura-shell__bar', !props.header && 'aura-shell__bar--menu-only')}>
+          <header
+            ref={barRef}
+            className={cx(
+              'aura-shell__bar',
+              (!props.header || props.headerHideFrom === 'lg') && 'aura-shell__bar--menu-only',
+            )}
+          >
             {props.nav ? (
               <IconButton
                 className="aura-shell__menu"

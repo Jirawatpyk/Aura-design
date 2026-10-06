@@ -70,10 +70,10 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 .aura-btn--primary:hover { background: var(--aura-button-primary-bg-hover); }
 
 .aura-btn--secondary { border: 1px solid var(--aura-button-secondary-border); color: var(--aura-fg-primary); }
-.aura-btn--secondary:hover { background: var(--aura-bg-surface-hover); }
+.aura-btn--secondary:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 /* Destructive: filled for the confirm step, outline beside other actions. Loading keeps the colour (busy, not unavailable). */
 .aura-btn--ghost { color: var(--aura-fg-primary); }
-.aura-btn--ghost:hover { background: var(--aura-bg-surface-hover); }
+.aura-btn--ghost:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 /* size="sm" (4.16): 32px for toolbars, table rows and card footers. On touch the pill stays 32px and a transparent
  * ::after grows the hit area to 44px, as IconButton does. */
 .aura-btn--sm { height: var(--aura-button-height-sm); padding: 0 var(--aura-space-3); gap: 6px; }
@@ -128,7 +128,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   font-size: 13px;
 }
 .aura-table__row:last-child { border-bottom: 0; }
-.aura-table__row:hover { background: var(--aura-bg-surface-hover); }
+.aura-table__row:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-table__row.is-actionable { cursor: pointer; }
 .aura-table__row--skeleton:hover { background: var(--aura-bg-surface); }
 .aura-table__row--skeleton .aura-table__td { display: flex; align-items: center; }
@@ -236,7 +236,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 }
 .aura-table__th:hover .aura-table__menu-btn, .aura-table__th:focus-within .aura-table__menu-btn,
 .aura-table__th:focus .aura-table__menu-btn, .aura-table__menu-btn[aria-expanded="true"] { opacity: 1; }
-.aura-table__menu-btn:hover { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-table__menu-btn:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
 @media (hover: none) { .aura-table__menu-btn { opacity: 1; } }
 
 /* Drag to reorder */
@@ -273,7 +273,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   border: 0; border-radius: var(--aura-radius-sm); background: transparent;
   color: inherit; font: inherit; text-align: left; cursor: pointer; white-space: nowrap;
 }
-.aura-menu__item:hover, .aura-menu__item:focus { background: var(--aura-bg-surface-hover); outline: none; }
+.aura-menu__item:hover, .aura-menu__item:focus { background: var(--aura-hover, var(--aura-bg-surface-hover)); outline: none; }
 .aura-menu__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
 .aura-menu__item:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 /* 5.10: a disabled item is dimmed but focusable; its reason stays at full strength (it is the information). */
@@ -328,7 +328,7 @@ a.aura-icon-btn { text-decoration: none; }
   border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-primary);
   cursor: pointer; transition: background var(--aura-duration-fast) var(--aura-ease);
 }
-.aura-icon-btn:hover { background: var(--aura-bg-surface-hover); }
+.aura-icon-btn:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-icon-btn--danger { color: var(--aura-fg-danger); }
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
@@ -644,7 +644,7 @@ a.aura-icon-btn { text-decoration: none; }
   .aura-toast__action::after { content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, var(--aura-touch-target)); height: max(100%, var(--aura-touch-target)); transform: translate(-50%, -50%); }
   .aura-toast__text a { padding-block: 2px; }
 }
-.aura-toast__action:hover { background: var(--aura-bg-surface-hover); }
+.aura-toast__action:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-toast__action:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 0; }
 .aura-toast__close { margin-top: -6px; margin-bottom: -6px; }
 
@@ -784,7 +784,17 @@ a.aura-tab { text-decoration: none; }
   text-decoration: none; text-align: left; cursor: pointer;
   transition: background var(--aura-duration-fast) var(--aura-ease), color var(--aura-duration-fast) var(--aura-ease);
 }
-.aura-nav__item:hover { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-nav__item:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
+/* 5.33 (DxT Monitor #5): hover fills read --aura-hover, else aura-bg-surface-hover. On the canvas — AppShell, which
+ * is canvas, and SideNav — the surface hover (zinc-50 in light, the canvas itself) didn't show, so there it is
+ * aura-bg-canvas-hover; white surfaces inside set it back. A :root override of aura-bg-surface-hover still applies
+ * on surfaces; override aura-bg-canvas-hover for the canvas. */
+.aura-shell, .aura-nav { --aura-hover: var(--aura-bg-canvas-hover); }
+.aura-card, .aura-surface, .aura-stat, .aura-tbl-wrap, .aura-table, .aura-shell__bar, .aura-bottomnav, .aura-actionbar,
+.aura-input, .aura-upload, .aura-upload__list, .aura-tag, .aura-dialog, .aura-drawer, .aura-popover, .aura-combo__popover,
+.aura-cal__popover, .aura-menu, .aura-toast, .aura-command { --aura-hover: var(--aura-bg-surface-hover); }
+/* Canvas-coloured bands inside those surfaces: SideNav in the drawer, the DataTable header, picker corner and totals. */
+.aura-drawer .aura-nav, .aura-table__head, .aura-table__picker, .aura-table__total { --aura-hover: var(--aura-bg-canvas-hover); }
 .aura-nav__item.is-active { background: var(--aura-bg-selected); color: var(--aura-fg-primary); }
 .aura-nav__item.is-active .aura-icon { color: var(--aura-fg-accent); }
 .aura-nav__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: -2px; }
@@ -896,7 +906,7 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-combo__toggle { right: 6px; }
 .aura-combo__clear { right: calc(6px + var(--aura-control-sm) - 4px); }
-.aura-combo__clear:hover, .aura-combo__toggle:hover, .aura-date__toggle:hover { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-combo__clear:hover, .aura-combo__toggle:hover, .aura-date__toggle:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
 .aura-combo__toggle .aura-icon { transition: transform var(--aura-duration-fast) var(--aura-ease); }
 .aura-combo.is-open .aura-combo__toggle .aura-icon { transform: rotate(180deg); }
 .aura-date__toggle:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 0; }
@@ -912,7 +922,7 @@ a.aura-tab { text-decoration: none; }
   border-radius: var(--aura-radius-sm); cursor: pointer;
 }
 .aura-combo__option > .aura-icon { color: var(--aura-fg-secondary); }
-.aura-combo__option.is-active { background: var(--aura-bg-surface-hover); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+.aura-combo__option.is-active { background: var(--aura-hover, var(--aura-bg-surface-hover)); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
 .aura-combo__option.is-selected { font-weight: 500; }
 .aura-combo__option.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-combo__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -945,7 +955,7 @@ a.aura-tab { text-decoration: none; }
   border: 0; border-radius: var(--aura-radius-sm); background: transparent; color: var(--aura-fg-primary);
   font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
 }
-.aura-cal__title:hover { background: var(--aura-bg-surface-hover); }
+.aura-cal__title:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__title:focus-visible, .aura-cal__link:focus-visible, .aura-cal__year:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 0; }
 .aura-cal__grid { border-collapse: separate; border-spacing: 0 2px; width: 100%; }
 .aura-cal__grid th { height: 28px; padding: 0; font-size: 12px; font-weight: 500; color: var(--aura-fg-secondary); }
@@ -954,7 +964,7 @@ a.aura-tab { text-decoration: none; }
   width: var(--aura-cal-cell); height: var(--aura-cal-cell); padding: 0; border: 0; border-radius: var(--aura-radius-full);
   background: transparent; color: var(--aura-fg-primary); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
 }
-.aura-cal__day:hover { background: var(--aura-bg-surface-hover); }
+.aura-cal__day:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__day.is-outside { color: var(--aura-fg-tertiary); }
 .aura-cal__day.is-today { box-shadow: inset 0 0 0 1px var(--aura-border-control); font-weight: 600; }
 .aura-cal__day.is-selected { background: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); box-shadow: none; }
@@ -969,14 +979,14 @@ a.aura-tab { text-decoration: none; }
   height: 40px; border: 0; border-radius: var(--aura-radius-sm); background: transparent; color: var(--aura-fg-primary);
   font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
 }
-.aura-cal__year:hover { background: var(--aura-bg-surface-hover); }
+.aura-cal__year:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__year.is-selected { background: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); }
 .aura-cal__foot { display: flex; justify-content: space-between; margin-top: var(--aura-space-2); padding-top: var(--aura-space-2); border-top: 1px solid var(--aura-border-subtle); }
 .aura-cal__link {
   height: var(--aura-control-sm); padding: 0 var(--aura-space-2); border: 0; border-radius: var(--aura-radius-sm);
   background: transparent; color: var(--aura-fg-accent); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
 }
-.aura-cal__link:hover { background: var(--aura-bg-surface-hover); }
+.aura-cal__link:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__link:disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
 
 /* ---------- Drawer ---------- */
@@ -1008,6 +1018,10 @@ a.aura-tab { text-decoration: none; }
 .aura-drawer--nav .aura-nav { width: 100%; border-right: 0; }
 /* 5.32: the phone drawer's close button (32px, 8px in) sits over the header's end: keep the brand clear of it. */
 .aura-drawer--nav .aura-nav__header { padding-inline-end: 48px; }
+/* 5.33 (DxT Monitor #8): in the phone drawer a divided header takes the top bar's height (its line meets the bar's
+ * line beside it), its content centred; the close button is centred on it. The desktop sidebar keeps 72px. */
+.aura-drawer--nav .aura-nav--header-divider > .aura-nav__header { box-sizing: border-box; min-height: var(--aura-shell-bar-height, 56px); padding-top: 0; padding-bottom: 0; display: flex; align-items: center; }
+.aura-drawer--nav:has(.aura-nav--header-divider) .aura-drawer__head { top: 0; height: var(--aura-shell-bar-height, 56px); }
 .aura-drawer__foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--aura-space-3); padding: var(--aura-space-4) var(--aura-space-6); border-top: 1px solid var(--aura-border-default); }
 @media (prefers-reduced-motion: reduce) { .aura-drawer { animation: none; } }
 
@@ -1093,6 +1107,7 @@ a.aura-tab { text-decoration: none; }
 .aura-page-header__text { display: flex; flex-direction: column; gap: var(--aura-space-1); flex: 1 1 320px; min-width: 0; }
 .aura-page-header__eyebrow { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
 .aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
+.aura-page-header__breadcrumb { min-width: 0; } /* 5.33 (DxT Monitor #7): Breadcrumb keeps its own type */
 .aura-page-header__meta { min-width: 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
 .aura-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
 @media (min-width: 640px) { .aura-page-header__title { font-size: 36px; } }
@@ -1216,7 +1231,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 }
 .aura-tag__text { overflow: hidden; text-overflow: ellipsis; max-width: 24ch; }
 .aura-tag.is-selectable { cursor: pointer; transition: background var(--aura-duration-fast) var(--aura-ease), border-color var(--aura-duration-fast) var(--aura-ease); }
-.aura-tag.is-selectable:hover { background: var(--aura-bg-surface-hover); }
+.aura-tag.is-selectable:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-tag.is-selected { background: var(--aura-bg-selected); border-color: var(--aura-fg-accent); color: var(--aura-fg-primary); }
 .aura-tag.is-selectable:focus-visible, .aura-tag__remove:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-tag.is-selectable:disabled, .aura-tag.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
@@ -1224,7 +1239,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
   display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: -6px; padding: 0; border: 0; border-radius: var(--aura-radius-full);
   background: transparent; color: var(--aura-fg-secondary); cursor: pointer;
 }
-.aura-tag__remove:hover { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-tag__remove:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
 
 /* ---------- Progress ---------- */
 .aura-progress { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); }
@@ -1277,7 +1292,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
   display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 var(--aura-space-2); box-sizing: border-box;
   border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-primary); font: inherit; font-variant-numeric: tabular-nums; text-decoration: none; cursor: pointer;
 }
-.aura-page:hover { background: var(--aura-bg-surface-hover); }
+.aura-page:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-page.is-current { background: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); font-weight: 600; }
 .aura-page:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-pagination__gap { min-width: 24px; text-align: center; color: var(--aura-fg-secondary); }
@@ -1295,7 +1310,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
   display: flex; align-items: center; gap: var(--aura-space-3); width: 100%; min-height: 48px; padding: var(--aura-space-3) var(--aura-space-1); box-sizing: border-box;
   border: 0; background: transparent; color: var(--aura-fg-primary); font: inherit; text-align: left; cursor: pointer;
 }
-.aura-accordion__heading > button:hover { background: var(--aura-bg-surface-hover); }
+.aura-accordion__heading > button:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-accordion__heading > button:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); border-radius: var(--aura-radius-sm); }
 .aura-accordion__heading > button:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-accordion__title { flex: 1; display: flex; flex-direction: column; gap: 2px; }
@@ -1336,7 +1351,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
   display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0;
   border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-secondary); cursor: pointer;
 }
-.aura-combo__chip-remove:hover { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-combo__chip-remove:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
 .aura-combo__chip-remove .aura-icon { width: 14px; height: 14px; }
 
 /* ---------- NumberField ---------- */
@@ -1352,7 +1367,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 }
 .aura-number__step + .aura-number__step { border-left: 1px solid var(--aura-border-default); }
 .aura-number__step:last-child { border-radius: 0 calc(var(--aura-radius-md) - 1px) calc(var(--aura-radius-md) - 1px) 0; }
-.aura-number__step:hover:not(:disabled) { background: var(--aura-bg-surface-hover); color: var(--aura-fg-primary); }
+.aura-number__step:hover:not(:disabled) { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
 .aura-number__step:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 
 /* ---------- Stepper ---------- */
@@ -1599,7 +1614,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   border: 0; background: transparent; padding: 4px var(--aura-space-2); border-radius: var(--aura-radius-sm);
   font: inherit; font-size: 13px; font-weight: 500; color: var(--aura-fg-accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
 }
-.aura-filterbar__clear:hover { background: var(--aura-bg-surface-hover); }
+.aura-filterbar__clear:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-filterbar__clear:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 @media (max-width: 767.98px) {
   .aura-filterbar__search { flex-basis: 100%; max-width: none; }
@@ -1684,7 +1699,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-command__heading { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-secondary); }
 .aura-command__item { display: flex; align-items: center; gap: var(--aura-space-3); min-height: 40px; padding: 6px var(--aura-space-2); border-radius: var(--aura-radius-sm); cursor: pointer; font-size: 14px; }
 .aura-command__item > .aura-icon { color: var(--aura-fg-secondary); }
-.aura-command__item.is-active { background: var(--aura-bg-surface-hover); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+.aura-command__item.is-active { background: var(--aura-hover, var(--aura-bg-surface-hover)); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
 .aura-command__item.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-command__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .aura-command__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
