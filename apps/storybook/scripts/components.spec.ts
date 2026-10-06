@@ -6630,7 +6630,9 @@ test.describe('5.32: DxT Monitor requests 1, 3, 4', () => {
     ]) {
       const sk = await rect(lines.nth(a!)),
         real = await rect(lines.nth(b!));
-      expect(Math.abs(sk.h - real.h), `line ${a}`).toBeLessThanOrEqual(1);
+      /* Within 3px: a line's height follows the font's metrics (CI's fallback fonts differ by ~1.6px); a block
+       * skeleton (the bug this guards) made it 56px. */
+      expect(Math.abs(sk.h - real.h), `line ${a}`).toBeLessThanOrEqual(3);
     }
     expect(await css(lines.nth(0).locator('.aura-skel--badge'), 'display')).toBe('inline-block');
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
