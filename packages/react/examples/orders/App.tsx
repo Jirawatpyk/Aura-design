@@ -204,7 +204,7 @@ export function App() {
         <Stack direction="row" gap={2} align="center">
         <ColorSchemeToggle />
         <DropdownMenu label="บัญชี" items={[{ label: 'โปรไฟล์', icon: 'user', onSelect: () => {} }, { label: 'ออกจากระบบ', icon: 'log-out', onSelect: () => {} }]}
-          trigger={<button type="button" className="pilot-account" aria-label="บัญชี Tao"><Avatar name="Tao P" size="sm" /></button>} />
+          trigger={<button type="button" className="pilot-account"><Avatar name="Tao P" size="sm" /><span className="aura-sr-only">บัญชี</span></button>} />
         </Stack>
       </div>}>
       <Container>

@@ -15,7 +15,7 @@ const axeScan = async (page: Page, sel: string): Promise<string[]> => {
     try {
       const { violations } = await new AxeBuilder({ page })
         .include(sel)
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .analyze();
       return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
     } catch (e) {
@@ -370,7 +370,7 @@ test.describe('Responsive', () => {
     expect(label).toContain('NAME');
     const { violations } = await new AxeBuilder({ page })
       .include('.aura-table')
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
     expect(violations.map((v) => v.id)).toEqual([]);
     await page.getByRole('checkbox', { name: /ORD-1041/ }).check();
@@ -1288,7 +1288,7 @@ test.describe('4.18: the open Command palette passes axe', () => {
     );
     const { violations } = await new AxeBuilder({ page })
       .include('.aura-command-layer')
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
     return violations.map((v) => `${v.id} — ${v.help} (${v.nodes.length})`);
   };
@@ -4250,8 +4250,8 @@ test.describe('5.18: Chamber-OS addendum 19', () => {
       const names = nodes.filter((n) => n.role?.value === 'button').map((n) => n.name?.value);
       expect(names).toEqual(expect.arrayContaining(['Basics, completed', 'Fees, has errors', 'Avgifter, har fel']));
       /* The visible label starts the name (WCAG 2.5.3); the hidden note is still there for reading the page. */
-      await expect(fees).toHaveAttribute('aria-label', 'Fees, has errors');
-      await expect(fees.locator('.aura-sr-only')).toHaveText(', has errors');
+      await expect(fees).toHaveAccessibleName('Fees, has errors'); // 5.32: from content, not aria-label (WCAG 2.5.3)
+      await expect(fees.locator('.aura-sr-only')).toHaveText('Fees, has errors');
       /* The vertical one: an error step before the current one, and an upcoming one (danger fill, not a button). */
       const v = page.getByTestId('vertical');
       const vErr = v.locator('.aura-stepper__item.is-error');
@@ -6634,5 +6634,61 @@ test.describe('5.32: DxT Monitor requests 1, 3, 4', () => {
     }
     expect(await css(lines.nth(0).locator('.aura-skel--badge'), 'display')).toBe('inline-block');
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});
+
+test.describe('5.32: WCAG 2.5.3 label in name (axe 4.14)', () => {
+  type AX = { role?: { value: string }; name?: { value: string }; description?: { value: string } };
+  const tree = async (page: import('@playwright/test').Page, role: string) => {
+    const cdp = await page.context().newCDPSession(page);
+    const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as { nodes: AX[] };
+    return nodes.filter((n) => n.role?.value === role).map((n) => [n.name?.value ?? '', n.description?.value ?? '']);
+  };
+  const rule = async (page: import('@playwright/test').Page) =>
+    (
+      await new AxeBuilder({ page }).include('#storybook-root').withRules(['label-content-name-mismatch']).analyze()
+    ).violations.flatMap((v) => v.nodes.map((n) => n.target.join(' ')));
+
+  test('Accordion: named by its title, the description still its description; no 2.5.3 finding', async ({ page }) => {
+    await story(page, 'aura-new-in-5-26-descriptions--descriptions-not-names');
+    expect(await rule(page)).toEqual([]);
+    const b = await tree(page, 'button');
+    expect(b).toContainEqual(['Fees', 'Two unpaid invoices']);
+    expect(b).toContainEqual(['Export all data', 'A ZIP of every record, sent by email.']);
+    expect(b).toContainEqual(['Contacts', '']);
+    /* The description is still part of the button: a click on it toggles. */
+    await page.getByText('Two unpaid invoices').click();
+    await expect(page.getByRole('button', { name: 'Fees', exact: true })).toHaveAttribute('aria-expanded', 'true');
+    /* Open lists too: Combobox options and Command items with a description. */
+    await page.getByRole('combobox', { name: 'Member' }).click();
+    await expect(page.getByRole('option', { name: 'Acme AB', exact: true })).toHaveAccessibleDescription(
+      'Stockholm · Corporate',
+    );
+    expect(await rule(page)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Open commands' }).click();
+    await expect(page.getByRole('option', { name: 'New invoice N I', exact: true })).toHaveAccessibleDescription(
+      'Bill a member',
+    );
+    const { violations } = await new AxeBuilder({ page }).withRules(['label-content-name-mismatch']).analyze();
+    expect(violations.flatMap((v) => v.nodes.map((n) => n.target.join(' ')))).toEqual([]);
+  });
+
+  test('Stepper, FilterDateRange and BottomNav keep their names and descriptions; no 2.5.3 finding', async ({
+    page,
+  }) => {
+    await story(page, 'aura-layout--stepper-story');
+    expect(await rule(page)).toEqual([]);
+    const steps = (await tree(page, 'button')).filter(([n]) => /completed|has errors/.test(n));
+    expect(steps.length).toBeGreaterThan(0);
+    for (const [n] of steps) expect(n, n).toMatch(/^[^,]+, (completed|has errors)$/);
+    await story(page, 'aura-new-in-5-26-addendum-31--filter-dates');
+    expect(await rule(page)).toEqual([]);
+    await expect(page.getByRole('button', { name: 'Submitted: Any time', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'วันที่ส่ง: 25 ก.ย. – 3 ต.ค. 2569', exact: true })).toHaveCount(1);
+    await story(page, 'aura-new-in-5-7--short-tabs');
+    expect(await rule(page)).toEqual([]);
+    await expect(page.getByRole('button', { name: 'สิทธิประโยชน์ (3)', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Mitt konto', exact: true })).toHaveCount(1);
   });
 });

@@ -305,8 +305,8 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
           id={optId(i)}
           role="option"
           data-idx={i}
-          /* 5.26: a description is read after the option's name, not as part of it. */
-          aria-labelledby={o.description ? optId(i) + '-label' : undefined}
+          /* 5.26: a description is read after the option's name, not as part of it. 5.32 (WCAG 2.5.3; axe 4.14):
+           * the name comes from the content, where the description is aria-hidden (still the description). */
           aria-describedby={o.description ? optId(i) + '-desc' : undefined}
           aria-selected={isSel}
           aria-disabled={blocked || undefined}
@@ -332,7 +332,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
               {o.label}
             </span>
             {o.description ? (
-              <span className="aura-combo__desc" id={optId(i) + '-desc'}>
+              <span className="aura-combo__desc" id={optId(i) + '-desc'} aria-hidden={true}>
                 {o.description}
               </span>
             ) : null}

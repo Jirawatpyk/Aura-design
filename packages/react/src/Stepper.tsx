@@ -41,14 +41,22 @@ export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Step
           const named =
             clickable && (typeof s.label === 'string' || typeof s.label === 'number') && String(s.label).trim() !== '';
           const descId = idBase + '-step-' + i;
+          /* 5.32 (WCAG 2.5.3; axe 4.14): a named step is named from its content — one sr-only span with the whole
+           * name, the visible label and description aria-hidden (the description still read through
+           * aria-describedby) — instead of aria-label over visible text that includes the description. */
           const text = (
             <span className="aura-stepper__text">
-              <span className="aura-stepper__label">
+              {named ? <span className="aura-sr-only">{String(s.label) + (note ? ', ' + note : '')}</span> : null}
+              <span className="aura-stepper__label" aria-hidden={named ? true : undefined}>
                 {s.label}
-                {note ? <span className="aura-sr-only">{', ' + note}</span> : null}
+                {note && !named ? <span className="aura-sr-only">{', ' + note}</span> : null}
               </span>
               {s.description ? (
-                <span className="aura-stepper__desc" id={named ? descId : undefined}>
+                <span
+                  className="aura-stepper__desc"
+                  id={named ? descId : undefined}
+                  aria-hidden={named ? true : undefined}
+                >
                   {s.description}
                 </span>
               ) : null}
@@ -64,7 +72,6 @@ export const Stepper = React.forwardRef<HTMLElement, StepperProps>(function Step
                 <button
                   type="button"
                   className="aura-stepper__step aura-focusable"
-                  aria-label={named ? String(s.label) + (note ? ', ' + note : '') : undefined}
                   aria-describedby={named && s.description ? descId : undefined}
                   onClick={function () {
                     props.onStepClick!(s.id);

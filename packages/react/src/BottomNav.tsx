@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx, plainClick, useMaybeControlled } from './internal.js';
+import { cx, devWarnOnce, plainClick, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { BottomNavItem, BottomNavProps } from './types.js';
 
@@ -27,13 +27,27 @@ export const BottomNav = React.forwardRef<HTMLElement, BottomNavProps>(function 
       >
         <ul className="aura-bottomnav__list">
           {props.items.map(function (it: BottomNavItem) {
+            /* 5.32: the full name must contain the visible label (WCAG 2.5.3), so speech input can say what it sees. */
+            if (
+              it.ariaLabel &&
+              typeof it.label === 'string' &&
+              it.ariaLabel.toLowerCase().indexOf(it.label.toLowerCase()) < 0
+            )
+              devWarnOnce(
+                'bottomnav-label-' + it.id,
+                'BottomNav: ariaLabel "' +
+                  it.ariaLabel +
+                  '" should contain the visible label "' +
+                  it.label +
+                  '" (WCAG 2.5.3).',
+              );
             const on = active === it.id;
             const count = it.count != null && it.count > 0 ? (it.count > 99 ? '99+' : String(it.count)) : null;
             const suffix = count || (it.badge && it.badgeLabel) ? ' (' + (count || it.badgeLabel) + ')' : '';
             const common = {
               className: cx('aura-bottomnav__item', on && 'is-active'),
-              /* 5.7: a full name when the label is shortened; the count / badge words still follow. */
-              'aria-label': it.ariaLabel ? it.ariaLabel + suffix : undefined,
+              /* 5.7: a full name when the label is shortened; the count / badge words still follow. 5.32 (WCAG 2.5.3;
+               * axe 4.14): as content — the full name sr-only, the short label aria-hidden — not aria-label. */
               'aria-current': on ? ('page' as const) : undefined,
               onClick: function (e: React.MouseEvent) {
                 if (!it.href) e.preventDefault();
@@ -52,7 +66,12 @@ export const BottomNav = React.forwardRef<HTMLElement, BottomNavProps>(function 
                   <span className="aura-bottomnav__dot" aria-hidden="true" />
                 ) : null}
               </span>,
-              <span key="l" className="aura-bottomnav__label">
+              it.ariaLabel ? (
+                <span key="n" className="aura-sr-only">
+                  {it.ariaLabel + suffix}
+                </span>
+              ) : null,
+              <span key="l" className="aura-bottomnav__label" aria-hidden={it.ariaLabel ? true : undefined}>
                 {it.label}
               </span>,
               suffix && !it.ariaLabel ? (

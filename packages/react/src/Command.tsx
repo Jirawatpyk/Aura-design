@@ -238,12 +238,8 @@ export function Command(props: CommandProps): React.ReactElement | null {
                           key={it.id}
                           id={optId(n)}
                           role="option"
-                          /* 5.26: the description is read after the name (label and shortcut), not inside it. */
-                          aria-labelledby={
-                            it.description
-                              ? optId(n) + '-label' + (it.shortcut ? ' ' + optId(n) + '-kbd' : '')
-                              : undefined
-                          }
+                          /* 5.26: the description is read after the name (label and shortcut), not inside it. 5.32
+                           * (WCAG 2.5.3; axe 4.14): the name comes from the content, the description aria-hidden there. */
                           aria-describedby={it.description ? optId(n) + '-desc' : undefined}
                           aria-selected={n === active}
                           aria-disabled={it.disabled || undefined}
@@ -268,7 +264,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
                               {it.label}
                             </span>
                             {it.description ? (
-                              <span className="aura-command__desc" id={optId(n) + '-desc'}>
+                              <span className="aura-command__desc" id={optId(n) + '-desc'} aria-hidden={true}>
                                 {it.description}
                               </span>
                             ) : null}

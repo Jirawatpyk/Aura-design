@@ -3564,6 +3564,7 @@ window.Aura = (() => {
         choose(a <= iso ? { start: a, end: iso } : { start: iso, end: a });
       }
       const isAny = !v.start || !v.end;
+      const own = props["aria-label"] || void 0;
       const attrs = {};
       Object.keys(props).forEach(function(k) {
         if (k === "style" || /^(aria|data)-/.test(k) && k !== "aria-label")
@@ -3652,7 +3653,7 @@ window.Aura = (() => {
             type: "button",
             className: "aura-filterselect__face",
             disabled: props.disabled,
-            "aria-label": props["aria-label"] || props.label + ": " + value,
+            "aria-label": own || void 0,
             "aria-haspopup": "dialog",
             "aria-expanded": pop.open,
             "aria-controls": pop.open ? dialogId : void 0,
@@ -3661,8 +3662,9 @@ window.Aura = (() => {
               draft[1](null);
             }
           },
-          /* @__PURE__ */ React19.createElement("span", { className: "aura-filterselect__name" }, props.label),
-          /* @__PURE__ */ React19.createElement("span", { className: "aura-filterselect__value" }, value),
+          own ? null : /* @__PURE__ */ React19.createElement("span", { className: "aura-sr-only" }, props.label + ": " + value),
+          /* @__PURE__ */ React19.createElement("span", { className: "aura-filterselect__name", "aria-hidden": own ? void 0 : true }, props.label),
+          /* @__PURE__ */ React19.createElement("span", { className: "aura-filterselect__value", "aria-hidden": own ? void 0 : true }, value),
           /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconChevronDown, null), className: "aura-filterselect__chevron" })
         )
       ), cal);
@@ -4005,7 +4007,6 @@ window.Aura = (() => {
             id: optId(i),
             role: "option",
             "data-idx": i,
-            "aria-labelledby": o.description ? optId(i) + "-label" : void 0,
             "aria-describedby": o.description ? optId(i) + "-desc" : void 0,
             "aria-selected": isSel,
             "aria-disabled": blocked || void 0,
@@ -4026,7 +4027,7 @@ window.Aura = (() => {
             }
           },
           o.icon ? /* @__PURE__ */ React22.createElement(Icon, { name: o.icon }) : null,
-          /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__label", id: o.description ? optId(i) + "-label" : void 0 }, o.label), o.description ? /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__desc", id: optId(i) + "-desc" }, o.description) : null),
+          /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__text" }, /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__label", id: o.description ? optId(i) + "-label" : void 0 }, o.label), o.description ? /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__desc", id: optId(i) + "-desc", "aria-hidden": true }, o.description) : null),
           isSel ? /* @__PURE__ */ React22.createElement(Icon, { name: /* @__PURE__ */ React22.createElement(IconCheck, null), className: "aura-combo__check" }) : null
         );
       }
@@ -5272,7 +5273,6 @@ window.Aura = (() => {
                       key: it.id,
                       id: optId(n3),
                       role: "option",
-                      "aria-labelledby": it.description ? optId(n3) + "-label" + (it.shortcut ? " " + optId(n3) + "-kbd" : "") : void 0,
                       "aria-describedby": it.description ? optId(n3) + "-desc" : void 0,
                       "aria-selected": n3 === active,
                       "aria-disabled": it.disabled || void 0,
@@ -5292,7 +5292,7 @@ window.Aura = (() => {
                       }
                     },
                     it.icon ? /* @__PURE__ */ React31.createElement(Icon, { name: it.icon }) : null,
-                    /* @__PURE__ */ React31.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React31.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React31.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc" }, it.description) : null),
+                    /* @__PURE__ */ React31.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React31.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React31.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc", "aria-hidden": true }, it.description) : null),
                     it.shortcut ? /* @__PURE__ */ React31.createElement("kbd", { className: "aura-command__kbd", id: it.description ? optId(n3) + "-kbd" : void 0 }, it.shortcut) : null
                   );
                 })
@@ -8062,13 +8062,18 @@ window.Aura = (() => {
         "aria-label": props.label || t.mainNav
       },
       /* @__PURE__ */ React48.createElement("ul", { className: "aura-bottomnav__list" }, props.items.map(function(it) {
+        if (it.ariaLabel && typeof it.label === "string" && it.ariaLabel.toLowerCase().indexOf(it.label.toLowerCase()) < 0)
+          devWarnOnce(
+            "bottomnav-label-" + it.id,
+            'BottomNav: ariaLabel "' + it.ariaLabel + '" should contain the visible label "' + it.label + '" (WCAG 2.5.3).'
+          );
         const on = active === it.id;
         const count = it.count != null && it.count > 0 ? it.count > 99 ? "99+" : String(it.count) : null;
         const suffix = count || it.badge && it.badgeLabel ? " (" + (count || it.badgeLabel) + ")" : "";
         const common = {
           className: cx("aura-bottomnav__item", on && "is-active"),
-          /* 5.7: a full name when the label is shortened; the count / badge words still follow. */
-          "aria-label": it.ariaLabel ? it.ariaLabel + suffix : void 0,
+          /* 5.7: a full name when the label is shortened; the count / badge words still follow. 5.32 (WCAG 2.5.3;
+           * axe 4.14): as content — the full name sr-only, the short label aria-hidden — not aria-label. */
           "aria-current": on ? "page" : void 0,
           onClick: function(e) {
             if (!it.href) e.preventDefault();
@@ -8078,7 +8083,8 @@ window.Aura = (() => {
         };
         const inner = [
           /* @__PURE__ */ React48.createElement("span", { key: "i", className: "aura-bottomnav__icon" }, /* @__PURE__ */ React48.createElement(Icon, { name: it.icon, size: "md" }), count ? /* @__PURE__ */ React48.createElement("span", { className: "aura-bottomnav__count", "aria-hidden": "true" }, count) : it.badge ? /* @__PURE__ */ React48.createElement("span", { className: "aura-bottomnav__dot", "aria-hidden": "true" }) : null),
-          /* @__PURE__ */ React48.createElement("span", { key: "l", className: "aura-bottomnav__label" }, it.label),
+          it.ariaLabel ? /* @__PURE__ */ React48.createElement("span", { key: "n", className: "aura-sr-only" }, it.ariaLabel + suffix) : null,
+          /* @__PURE__ */ React48.createElement("span", { key: "l", className: "aura-bottomnav__label", "aria-hidden": it.ariaLabel ? true : void 0 }, it.label),
           suffix && !it.ariaLabel ? /* @__PURE__ */ React48.createElement("span", { key: "s", className: "aura-sr-only" }, suffix) : null
         ];
         return /* @__PURE__ */ React48.createElement("li", { key: it.id, className: "aura-bottomnav__cell" }, it.href ? /* @__PURE__ */ React48.createElement(Link, { href: it.href, ...common }, inner) : /* @__PURE__ */ React48.createElement("button", { type: "button", ...common }, inner));
@@ -9331,7 +9337,6 @@ window.Aura = (() => {
         {
           type: "button",
           id: bid,
-          "aria-labelledby": it.description ? bid + "-title" : void 0,
           "aria-describedby": it.description ? bid + "-desc" : void 0,
           "aria-expanded": on,
           "aria-controls": pid,
@@ -9341,7 +9346,7 @@ window.Aura = (() => {
           }
         },
         it.icon ? /* @__PURE__ */ React60.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
-        /* @__PURE__ */ React60.createElement("span", { className: "aura-accordion__title" }, /* @__PURE__ */ React60.createElement("span", { id: it.description ? bid + "-title" : void 0 }, it.title), it.description ? /* @__PURE__ */ React60.createElement("span", { className: "aura-accordion__desc", id: bid + "-desc" }, it.description) : null),
+        /* @__PURE__ */ React60.createElement("span", { className: "aura-accordion__title" }, /* @__PURE__ */ React60.createElement("span", { id: it.description ? bid + "-title" : void 0 }, it.title), it.description ? /* @__PURE__ */ React60.createElement("span", { className: "aura-accordion__desc", id: bid + "-desc", "aria-hidden": true }, it.description) : null),
         /* @__PURE__ */ React60.createElement(Icon, { name: /* @__PURE__ */ React60.createElement(IconChevronDown, null), className: "aura-accordion__chevron" })
       )), /* @__PURE__ */ React60.createElement(
         "div",
@@ -9696,7 +9701,15 @@ window.Aura = (() => {
         const clickable = state === "done" && !!props.onStepClick;
         const named = clickable && (typeof s.label === "string" || typeof s.label === "number") && String(s.label).trim() !== "";
         const descId = idBase + "-step-" + i;
-        const text2 = /* @__PURE__ */ React63.createElement("span", { className: "aura-stepper__text" }, /* @__PURE__ */ React63.createElement("span", { className: "aura-stepper__label" }, s.label, note ? /* @__PURE__ */ React63.createElement("span", { className: "aura-sr-only" }, ", " + note) : null), s.description ? /* @__PURE__ */ React63.createElement("span", { className: "aura-stepper__desc", id: named ? descId : void 0 }, s.description) : null);
+        const text2 = /* @__PURE__ */ React63.createElement("span", { className: "aura-stepper__text" }, named ? /* @__PURE__ */ React63.createElement("span", { className: "aura-sr-only" }, String(s.label) + (note ? ", " + note : "")) : null, /* @__PURE__ */ React63.createElement("span", { className: "aura-stepper__label", "aria-hidden": named ? true : void 0 }, s.label, note && !named ? /* @__PURE__ */ React63.createElement("span", { className: "aura-sr-only" }, ", " + note) : null), s.description ? /* @__PURE__ */ React63.createElement(
+          "span",
+          {
+            className: "aura-stepper__desc",
+            id: named ? descId : void 0,
+            "aria-hidden": named ? true : void 0
+          },
+          s.description
+        ) : null);
         return /* @__PURE__ */ React63.createElement(
           "li",
           {
@@ -9709,7 +9722,6 @@ window.Aura = (() => {
             {
               type: "button",
               className: "aura-stepper__step aura-focusable",
-              "aria-label": named ? String(s.label) + (note ? ", " + note : "") : void 0,
               "aria-describedby": named && s.description ? descId : void 0,
               onClick: function() {
                 props.onStepClick(s.id);

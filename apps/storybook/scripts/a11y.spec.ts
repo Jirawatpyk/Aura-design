@@ -8,7 +8,7 @@ import AxeBuilder from '@axe-core/playwright';
 async function scan(page: Page, root: string) {
   for (let i = 0; ; i++) {
     try {
-      return await new AxeBuilder({ page }).include(root).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+      return await new AxeBuilder({ page }).include(root).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     } catch (e) {
       if (i >= 4 || !/Axe is already running/.test(String(e))) throw e;
       await page.waitForTimeout(250);

@@ -1345,7 +1345,8 @@ export interface BottomNavItem {
 	/** Read after the label when `badge` is set, e.g. "new". */
 	badgeLabel?: string | undefined;
 	/** The full name for screen readers when `label` is shortened to fit (5.7), e.g. label "Konto", ariaLabel
-	 * "Mitt konto". Include the visible label in it (WCAG 2.5.3). The count or badge is still appended. */
+	 * "Mitt konto". Include the visible label in it (WCAG 2.5.3); a dev warning says when it doesn't (5.32). The count or badge is
+	 * still appended. */
 	ariaLabel?: string | undefined;
 }
 export interface BottomNavProps {

@@ -63,6 +63,8 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
     }
     const isAny = !v.start || !v.end;
     /* data-*, aria-* and style reach the face button (test hooks, a description), as on FilterSelect. */
+    /* A caller's own aria-label still wins (5.32). */
+    const own = (props['aria-label'] as string | undefined) || undefined;
     const attrs: Record<string, unknown> = {};
     Object.keys(props).forEach(function (k: string) {
       if (k === 'style' || (/^(aria|data)-/.test(k) && k !== 'aria-label'))
@@ -156,7 +158,7 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
             type="button"
             className="aura-filterselect__face"
             disabled={props.disabled}
-            aria-label={props['aria-label'] || props.label + ': ' + value}
+            aria-label={own || undefined}
             aria-haspopup="dialog"
             aria-expanded={pop.open}
             aria-controls={pop.open ? dialogId : undefined}
@@ -165,8 +167,16 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
               draft[1](null);
             }}
           >
-            <span className="aura-filterselect__name">{props.label}</span>
-            <span className="aura-filterselect__value">{value}</span>
+            {/* 5.32 (WCAG 2.5.3; axe 4.14): named from content, like FilterSelect — "Submitted: Any time" in one
+             * sr-only span, the visible parts aria-hidden — so aria-label never sits over visible text it doesn't
+             * repeat word for word. */}
+            {own ? null : <span className="aura-sr-only">{props.label + ': ' + value}</span>}
+            <span className="aura-filterselect__name" aria-hidden={own ? undefined : true}>
+              {props.label}
+            </span>
+            <span className="aura-filterselect__value" aria-hidden={own ? undefined : true}>
+              {value}
+            </span>
             <Icon name={<IconChevronDown />} className="aura-filterselect__chevron" />
           </button>
         </div>

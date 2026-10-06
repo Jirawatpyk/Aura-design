@@ -17,6 +17,27 @@ export const DescriptionsNotNames: StoryObj = {
             { id: 'plain', title: 'Contacts', content: 'Contact list' },
           ]}
         />
+        {/* 5.32: with a lead icon, and disabled (WCAG 2.5.3: the description sits beside the button, not in it). */}
+        <div data-testid="acc2">
+          <Aura.Accordion
+            items={[
+              {
+                id: 'export',
+                icon: 'download',
+                title: 'Export all data',
+                description: 'A ZIP of every record, sent by email.',
+                content: 'Export',
+              },
+              {
+                id: 'sso',
+                title: 'Single sign-on',
+                description: 'Available on the Enterprise plan.',
+                content: 'SSO',
+                disabled: true,
+              },
+            ]}
+          />
+        </div>
         <Aura.Combobox
           label="Member"
           options={[

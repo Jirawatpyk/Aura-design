@@ -62,8 +62,9 @@ export const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(functi
               <button
                 type="button"
                 id={bid}
-                /* 5.26: named by its title; the description is read after it. */
-                aria-labelledby={it.description ? bid + '-title' : undefined}
+                /* 5.26: named by its title; the description is read after it. 5.32: named from its content (the
+                 * description is aria-hidden there and reached by aria-describedby), not aria-labelledby, so the
+                 * visible description isn't "text missing from the name" (WCAG 2.5.3; axe 4.14). */
                 aria-describedby={it.description ? bid + '-desc' : undefined}
                 aria-expanded={on}
                 aria-controls={pid}
@@ -76,7 +77,7 @@ export const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(functi
                 <span className="aura-accordion__title">
                   <span id={it.description ? bid + '-title' : undefined}>{it.title}</span>
                   {it.description ? (
-                    <span className="aura-accordion__desc" id={bid + '-desc'}>
+                    <span className="aura-accordion__desc" id={bid + '-desc'} aria-hidden={true}>
                       {it.description}
                     </span>
                   ) : null}

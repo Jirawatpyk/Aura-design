@@ -73,9 +73,11 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const any = renderToString(e(A.FilterDateRange, { label: 'Submitted' }));
     const th = renderToString(e(A.AuraProvider, { locale: 'th' }, e(A.FilterDateRange, { label: 'วันที่ส่ง', value: { start: '2026-09-25', end: '2026-10-03' } })));
     const ok =
-      /<button id="sub" type="button" class="aura-filterselect__face" aria-label="Submitted: 1 – 30 Sept 2026" aria-haspopup="dialog" aria-expanded="false">/.test(en) &&
-      /aria-label="Submitted: Any time"/.test(any) && /aura-filterselect__value">Any time</.test(any) &&
-      /aria-label="วันที่ส่ง: 25 ก.ย. – 3 ต.ค. 2569"/.test(th) && (en.match(/<button/g) || []).length === 1;
+      /* 5.32: named from content (an sr-only span), not aria-label (WCAG 2.5.3, axe 4.14). */
+      /<button id="sub" type="button" class="aura-filterselect__face" aria-haspopup="dialog" aria-expanded="false"><span class="aura-sr-only">Submitted: 1 – 30 Sept 2026<\/span><span class="aura-filterselect__name" aria-hidden="true">Submitted<\/span>/.test(en) &&
+      /<span class="aura-sr-only">Submitted: Any time<\/span>/.test(any) && /aura-filterselect__value" aria-hidden="true">Any time</.test(any) && !/aria-label=/.test(en + any) &&
+      /<span class="aura-sr-only">วันที่ส่ง: 25 ก.ย. – 3 ต.ค. 2569<\/span>/.test(th) && (en.match(/<button/g) || []).length === 1 &&
+      /aria-label="Own name"/.test(renderToString(e(A.FilterDateRange, { label: 'Submitted', 'aria-label': 'Own name' })));
     if (!ok) { console.log(label, 'FilterDateRange face:', en, any, th); fail++; }
   }
   /* 5.26 (Chamber-OS 127): bleed marks the outermost element (aura-bleed) and the frame (aura-bleed-frame). */
@@ -207,14 +209,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const s = renderToString(e(A.Stepper, { current: 'review', steps, onStepClick: () => {} }));
     const fees = s.split('<li class').find((li) => li.includes('Fees')) || '';
     const basics = s.split('<li class').find((li) => li.includes('Basics')) || '';
-    if (!/^="aura-stepper__item is-done is-error"/.test(fees) || !/<button type="button" class="aura-stepper__step aura-focusable" aria-label="Fees, has errors">/.test(fees) || !/<span class="aura-stepper__label">Fees<span class="aura-sr-only">, has errors<\/span><\/span>/.test(fees) || /completed/.test(fees) || /aura-stepper__marker[^>]*>2</.test(fees)) { console.log(label, 'Stepper error step:', fees); fail++; }
-    if (!/^="aura-stepper__item is-done"/.test(basics) || !/aria-label="Basics, completed"/.test(basics) || !/<span class="aura-stepper__label">Basics<span class="aura-sr-only">, completed<\/span><\/span>/.test(basics)) { console.log(label, 'Stepper done step changed:', basics); fail++; }
+    if (!/^="aura-stepper__item is-done is-error"/.test(fees) || !/<button type="button" class="aura-stepper__step aura-focusable"( aria-describedby="[^"]+")?>/.test(fees) || /aria-label=/.test(fees) || !/<span class="aura-sr-only">Fees, has errors<\/span><span class="aura-stepper__label" aria-hidden="true">Fees<\/span>/.test(fees) || /completed/.test(fees) || /aura-stepper__marker[^>]*>2</.test(fees)) { console.log(label, 'Stepper error step:', fees); fail++; }
+    if (!/^="aura-stepper__item is-done"/.test(basics) || !/<span class="aura-sr-only">Basics, completed<\/span><span class="aura-stepper__label" aria-hidden="true">Basics<\/span>/.test(basics)) { console.log(label, 'Stepper done step changed:', basics); fail++; }
     if (/— has errors/.test(s)) { console.log(label, 'Stepper compact says errors for a clean current step:', s); fail++; }
     /* The current step with errors: still aria-current, not a button, and the phone line says so; in Thai too. */
     /* A description is the button's description; a label that isn't text keeps the content name (no aria-label). */
     const d = renderToString(e(A.Stepper, { current: 'b', onStepClick: () => {}, steps: [{ id: 'a', label: 'Basics', description: 'Name and period' }, { id: 'b', label: 'Fees' }] }));
-    const dm = /aria-label="Basics, completed" aria-describedby="([^"]+)"/.exec(d);
-    if (!dm || !new RegExp('<span class="aura-stepper__desc" id="' + dm[1] + '">Name and period</span>').test(d)) { console.log(label, 'Stepper description:', d); fail++; }
+    const dm = /<button type="button" class="aura-stepper__step aura-focusable" aria-describedby="([^"]+)">/.exec(d);
+    if (!dm || /aria-label=/.test(d) || !/<span class="aura-sr-only">Basics, completed<\/span>/.test(d) || !new RegExp('<span class="aura-stepper__desc" id="' + dm[1] + '" aria-hidden="true">Name and period</span>').test(d)) { console.log(label, 'Stepper description:', d); fail++; }
     const el = renderToString(e(A.Stepper, { current: 'b', onStepClick: () => {}, steps: [{ id: 'a', label: e('em', null, 'Basics'), status: 'error' }, { id: 'b', label: 'Fees' }] }));
     if (/aria-label|aria-describedby/.test(el) || !/<em>Basics<\/em><span class="aura-sr-only">, has errors<\/span>/.test(el)) { console.log(label, 'Stepper element label:', el); fail++; }
     const cur = renderToString(e(A.AuraProvider, { locale: 'th' }, e(A.Stepper, { current: 'fees', steps, onStepClick: () => {} })));
@@ -293,6 +295,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const pg = m(e(A.Pagination, { pageCount: 5, page: 2, onChange: () => {} })), pgL = m(e(A.Pagination, { pageCount: 5, page: 2, getHref: (p: number) => '/p/' + p }));
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
+    }
+    /* 5.32 (WCAG 2.5.3, axe 4.14): Accordion and BottomNav named from content, not aria-label(ledby). */
+    {
+      const acc = m(e(A.Accordion, { items: [{ id: 'f', title: 'Fees', description: 'Two unpaid', content: 'x' }] }));
+      const bn = m(e(A.BottomNav, { items: [{ id: 'b', label: 'Konto', ariaLabel: 'Mitt konto', icon: 'user', count: 3 }] }));
+      if (/<button[^>]*aria-labelledby/.test(acc) || !/<span class="aura-accordion__desc" id="[^"]+" aria-hidden="true">Two unpaid<\/span>/.test(acc) || !/aria-describedby="[^"]+-desc"/.test(acc) || /aria-label=/.test(bn.replace(/<nav[^>]*>/, '')) || !/<span class="aura-sr-only">Mitt konto \(3\)<\/span><span class="aura-bottomnav__label" aria-hidden="true">Konto<\/span>/.test(bn)) bad('2.5.3 names:', acc, bn);
     }
     /* 5.32 (DxT Monitor 1, 3, 4): SideNav headerDivider, PageHeader, Skeleton pill/badge. */
     {
