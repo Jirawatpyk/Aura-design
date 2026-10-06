@@ -2,6 +2,13 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.32.0
+
+### Minor Changes
+
+- 7106825: DxT Monitor requests 1, 3, 4: SideNav `headerDivider` (the board's 72px header with a full-width line), a stateless `PageHeader` (eyebrow, title, meta, actions; no outer padding — AppShell's content padding is the page margin; also from `/server`), and Skeleton `variant="pill"` / `"badge"` sized like StatusPill and Badge.
+- 24944e3: Icon tips: IconButton, Pagination arrows, icon-only SegmentedControl options and cut Tags show their name in AURA's own shared tooltip (hover and keyboard focus, themed, hoverable) instead of a native `title`; the elements carry `data-aura-tip`. A `title` passed to IconButton is kept.
+
 ## 5.31.0
 
 ### Minor Changes
