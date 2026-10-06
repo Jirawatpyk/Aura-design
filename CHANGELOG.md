@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.32.0 — 2026-10-06
+
+### Minor changes
+
+- 7106825: DxT Monitor requests 1, 3, 4: SideNav `headerDivider` (the board's 72px header with a full-width line), a stateless `PageHeader` (eyebrow, title, meta, actions; no outer padding — AppShell's content padding is the page margin; also from `/server`), and Skeleton `variant="pill"` / `"badge"` sized like StatusPill and Badge.
+- 24944e3: Icon tips: IconButton, Pagination arrows, icon-only SegmentedControl options and cut Tags show their name in AURA's own shared tooltip (hover and keyboard focus, themed, hoverable) instead of a native `title`; the elements carry `data-aura-tip`. A `title` passed to IconButton is kept.
+
+### Patch changes
+
+- 7e4ca46: WCAG 2.5.3 (axe-core 4.14 runs label-content-name-mismatch by default): Accordion, Stepper, FilterDateRange, BottomNav (with ariaLabel), Combobox and Command options are named from their content — the full name in an sr-only span or the visible label, the visible short label or description aria-hidden, descriptions still via aria-describedby — instead of aria-label/aria-labelledby over visible text the name didn't contain. Names and descriptions read the same. BottomNav warns in development when ariaLabel doesn't contain the visible label. The repo pins axe-core 4.14.0 for every CI leg.
+
 ## 5.31.0 — 2026-10-03
 
 ### Minor changes
