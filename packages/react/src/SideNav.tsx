@@ -230,6 +230,7 @@ export const SideNav = React.forwardRef<HTMLElement, SideNavProps>(function Side
         'aura-nav',
         collapsed && 'aura-nav--collapsed',
         props.bordered === false && 'aura-nav--borderless',
+        props.headerDivider && props.header && 'aura-nav--header-divider',
         props.chevron === 'right' && 'aura-nav--chevron-right',
         props.className,
       )}

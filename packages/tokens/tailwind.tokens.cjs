@@ -215,6 +215,7 @@ module.exports = {
     ],
     "mono": [
       "JetBrains Mono",
+      "Noto Sans Thai",
       "monospace"
     ],
     "thai": [

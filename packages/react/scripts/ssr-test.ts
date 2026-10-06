@@ -294,6 +294,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.32 (DxT Monitor 1, 3, 4): SideNav headerDivider, PageHeader, Skeleton pill/badge. */
+    {
+      const nd = m(e(A.SideNav, { header: 'Brand', headerDivider: true, items: [{ id: 'a', label: 'A' }] })), n0 = m(e(A.SideNav, { headerDivider: true, items: [{ id: 'a', label: 'A' }] }));
+      const ph = m(e(A.PageHeader, { eyebrow: 'Monitor', title: 'Overview', meta: '12 sites', actions: e('button', null, 'Add'), titleId: 'pt', 'data-slot': 'page-header' }));
+      const ph2 = m(e(A.PageHeader, { title: 'Sites', headingLevel: 2 }));
+      const sk = m(e(A.Skeleton, { variant: 'pill' })) + m(e(A.Skeleton, { variant: 'badge', width: 40 }));
+      if (!/class="aura-nav aura-nav--header-divider"/.test(nd) || /header-divider|headerdivider/i.test(n0) || /headerdivider/i.test(nd) || ph !== '<div data-slot="page-header" class="aura-page-header"><div class="aura-page-header__text"><p class="aura-page-header__eyebrow">Monitor</p><h1 class="aura-page-header__title" id="pt">Overview</h1><div class="aura-page-header__meta">12 sites</div></div><div class="aura-page-header__actions"><button>Add</button></div></div>' || ph2 !== '<div class="aura-page-header"><div class="aura-page-header__text"><h2 class="aura-page-header__title">Sites</h2></div></div>' || !/class="aura-skel aura-skel--pill"/.test(sk) || !/class="aura-skel aura-skel--badge" style="width:40px"/.test(sk)) bad('DxT 1/3/4:', nd, n0, ph, ph2, sk);
+    }
     /* 5.31 (Chamber-OS 138): labelAddon sits between the label and the box, and leads aria-describedby. */
     const la = m(e(A.TextField, { label: 'Type it', id: 'v1', hint: 'h', labelAddon: e('code', null, 'SC-1'), 'aria-describedby': 'own' }));
     const laT = m(e(A.Textarea, { label: 'N', id: 'n2', error: 'bad', labelAddon: 'REFUND' }));

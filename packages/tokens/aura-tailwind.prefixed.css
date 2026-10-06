@@ -153,7 +153,7 @@
   --ease-aura-spring: var(--aura-spring);
   --font-aura-display: "Fraunces", "Noto Sans Thai", serif;
   --font-aura-sans: "Inter", "Noto Sans Thai", sans-serif;
-  --font-aura-mono: "JetBrains Mono", monospace;
+  --font-aura-mono: "JetBrains Mono", "Noto Sans Thai", monospace;
   --font-aura-thai: "Noto Sans Thai", sans-serif;
 }
 

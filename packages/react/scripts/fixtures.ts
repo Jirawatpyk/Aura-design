@@ -98,6 +98,11 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     Stack: h(A.Stack, { direction: { base: 'column', md: 'row' }, gap: { base: 2, md: 4 } }, 'a', 'b'),
     Grid: h(A.Grid, { columns: { base: 1, md: 2, lg: 4 } }, 'a', 'b'),
     Container: h(A.Container, { size: 'narrow' }, 'c'),
+    PageHeader: h(
+      A.PageHeader,
+      { eyebrow: 'Monitor', title: 'Overview', meta: '12 sites', actions: h(A.Button, null, 'Add') },
+      null,
+    ),
     AppShell: h(
       A.AppShell,
       { nav: h(A.SideNav, { items: [{ id: 'd', label: 'Dashboard' }], value: 'd' }), header: 'Orders' },

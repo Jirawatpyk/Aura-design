@@ -85,6 +85,8 @@ for (const [name, A] of [
       tree(A.Stat({ label: 'Membership', headingLevel: 2, value: 'Active' })),
       tree(A.Stat({ label: 'Quota', loading: true })),
       tree(A.Avatar({ name: 'Anna Berg' })),
+      /* 5.32 (DxT Monitor 3): PageHeader is stateless. */
+      tree(A.PageHeader.render({ eyebrow: 'Monitor', title: 'Overview', meta: '12 sites' }, null)),
       /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
       tree(
         A.Container.render(

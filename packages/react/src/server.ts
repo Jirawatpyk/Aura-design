@@ -35,6 +35,9 @@ export { Icon, registerIcons } from './Icon.js';
 /* 5.27 (Chamber-OS 131): Container is stateless too — the page column for Server Components. */
 export { Container } from './Container.js';
 export type { ContainerProps } from './Container.js';
+/* 5.32: PageHeader is stateless too. */
+export { PageHeader } from './PageHeader.js';
+export type { PageHeaderProps } from './PageHeader.js';
 export type {
   AlertProps,
   AvatarProps,

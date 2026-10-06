@@ -186,7 +186,15 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
-## 5.32 — Icon tips: AURA's tooltip instead of the native title
+## 5.32 — Icon tips, PageHeader, SideNav header divider, pill skeletons (DxT Monitor requests 1–4)
+
+### DxT Monitor requests 1, 3, 4
+
+- **SideNav `headerDivider`** (request 1): a full-width 1px `aura-border-default` line under `header`, with the board's metrics — the header at least 72px tall, its content 20px from the top and start, the line at its foot, 16px before the first item. The collapsed rail keeps its 8px sides. Without `header` it does nothing. Default `false`; the plain header is unchanged.
+- **PageHeader** (request 3): `<PageHeader eyebrow="Monitor / Sites" title="Sites" meta="12 sites · updated 2 min ago" actions={…} />` — eyebrow in mono 12/1.7, the title an `h1` (`headingLevel` 2 or 3 when the page already has one) in the display face at 36/1.15, weight 600, -0.01em (28px below 640px; a 1.4 line under `lang="th"`), meta 13/1.5, 4px between them, actions at the end on the text's last line, at least 24px away, wrapping under the text on a phone. `titleId` names the heading for `aria-labelledby`. It has **no outer padding**: inside AppShell, the content padding is the page margin (16/24px on phones, 24px from 640px, 32px from 1024px) — don't add your own. Stateless, so `/server` exports it too.
+- **Skeleton `variant="pill"` and `variant="badge"`** (request 4): a StatusPill's size (20px tall, 22px under `lang="th"`, 72px wide) and a Badge's (20px in every language, 56px wide), fully rounded, so a loading list's grey pills don't move the row when the real ones arrive. `width` sets the width.
+
+### Icon tips (request 2)
 
 - **IconButton, Pagination's arrows, an icon-only SegmentedControl option and a cut Tag** show their name in AURA's own tip instead of the browser's `title`: themed (light and dark), Thai-sized under `lang="th"`, shown on hover after 400ms (at once while another tip is up) **and on keyboard focus** (the native title never showed for keyboard or touch users), hoverable (WCAG 1.4.13: it stays while the pointer is over it, yet lets clicks and hovers through, so it never covers the ⋯ in the row above), hidden by Escape (inside a Dialog or Drawer, Escape closes that, and the tip with it), a press, blur or leaving. A tip opened by keyboard focus stays until focus moves, whatever the mouse does. It flips below at the top of the screen, stays on screen, and goes when its element leaves the page.
 - One tip and one set of document listeners serve the whole page — no state per button — so a DataTable with a ⋯ in every row costs nothing. The elements carry `data-aura-tip`; the tip is `aria-hidden` and never joins `aria-describedby`, because it repeats the accessible name (a screen reader hears it once).

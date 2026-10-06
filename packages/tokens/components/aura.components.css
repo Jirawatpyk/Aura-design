@@ -356,6 +356,9 @@ a.aura-icon-btn { text-decoration: none; }
   background: var(--aura-bg-skeleton); animation: aura-pulse var(--aura-duration-pulse) var(--aura-ease) infinite;
 }
 .aura-skel--pill { width: 72px; height: 20px; }
+.aura-skel--badge { width: 56px; height: 20px; } /* 5.32: a Badge is 20px in every language */
+/* 5.32: they stand in for inline pills, so they sit in a line of text like them. */
+.aura-skel--pill, .aura-skel--badge { display: inline-block; vertical-align: middle; }
 .aura-skel--box { width: var(--aura-icon-sm); height: var(--aura-icon-sm); border-radius: var(--aura-radius-xs); }
 @media (prefers-reduced-motion: reduce) { .aura-skel { animation: none; } }
 /* 5.29 (Chamber-OS 134): a DataTable skeleton row stands in for the real one — text lines (skeletonLines) on the 20px
@@ -764,6 +767,10 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-nav__header { padding: var(--aura-space-5) var(--aura-space-4) var(--aura-space-4); padding-inline-end: var(--aura-space-2); } /* 5.16 (Chamber-OS 96): 8px at the end, so a brand, its dot and a badge share one row at 240px */
 .aura-nav__scroll { flex: 1; overflow-y: auto; padding: 0 var(--aura-space-3); }
+/* 5.32 (DxT Monitor request 1): headerDivider — the board's header: 72px, content 20px from the top and start, a
+ * full-width line at its foot, 16px before the first item. The collapsed rail keeps its own 8px sides (below). */
+.aura-nav--header-divider > .aura-nav__header { box-sizing: border-box; min-height: 72px; padding-top: var(--aura-space-5); padding-bottom: var(--aura-space-3); padding-inline-start: var(--aura-space-5); border-bottom: 1px solid var(--aura-border-default); }
+.aura-nav--header-divider > .aura-nav__header + .aura-nav__scroll { padding-top: var(--aura-space-4); }
 /* No header: keep the first item off the top edge (5.0.2). */
 .aura-nav > .aura-nav__scroll:first-child { padding-top: var(--aura-space-3); }
 .aura-nav--borderless { border-right: 0; }
@@ -989,7 +996,7 @@ a.aura-tab { text-decoration: none; }
 .aura-drawer--lg { max-width: var(--aura-drawer-lg); }
 .aura-drawer--nav { max-width: var(--aura-sidenav-width); }
 .aura-drawer__head { display: flex; align-items: center; gap: var(--aura-space-3); padding: var(--aura-space-4) var(--aura-space-4) var(--aura-space-2) var(--aura-space-6); }
-.aura-drawer--nav .aura-drawer__head { position: absolute; top: var(--aura-space-2); right: var(--aura-space-2); padding: 0; z-index: 1; }
+.aura-drawer--nav .aura-drawer__head { position: absolute; top: var(--aura-space-2); inset-inline-end: var(--aura-space-2); padding: 0; z-index: 1; } /* 5.32: inline-end, so RTL puts it on the left with the header's room */
 .aura-drawer__title { flex: 1; margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
 .aura-drawer__desc { margin: 0; padding: 0 var(--aura-space-6); font-size: 14px; line-height: 1.7; color: var(--aura-fg-secondary); }
 .aura-drawer__body {
@@ -999,6 +1006,8 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-drawer--nav .aura-drawer__body { padding: 0; }
 .aura-drawer--nav .aura-nav { width: 100%; border-right: 0; }
+/* 5.32: the phone drawer's close button (32px, 8px in) sits over the header's end: keep the brand clear of it. */
+.aura-drawer--nav .aura-nav__header { padding-inline-end: 48px; }
 .aura-drawer__foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--aura-space-3); padding: var(--aura-space-4) var(--aura-space-6); border-top: 1px solid var(--aura-border-default); }
 @media (prefers-reduced-motion: reduce) { .aura-drawer { animation: none; } }
 
@@ -1075,6 +1084,21 @@ a.aura-tab { text-decoration: none; }
 @media (min-width: 1024px) { .aura-shell__content { padding: var(--aura-space-8); } }
 /* The shell already pads its content: a Container directly inside only caps the width. */
 .aura-shell__content:not(.is-flush) > .aura-container { padding-left: 0; padding-right: 0; }
+
+/* ---------- PageHeader (5.32, DxT Monitor request 3) ----------
+ * No outer padding: AppShell's content padding is the page margin. Eyebrow mono 12/1.7, h1 display 36/1.15,
+ * meta 13/1.5, 4px between them; actions at the end, on the text's last line, 24px away; below 640px the title is
+ * 28px and the actions wrap under the text. */
+.aura-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--aura-space-4) var(--aura-space-6); min-width: 0; font-family: var(--font-sans); }
+.aura-page-header__text { display: flex; flex-direction: column; gap: var(--aura-space-1); flex: 1 1 320px; min-width: 0; }
+.aura-page-header__eyebrow { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
+.aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
+.aura-page-header__meta { min-width: 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
+.aura-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
+@media (min-width: 640px) { .aura-page-header__title { font-size: 36px; } }
+/* Thai marks need the room a 1.15 line takes away. */
+.aura-page-header__title:lang(th) { line-height: 1.4; letter-spacing: 0; }
+.aura-page-header__meta:lang(th) { line-height: 1.6; }
 
 /* Totals row (4.19): under the body, a strong top edge; sticky at the bottom of a `height` table with stickyFooter. */
 /* 5.30: a 2px hairline-colour rule over the totals (border-strong was a glaring white line in dark); a pinned totals row

@@ -380,7 +380,7 @@
   --aura-duration-tooltip: 400ms;
   --font-display: "Fraunces", "Noto Sans Thai", serif;
   --font-sans: "Inter", "Noto Sans Thai", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-mono: "JetBrains Mono", "Noto Sans Thai", monospace;
   --font-thai: "Noto Sans Thai", sans-serif;
 }
 

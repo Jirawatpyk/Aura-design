@@ -6459,3 +6459,180 @@ test.describe('5.32: icon tips', () => {
     expect(await axeScan(page, 'body')).toEqual([]);
   });
 });
+
+test.describe('5.32: DxT Monitor requests 1, 3, 4', () => {
+  const SHELL = 'aura-new-in-5-32-dxt-monitor--monitor-shell';
+  const PARTS = 'aura-new-in-5-32-dxt-monitor--parts';
+  const rect = (l: import('@playwright/test').Locator) =>
+    l.evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      return { x: r.left, y: r.top, w: r.width, h: r.height, b: r.bottom, r: r.right };
+    });
+  const css = (l: import('@playwright/test').Locator, p: string) =>
+    l.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), p);
+
+  test('1: headerDivider — 72px header, content 20px in, a full-width line, the first item at 88px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, SHELL);
+    const nav = page.locator('.aura-shell__nav .aura-nav');
+    const n = await rect(nav),
+      hd = await rect(nav.locator('.aura-nav__header')),
+      brand = await rect(nav.getByTestId('brand')),
+      item = await rect(nav.locator('.aura-nav__item').first());
+    expect(Math.round(hd.h)).toBe(72);
+    expect(Math.round(brand.y - n.y)).toBe(20);
+    expect(Math.round(brand.x - n.x)).toBe(20);
+    /* The line spans the nav (its own right border aside) and sits at the header's foot. */
+    expect(await css(nav.locator('.aura-nav__header'), 'border-bottom-width')).toBe('1px');
+    expect(Math.round(hd.x)).toBe(Math.round(n.x));
+    expect(Math.round(hd.w)).toBe(Math.round(n.w) - 1);
+    expect(Math.round(item.y - n.y)).toBe(88);
+    await expect(nav).toHaveClass(/aura-nav--header-divider/);
+  });
+
+  test('1: unchanged without it, without a header, and the collapsed rail keeps 8px sides', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, PARTS);
+    const plain = page.getByTestId('plain').locator('.aura-nav__header');
+    expect(await css(plain, 'border-bottom-width')).toBe('0px');
+    expect(await css(plain, 'padding-left')).toBe('16px');
+    expect(await css(plain, 'padding-top')).toBe('20px');
+    const none = page.getByTestId('no-header').locator('.aura-nav');
+    await expect(none).not.toHaveClass(/header-divider/);
+    expect(await css(none.locator('.aura-nav__scroll'), 'padding-top')).toBe('12px');
+    const rail = page.getByTestId('rail').locator('.aura-nav__header');
+    expect(await css(rail, 'padding-left')).toBe('8px');
+    expect(await css(rail, 'padding-right')).toBe('8px');
+    expect(await css(rail, 'border-bottom-width')).toBe('1px');
+    /* RTL: the 20px start padding moves to the right. */
+    const rtl = await page
+      .getByTestId('divided')
+      .locator('.aura-nav__header')
+      .evaluate((e) => {
+        (e.closest('[data-testid]') as HTMLElement).dir = 'rtl';
+        const s = getComputedStyle(e);
+        return [s.paddingRight, s.paddingLeft];
+      });
+    expect(rtl).toEqual(['20px', '8px']);
+  });
+
+  test('1: phone drawer — the brand stays clear of the close button', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, SHELL);
+    await page.locator('.aura-shell__menu').click();
+    const drawer = page.locator('.aura-drawer--nav');
+    await expect(drawer).toBeVisible();
+    const head = drawer.locator('.aura-nav__header');
+    expect(await css(head, 'padding-right')).toBe('48px');
+    /* Both read at once: the drawer may still be sliding in. */
+    const gap = await drawer.evaluate((d) => {
+      const h = d.querySelector('.aura-nav__header')!.getBoundingClientRect(),
+        c = d.querySelector('.aura-drawer__head button')!.getBoundingClientRect();
+      return c.left - (h.right - 48);
+    });
+    expect(gap).toBeGreaterThanOrEqual(-1);
+    await expect(drawer.locator('.aura-nav')).toHaveClass(/aura-nav--header-divider/);
+    /* RTL: the close button and the room for it both move to the left. */
+    await page.evaluate(() => (document.documentElement.dir = 'rtl'));
+    expect(await css(head, 'padding-left')).toBe('48px');
+    const off = await drawer.evaluate(
+      (d) =>
+        d.querySelector('.aura-drawer__head button')!.getBoundingClientRect().left - d.getBoundingClientRect().left,
+    );
+    expect(Math.round(off)).toBe(8);
+  });
+
+  test('3: PageHeader — board type, 4px between parts, actions at the end, AppShell padding as the only margin', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, SHELL);
+    const ph = page.getByTestId('page-header');
+    const content = await rect(page.locator('.aura-shell__content'));
+    const p = await rect(ph);
+    expect(Math.round(p.y - content.y)).toBe(32);
+    expect(Math.round(p.x - content.x)).toBe(32);
+    const eyebrow = ph.locator('.aura-page-header__eyebrow'),
+      title = ph.getByRole('heading', { level: 1, name: 'Overview' }),
+      meta = ph.locator('.aura-page-header__meta');
+    expect(await css(eyebrow, 'font-family')).toMatch(/JetBrains Mono/);
+    expect(await css(eyebrow, 'font-size')).toBe('12px');
+    expect(await css(eyebrow, 'line-height')).toBe('20.4px');
+    expect(await css(title, 'font-family')).toMatch(/Fraunces/);
+    expect(await css(title, 'font-size')).toBe('36px');
+    expect(await css(title, 'line-height')).toBe('41.4px');
+    expect(await css(title, 'font-weight')).toBe('600');
+    expect(await css(title, 'letter-spacing')).toBe('-0.36px');
+    expect(await css(meta, 'font-size')).toBe('13px');
+    expect(await css(meta, 'line-height')).toBe('19.5px');
+    const e = await rect(eyebrow),
+      t = await rect(title),
+      m = await rect(meta);
+    expect(Math.round(t.y - e.b)).toBe(4);
+    expect(Math.round(m.y - t.b)).toBe(4);
+    await expect(title).toHaveAttribute('id', 'overview-title');
+    /* Actions: at the end, bottom-aligned with the text, at least 24px away. */
+    const a = await rect(ph.locator('.aura-page-header__actions'));
+    expect(Math.round(a.r)).toBe(Math.round(p.r));
+    expect(Math.abs(a.b - m.b)).toBeLessThanOrEqual(1);
+    expect(a.x - m.r).toBeGreaterThanOrEqual(24);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('3: phone — 28px title, actions wrap under the text; h2 and Thai', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, SHELL);
+    const ph = page.getByTestId('page-header');
+    expect(await css(ph.getByRole('heading', { level: 1 }), 'font-size')).toBe('28px');
+    const m = await rect(ph.locator('.aura-page-header__meta')),
+      a = await rect(ph.locator('.aura-page-header__actions'));
+    expect(a.y).toBeGreaterThanOrEqual(m.b);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, PARTS);
+    await expect(page.getByTestId('h2').getByRole('heading', { level: 2, name: 'Sites' })).toBeVisible();
+    await expect(
+      page.getByTestId('h2').locator('.aura-page-header__eyebrow, .aura-page-header__meta, .aura-page-header__actions'),
+    ).toHaveCount(0);
+    /* Long eyebrow, title and meta wrap inside a 360px column instead of overflowing. */
+    const long = page.getByTestId('long');
+    expect(await long.evaluate((e) => e.scrollWidth)).toBeLessThanOrEqual(360);
+    for (const s of ['.aura-page-header__eyebrow', '.aura-page-header__meta', '.aura-page-header__title'])
+      expect(await long.locator(s).evaluate((e) => e.scrollWidth <= e.clientWidth + 1), s).toBe(true);
+    const th = page.getByTestId('thai-header');
+    expect(await css(th.getByRole('heading'), 'line-height')).toBe('50.4px');
+    expect(await css(th.locator('.aura-page-header__meta'), 'line-height')).toBe('20.8px');
+  });
+
+  test('4: Skeleton pill and badge are as tall as the real ones, in English and Thai', async ({ page }) => {
+    await story(page, PARTS);
+    for (const id of ['pills', 'pills-th']) {
+      const g = page.getByTestId(id);
+      const sp = await rect(g.locator('.aura-skel--pill').first()),
+        pill = await rect(g.locator('.aura-pill')),
+        sb = await rect(g.locator('.aura-skel--badge')),
+        badge = await rect(g.locator('.aura-badge'));
+      expect(sp.h, id).toBe(pill.h);
+      expect(sb.h, id).toBe(badge.h);
+      expect(await css(g.locator('.aura-skel--badge'), 'border-radius')).toBe(
+        await css(g.locator('.aura-badge'), 'border-radius'),
+      );
+      await expect(g.locator('.aura-skel--badge')).toHaveAttribute('aria-hidden', 'true');
+    }
+    expect((await rect(page.getByTestId('pills').locator('.aura-skel--pill').nth(1))).w).toBe(96);
+    /* In a line of text they sit inline like the real ones: one line, the same height. */
+    const lines = page.getByTestId('inline').locator('p');
+    for (const [a, b] of [
+      [0, 1],
+      [2, 3],
+    ]) {
+      const sk = await rect(lines.nth(a!)),
+        real = await rect(lines.nth(b!));
+      expect(Math.abs(sk.h - real.h), `line ${a}`).toBeLessThanOrEqual(1);
+    }
+    expect(await css(lines.nth(0).locator('.aura-skel--badge'), 'display')).toBe('inline-block');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

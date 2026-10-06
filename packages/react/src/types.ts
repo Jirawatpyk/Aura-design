@@ -909,6 +909,10 @@ export interface SideNavProps {
   defaultValue?: string | undefined;
   onChange?: ((id: string) => void) | undefined;
   header?: React.ReactNode | undefined;
+  /** 5.32 (DxT Monitor request 1): a full-width 1px aura-border-default line under `header`, with the board's metrics:
+   * the header at least 72px tall with its content 20px from the top and start, the line at its foot, and 16px
+   * before the first item. Default `false`. */
+  headerDivider?: boolean | undefined;
   footer?: React.ReactNode | undefined;
   /** Default "Main". */
   label?: string | undefined;
@@ -1315,7 +1319,9 @@ export interface AppShellProps {
   /** A BottomNav for phones (4.19). Shown below its `hideFrom` breakpoint; the content keeps room for it, and a
    * viewport ActionBar sits on top of it. With a `bottomNav` and no `nav`, there is no menu button. */
   bottomNav?: React.ReactElement | undefined;
-  /** `false` (5.14): `<main>` has no padding, for pages whose containers own the page padding and column. */
+  /** The content padding is the page margin: 16px at the sides and 24px top and bottom on phones, 24px from 640px,
+   * 32px from 1024px. Pages don't add their own (a PageHeader has none, 5.32). `false` (5.14): `<main>` has no
+   * padding, for pages whose containers own the page padding and column. */
   contentPadding?: boolean | undefined;
   className?: string | undefined;
 }
@@ -1609,7 +1615,10 @@ export interface ProgressProps {
   className?: string | undefined;
 }
 export interface SkeletonProps {
-  variant?: 'text' | 'rect' | 'circle' | undefined;
+  /** 5.32 (DxT Monitor request 4): `pill` is a StatusPill's size (20px tall, 22px under `lang="th"`, 72px wide) and
+   * `badge` a Badge's (20px, 56px wide), both fully rounded, so the row doesn't move when the real one arrives.
+   * `width` overrides the width. */
+  variant?: 'text' | 'rect' | 'circle' | 'pill' | 'badge' | undefined;
   /** text only: number of lines (the last is shorter). */
   lines?: number | undefined;
   width?: number | string | undefined;

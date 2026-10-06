@@ -829,6 +829,10 @@ export interface SideNavProps {
 	defaultValue?: string | undefined;
 	onChange?: ((id: string) => void) | undefined;
 	header?: React$1.ReactNode | undefined;
+	/** 5.32 (DxT Monitor request 1): a full-width 1px aura-border-default line under `header`, with the board's metrics:
+	 * the header at least 72px tall with its content 20px from the top and start, the line at its foot, and 16px
+	 * before the first item. Default `false`. */
+	headerDivider?: boolean | undefined;
 	footer?: React$1.ReactNode | undefined;
 	/** Default "Main". */
 	label?: string | undefined;
@@ -1215,7 +1219,9 @@ export interface AppShellProps {
 	/** A BottomNav for phones (4.19). Shown below its `hideFrom` breakpoint; the content keeps room for it, and a
 	 * viewport ActionBar sits on top of it. With a `bottomNav` and no `nav`, there is no menu button. */
 	bottomNav?: React$1.ReactElement | undefined;
-	/** `false` (5.14): `<main>` has no padding, for pages whose containers own the page padding and column. */
+	/** The content padding is the page margin: 16px at the sides and 24px top and bottom on phones, 24px from 640px,
+	 * 32px from 1024px. Pages don't add their own (a PageHeader has none, 5.32). `false` (5.14): `<main>` has no
+	 * padding, for pages whose containers own the page padding and column. */
 	contentPadding?: boolean | undefined;
 	className?: string | undefined;
 }
@@ -1491,7 +1497,10 @@ export interface ProgressProps {
 	className?: string | undefined;
 }
 export interface SkeletonProps {
-	variant?: "text" | "rect" | "circle" | undefined;
+	/** 5.32 (DxT Monitor request 4): `pill` is a StatusPill's size (20px tall, 22px under `lang="th"`, 72px wide) and
+	 * `badge` a Badge's (20px, 56px wide), both fully rounded, so the row doesn't move when the real one arrives.
+	 * `width` overrides the width. */
+	variant?: "text" | "rect" | "circle" | "pill" | "badge" | undefined;
 	/** text only: number of lines (the last is shorter). */
 	lines?: number | undefined;
 	width?: number | string | undefined;
@@ -1784,6 +1793,28 @@ export interface ContainerProps extends Pick<React$1.HTMLAttributes<HTMLElement>
 }
 /** Container — centres content up to aura-container-max (1280px) with responsive side padding. */
 export declare const Container: React$1.ForwardRefExoticComponent<ContainerProps & React$1.RefAttributes<HTMLElement>>;
+/** PageHeader (5.32, DxT Monitor request 3): the top of a page — an eyebrow, the page's heading, a meta line and the
+ * page's actions. It has no outer padding: inside AppShell, the content padding is the page margin (16px at the sides
+ * and 24px top and bottom on phones, 24px from 640px, 32px from 1024px). Stateless, so it is also exported from
+ * `/server`. It renders a plain `div`: to name a region by its title, put `aria-labelledby={titleId}` on your own
+ * `<section>`, or pass `role="region"` with it. */
+export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "lang" | "dir" | "role">, React$1.AriaAttributes, DataAttributes {
+	/** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). */
+	eyebrow?: React$1.ReactNode | undefined;
+	/** The page's heading. */
+	title: React$1.ReactNode;
+	/** A line under the title — counts, last update, owner. */
+	meta?: React$1.ReactNode | undefined;
+	/** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
+	actions?: React$1.ReactNode | undefined;
+	/** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
+	headingLevel?: 1 | 2 | 3 | undefined;
+	/** The heading's id, for `aria-labelledby` on the page's region. */
+	titleId?: string | undefined;
+	className?: string | undefined;
+	style?: React$1.CSSProperties | undefined;
+}
+export declare const PageHeader: React$1.ForwardRefExoticComponent<PageHeaderProps & React$1.RefAttributes<HTMLDivElement>>;
 /** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it.
  * Which one shows is decided in CSS (4.16), so the server's HTML is already right on a phone and nothing shifts on
  * hydration; JavaScript only opens and closes the drawer. */
