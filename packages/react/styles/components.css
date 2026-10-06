@@ -656,6 +656,8 @@ a.aura-icon-btn { text-decoration: none; }
 }
 /* The Tooltip component's own tips can be hovered (WCAG 1.4.13, 5.1.1); rail labels and cell tips stay click-through. */
 .aura-tooltip--hoverable { pointer-events: auto; }
+/* 5.32: the shared tip for icon buttons, Pagination arrows, icon-only segments and cut Tags (was a native title). */
+.aura-tooltip--auto:lang(th) { line-height: 1.6; }
 @keyframes aura-fade-in { from { opacity: 0; } }
 
 /* ---------- Dialog ---------- */

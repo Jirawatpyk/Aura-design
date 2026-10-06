@@ -2662,7 +2662,7 @@ test.describe('5.9: Chamber-OS addendum 9', () => {
     await expect(panel).toHaveAttribute('aria-modal', 'true');
     const close = page.getByTestId('pay-sheet-close');
     await expect(close).toHaveAccessibleName('Close payment drawer');
-    await expect(close).toHaveAttribute('title', 'Close payment drawer');
+    await expect(close).toHaveAttribute('data-aura-tip', 'Close payment drawer'); // 5.32: AURA's tip, not a title
     /* Focus starts in the body, Tab stays inside, Escape closes, focus returns to the opener. */
     await expect(page.getByLabel('Name on card')).toBeFocused();
     for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
@@ -5474,7 +5474,9 @@ test.describe('5.28: Chamber-OS addenda 35–36', () => {
   const chip = (page: import('@playwright/test').Page, text: string) =>
     page.locator('.aura-filterbar').first().locator('.aura-filterbar__chips .aura-tag').filter({ hasText: text });
   const cutOf = (l: import('@playwright/test').Locator) =>
-    l.locator('.aura-tag__text').evaluate((el) => [el.scrollWidth > el.clientWidth + 1, el.getAttribute('title')]);
+    l
+      .locator('.aura-tag__text')
+      .evaluate((el) => [el.scrollWidth > el.clientWidth + 1, el.getAttribute('data-aura-tip')]);
 
   test('132: in the chips row a chip takes its whole text; outside FilterBar the 24ch cap stays, with the full text on hover', async ({
     page,
@@ -5521,7 +5523,7 @@ test.describe('5.28: Chamber-OS addenda 35–36', () => {
     const w = page.getByTestId('wrapped-bar').locator('.aura-tag');
     expect((await cutOf(w))[0]).toBe(true);
     await page.getByRole('button', { name: 'Rename' }).click();
-    await expect(w.locator('.aura-tag__text')).toHaveAttribute('title', /Branch Office, Chiang Mai/);
+    await expect(w.locator('.aura-tag__text')).toHaveAttribute('data-aura-tip', /Branch Office, Chiang Mai/);
   });
 
   test('132: the remove button keeps focus when its chip starts being cut', async ({ page }) => {
@@ -6245,5 +6247,215 @@ test.describe('5.31: Chamber-OS addendum 42', () => {
     await expect
       .poll(async () => chosen(page.getByTestId('default')))
       .toEqual({ check: B, radio: B, switch: B, tab: B, page: B, step: B, day: B, mark: 'rgb(255, 255, 255)' });
+  });
+});
+
+test.describe('5.32: icon tips', () => {
+  const ID = 'aura-new-in-5-32-icon-tips--icon-tips';
+  const tips = (page: import('@playwright/test').Page) => page.locator('.aura-tooltip');
+  const auto = (page: import('@playwright/test').Page) => page.locator('.aura-tooltip--auto');
+
+  test('hover: AURA tip after a short delay, no native title, aria-hidden, above the button', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const edit = page.getByRole('button', { name: 'Edit invoice' });
+    expect(await edit.getAttribute('title')).toBeNull();
+    await expect(edit).toHaveAttribute('data-aura-tip', 'Edit invoice');
+    await edit.hover();
+    await page.waitForTimeout(150);
+    await expect(auto(page)).toHaveCount(0);
+    await expect(auto(page)).toHaveText('Edit invoice');
+    await expect(auto(page)).toHaveAttribute('aria-hidden', 'true');
+    /* The name is not added to the description: a screen reader hears it once. */
+    expect(await edit.getAttribute('aria-describedby')).toBeNull();
+    const b = (await edit.boundingBox())!,
+      t = (await auto(page).boundingBox())!;
+    expect(t.y + t.height).toBeLessThanOrEqual(b.y);
+    expect(Math.abs(t.x + t.width / 2 - (b.x + b.width / 2))).toBeLessThanOrEqual(1);
+    expect(await auto(page).evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(
+      await page
+        .evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--aura-bg-inverted').trim())
+        .then((v) =>
+          page.evaluate((c) => {
+            const d = document.createElement('div');
+            d.style.color = c;
+            document.body.appendChild(d);
+            const r = getComputedStyle(d).color;
+            d.remove();
+            return r;
+          }, v),
+        ),
+    );
+    /* Warm: the next button shows at once; only ever one tip element. */
+    await page.getByRole('button', { name: 'Download PDF' }).hover();
+    await expect(auto(page)).toHaveText('Download PDF', { timeout: 300 });
+    await expect(tips(page)).toHaveCount(1);
+    /* The pointer can move onto the tip (WCAG 1.4.13); leaving both hides it. */
+    const tb = (await auto(page).boundingBox())!;
+    await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2, { steps: 4 });
+    await page.waitForTimeout(300);
+    await expect(auto(page)).toHaveText('Download PDF');
+    await page.mouse.move(600, 800);
+    await expect(auto(page)).toHaveCount(0);
+    /* A hover that leaves before the delay never shows. */
+    await edit.hover();
+    await page.mouse.move(600, 800);
+    await page.waitForTimeout(600);
+    await expect(auto(page)).toHaveCount(0);
+  });
+
+  test('keyboard: shows at once on Tab, Escape hides, a mouse click does not show it', async ({ page }) => {
+    await story(page, ID);
+    const edit = page.getByRole('button', { name: 'Edit invoice' });
+    await page.mouse.move(600, 800);
+    await edit.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(edit).toBeFocused();
+    await expect(auto(page)).toHaveText('Edit invoice', { timeout: 300 });
+    await page.keyboard.press('Tab');
+    await expect(auto(page)).toHaveText('Download PDF');
+    await page.keyboard.press('Escape');
+    await expect(auto(page)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Download PDF' })).toBeFocused();
+    /* The label changes while shown: the tip follows. */
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(auto(page)).toHaveText('Copy link');
+    await page.keyboard.press('Enter');
+    await expect(auto(page)).toHaveText('Copied');
+    await page.keyboard.press('Tab');
+    await expect(auto(page)).toHaveCount(0);
+    /* Archive (focused now) has its own Aura.Tooltip, which covers the toolbar: blur it. */
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await expect(page.locator('.aura-tooltip')).toHaveCount(0);
+    /* A click hides any tip and the mouse focus doesn't bring it back. */
+    await page.getByRole('button', { name: 'Download PDF' }).click();
+    await page.waitForTimeout(500);
+    await expect(auto(page)).toHaveCount(0);
+  });
+
+  test('review: the tip never covers the next button; focus tips stay; containers; removed elements', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 1200 });
+    await story(page, ID);
+    /* Hover row 3's ⋯, then move up to row 2's (the tip lies over it): row 2 gets the hover and the click. */
+    const r = page.getByTestId('rows');
+    const b2 = (await r.getByRole('button', { name: 'More for Row 2' }).boundingBox())!,
+      b3 = (await r.getByRole('button', { name: 'More for Row 3' }).boundingBox())!;
+    await page.mouse.move(b3.x + b3.width / 2, b3.y + b3.height / 2);
+    await expect(auto(page)).toHaveText('More for Row 3');
+    await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2, { steps: 6 });
+    await expect(auto(page)).toHaveText('More for Row 2');
+    expect(
+      await page.evaluate(
+        ([x, y]) => document.elementFromPoint(x!, y!)?.closest('button')?.getAttribute('aria-label'),
+        [b2.x + b2.width / 2, b2.y + 4],
+      ),
+    ).toBe('More for Row 2');
+    await page.mouse.down();
+    await page.mouse.up();
+    await expect(page.getByTestId('clicks')).toHaveText('Row 2');
+    /* Hoverable: from the button straight up onto its tip, it stays. */
+    await page.mouse.move(600, 1100);
+    await expect(auto(page)).toHaveCount(0);
+    const b1 = (await r.getByRole('button', { name: 'More for Row 1' }).boundingBox())!;
+    await page.mouse.move(b1.x + b1.width / 2, b1.y + b1.height / 2);
+    await expect(auto(page)).toHaveText('More for Row 1');
+    const t1 = (await auto(page).boundingBox())!;
+    await page.mouse.move(t1.x + t1.width - 4, t1.y + t1.height / 2, { steps: 5 });
+    await page.waitForTimeout(400);
+    await expect(auto(page)).toHaveText('More for Row 1');
+    /* A focus tip stays while the mouse moves elsewhere. */
+    await page.mouse.move(600, 1100);
+    const edit = page.getByRole('button', { name: 'Edit invoice' });
+    await edit.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(auto(page)).toHaveText('Edit invoice');
+    await page.mouse.move(900, 600, { steps: 5 });
+    await page.mouse.move(100, 1000, { steps: 5 });
+    await page.waitForTimeout(300);
+    await expect(auto(page)).toHaveText('Edit invoice');
+    /* Focusing a container shows nothing for the buttons inside it. */
+    await page.getByTestId('region').focus();
+    await expect(page.getByTestId('region')).toBeFocused();
+    await page.waitForTimeout(200);
+    await expect(auto(page)).toHaveCount(0);
+    /* A hover tip whose element is removed goes with it. */
+    const del = page.getByRole('button', { name: 'Delete INV-0142' });
+    await del.hover();
+    await expect(auto(page)).toHaveText('Delete INV-0142');
+    await del.evaluate((el) => el.remove());
+    await expect(auto(page)).toHaveCount(0);
+    /* And a focus tip whose button is deleted from the keyboard. */
+    const d1 = page.getByRole('button', { name: 'Delete INV-0141' });
+    await d1.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(auto(page)).toHaveText('Delete INV-0141');
+    await page.keyboard.press('Delete');
+    await expect(d1).toHaveCount(0);
+    await expect(auto(page)).toHaveCount(0);
+  });
+
+  test('wrapped in Aura.Tooltip, an own title, or an open menu: no second tip', async ({ page }) => {
+    await story(page, ID);
+    const w = page.getByTestId('wrapped');
+    await w.getByRole('button', { name: 'Archive' }).hover();
+    await expect(page.locator('.aura-tooltip[role="tooltip"]')).toHaveText(/Archive moves it/);
+    await expect(auto(page)).toHaveCount(0);
+    const s = w.getByRole('button', { name: 'Settings' });
+    await expect(s).toHaveAttribute('title', 'Workspace settings');
+    expect(await s.getAttribute('data-aura-tip')).toBeNull();
+    await s.hover();
+    await page.waitForTimeout(600);
+    await expect(auto(page)).toHaveCount(0);
+    const more = w.getByRole('button', { name: 'More actions' });
+    await more.click();
+    await expect(page.getByRole('menu')).toBeVisible();
+    await page.mouse.move(0, 0);
+    await more.hover();
+    await page.waitForTimeout(600);
+    await expect(auto(page)).toHaveCount(0);
+  });
+
+  test('Pagination arrows, icon-only segments and cut Tags; Thai; the screen edge', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const next = page.getByTestId('pager').locator('[data-aura-tip]').last();
+    expect(await next.getAttribute('title')).toBeNull();
+    await next.hover();
+    await expect(auto(page)).toHaveText((await next.getAttribute('aria-label'))!);
+    await page.getByRole('radio', { name: 'Card view' }).hover();
+    await expect(auto(page)).toHaveText('Card view');
+    expect(await page.getByRole('radio', { name: 'Card view' }).getAttribute('title')).toBeNull();
+    const cut = page.getByTestId('tags').locator('.aura-tag').first();
+    await cut.hover();
+    await expect(auto(page)).toHaveText('Branch: Head Office and Bangkok Metropolitan Region');
+    /* Keyboard focus on the toggle Tag shows its full text too. */
+    await page.mouse.move(600, 800);
+    await expect(auto(page)).toHaveCount(0);
+    await cut.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(auto(page)).toHaveText(/Bangkok Metropolitan Region/);
+    await page.keyboard.press('Escape');
+    /* An uncut Tag has no tip. */
+    expect(await page.getByTestId('tags').locator('.aura-tag__text').nth(1).getAttribute('data-aura-tip')).toBeNull();
+    /* Thai: the tip takes the element's lang and the Thai line height. */
+    await page.getByRole('button', { name: 'แก้ไขใบแจ้งหนี้' }).hover();
+    await expect(auto(page)).toHaveAttribute('lang', 'th');
+    expect(await auto(page).evaluate((e) => getComputedStyle(e).lineHeight)).toBe('19.2px');
+    /* At the top-left corner it flips below and stays on screen. */
+    const nav = page.getByRole('button', { name: 'Open navigation' });
+    await nav.hover();
+    await expect(auto(page)).toHaveText('Open navigation');
+    const b = (await nav.boundingBox())!,
+      t = (await auto(page).boundingBox())!;
+    expect(t.y).toBeGreaterThanOrEqual(b.y + b.height);
+    expect(t.x).toBeGreaterThanOrEqual(8);
+    expect(await axeScan(page, 'body')).toEqual([]);
   });
 });

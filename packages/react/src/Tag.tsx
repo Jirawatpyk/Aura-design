@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx, devWarnOnce, omit, useIsoLayoutEffect } from './internal.js';
 import { Tooltip } from './Tooltip.js';
+import { useAutoTip } from './autoTip.js';
 import { useStrings } from './locale.js';
 import type { TagProps } from './types.js';
 import { IconCheck, IconX } from './icons.js';
@@ -39,9 +40,10 @@ export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, r
     'touchHeight',
   ]);
   /* 5.28 (Chamber-OS 132): when the text is cut (24ch, or a FilterBar row narrower than the chip), the full text
-   * shows on hover (title) and, on a removable Tag, on the remove button's hover and focus (Tooltip). Only whether it
+   * shows on hover and keyboard focus (AURA's shared tip, 5.32; a native title before) and, on a removable Tag, on the remove button's hover and focus (Tooltip). Only whether it
    * is cut is state; the text is read from the children at render, so a new label is never stale. */
   const textRef = React.useRef<HTMLSpanElement | null>(null);
+  useAutoTip();
   const cutState = React.useState(false),
     isCut = cutState[0];
   const check = React.useCallback(function () {
@@ -66,7 +68,7 @@ export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, r
   const fullText = isCut ? textOf(props.children, true).replace(/\s+/g, ' ').trim() : '';
   const inner = [
     props.icon ? <Icon key="i" name={props.icon} size={14} /> : null,
-    <span key="t" ref={textRef} className="aura-tag__text" title={fullText || undefined}>
+    <span key="t" ref={textRef} className="aura-tag__text" data-aura-tip={fullText || undefined}>
       {props.children}
     </span>,
   ];

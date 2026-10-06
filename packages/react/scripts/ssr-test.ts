@@ -287,6 +287,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const sel = m(e(A.Select, { label: 'S', id: 's1', options: ['a'], touchHeight: 'always' }));
     if (!/^<div class="aura-field is-touch-always">/.test(tf) || !/aria-describedby="c1-hint"/.test(tf) || /touch[hH]eight/.test(tf + tt + rg + cbx + cbBare + sel) || !/^<div class="aura-field is-touch">/.test(tt) || !/class="aura-field aura-radio-group is-touch-always"/.test(rg) || !/class="aura-check aura-check--labelled is-touch-always"/.test(cbx) || /is-touch/.test(cbBare) || !/^<div class="aura-field is-touch-always">/.test(sel)) bad('touchHeight on fields:', tf, tt, rg, cbx, cbBare, sel);
     if (/is-touch/.test(m(e(A.TextField, { label: 'Cert' })))) bad('default TextField got a touch class');
+    /* 5.32: names show in AURA's shared tip (data-aura-tip), never a native title — unless the caller passes one. */
+    {
+      const ib = m(e(A.IconButton, { icon: 'pencil', label: 'Edit' })), ibT = m(e(A.IconButton, { icon: 'pencil', label: 'Edit', title: 'Own' }));
+      const pg = m(e(A.Pagination, { pageCount: 5, page: 2, onChange: () => {} })), pgL = m(e(A.Pagination, { pageCount: 5, page: 2, getHref: (p: number) => '/p/' + p }));
+      const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
+      if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
+    }
     /* 5.31 (Chamber-OS 138): labelAddon sits between the label and the box, and leads aria-describedby. */
     const la = m(e(A.TextField, { label: 'Type it', id: 'v1', hint: 'h', labelAddon: e('code', null, 'SC-1'), 'aria-describedby': 'own' }));
     const laT = m(e(A.Textarea, { label: 'N', id: 'n2', error: 'bad', labelAddon: 'REFUND' }));

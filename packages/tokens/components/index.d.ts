@@ -344,7 +344,8 @@ export interface IconButtonProps extends React$1.ButtonHTMLAttributes<HTMLButton
 	icon: IconInput;
 	/** `danger` colours the icon and hover for a destructive action (Delete, Revoke). */
 	tone?: "neutral" | "danger" | undefined;
-	/** Accessible name and tooltip (required). */
+	/** Accessible name and tooltip (required). Since 5.32 the tooltip is AURA's own (hover and keyboard focus), not a
+	 * native `title`; pass `title` yourself to keep a native one instead. */
 	label: string;
 	/** Icon size. Default `sm` (16). */
 	size?: "sm" | "md" | undefined;

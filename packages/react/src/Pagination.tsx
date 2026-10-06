@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { cx, plainClick, useMaybeControlled } from './internal.js';
+import { useAutoTip } from './autoTip.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { PaginationProps } from './types.js';
 import { IconChevronLeft, IconChevronRight } from './icons.js';
@@ -31,6 +32,7 @@ function pageList(page: number, count: number, sib: number): Array<number | stri
 
 export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(function Pagination(props, ref) {
   const t = useStrings();
+  useAutoTip();
   const count = Math.max(1, props.pageCount || 1);
   const st = useMaybeControlled(props.page, props.defaultPage || 1, props.onChange);
   const page = Math.min(count, Math.max(1, st[0]));
@@ -93,7 +95,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(functio
         rel={rel}
         className="aura-icon-btn"
         aria-label={label}
-        title={label}
+        data-aura-tip={label}
         onClick={function (e: React.MouseEvent) {
           if (props.onChange && plainClick(e)) {
             e.preventDefault();

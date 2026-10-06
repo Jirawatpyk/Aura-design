@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
+import { useAutoTip } from './autoTip.js';
 import type { SegmentedControlProps, SegmentedOption } from './types.js';
 
 function toOpt(o: SegmentedOption | string): SegmentedOption {
@@ -11,6 +12,7 @@ function toOpt(o: SegmentedOption | string): SegmentedOption {
 export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedControlProps>(
   function SegmentedControl(props, ref) {
     const options = (props.options || []).map(toOpt);
+    useAutoTip();
     const firstEnabled = options.filter(function (o: SegmentedOption) {
       return !o.disabled;
     })[0];
@@ -85,7 +87,7 @@ export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedContro
               role="radio"
               aria-checked={on}
               aria-label={o.iconOnly ? o.label : undefined}
-              title={o.iconOnly ? o.label : undefined}
+              data-aura-tip={o.iconOnly ? o.label : undefined}
               tabIndex={i === tabIdx && !props.disabled ? 0 : -1}
               disabled={off}
               className={cx('aura-segmented__option', on && 'is-selected', o.iconOnly && 'is-icon')}
