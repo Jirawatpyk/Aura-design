@@ -192,6 +192,7 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **AppShell `headerHideFrom="lg"`** (request 6): the top bar, `header` and all, shows only below 1024px — where the menu button is — as a header-less bar does: from lg up it is hidden and `--aura-shell-bar-height` is 0. For apps whose phone pages draw a top bar (brand, avatar) and whose desktop pages don't. Default: the bar shows at every width.
 - **PageHeader `breadcrumb`** (request 7): a `<Breadcrumb>` above the title, 4px from it like the eyebrow, in its own `div` — a `nav` can't sit in the eyebrow's `p` (invalid HTML, a hydration error) — with Breadcrumb's own 13px sans. With an eyebrow too, the breadcrumb comes first.
 - **Phone drawer header = bar height** (request 8): in AppShell's phone drawer, a SideNav with `headerDivider` takes the top bar's height (56px, or more when the bar's header wraps), content centred, so its line meets the bar's line beside it; the close button is centred on it. The fixed desktop sidebar keeps 72px.
+- **Also:** the nav drawer's close button is a 44px target on phones and touch screens (the header leaves it 60px); the divided header's layout no longer needs `:has()` (older Safari and Firefox centre the close button too); a DatePicker's or read-only Select's toggle shows its hover on the grey read-only ground.
 
 ## 5.32 — Icon tips, PageHeader, SideNav header divider, pill skeletons (DxT Monitor requests 1–4)
 

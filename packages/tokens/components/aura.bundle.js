@@ -7733,6 +7733,8 @@ window.Aura = (() => {
           size: "nav",
           "aria-label": props.navLabel || t.navigation,
           dismissible: true,
+          closeProps: { touchHeight: true },
+          className: navEl && navEl.props.headerDivider && navEl.props.header ? "aura-drawer--nav-divided" : void 0,
           style: barH[0] ? { "--aura-shell-bar-height": barH[0] + "px" } : void 0
         },
         drawerNav

@@ -507,7 +507,7 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-field.is-disabled .aura-input__control { cursor: not-allowed; }
 /* A read-only text field. Only an input: `:read-only` also matches any element that isn't editable — a
  * Select's trigger <button> — which painted every custom Select with the disabled ground (5.16.1, Chamber-OS 109). */
-.aura-input:has(input.aura-input__control:read-only) { background: var(--aura-bg-input-disabled); }
+.aura-input:has(input.aura-input__control:read-only) { background: var(--aura-bg-input-disabled); --aura-hover: var(--aura-bg-canvas-hover); } /* 5.33: a DatePicker's toggle shows its hover on the grey ground */
 /* A read-only Textarea looks like a read-only TextField (it is its own .aura-input, so the rule above can't reach it). */
 .aura-textarea:read-only:not(:disabled) { background: var(--aura-bg-input-disabled); }
 
@@ -530,7 +530,7 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-select.is-open .aura-select__chevron { transform: rotate(180deg); }
 /* 5.19 (Chamber-OS 114): a read-only Select looks like a read-only TextField — the same ground, no chevron (it doesn't
  * open), no pointer; the value keeps full contrast. */
-.aura-select.is-readonly { background: var(--aura-bg-input-disabled); }
+.aura-select.is-readonly { background: var(--aura-bg-input-disabled); --aura-hover: var(--aura-bg-canvas-hover); }
 .aura-select.is-readonly .aura-input__control { cursor: default; padding-right: var(--aura-space-3); }
 
 .aura-radio-group > legend { margin-bottom: 6px; }
@@ -1018,10 +1018,12 @@ a.aura-tab { text-decoration: none; }
 .aura-drawer--nav .aura-nav { width: 100%; border-right: 0; }
 /* 5.32: the phone drawer's close button (32px, 8px in) sits over the header's end: keep the brand clear of it. */
 .aura-drawer--nav .aura-nav__header { padding-inline-end: 48px; }
+/* 5.33: the drawer's close button is 44px on phones and touch screens (touchHeight), so the header leaves 60px. */
+@media (max-width: 639.98px), (pointer: coarse) { .aura-drawer--nav .aura-nav__header { padding-inline-end: 60px; } }
 /* 5.33 (DxT Monitor #8): in the phone drawer a divided header takes the top bar's height (its line meets the bar's
  * line beside it), its content centred; the close button is centred on it. The desktop sidebar keeps 72px. */
 .aura-drawer--nav .aura-nav--header-divider > .aura-nav__header { box-sizing: border-box; min-height: var(--aura-shell-bar-height, 56px); padding-top: 0; padding-bottom: 0; display: flex; align-items: center; }
-.aura-drawer--nav:has(.aura-nav--header-divider) .aura-drawer__head { top: 0; height: var(--aura-shell-bar-height, 56px); }
+.aura-drawer--nav-divided .aura-drawer__head { top: 0; height: var(--aura-shell-bar-height, 56px); } /* a class from AppShell, not :has(), so older browsers centre it too */
 .aura-drawer__foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--aura-space-3); padding: var(--aura-space-4) var(--aura-space-6); border-top: 1px solid var(--aura-border-default); }
 @media (prefers-reduced-motion: reduce) { .aura-drawer { animation: none; } }
 

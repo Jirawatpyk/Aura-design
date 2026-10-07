@@ -17,6 +17,8 @@ type NavElementProps = {
   className?: string | undefined;
   collapsed?: boolean | undefined;
   collapsible?: boolean | undefined;
+  headerDivider?: boolean | undefined;
+  header?: unknown;
 };
 
 /** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it.
@@ -122,6 +124,10 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
           size="nav"
           aria-label={props.navLabel || t.navigation}
           dismissible={true}
+          /* 5.33: a 44px close button on phones and touch screens; the divided header's class for the drawer, so it
+           * needs no :has(). */
+          closeProps={{ touchHeight: true }}
+          className={navEl && navEl.props.headerDivider && navEl.props.header ? 'aura-drawer--nav-divided' : undefined}
           style={barH[0] ? ({ '--aura-shell-bar-height': barH[0] + 'px' } as React.CSSProperties) : undefined}
         >
           {drawerNav}

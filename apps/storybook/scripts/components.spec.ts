@@ -6525,18 +6525,18 @@ test.describe('5.32: DxT Monitor requests 1, 3, 4', () => {
     const drawer = page.locator('.aura-drawer--nav');
     await expect(drawer).toBeVisible();
     const head = drawer.locator('.aura-nav__header');
-    expect(await css(head, 'padding-right')).toBe('48px');
+    expect(await css(head, 'padding-right')).toBe('60px'); // 5.33: a 44px close button on phones
     /* Both read at once: the drawer may still be sliding in. */
     const gap = await drawer.evaluate((d) => {
       const h = d.querySelector('.aura-nav__header')!.getBoundingClientRect(),
         c = d.querySelector('.aura-drawer__head button')!.getBoundingClientRect();
-      return c.left - (h.right - 48);
+      return c.left - (h.right - 60);
     });
     expect(gap).toBeGreaterThanOrEqual(-1);
     await expect(drawer.locator('.aura-nav')).toHaveClass(/aura-nav--header-divider/);
     /* RTL: the close button and the room for it both move to the left. */
     await page.evaluate(() => (document.documentElement.dir = 'rtl'));
-    expect(await css(head, 'padding-left')).toBe('48px');
+    expect(await css(head, 'padding-left')).toBe('60px');
     const off = await drawer.evaluate(
       (d) =>
         d.querySelector('.aura-drawer__head button')!.getBoundingClientRect().left - d.getBoundingClientRect().left,
@@ -6744,6 +6744,18 @@ test.describe('5.33: DxT Monitor requests 5–8', () => {
     expect(await bg(page.locator('.aura-table__head').first())).not.toBe('rgb(244, 244, 245)');
   });
 
+  test('5: a DatePicker toggle on its read-only (grey) input shows its hover', async ({ page }) => {
+    await story(page, 'aura-pickers--date-picker-story');
+    const t = page.locator('.aura-input:has(input:read-only) .aura-date__toggle').first();
+    const ground = await page
+      .locator('.aura-input:has(input:read-only)')
+      .first()
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
+    await t.hover();
+    await expect.poll(() => bg(t)).not.toBe(ground);
+    expect(await bg(t)).toBe('rgb(244, 244, 245)');
+  });
+
   test('6: headerHideFrom="lg" — no top bar from 1024px (bar height 0), the header bar with its menu below', async ({
     page,
   }) => {
@@ -6836,5 +6848,9 @@ test.describe('5.33: DxT Monitor requests 5–8', () => {
     });
     expect(Math.abs(m2.h - m2.bar)).toBeLessThanOrEqual(1);
     expect(Math.abs(m.cMid - (m.ht + 28))).toBeLessThanOrEqual(1);
+    /* 5.33: the close button is a 44px target on a phone; the drawer carries the divided class (no :has needed). */
+    const close = drawer.locator('.aura-drawer__head button');
+    expect(Math.round((await close.boundingBox())!.height)).toBe(44);
+    await expect(drawer).toHaveClass(/aura-drawer--nav-divided/);
   });
 });
