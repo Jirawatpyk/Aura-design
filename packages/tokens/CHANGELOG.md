@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.33.0
+
+### Minor Changes
+
+- 39e4fbc: DxT Monitor requests 5–8: new token `aura-bg-canvas-hover` (zinc-100 / zinc-800) so SideNav rows and the buttons in its header and footer show a hover on the canvas; AppShell `headerHideFrom="lg"` (a top bar on phones only); PageHeader `breadcrumb` slot; in the phone drawer a divided SideNav header is 56px, level with the top bar.
+
 ## 5.32.0
 
 ### Minor Changes
