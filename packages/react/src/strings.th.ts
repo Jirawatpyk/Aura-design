@@ -127,6 +127,10 @@ export const th: AuraLocalePack = {
   },
   breadcrumbMore: 'แสดงเส้นทางทั้งหมด',
   stepError: 'มีข้อผิดพลาด',
+  statusDown: 'ล่ม',
+  statusProblem: 'มีปัญหา',
+  statusMaintenance: 'ปิดปรับปรุง',
+  statusOk: 'ปกติ',
   accepts: function (list, max) {
     return [list, max && 'ไม่เกิน ' + max + ' ต่อไฟล์'].filter(Boolean).join(' · ');
   },

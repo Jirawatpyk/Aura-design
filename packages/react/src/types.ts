@@ -1731,3 +1731,82 @@ export interface Theme {
   /** CSS overriding the tokens. No selector: the whole page. A selector (".tenant-acme") scopes it. Load after aura.css. */
   css(selector?: string): string;
 }
+
+/* ---------- 5.34 (DxT Monitor S06): StatusTile, TileGrid, Sparkline ---------- */
+
+/** A monitored thing's state on a StatusTile. */
+export type StatusTileStatus = 'down' | 'problem' | 'maintenance' | 'ok';
+/** A colour for a tile's value or a marker: `danger`, `warning`, `accent` (violet), `neutral` (grey) or `default`
+ * (the text colour). */
+export type TileTone = 'danger' | 'warning' | 'accent' | 'neutral' | 'default';
+
+/** A small icon at the end of a StatusTile's second line ("SSL expires soon", "Muted"). */
+export interface StatusTileMarker {
+  icon: IconInput;
+  /** What it means. Read with the tile's name and shown as a tip on hover (a mouse only: on a phone, say it on the
+   * detail page too). */
+  label: string;
+  /** Default `neutral`. */
+  tone?: TileTone | undefined;
+}
+
+export interface StatusTileProps
+  extends
+    Pick<React.HTMLAttributes<HTMLElement>, 'id' | 'style' | 'lang' | 'dir'>,
+    React.AriaAttributes,
+    DataAttributes {
+  /** down (red), problem (amber), maintenance (violet) or ok (grey). Each has its own icon too, so colour is never the
+   * only sign. */
+  status: StatusTileStatus;
+  /** The name. Wraps to two lines at most, then ends with "…"; a cut name shows in full in a tip on hover. */
+  title: React.ReactNode;
+  /** Top right, tabular figures: "12m", "99.98%", "240 ms". */
+  value?: React.ReactNode | undefined;
+  /** The value's colour. Default: the status's (down → danger, problem → warning, maintenance → accent, ok → default). */
+  valueTone?: TileTone | undefined;
+  /** A short second line: "since 09:41", "3 of 4 checks". */
+  meta?: React.ReactNode | undefined;
+  /** Small icons at the end of the second line, each with a label. */
+  markers?: ReadonlyArray<StatusTileMarker> | undefined;
+  /** Makes the whole tile a link. Its name is everything the tile says, in reading order. */
+  href?: string | undefined;
+  /** Your router's link (e.g. `next/link`); defaults to AuraProvider's `linkComponent`, then `<a>`. */
+  linkComponent?: React.ElementType | undefined;
+  /** The status word read out after the title. Default: the locale's (Down, Problem, Maintenance, OK). */
+  statusLabel?: string | undefined;
+  className?: string | undefined;
+}
+
+export interface TileGridProps
+  extends
+    Pick<React.HTMLAttributes<HTMLElement>, 'id' | 'style' | 'lang' | 'dir'>,
+    React.AriaAttributes,
+    DataAttributes {
+  /** Equal columns, responsive like Grid. Default `{ base: 2, md: 3 }` (two on phones, three from 768px). */
+  columns?: Responsive<number> | undefined;
+  /** Each child (and each child of a Fragment) becomes one list item; the grid is a `ul` with an 8px gap. */
+  children?: React.ReactNode;
+  className?: string | undefined;
+}
+
+export interface SparklineProps extends Pick<React.SVGAttributes<SVGSVGElement>, 'id' | 'style'>, DataAttributes {
+  /** The values, oldest first. `null` (or a value that isn't a finite number) is no point: the line breaks there. */
+  data: ReadonlyArray<number | null | undefined>;
+  /** Which points failed, by the same index as `data`. Shown only when `failures` isn't `none`. */
+  failed?: ReadonlyArray<boolean | null | undefined> | undefined;
+  /** How failed points show: `none` (default), `band` (a red band behind the point) or `ticks` (a red tick at the
+   * foot). */
+  failures?: 'none' | 'band' | 'ticks' | undefined;
+  /** The line's colour. Default `neutral`. */
+  tone?: 'neutral' | 'accent' | 'danger' | 'warning' | 'positive' | undefined;
+  /** `sm` 80×24 (default), `md` 120×32. */
+  size?: 'sm' | 'md' | undefined;
+  /** The scale's ends; default the data's own lowest and highest. Give tiles the same ones to compare them. Values
+   * beyond them are drawn at the edge. */
+  min?: number | undefined;
+  max?: number | undefined;
+  /** What the line says, for screen readers ("Response time, last 24 h: 180–420 ms, 2 failures"). Without it the
+   * sparkline is decoration and hidden from them. */
+  label?: string | undefined;
+  className?: string | undefined;
+}

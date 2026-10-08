@@ -1164,6 +1164,68 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 /* Anything else interactive in the tile sits above the stretched link. No specificity, so a control's own position wins. */
 :where(.aura-stat--label-link) :where(a, button, input, select, textarea, label, summary, [tabindex]):not(:where(.aura-stat__link)) { position: relative; z-index: 1; }
 
+/* ---------- StatusTile, TileGrid, Sparkline (5.34, DxT Monitor S06) ---------- */
+.aura-tile-grid { list-style: none; margin: 0; padding: 0; --aura-grid-gap-base: var(--aura-space-2); --aura-grid-gap-sm: var(--aura-space-2); --aura-grid-gap-md: var(--aura-space-2); --aura-grid-gap-lg: var(--aura-space-2); --aura-grid-gap-xl: var(--aura-space-2); }
+.aura-tile-grid > li { display: flex; min-width: 0; container: aura-status-tile / inline-size; } /* the narrow-tile query reads the cell: a grid cell has a definite width */
+.aura-tile-grid > li > * { flex: 1; min-width: 0; }
+.aura-status-tile {
+  position: relative; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  padding: var(--aura-space-2) var(--aura-space-3); background: var(--aura-bg-surface); color: var(--aura-fg-primary);
+  border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-sm);
+  font-family: var(--font-sans); font-size: 13px; line-height: 18px; text-align: start; text-decoration: none;
+  --aura-hover: var(--aura-bg-surface-hover);
+}
+.aura-status-tile--down { background: var(--aura-alert-danger-bg); border-color: var(--aura-alert-danger-border); }
+.aura-status-tile--problem { background: var(--aura-alert-warning-bg); border-color: var(--aura-alert-warning-border); }
+.aura-status-tile--maintenance { background: var(--aura-alert-info-bg); border-color: var(--aura-alert-info-border); }
+.aura-status-tile.is-interactive { cursor: pointer; transition: border-color var(--aura-duration-fast) var(--aura-ease); }
+.aura-status-tile.is-interactive:hover { border-color: var(--aura-border-strong); }
+.aura-status-tile.is-interactive:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+.aura-status-tile__head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0 var(--aura-space-2); min-width: 0; }
+.aura-status-tile__sep { font-size: 0; }
+.aura-status-tile__icon { flex: none; margin-top: 1px; color: var(--aura-fg-secondary); }
+.aura-status-tile--down .aura-status-tile__icon { color: var(--aura-alert-danger-fg); }
+.aura-status-tile--problem .aura-status-tile__icon { color: var(--aura-alert-warning-fg); }
+.aura-status-tile--maintenance .aura-status-tile__icon { color: var(--aura-alert-info-fg); }
+/* Two lines at most: similar names stay apart. */
+.aura-status-tile__title {
+  flex: 1 1 0; min-width: 0; font-weight: 600; overflow-wrap: break-word;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.aura-status-tile__value { flex: none; margin-inline-start: auto; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aura-status-tile__value.is-danger, .aura-status-tile__marker.is-danger { color: var(--aura-fg-danger); }
+.aura-status-tile__value.is-warning, .aura-status-tile__marker.is-warning { color: var(--aura-fg-warning); }
+.aura-status-tile__value.is-accent, .aura-status-tile__marker.is-accent { color: var(--aura-fg-accent); }
+.aura-status-tile__value.is-neutral, .aura-status-tile__marker.is-neutral { color: var(--aura-fg-secondary); }
+.aura-status-tile--down .aura-status-tile__value.is-danger { color: var(--aura-alert-danger-fg); }
+.aura-status-tile--problem .aura-status-tile__value.is-warning { color: var(--aura-alert-warning-fg); }
+.aura-status-tile--maintenance .aura-status-tile__value.is-accent { color: var(--aura-alert-info-fg); }
+/* A narrow tile in a TileGrid (two columns on a phone) puts the value on its own line under the title, in every tile
+ * alike, rather than squeezing the title to a word. The grid's cells are the containers: on the tile itself, inline-size
+ * containment would collapse a tile in a flex row or an inline block to nothing. */
+@container aura-status-tile (max-width: 225.98px) {
+  .aura-status-tile__value { flex-basis: 100%; margin-inline-start: 0; padding-inline-start: 24px; }
+}
+/* The second line starts under the title. */
+.aura-status-tile__foot { display: flex; align-items: center; gap: var(--aura-space-2); min-width: 0; padding-inline-start: 24px; font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-status-tile__meta { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.aura-status-tile__markers { display: inline-flex; align-items: center; gap: var(--aura-space-1); margin-inline-start: auto; flex: none; }
+.aura-status-tile__marker { display: inline-flex; }
+.aura-status-tile:lang(th) { line-height: 20px; }
+.aura-sparkline { display: inline-block; flex: none; vertical-align: middle; overflow: visible; color: var(--aura-fg-secondary); }
+.aura-sparkline.is-accent { color: var(--aura-fg-accent); }
+.aura-sparkline.is-danger { color: var(--aura-fg-danger); }
+.aura-sparkline.is-warning { color: var(--aura-fg-warning); }
+.aura-sparkline.is-positive { color: var(--aura-fg-positive); }
+.aura-sparkline__line { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.aura-sparkline__dots { fill: currentColor; }
+.aura-sparkline__band { fill: var(--aura-fg-danger); opacity: 0.16; }
+.aura-sparkline__ticks { fill: var(--aura-fg-danger); }
+@media (forced-colors: active) {
+  .aura-sparkline { color: CanvasText; }
+  .aura-sparkline__band, .aura-sparkline__ticks { fill: Highlight; }
+}
+
 /* ---------- TimePicker ---------- */
 .aura-time__popover { min-width: 160px; }
 .aura-time__option { min-height: 36px; font-variant-numeric: tabular-nums; }

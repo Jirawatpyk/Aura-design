@@ -96,6 +96,11 @@ export interface AuraStrings {
   breadcrumbMore: string;
   /** A Stepper step with `status: 'error'` (5.18). */
   stepError: string;
+  /** StatusTile's status words (5.34). */
+  statusDown: string;
+  statusProblem: string;
+  statusMaintenance: string;
+  statusOk: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */
@@ -224,6 +229,10 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     },
     breadcrumbMore: 'Show the full path',
     stepError: 'has errors',
+    statusDown: 'Down',
+    statusProblem: 'Problem',
+    statusMaintenance: 'Maintenance',
+    statusOk: 'OK',
     accepts: function (list, max) {
       return [list, max && 'up to ' + max + ' each'].filter(Boolean).join(', ');
     },

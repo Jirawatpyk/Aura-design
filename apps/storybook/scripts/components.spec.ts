@@ -6854,3 +6854,327 @@ test.describe('5.33: DxT Monitor requests 5–8', () => {
     await expect(drawer).toHaveClass(/aura-drawer--nav-divided/);
   });
 });
+
+test.describe('5.34: StatusTile, TileGrid, Sparkline (DxT Monitor S06)', () => {
+  const OV = 'aura-new-in-5-34-status-tiles--overview';
+  const SP = 'aura-new-in-5-34-status-tiles--sparklines';
+  const css = (l: import('@playwright/test').Locator, p: string) =>
+    l.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), p);
+  const rect = (l: import('@playwright/test').Locator) =>
+    l.evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height };
+    });
+
+  test('the whole tile is one link named by everything it says, in reading order', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, OV);
+    const down = page.getByRole('link', {
+      name: 'api.example.co.th, Down, 12m, since 09:41, SSL expires in 5 days',
+      exact: true,
+    });
+    await expect(down).toHaveCount(1);
+    await expect(down).toHaveAttribute('href', '#down');
+    await expect(
+      page.getByRole('link', { name: 'Checkout, Problem, 1.8 s, slow · 3 of 4 regions', exact: true }),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole('link', { name: 'Billing, Maintenance, until 14:00, Planned', exact: true }),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole('link', {
+        name: 'Customer portal — production (Bangkok region, primary), OK, 99.98%, 240 ms, Alerts muted, SSL valid',
+        exact: true,
+      }),
+    ).toHaveCount(1);
+    /* No aria-label: the name comes from what is shown (WCAG 2.5.3). Thai tiles use the Thai words with a provider;
+     * without one, English. Without href, a plain box. */
+    expect(await down.getAttribute('aria-label')).toBeNull();
+    const plain = page.getByTestId('plain');
+    expect(await plain.evaluate((e) => e.tagName)).toBe('DIV');
+    expect(await plain.ariaSnapshot()).toContain('Status page, OK');
+    /* Focus ring on keyboard focus. */
+    await down.focus();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Shift+Tab');
+    await expect(down).toBeFocused();
+    expect(await css(down, 'outline-style')).toBe('solid');
+    expect(parseFloat(await css(down, 'outline-width'))).toBeGreaterThanOrEqual(2);
+  });
+
+  test('each status has its own icon and tint (never colour alone), light and dark', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    for (const theme of ['light', 'dark'] as const) {
+      await story(page, OV, theme);
+      const icons = new Set<string>();
+      const bgs = new Set<string>();
+      for (const id of ['down', 'problem', 'maintenance', 'ok']) {
+        const tile = page.getByTestId(id);
+        icons.add(await tile.locator('.aura-status-tile__icon').evaluate((e) => e.innerHTML));
+        bgs.add(await css(tile, 'background-color'));
+      }
+      expect(icons.size).toBe(4);
+      expect(bgs.size).toBe(4);
+      const want = await page.evaluate(() => {
+        const s = getComputedStyle(document.documentElement);
+        const probe = document.createElement('i');
+        document.body.appendChild(probe);
+        const out: Record<string, string> = {};
+        for (const v of ['alert-danger-bg', 'alert-warning-bg', 'alert-info-bg', 'bg-surface']) {
+          probe.style.color = 'var(--aura-' + v + ')';
+          out[v] = getComputedStyle(probe).color;
+        }
+        probe.remove();
+        return out;
+      });
+      expect(await css(page.getByTestId('down'), 'background-color')).toBe(want['alert-danger-bg']);
+      expect(await css(page.getByTestId('problem'), 'background-color')).toBe(want['alert-warning-bg']);
+      expect(await css(page.getByTestId('maintenance'), 'background-color')).toBe(want['alert-info-bg']);
+      expect(await css(page.getByTestId('ok'), 'background-color')).toBe(want['bg-surface']);
+    }
+  });
+
+  test('title: two lines at most, never one line with …; value top right in tabular figures and its tone', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, OV);
+    for (const id of ['ok', 'ok-similar']) {
+      const title = page.getByTestId(id).locator('.aura-status-tile__title');
+      const lh = parseFloat(await css(title, 'line-height'));
+      const r = await rect(title);
+      /* Both similar names show two full lines (they differ only at the end). */
+      expect(Math.round(r.h / lh)).toBe(2);
+    }
+    /* A very long name stops at two lines. */
+    const t = page.getByTestId('ok').locator('.aura-status-tile__title');
+    await t.evaluate((e) => (e.textContent = 'Customer portal '.repeat(12)));
+    const lh = parseFloat(await css(t, 'line-height'));
+    expect(Math.round((await rect(t)).h / lh)).toBe(2);
+    expect(await t.evaluate((e) => e.scrollHeight > e.clientHeight)).toBe(true);
+    /* The value: top right, same first line as the title, tabular, red and bold on Down. */
+    const tile = page.getByTestId('down');
+    const v = tile.locator('.aura-status-tile__value');
+    const tr = await rect(tile),
+      vr = await rect(v),
+      ti = await rect(tile.locator('.aura-status-tile__title'));
+    expect(Math.abs(tr.r - 13 - vr.r)).toBeLessThanOrEqual(1);
+    expect(Math.abs(vr.t - ti.t)).toBeLessThanOrEqual(1);
+    expect(await css(v, 'font-variant-numeric')).toContain('tabular-nums');
+    expect(Number(await css(v, 'font-weight'))).toBeGreaterThanOrEqual(600);
+    expect(await css(v, 'color')).toBe(await css(tile.locator('.aura-status-tile__icon'), 'color'));
+    /* valueTone overrides: Billing's "until 14:00" is grey, not violet. */
+    const bv = page.getByTestId('maintenance').locator('.aura-status-tile__value');
+    expect(await css(bv, 'color')).not.toBe(
+      await css(page.getByTestId('maintenance').locator('.aura-status-tile__icon'), 'color'),
+    );
+  });
+
+  test('markers sit at the end of the second line and show their label as a tip on hover', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, OV);
+    const tile = page.getByTestId('ok');
+    const markers = tile.locator('.aura-status-tile__marker');
+    await expect(markers).toHaveCount(2);
+    const last = await rect(markers.nth(1)),
+      meta = await rect(tile.locator('.aura-status-tile__meta')),
+      tr = await rect(tile);
+    expect(Math.abs(tr.r - 13 - last.r)).toBeLessThanOrEqual(1);
+    expect(Math.abs((last.t + last.b) / 2 - (meta.t + meta.b) / 2)).toBeLessThanOrEqual(2);
+    await markers.nth(0).hover();
+    await expect(page.locator('.aura-tooltip--auto')).toHaveText('Alerts muted');
+    await expect(page.locator('.aura-tooltip--auto')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  test('TileGrid: a list of equal columns 8px apart — three on a desktop, two on a phone; RTL mirrors', async ({
+    page,
+  }) => {
+    for (const [w, cols] of [
+      [1280, 3],
+      [390, 2],
+    ] as const) {
+      await page.setViewportSize({ width: w, height: 900 });
+      await story(page, OV);
+      const grid = page.getByTestId('grid');
+      expect(await grid.evaluate((e) => e.tagName)).toBe('UL');
+      await expect(grid.getByRole('listitem')).toHaveCount(6);
+      await expect(page.getByRole('list', { name: 'Sites' })).toHaveCount(1);
+      const boxes = await grid.locator(':scope > li').evaluateAll((els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect();
+          return { l: Math.round(r.left), w: Math.round(r.width), t: Math.round(r.top), b: Math.round(r.bottom) };
+        }),
+      );
+      expect(new Set(boxes.map((b) => b.l)).size).toBe(cols);
+      expect(new Set(boxes.map((b) => b.w)).size).toBe(1);
+      expect(boxes[1].l - (boxes[0].l + boxes[0].w)).toBe(8);
+      expect(boxes[cols].t - boxes[0].b).toBe(8);
+      /* Tiles in a row are as tall as the tallest. */
+      const tiles = await grid
+        .locator('.aura-status-tile')
+        .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+      expect(tiles[0]).toBe(tiles[cols - 1]);
+    }
+    /* Phone: the value goes under the title in every tile alike instead of squeezing it. */
+    const tv = await rect(page.getByTestId('problem').locator('.aura-status-tile__value'));
+    const tt = await rect(page.getByTestId('problem').locator('.aura-status-tile__title'));
+    expect(tv.t).toBeGreaterThanOrEqual(tt.b - 1);
+    expect(Math.abs(tv.l + 24 - tt.l)).toBeLessThanOrEqual(1); // under the title, past the icon
+    /* RTL: icon at the right, value at the left. */
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, OV);
+    const rtl = page.getByTestId('rtl').locator('.aura-status-tile');
+    const ri = await rect(rtl.locator('.aura-status-tile__icon')),
+      rv = await rect(rtl.locator('.aura-status-tile__value'));
+    expect(ri.l).toBeGreaterThan(rv.r);
+  });
+
+  test('Sparkline: null breaks the line, a lone point is a dot, failures as band or ticks, sizes and names', async ({
+    page,
+  }) => {
+    await story(page, SP);
+    const svg = (id: string) => page.getByTestId(id);
+    /* LATENCY has nulls at 3–4 and 13: three runs. */
+    const d = await svg('gaps').locator('path').getAttribute('d');
+    expect(d!.match(/M/g)!.length).toBe(3);
+    expect(await svg('gaps').locator('rect').count()).toBe(0); // failures default to none
+    expect(await svg('band').locator('.aura-sparkline__band rect').count()).toBe(3);
+    expect(await svg('ticks').locator('.aura-sparkline__ticks rect').count()).toBe(3);
+    /* A band spans its point's slot, full height, behind the line. */
+    const band = await svg('band').evaluate((e) => {
+      const g = e.querySelector('.aura-sparkline__band')!;
+      return { first: e.firstElementChild === g, h: g.querySelector('rect')!.getAttribute('height') };
+    });
+    expect(band).toEqual({ first: true, h: '24' });
+    for (const [id, w, h] of [
+      ['gaps', 80, 24],
+      ['md', 120, 32],
+    ] as const) {
+      const r = await rect(svg(id));
+      expect([Math.round(r.w), Math.round(r.h)]).toEqual([w, h]);
+    }
+    await expect(svg('lone').locator('circle')).toHaveCount(1);
+    expect((await svg('lone').locator('path').getAttribute('d'))!.match(/M/g)!.length).toBe(1);
+    expect(await svg('flat').locator('path').getAttribute('d')).toMatch(/^M2 12L/);
+    await expect(svg('empty').locator('path')).toHaveCount(0);
+    /* Shared scale: 100 of 0–400 sits low, 400 at the top. */
+    const ya = await svg('scale-a').locator('path').getAttribute('d');
+    const yb = await svg('scale-b').locator('path').getAttribute('d');
+    expect(ya).toBe('M2 17L78 17');
+    expect(yb).toBe('M2 2L78 2');
+    /* Names: role img with the label; without a label it is hidden. */
+    await expect(page.getByRole('img', { name: 'Response time with gaps' })).toHaveCount(1);
+    await expect(svg('decor')).toHaveAttribute('aria-hidden', 'true');
+    expect(await svg('decor').getAttribute('role')).toBeNull();
+    /* Tones: the line takes the tone's colour. */
+    const stroke = (id: string) =>
+      svg(id)
+        .locator('path')
+        .evaluate((e) => getComputedStyle(e).stroke);
+    expect(new Set([await stroke('gaps'), await stroke('band'), await stroke('ticks'), await stroke('md')]).size).toBe(
+      4,
+    );
+  });
+
+  test('review: a tile outside TileGrid keeps its width; a cut title shows its full name in a tip; Thai words', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, OV);
+    /* In a flex row the tile is as wide as its content, not collapsed by containment. */
+    const row = page.getByTestId('row').locator('.aura-status-tile');
+    const r = await rect(row);
+    expect(r.w).toBeGreaterThan(100);
+    expect(r.h).toBeLessThanOrEqual(64);
+    /* A cut title carries its full text as an AURA tip (aria-hidden); an uncut one doesn't. */
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, OV);
+    const cut = page.getByTestId('grid-th').locator('.aura-status-tile__title').first();
+    await expect(cut).toHaveAttribute('data-aura-tip', 'ระบบลงทะเบียนสมาชิกหอการค้า (สำนักงานใหญ่และสาขาภูมิภาค)');
+    expect(
+      await page.getByTestId('plain').locator('.aura-status-tile__title').getAttribute('data-aura-tip'),
+    ).toBeNull();
+    await cut.hover();
+    await expect(page.locator('.aura-tooltip--auto')).toHaveText(
+      'ระบบลงทะเบียนสมาชิกหอการค้า (สำนักงานใหญ่และสาขาภูมิภาค)',
+    );
+    /* Widening the page uncuts it: the tip goes. */
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect.poll(() => cut.getAttribute('data-aura-tip')).toBeNull();
+    /* With the Thai pack the status word is Thai. */
+    await expect(
+      page.getByRole('link', {
+        name: 'ระบบลงทะเบียนสมาชิกหอการค้า (สำนักงานใหญ่และสาขาภูมิภาค), ล่ม, 3 ชม., ตั้งแต่ 08:12',
+        exact: true,
+      }),
+    ).toHaveCount(1);
+    await expect(page.getByRole('link', { name: 'หน้าเว็บหลัก, ปกติ, 100%, 180 ms', exact: true })).toHaveCount(1);
+    /* A labelled Sparkline in the meta joins the link's name. */
+    await expect(
+      page.getByRole('link', { name: 'Search API, OK, 210 ms, Response time, last 16 checks', exact: true }),
+    ).toHaveCount(1);
+    /* A Fragment's tiles are list items of their own. */
+    await expect(page.getByTestId('grid-frag').getByRole('listitem')).toHaveCount(3);
+  });
+
+  test('review: a link that does not forward refs: no React warning, and the cut title still gets its tip (hover and focus)', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text());
+    });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, OV);
+    const tile = page.getByTestId('plain-link').locator('.aura-status-tile');
+    expect(await tile.getAttribute('data-plain-link')).toBe('');
+    const title = tile.locator('.aura-status-tile__title');
+    await expect(title).toHaveAttribute(
+      'data-aura-tip',
+      'A long site name on a router link that does not forward refs',
+    );
+    expect(errors.filter((e) => /ref/i.test(e))).toEqual([]);
+    /* Keyboard focus on the tile's link shows the cut title too. */
+    await tile.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(tile).toBeFocused();
+    await expect(page.locator('.aura-tooltip--auto')).toHaveText(
+      'A long site name on a router link that does not forward refs',
+    );
+    /* A new, short title: the tip goes. */
+    await title.evaluate((e) => (e.firstChild!.textContent = 'Short'));
+    await expect.poll(() => title.getAttribute('data-aura-tip')).toBeNull();
+    /* A control of its own inside a tile shows no title tip; the tile's padding does. */
+    await page.mouse.move(0, 0);
+    await expect(page.locator('.aura-tooltip--auto')).toHaveCount(0);
+    const wb = page.getByTestId('with-button');
+    await expect(wb.locator('.aura-status-tile__title')).toHaveAttribute('data-aura-tip', /retry button/);
+    await wb.getByRole('button', { name: 'Retry' }).focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(wb.getByRole('button', { name: 'Retry' })).toBeFocused();
+    await page.waitForTimeout(500);
+    await expect(page.locator('.aura-tooltip--auto')).toHaveCount(0);
+    await wb.getByRole('button', { name: 'Retry' }).hover();
+    await page.waitForTimeout(600);
+    await expect(page.locator('.aura-tooltip--auto')).toHaveCount(0);
+    const box = (await wb.locator('.aura-status-tile').boundingBox())!;
+    await page.mouse.move(box.x + 4, box.y + 4);
+    await expect(page.locator('.aura-tooltip--auto')).toHaveText(/retry button/);
+  });
+
+  test('review: Sparkline min greater than max is swapped', async ({ page }) => {
+    await story(page, SP);
+    expect(await page.getByTestId('scale-swapped').locator('path').getAttribute('d')).toBe('M2 2L78 2');
+  });
+
+  test('axe: no violations in the tiles and sparklines, light and dark', async ({ page }) => {
+    for (const theme of ['light', 'dark'] as const) {
+      for (const id of [OV, SP]) {
+        await story(page, id, theme);
+        expect(await axeScan(page, '#storybook-root')).toEqual([]);
+      }
+    }
+  });
+});

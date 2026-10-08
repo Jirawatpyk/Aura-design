@@ -98,6 +98,16 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
     Stack: h(A.Stack, { direction: { base: 'column', md: 'row' }, gap: { base: 2, md: 4 } }, 'a', 'b'),
     Grid: h(A.Grid, { columns: { base: 1, md: 2, lg: 4 } }, 'a', 'b'),
     Container: h(A.Container, { size: 'narrow' }, 'c'),
+    StatusTile: h(A.StatusTile, {
+      status: 'down',
+      title: 'api.example.co.th',
+      value: '12m',
+      meta: 'since 09:41',
+      markers: [{ icon: 'lock', label: 'SSL expires soon' }],
+      href: '#s',
+    }),
+    TileGrid: h(A.TileGrid, null, h(A.StatusTile, { status: 'ok', title: 'A' }), h(A.StatusTile, { status: 'ok', title: 'B' })),
+    Sparkline: h(A.Sparkline, { data: [1, null, 3, 4, 2], failed: [false, true], failures: 'band', label: 'Latency' }),
     PageHeader: h(
       A.PageHeader,
       { eyebrow: 'Monitor', title: 'Overview', meta: '12 sites', actions: h(A.Button, null, 'Add') },

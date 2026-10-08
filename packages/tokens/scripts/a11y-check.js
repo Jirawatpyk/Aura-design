@@ -82,6 +82,11 @@ pairs.push(['border-danger', 'bg-input', UI]);
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['button-secondary-border', bg, UI]);
 pairs.push(['button-danger-fg', 'button-danger-bg', TEXT], ['button-danger-fg', 'button-danger-bg-hover', TEXT]);
 for (const bg of ['bg-surface', 'bg-canvas', 'alert-danger-bg']) pairs.push(['fg-danger', bg, TEXT]);
+/* 5.34 StatusTile: its meta, value tones and markers on the down / problem / maintenance tints, and its focus ring. */
+for (const bg of ['alert-danger-bg', 'alert-warning-bg', 'alert-info-bg']) {
+  for (const fg of ['fg-secondary', 'fg-danger', 'fg-warning', 'fg-accent']) if (!(fg === 'fg-danger' && bg === 'alert-danger-bg')) pairs.push([fg, bg, TEXT]);
+  pairs.push(['focus-ring', bg, UI]);
+}
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['border-danger', bg, UI], ['button-danger-bg', bg, UI]);
 /* Chart marks (WCAG 1.4.11) and axis labels. Neighbouring categorical colours must also differ in lightness
  * (NEIGHBOUR:1) so a series next to another stays distinct without hue (deuteranopia, greyscale print). */

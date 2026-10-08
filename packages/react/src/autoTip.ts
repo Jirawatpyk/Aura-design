@@ -38,6 +38,13 @@ function source(t: EventTarget | null): HTMLElement | null {
     const tag = el.closest('.aura-tag');
     if (tag) s = tag.querySelector('.aura-tag__text[' + ATTR + ']');
   }
+  /* 5.34: a StatusTile (its link focused, or its padding hovered) whose title is cut: the title. Not for a control
+   * of its own inside the tile (a Retry button in its meta). */
+  if (!s) {
+    const tile = el.closest('.aura-status-tile');
+    const control = el.closest('a, button, input, select, textarea, [tabindex]');
+    if (tile && (!control || control === tile)) s = tile.querySelector('.aura-status-tile__title[' + ATTR + ']');
+  }
   if (!s || !s.getAttribute(ATTR) || !s.isConnected) return null;
   /* A menu trigger whose menu is open. */
   if (s.getAttribute('aria-expanded') === 'true') return null;

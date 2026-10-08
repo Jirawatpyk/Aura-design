@@ -127,6 +127,10 @@ export const sv: AuraLocalePack = {
   },
   breadcrumbMore: 'Visa hela sökvägen',
   stepError: 'har fel',
+  statusDown: 'Nere',
+  statusProblem: 'Problem',
+  statusMaintenance: 'Underhåll',
+  statusOk: 'OK',
   accepts: function (list, max) {
     return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
   },

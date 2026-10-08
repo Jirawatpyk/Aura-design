@@ -85,6 +85,10 @@ for (const [name, A] of [
       tree(A.Stat({ label: 'Membership', headingLevel: 2, value: 'Active' })),
       tree(A.Stat({ label: 'Quota', loading: true })),
       tree(A.Avatar({ name: 'Anna Berg' })),
+      /* 5.34 (DxT Monitor S06): StatusTile, TileGrid and Sparkline are stateless. */
+      tree(A.StatusTile({ status: 'down', title: 'API', value: '12m', markers: [{ icon: 'bell', label: 'Muted' }], href: '#s' })),
+      tree(A.TileGrid.render({ children: ['a', 'b'] }, null)),
+      tree(A.Sparkline.render({ data: [1, null, 3, 4], label: 'Latency' }, null)),
       /* 5.32 (DxT Monitor 3): PageHeader is stateless. */
       tree(A.PageHeader.render({ eyebrow: 'Monitor', title: 'Overview', meta: '12 sites' }, null)),
       /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
@@ -120,6 +124,13 @@ for (const [name, A] of [
       'data-slot="layout-container"',
       'data-variant="form"',
       '<section',
+      'class="aura-status-tile aura-status-tile--down is-interactive"',
+      'href="#s"',
+      '>Down,<',
+      'data-aura-tip="Muted"',
+      '<ul role="list" class="aura-grid-layout aura-tile-grid"><li>a</li><li>b</li></ul>',
+      'role="img" aria-label="Latency"',
+      'd="M52.67 8.67L78 2"',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')

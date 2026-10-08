@@ -502,10 +502,39 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       ['Stat', { label: 'Membership', value: 'Gold', href: '/m', headingLevel: 2, linkArea: 'label', status: 'Active', 'data-testid': 'stat-card', 'aria-describedby': 'x' }],
       ['Avatar', { name: 'Anna Berg', size: 'lg', status: 'online' }],
       ['Avatar', { name: 'Somchai', src: '/a.png' }],
+      /* 5.34 (DxT Monitor S06) */
+      ['StatusTile', { status: 'down', title: 'API', value: '12m', meta: 'since 09:41', markers: [{ icon: 'lock', label: 'SSL soon', tone: 'warning' }, { icon: 'bell', label: 'Muted' }], href: '/s/1', 'data-testid': 't' }],
+      ['StatusTile', { status: 'maintenance', title: 'Billing', valueTone: 'neutral', value: 'until 14:00', statusLabel: 'ปิดปรับปรุง' }],
+      ['TileGrid', { columns: { base: 2, lg: 4 }, 'aria-label': 'Sites', children: [e('b', { key: 'x' }, 'x'), null, 'y'] }],
+      ['Sparkline', { data: [1, null, 3, 4], failed: [false, false, true, true], failures: 'ticks', tone: 'danger', label: 'Latency', id: 'sp' }],
     ];
     for (const [n, p] of cases) {
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
+    }
+    /* 5.34: StatusTile named from content in reading order (inline commas, no aria-label); TileGrid a ul of li with
+     * column variables; Sparkline breaks at null, a lone point is a dot, failures off by default. */
+    {
+      const tile = m(e(A.StatusTile, { status: 'down', title: 'API', value: '12m', meta: 'since 09:41', markers: [{ icon: 'lock', label: 'SSL soon' }, { icon: 'bell', label: 'Muted' }], href: '/s/1' }));
+      const want = /^<a href="\/s\/1" class="aura-status-tile aura-status-tile--down is-interactive"><span class="aura-status-tile__head"><svg[^>]*class="aura-icon aura-status-tile__icon"[^]*?<\/svg><span class="aura-status-tile__title">API<span class="aura-status-tile__sep">,<\/span><\/span><span class="aura-sr-only">Down,<\/span><span class="aura-status-tile__value is-danger">12m<span class="aura-status-tile__sep">,<\/span><\/span><\/span><span class="aura-status-tile__foot"><span class="aura-status-tile__meta">since 09:41<span class="aura-status-tile__sep">,<\/span><\/span><span class="aura-status-tile__markers"><span class="aura-status-tile__marker is-neutral" data-aura-tip="SSL soon"><svg[^]*?<\/svg><span class="aura-sr-only">SSL soon,<\/span><\/span><span class="aura-status-tile__marker is-neutral" data-aura-tip="Muted"><svg[^]*?<\/svg><span class="aura-sr-only">Muted<\/span><\/span><\/span><\/span><\/a>$/;
+      const bare = m(e(A.StatusTile, { status: 'ok', title: 'Status page' }));
+      const th = m(e(A.AuraProvider, { locale: 'th' }, e(A.StatusTile, { status: 'problem', title: 'x', value: '1' })));
+      const grid = m(e(A.TileGrid, null, e(A.StatusTile, { status: 'ok', title: 'A' }), false, e(A.StatusTile, { status: 'ok', title: 'B' })));
+      const sp = m(e(A.Sparkline, { data: [1, null, 3, 4], failed: [true, true], label: 'L' }));
+      const sp2 = m(e(A.Sparkline, { data: [1, 2], failed: [true, false], failures: 'band' }));
+      if (
+        !want.test(tile) ||
+        /aria-label/.test(tile) ||
+        !/^<div class="aura-status-tile aura-status-tile--ok"><span class="aura-status-tile__head">[^]*<span class="aura-sr-only">OK<\/span><\/span><\/div>$/.test(bare) ||
+        !/<span class="aura-sr-only">มีปัญหา,<\/span>/.test(th) ||
+        !/^<ul role="list" class="aura-grid-layout aura-tile-grid" style="--aura-grid-cols-base:2;--aura-grid-cols-sm:2;--aura-grid-cols-md:3;--aura-grid-cols-lg:3;--aura-grid-cols-xl:3"><li><div class="aura-status-tile aura-status-tile--ok">[^]*<\/div><\/li><li><div[^]*<\/li><\/ul>$/.test(grid) ||
+        (grid.match(/<li>/g) || []).length !== 2 ||
+        sp !== '<svg class="aura-sparkline is-neutral" width="80" height="24" viewBox="0 0 80 24" role="img" aria-label="L" focusable="false"><path class="aura-sparkline__line" d="M52.67 8.67L78 2"></path><g class="aura-sparkline__dots"><circle cx="2" cy="22" r="1.5"></circle></g></svg>' ||
+        sp2 !== '<svg class="aura-sparkline is-neutral" width="80" height="24" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><g class="aura-sparkline__band"><rect x="0" y="0" width="40" height="24"></rect></g><path class="aura-sparkline__line" d="M2 22L78 2"></path></svg>'
+      ) {
+        console.log(label, '5.34 tiles/sparkline markup:\n ', tile, '\n ', bare, '\n ', th, '\n ', grid, '\n ', sp, '\n ', sp2);
+        fail++;
+      }
     }
     /* A heading label sits in a div row (not a span); a /server Stat drops a click handler passed at runtime. */
     const stH = m(e(S.Stat, { label: 'Membership', headingLevel: 2, value: 'Active' })), stS = m(e(S.Stat, { label: 'M', value: 1 }));

@@ -36,6 +36,8 @@ export { Stack } from './Stack.js';
 export { Grid } from './Grid.js';
 export { Container } from './Container.js';
 export { PageHeader } from './PageHeader.js';
+export { StatusTile } from './StatusTile.js';
+export { TileGrid, Sparkline } from './tiles.js';
 export { AppShell } from './AppShell.js';
 export { ActionBar } from './ActionBar.js';
 export { Separator } from './Separator.js';

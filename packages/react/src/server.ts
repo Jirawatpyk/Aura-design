@@ -38,6 +38,17 @@ export type { ContainerProps } from './Container.js';
 /* 5.32: PageHeader is stateless too. */
 export { PageHeader } from './PageHeader.js';
 export type { PageHeaderProps } from './PageHeader.js';
+/* 5.34: StatusTile, TileGrid and Sparkline are stateless too (the tile's status word is English unless `statusLabel`;
+ * marker tips need the client entry on the page). */
+export { ServerStatusTile as StatusTile, TileGrid, Sparkline } from './tiles.js';
+export type {
+  StatusTileProps,
+  TileGridProps,
+  SparklineProps,
+  StatusTileMarker,
+  StatusTileStatus,
+  TileTone,
+} from './types.js';
 export type {
   AlertProps,
   AvatarProps,

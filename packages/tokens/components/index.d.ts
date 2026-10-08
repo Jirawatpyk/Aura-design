@@ -1614,6 +1614,70 @@ export interface Theme {
 	/** CSS overriding the tokens. No selector: the whole page. A selector (".tenant-acme") scopes it. Load after aura.css. */
 	css(selector?: string): string;
 }
+/** A monitored thing's state on a StatusTile. */
+export type StatusTileStatus = "down" | "problem" | "maintenance" | "ok";
+/** A colour for a tile's value or a marker: `danger`, `warning`, `accent` (violet), `neutral` (grey) or `default`
+ * (the text colour). */
+export type TileTone = "danger" | "warning" | "accent" | "neutral" | "default";
+/** A small icon at the end of a StatusTile's second line ("SSL expires soon", "Muted"). */
+export interface StatusTileMarker {
+	icon: IconInput;
+	/** What it means. Read with the tile's name and shown as a tip on hover (a mouse only: on a phone, say it on the
+	 * detail page too). */
+	label: string;
+	/** Default `neutral`. */
+	tone?: TileTone | undefined;
+}
+export interface StatusTileProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "style" | "lang" | "dir">, React$1.AriaAttributes, DataAttributes {
+	/** down (red), problem (amber), maintenance (violet) or ok (grey). Each has its own icon too, so colour is never the
+	 * only sign. */
+	status: StatusTileStatus;
+	/** The name. Wraps to two lines at most, then ends with "…"; a cut name shows in full in a tip on hover. */
+	title: React$1.ReactNode;
+	/** Top right, tabular figures: "12m", "99.98%", "240 ms". */
+	value?: React$1.ReactNode | undefined;
+	/** The value's colour. Default: the status's (down → danger, problem → warning, maintenance → accent, ok → default). */
+	valueTone?: TileTone | undefined;
+	/** A short second line: "since 09:41", "3 of 4 checks". */
+	meta?: React$1.ReactNode | undefined;
+	/** Small icons at the end of the second line, each with a label. */
+	markers?: ReadonlyArray<StatusTileMarker> | undefined;
+	/** Makes the whole tile a link. Its name is everything the tile says, in reading order. */
+	href?: string | undefined;
+	/** Your router's link (e.g. `next/link`); defaults to AuraProvider's `linkComponent`, then `<a>`. */
+	linkComponent?: React$1.ElementType | undefined;
+	/** The status word read out after the title. Default: the locale's (Down, Problem, Maintenance, OK). */
+	statusLabel?: string | undefined;
+	className?: string | undefined;
+}
+export interface TileGridProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "style" | "lang" | "dir">, React$1.AriaAttributes, DataAttributes {
+	/** Equal columns, responsive like Grid. Default `{ base: 2, md: 3 }` (two on phones, three from 768px). */
+	columns?: Responsive<number> | undefined;
+	/** Each child (and each child of a Fragment) becomes one list item; the grid is a `ul` with an 8px gap. */
+	children?: React$1.ReactNode;
+	className?: string | undefined;
+}
+export interface SparklineProps extends Pick<React$1.SVGAttributes<SVGSVGElement>, "id" | "style">, DataAttributes {
+	/** The values, oldest first. `null` (or a value that isn't a finite number) is no point: the line breaks there. */
+	data: ReadonlyArray<number | null | undefined>;
+	/** Which points failed, by the same index as `data`. Shown only when `failures` isn't `none`. */
+	failed?: ReadonlyArray<boolean | null | undefined> | undefined;
+	/** How failed points show: `none` (default), `band` (a red band behind the point) or `ticks` (a red tick at the
+	 * foot). */
+	failures?: "none" | "band" | "ticks" | undefined;
+	/** The line's colour. Default `neutral`. */
+	tone?: "neutral" | "accent" | "danger" | "warning" | "positive" | undefined;
+	/** `sm` 80×24 (default), `md` 120×32. */
+	size?: "sm" | "md" | undefined;
+	/** The scale's ends; default the data's own lowest and highest. Give tiles the same ones to compare them. Values
+	 * beyond them are drawn at the edge. */
+	min?: number | undefined;
+	max?: number | undefined;
+	/** What the line says, for screen readers ("Response time, last 24 h: 180–420 ms, 2 failures"). Without it the
+	 * sparkline is decoration and hidden from them. */
+	label?: string | undefined;
+	className?: string | undefined;
+}
 /** One SVG child: element name and its attributes. */
 export type IconShape = [
 	string,
@@ -1824,42 +1888,10 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	style?: React$1.CSSProperties | undefined;
 }
 export declare const PageHeader: React$1.ForwardRefExoticComponent<PageHeaderProps & React$1.RefAttributes<HTMLDivElement>>;
-/** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it.
- * Which one shows is decided in CSS (4.16), so the server's HTML is already right on a phone and nothing shifts on
- * hydration; JavaScript only opens and closes the drawer. */
-export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps & React$1.RefAttributes<HTMLDivElement>>;
-/** ActionBar — a bar stuck to the bottom of the screen or of a card: a status line and the form's or selection's
- * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field. */
-export declare const ActionBar: React$1.ForwardRefExoticComponent<ActionBarProps & React$1.RefAttributes<HTMLDivElement>>;
-/** Separator — a 1px `aura-border-default` rule between groups of content (4.20). Decorative by default (hidden from
- * screen readers); `decorative={false}` makes it a `role="separator"` that is announced. */
-export declare const Separator: React$1.ForwardRefExoticComponent<SeparatorProps & React$1.RefAttributes<HTMLDivElement>>;
-/** A static table. Scrolls sideways inside its own box when it is wider than its container. */
-export declare const Table: React$1.ForwardRefExoticComponent<TableProps & React$1.RefAttributes<HTMLTableElement>>;
-export declare const THead: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
-export declare const TBody: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
-export declare const TFoot: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
-export declare const Tr: React$1.ForwardRefExoticComponent<TableRowProps & React$1.RefAttributes<HTMLTableRowElement>>;
-/** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
-export declare const Th: React$1.ForwardRefExoticComponent<TableCellProps & React$1.RefAttributes<HTMLTableCellElement>>;
-/** Data cell. `numeric` right-aligns with tabular figures (money, counts). */
-export declare const Td: React$1.ForwardRefExoticComponent<TableCellProps & React$1.RefAttributes<HTMLTableCellElement>>;
-/** BottomNav — a phone tab bar: icon over a short label, a count or dot, the current page marked. Fixed to the bottom,
- * padded for the home indicator, with a spacer of the same height in the flow so nothing sits under it. Which
- * breakpoints show it is decided in CSS, so the server's HTML is already right and nothing shifts on hydration. */
-export declare const BottomNav: React$1.ForwardRefExoticComponent<BottomNavProps & React$1.RefAttributes<HTMLElement>>;
-/** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
-export declare const breakpoints: {
-	sm: 640;
-	md: 768;
-	lg: 1024;
-	xl: 1280;
-};
-/** The widest breakpoint the window currently meets: 'base' | 'sm' | 'md' | 'lg' | 'xl'. 'lg' during server render. */
-export declare function useBreakpoint(): Breakpoint;
-/** Pick a value for the current breakpoint from { base, sm, md, lg, xl } (falls back to the next smaller one). */
-export declare function useResponsive<T>(value: Responsive<T>): T | undefined;
-export declare const Surface: React$1.ForwardRefExoticComponent<SurfaceProps & React$1.RefAttributes<HTMLElement>>;
+/** StatusTile (5.34, DxT Monitor S06): one monitored thing — a status icon and tint, a two-line title, a value at the
+ * top right, a short meta line and marker icons. With `href` the whole tile is one link, named by everything it
+ * says. Put tiles in a TileGrid. Also exported from `/server` (status word in English unless `statusLabel`). */
+export declare const StatusTile: React$1.ForwardRefExoticComponent<StatusTileProps & React$1.RefAttributes<HTMLElement>>;
 /** Every built-in label. Function entries build the text from their arguments. */
 export interface AuraStrings {
 	close: string;
@@ -1949,6 +1981,11 @@ export interface AuraStrings {
 	breadcrumbMore: string;
 	/** A Stepper step with `status: 'error'` (5.18). */
 	stepError: string;
+	/** StatusTile's status words (5.34). */
+	statusDown: string;
+	statusProblem: string;
+	statusMaintenance: string;
+	statusOk: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */
@@ -1961,6 +1998,44 @@ export declare const STRINGS: {
 	th: AuraStrings;
 	sv: AuraStrings;
 };
+export declare const TileGrid: React$1.ForwardRefExoticComponent<TileGridProps & React$1.RefAttributes<HTMLUListElement>>;
+export declare const Sparkline: React$1.ForwardRefExoticComponent<SparklineProps & React$1.RefAttributes<SVGSVGElement>>;
+/** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it.
+ * Which one shows is decided in CSS (4.16), so the server's HTML is already right on a phone and nothing shifts on
+ * hydration; JavaScript only opens and closes the drawer. */
+export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps & React$1.RefAttributes<HTMLDivElement>>;
+/** ActionBar — a bar stuck to the bottom of the screen or of a card: a status line and the form's or selection's
+ * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field. */
+export declare const ActionBar: React$1.ForwardRefExoticComponent<ActionBarProps & React$1.RefAttributes<HTMLDivElement>>;
+/** Separator — a 1px `aura-border-default` rule between groups of content (4.20). Decorative by default (hidden from
+ * screen readers); `decorative={false}` makes it a `role="separator"` that is announced. */
+export declare const Separator: React$1.ForwardRefExoticComponent<SeparatorProps & React$1.RefAttributes<HTMLDivElement>>;
+/** A static table. Scrolls sideways inside its own box when it is wider than its container. */
+export declare const Table: React$1.ForwardRefExoticComponent<TableProps & React$1.RefAttributes<HTMLTableElement>>;
+export declare const THead: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
+export declare const TBody: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
+export declare const TFoot: React$1.ForwardRefExoticComponent<TableSectionProps & React$1.RefAttributes<HTMLTableSectionElement>>;
+export declare const Tr: React$1.ForwardRefExoticComponent<TableRowProps & React$1.RefAttributes<HTMLTableRowElement>>;
+/** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
+export declare const Th: React$1.ForwardRefExoticComponent<TableCellProps & React$1.RefAttributes<HTMLTableCellElement>>;
+/** Data cell. `numeric` right-aligns with tabular figures (money, counts). */
+export declare const Td: React$1.ForwardRefExoticComponent<TableCellProps & React$1.RefAttributes<HTMLTableCellElement>>;
+/** BottomNav — a phone tab bar: icon over a short label, a count or dot, the current page marked. Fixed to the bottom,
+ * padded for the home indicator, with a spacer of the same height in the flow so nothing sits under it. Which
+ * breakpoints show it is decided in CSS, so the server's HTML is already right and nothing shifts on hydration. */
+export declare const BottomNav: React$1.ForwardRefExoticComponent<BottomNavProps & React$1.RefAttributes<HTMLElement>>;
+/** Min-width breakpoints in px, mirroring the aura-bp-* tokens. */
+export declare const breakpoints: {
+	sm: 640;
+	md: 768;
+	lg: 1024;
+	xl: 1280;
+};
+/** The widest breakpoint the window currently meets: 'base' | 'sm' | 'md' | 'lg' | 'xl'. 'lg' during server render. */
+export declare function useBreakpoint(): Breakpoint;
+/** Pick a value for the current breakpoint from { base, sm, md, lg, xl } (falls back to the next smaller one). */
+export declare function useResponsive<T>(value: Responsive<T>): T | undefined;
+export declare const Surface: React$1.ForwardRefExoticComponent<SurfaceProps & React$1.RefAttributes<HTMLElement>>;
 /** What useAuraLocale returns. `locale` and `calendar` are null outside an AuraProvider. */
 export interface AuraLocaleValue {
 	locale: "th" | "en" | "sv" | null;
