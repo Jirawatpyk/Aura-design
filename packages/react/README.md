@@ -186,10 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
-## 5.35 — DxT Monitor requests 11–12
+## 5.35 — DxT Monitor requests 11–14
 
 - **Breadcrumb touch targets** (request 11): on a touch screen (`pointer: coarse`) every crumb link or button (and "…") gets a hit area 44px tall and as wide as its text plus 24px; the text doesn't move. It reaches 12px into the gutter on each side, so short neighbours never share a spot, and only 4px below the text, so it stops short of a PageHeader title right underneath — the rest of the height is above, so keep about 20px clear above a breadcrumb (AppShell's content padding already is). When the crumbs wrap, the rows sit 24px apart on touch screens so one row never covers the next. The current page (not a link) gets none; a link component must render its `<a>` directly in the crumb's `li`. Apps that added their own `.aura-crumbs a::after` rule should drop it.
 - **StatusTile `status="unknown"`** (request 12): for a thing with no data yet (a site before its first check) — a dashed circle (circle-dot-dashed) in `aura-fg-tertiary` on the plain surface and border, status word "No data" (th: ยังไม่มีข้อมูล, sv: Ingen data), value in the text colour. An unrecognised `status` now shows as unknown rather than OK, with a dev warning.
+- **AppShell `headerHideOnScroll`** (request 13): below 1024px the top bar slides up out of view while the page scrolls down (after it has moved past the bar's height and kept going 8px) and comes back after 8px up, near the top, and whenever focus enters it. `--aura-shell-bar-height` is 0 while it is away, so a sticky table header pinned under the bar moves up with it. No slide with reduced motion. The page must scroll the window (AppShell's does).
+- **BottomNav `hideOnScroll`** (request 14): the same for the tab bar, sliding down. Its spacer stays (nothing shifts) and `--aura-bottomnav-offset` drops while it is away, so viewport ActionBars and toasts follow it down. **ActionBar `hidesBottomNav`**: while that bar is on the page the BottomNav and its spacer are gone and the bar sits on the bottom edge — for a page whose own actions (Acknowledge, Visit site) replace the tabs. Any element can do the same with `data-aura-hide-bottomnav`.
 
 ## 5.34 — StatusTile, TileGrid, Sparkline (DxT Monitor Overview S06)
 

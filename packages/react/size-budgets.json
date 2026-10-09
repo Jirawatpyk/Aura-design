@@ -1,10 +1,10 @@
 {
-  "everything (import *)": 69632,
+  "everything (import *)": 70656,
   "Button only": 5120,
   "DataTable only": 22528,
   "DatePicker only": 16384,
   "createTheme only": 3072,
-  "styles.css": 34816,
+  "styles.css": 35840,
   "aura.css (tokens)": 3584,
   "aura.bundle.js (window.Aura, minified)": 70656,
   "Card only": 1024,

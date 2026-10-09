@@ -7305,3 +7305,165 @@ test.describe('5.35: DxT Monitor requests 11–12', () => {
     }
   });
 });
+
+test.describe('5.35: DxT Monitor requests 13–14 (scroll away)', () => {
+  const ID = 'aura-new-in-5-35-dxt-monitor-13-14--scroll-away';
+  const scrollTo = async (page: Page, y: number) => {
+    await page.evaluate((y) => window.scrollTo(0, y), y);
+    await page.waitForTimeout(350); // past the 250ms slide
+  };
+  const barVar = (page: Page) =>
+    page.locator('.aura-shell').evaluate((e) => getComputedStyle(e).getPropertyValue('--aura-shell-bar-height').trim());
+  const offset = (page: Page) =>
+    page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--aura-bottomnav-offset').trim());
+
+  test.describe('on a phone', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test('13: the top bar slides away scrolling down and back scrolling up; pinned headers follow; focus brings it back', async ({
+      page,
+    }) => {
+      await story(page, ID);
+      const bar = page.locator('.aura-shell__bar');
+      await expect(bar).not.toHaveClass(/is-away/);
+      expect(await barVar(page)).toBe('56px');
+      await scrollTo(page, 900);
+      await expect(bar).toHaveClass(/is-away/);
+      await expect
+        .poll(async () => {
+          const r = (await bar.boundingBox())!;
+          return r.y + r.height;
+        })
+        .toBeLessThanOrEqual(0);
+      expect(await barVar(page)).toBe('0px');
+      /* The pinned table header moved up to the top edge. */
+      const th = page.locator('#storybook-root .aura-tbl thead th').first();
+      expect(Math.round((await th.boundingBox())!.y)).toBe(0);
+      /* A little up: back. */
+      await scrollTo(page, 860);
+      await expect(bar).not.toHaveClass(/is-away/);
+      await expect.poll(async () => Math.round((await bar.boundingBox())!.y)).toBe(0);
+      expect(await barVar(page)).toBe('56px');
+      expect(Math.round((await th.boundingBox())!.y)).toBe(56);
+      /* Down again, then keyboard focus into the bar: back, and it stays while focus is there. */
+      await scrollTo(page, 1400);
+      await expect(bar).toHaveClass(/is-away/);
+      await bar.getByRole('button', { name: 'Notifications' }).focus();
+      await expect(bar).not.toHaveClass(/is-away/);
+      await scrollTo(page, 1700);
+      await expect(bar).not.toHaveClass(/is-away/);
+      /* Small jitters (under 8px) don't toggle it; near the top it always shows. */
+      await page.locator('main').focus();
+      await scrollTo(page, 2000);
+      await expect(bar).toHaveClass(/is-away/);
+      await scrollTo(page, 1996);
+      await expect(bar).toHaveClass(/is-away/);
+      await scrollTo(page, 20);
+      await expect(bar).not.toHaveClass(/is-away/);
+    });
+
+    test('14: the BottomNav slides away scrolling down (offset follows, spacer stays) and back scrolling up', async ({
+      page,
+    }) => {
+      await story(page, ID);
+      const nav = page.locator('nav.aura-bottomnav');
+      expect(await offset(page)).not.toBe('');
+      const h0 = await page.evaluate(() => document.documentElement.scrollHeight);
+      await scrollTo(page, 900);
+      await expect(nav).toHaveClass(/is-away/);
+      await expect.poll(async () => Math.round((await nav.boundingBox())!.y)).toBeGreaterThanOrEqual(844);
+      expect(await offset(page)).toBe('');
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(h0);
+      await scrollTo(page, 850);
+      await expect(nav).not.toHaveClass(/is-away/);
+      expect(await offset(page)).not.toBe('');
+      await expect
+        .poll(async () => {
+          const r = (await nav.boundingBox())!;
+          return Math.round(r.y + r.height);
+        })
+        .toBe(844);
+    });
+
+    test('14: a page with its own bottom bar (ActionBar hidesBottomNav) has no BottomNav; the bar takes the bottom edge', async ({
+      page,
+    }) => {
+      await story(page, ID);
+      await page.getByRole('button', { name: 'Toggle incident bar' }).click();
+      await expect(page.locator('nav.aura-bottomnav')).toBeHidden();
+      await expect(page.locator('.aura-bottomnav-spacer')).toBeHidden();
+      expect(await offset(page)).toBe('');
+      const ab = page.getByRole('region', { name: 'Actions', exact: true });
+      await expect(ab).toHaveAttribute('data-aura-hide-bottomnav', '');
+      await scrollTo(page, 0);
+      const r = (await ab.boundingBox())!;
+      expect(Math.round(844 - (r.y + r.height))).toBe(12);
+      await page.getByRole('button', { name: 'Toggle incident bar' }).click();
+      await expect(page.locator('nav.aura-bottomnav')).toBeVisible();
+    });
+
+    test('13: Shift+Tab from the content into an away bar brings it back without moving the page', async ({ page }) => {
+      await story(page, ID);
+      const bar = page.locator('.aura-shell__bar');
+      /* Scroll down the way a finger does: many small steps. */
+      for (let y = 40; y <= 1200; y += 40) await page.evaluate((y) => window.scrollTo(0, y), y);
+      await page.waitForTimeout(350);
+      await expect(bar).toHaveClass(/is-away/);
+      await page.evaluate(() => document.getElementById('main')!.focus({ preventScroll: true }));
+      const before = await page.evaluate(() => window.scrollY);
+      /* Shift+Tab from main lands on the bar's last control. */
+      await page.keyboard.press('Shift+Tab');
+      await expect(bar.getByRole('button', { name: 'Notifications' })).toBeFocused();
+      await expect(bar).not.toHaveClass(/is-away/);
+      expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThanOrEqual(1);
+      /* App code that scrolls and then focuses the bar: AURA doesn't drag the page back to where it was (1600); the
+       * browser may still scroll up to show the focused control. */
+      await page.locator('main').evaluate((e) => (e as HTMLElement).focus({ preventScroll: true }));
+      for (let y = 1240; y <= 1600; y += 40) await page.evaluate((y) => window.scrollTo(0, y), y);
+      await page.waitForTimeout(350);
+      await expect(bar).toHaveClass(/is-away/);
+      await page.evaluate(() => {
+        window.scrollTo(0, 300);
+        (
+          document.querySelector(
+            '.aura-shell__bar button[aria-label="Notifications"], .aura-shell__bar-content button',
+          ) as HTMLElement
+        ).focus();
+      });
+      await page.waitForTimeout(350);
+      expect(await page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(300);
+    });
+
+    test('14: an idle bulk bar (0 selected) leaves the tabs; selecting a row hides them, clearing brings them back', async ({
+      page,
+    }) => {
+      await story(page, ID);
+      const nav = page.locator('nav.aura-bottomnav');
+      await expect(nav).toBeVisible();
+      await page.getByRole('button', { name: 'Select one' }).click();
+      await expect(nav).toBeHidden();
+      await expect(page.getByRole('region', { name: 'Bulk actions' })).toHaveAttribute('data-aura-hide-bottomnav', '');
+      await page.getByRole('button', { name: 'Select one' }).click();
+      await expect(nav).toBeVisible();
+      expect(
+        await page.getByRole('region', { name: 'Bulk actions' }).getAttribute('data-aura-hide-bottomnav'),
+      ).toBeNull();
+    });
+
+    test('reduced motion: no slide', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await story(page, ID);
+      for (const sel of ['.aura-shell__bar', 'nav.aura-bottomnav'])
+        expect(await page.locator(sel).evaluate((e) => getComputedStyle(e).transitionDuration)).toBe('0s');
+    });
+  });
+
+  test('desktop: nothing slides (the bar and tab bar are phone-only here)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    await scrollTo(page, 900);
+    await expect(page.locator('.aura-shell__bar')).not.toHaveClass(/is-away/);
+    expect(await barVar(page)).toBe('0px'); // headerHideFrom="lg": no bar from lg up
+    expect(await offset(page)).toBe('');
+  });
+});

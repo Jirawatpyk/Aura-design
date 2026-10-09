@@ -1078,6 +1078,10 @@ a.aura-tab { text-decoration: none; }
   --aura-shell-bar-height: 56px; /* 5.14 (Chamber-OS 104): the top bar's height, for sticky offsets under it */
 }
 .aura-shell--no-bar { --aura-shell-bar-height: 0px; }
+/* 5.35 (DxT Monitor 13): headerHideOnScroll — below lg the bar slides up out of view while the page scrolls down (its
+ * shadow too); AppShell sets the bar-height token to 0 meanwhile. */
+.aura-shell__bar--hides { transition: transform var(--aura-duration-base) var(--aura-ease); }
+@media (max-width: 1023.98px) { .aura-shell__bar.is-away { transform: translateY(calc(-100% - 8px)); } }
 @media (min-width: 1024px) { .aura-shell--menu-bar { --aura-shell-bar-height: 0px; } }
 .aura-shell__nav { position: sticky; top: 0; height: 100vh; height: 100dvh; flex: none; }
 .aura-shell__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -1852,10 +1856,18 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @media (min-width: 1024px) { .aura-bottomnav.aura-bottomnav--below-lg, .aura-bottomnav-spacer.aura-bottomnav--below-lg { display: none; } }
 @media (min-width: 1280px) { .aura-bottomnav.aura-bottomnav--below-xl, .aura-bottomnav-spacer.aura-bottomnav--below-xl { display: none; } }
 /* While a BottomNav shows, viewport ActionBars and phone toasts sit on top of it. */
-:root:has(.aura-bottomnav--always) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); }
-@media (max-width: 767.98px) { :root:has(.aura-bottomnav--below-md) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
-@media (max-width: 1023.98px) { :root:has(.aura-bottomnav--below-lg) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
-@media (max-width: 1279.98px) { :root:has(.aura-bottomnav--below-xl) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+/* 5.35: not while it has slid away on scroll, nor on a page that hides it (data-aura-hide-bottomnav). */
+:root:has(nav.aura-bottomnav--always:not(.is-away)):not(:has([data-aura-hide-bottomnav])) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 767.98px) { :root:has(nav.aura-bottomnav--below-md:not(.is-away)):not(:has([data-aura-hide-bottomnav])) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 1023.98px) { :root:has(nav.aura-bottomnav--below-lg:not(.is-away)):not(:has([data-aura-hide-bottomnav])) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 1279.98px) { :root:has(nav.aura-bottomnav--below-xl:not(.is-away)):not(:has([data-aura-hide-bottomnav])) { --aura-bottomnav-offset: calc(var(--aura-bottomnav-height) + env(safe-area-inset-bottom, 0px)); } }
+/* 5.35 (DxT Monitor 14): hideOnScroll slides it down out of view (the spacer stays, so nothing shifts); a page with its
+ * own bottom bar (ActionBar hidesBottomNav, or data-aura-hide-bottomnav on any element) has no BottomNav or spacer. */
+.aura-bottomnav--hides { transition: transform var(--aura-duration-base) var(--aura-ease); }
+.aura-bottomnav.is-away { transform: translateY(100%); }
+:root:has([data-aura-hide-bottomnav]) .aura-bottomnav, :root:has([data-aura-hide-bottomnav]) .aura-bottomnav-spacer { display: none; }
+.aura-actionbar--viewport { transition: bottom var(--aura-duration-base) var(--aura-ease); }
+@media (prefers-reduced-motion: reduce) { .aura-bottomnav--hides, .aura-actionbar--viewport, .aura-shell__bar--hides { transition: none; } }
 /* Toasts clear a BottomNav wherever it shows (phones and tablets), else the bottom safe-area inset (5.6). */
 .aura-toaster:not(.is-top) { bottom: calc(var(--aura-toaster-offset, var(--aura-space-6)) + var(--aura-bottomnav-offset, env(safe-area-inset-bottom, 0px))); }
 @media (max-width: 639.98px) { .aura-toaster:not(.is-top) { bottom: calc(var(--aura-toaster-offset, var(--aura-space-4)) + var(--aura-bottomnav-offset, env(safe-area-inset-bottom, 0px))); } }

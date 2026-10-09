@@ -3,6 +3,8 @@ import { Icon } from './Icon.js';
 import { cx, devWarnOnce, plainClick, useMaybeControlled } from './internal.js';
 import { useLinkComponent, useStrings } from './locale.js';
 import type { BottomNavItem, BottomNavProps } from './types.js';
+import { useHideOnScroll } from './scrollHide.js';
+import { breakpoints } from './breakpoints.js';
 
 /** BottomNav — a phone tab bar: icon over a short label, a count or dot, the current page marked. Fixed to the bottom,
  * padded for the home indicator, with a spacer of the same height in the flow so nothing sits under it. Which
@@ -17,12 +19,36 @@ export const BottomNav = React.forwardRef<HTMLElement, BottomNavProps>(function 
   );
   const active = st[0];
   const hide = props.hideFrom === false ? 'always' : 'below-' + (props.hideFrom || 'lg');
+  /* 5.35 (DxT Monitor 14): slides away while the page scrolls down, wherever it shows; the offset viewport ActionBars
+   * and toasts sit on drops with it (the spacer stays, so nothing shifts). */
+  const own = React.useRef<HTMLElement | null>(null);
+  const hf = props.hideFrom === false ? null : props.hideFrom || 'lg';
+  const away = useHideOnScroll(
+    !!props.hideOnScroll,
+    own,
+    hf ? '(max-width: ' + (breakpoints[hf] - 0.02) + 'px)' : 'all',
+    64,
+  );
+  const setRef = React.useCallback(
+    function (el: HTMLElement | null) {
+      own.current = el;
+      if (typeof ref === 'function') ref(el);
+      else if (ref) (ref as React.MutableRefObject<HTMLElement | null>).current = el;
+    },
+    [ref],
+  );
   return (
     <>
       <div className={cx('aura-bottomnav-spacer', 'aura-bottomnav--' + hide)} aria-hidden="true" />
       <nav
-        ref={ref}
-        className={cx('aura-bottomnav', 'aura-bottomnav--' + hide, props.className)}
+        ref={setRef}
+        className={cx(
+          'aura-bottomnav',
+          'aura-bottomnav--' + hide,
+          props.hideOnScroll && 'aura-bottomnav--hides',
+          away && 'is-away',
+          props.className,
+        )}
         aria-label={props.label || t.mainNav}
       >
         <ul className="aura-bottomnav__list">

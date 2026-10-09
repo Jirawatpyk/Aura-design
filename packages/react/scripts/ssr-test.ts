@@ -523,6 +523,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const th = m(e(A.AuraProvider, { locale: 'th' }, e(A.StatusTile, { status: 'problem', title: 'x', value: '1' })));
       const grid = m(e(A.TileGrid, null, e(A.StatusTile, { status: 'ok', title: 'A' }), false, e(A.StatusTile, { status: 'ok', title: 'B' })));
       const sp = m(e(A.Sparkline, { data: [1, null, 3, 4], failed: [true, true], label: 'L' }));
+      /* 5.35 (DxT Monitor 13, 14): server HTML has the sliding classes but never starts away. */
+      const sh = m(e(A.AppShell, { header: 'B', headerHideFrom: 'lg', headerHideOnScroll: true, bottomNav: e(A.BottomNav, { items: [{ id: 'a', label: 'A', icon: 'house' }], hideOnScroll: true }) }, e(A.ActionBar, { hidesBottomNav: true }, 'x')));
+      if (!/class="aura-shell__bar aura-shell__bar--menu-only aura-shell__bar--hides"/.test(sh) || !/class="aura-bottomnav aura-bottomnav--below-lg aura-bottomnav--hides"/.test(sh) || /is-away|hideonscroll|hidesbottomnav/i.test(sh) || !/data-aura-hide-bottomnav=""/.test(sh)) {
+        console.log(label, '5.35 scroll-away markup:', sh);
+        fail++;
+      }
       const unk = m(e(A.StatusTile, { status: 'unknown', title: 'New' })) + m(e(A.StatusTile, { status: 'paused', title: 'X' }));
       if ((unk.match(/class="aura-status-tile aura-status-tile--unknown"/g) || []).length !== 2 || (unk.match(/>No data</g) || []).length !== 2) {
         console.log(label, '5.35 unknown status:', unk);

@@ -4,6 +4,7 @@ import { IconButton } from './IconButton.js';
 import { cx, useIsoLayoutEffect, useMergedRef } from './internal.js';
 import { useStrings } from './locale.js';
 import { useBreakpoint } from './responsive.js';
+import { useHideOnScroll } from './scrollHide.js';
 import type { AppShellProps } from './types.js';
 import { IconMenu } from './icons.js';
 
@@ -60,6 +61,20 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
   /* 5.33 (DxT Monitor #8): the phone drawer's divided nav header matches the bar, also when the header wraps; the
    * drawer is portalled out of the shell, so it gets the height as its own variable. */
   const barH = React.useState<number | null>(null);
+  /* 5.35 (DxT Monitor 13): below lg (where the menu button is) the bar can slide away while the page scrolls down;
+   * the bar-height token is 0 meanwhile, so headers pinned under it move up with it. */
+  const away = useHideOnScroll(!!props.headerHideOnScroll && hasBar, barRef, '(max-width: 1023.98px)', barH[0] || 56);
+  const awayRef = React.useRef(away);
+  awayRef.current = away;
+  useIsoLayoutEffect(
+    function () {
+      const root = rootRef.current,
+        bar = barRef.current;
+      if (!root || !bar) return;
+      root.style.setProperty('--aura-shell-bar-height', away ? '0px' : bar.getBoundingClientRect().height + 'px');
+    },
+    [away],
+  );
   useIsoLayoutEffect(
     function () {
       const root = rootRef.current,
@@ -67,7 +82,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       if (!root || !bar) return;
       function sync() {
         const h = bar!.getBoundingClientRect().height;
-        root!.style.setProperty('--aura-shell-bar-height', h + 'px');
+        root!.style.setProperty('--aura-shell-bar-height', awayRef.current ? '0px' : h + 'px');
         if (h > 0) barH[1](Math.round(h));
       }
       sync();
@@ -140,6 +155,8 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
             className={cx(
               'aura-shell__bar',
               (!props.header || props.headerHideFrom === 'lg') && 'aura-shell__bar--menu-only',
+              props.headerHideOnScroll && 'aura-shell__bar--hides',
+              away && 'is-away',
             )}
           >
             {props.nav ? (

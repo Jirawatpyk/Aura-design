@@ -1214,6 +1214,10 @@ export interface AppShellProps {
 	 * as when there is no `header`: from lg up it is hidden and `--aura-shell-bar-height` is 0. For apps whose phone
 	 * pages have a top bar (brand, avatar) and whose desktop pages don't. Default: the bar shows at every width. */
 	headerHideFrom?: "lg" | undefined;
+	/** 5.35 (DxT Monitor #13): below 1024px the top bar slides up while the page scrolls down and comes back on the way
+	 * up, near the top, and when focus enters it; `--aura-shell-bar-height` is 0 while it is away, so headers pinned
+	 * under it follow. No motion with reduced motion. Default false. */
+	headerHideOnScroll?: boolean | undefined;
 	children?: React$1.ReactNode | undefined;
 	navLabel?: string | undefined;
 	menuLabel?: string | undefined;
@@ -1324,6 +1328,10 @@ export interface ActionBarProps {
 	 * parent, so they never cover the last field. Make it the last child of the form or card it belongs to: like any
 	 * `position: sticky` element it sticks only while that parent is on screen. */
 	position?: "viewport" | "container" | undefined;
+	/** 5.35 (DxT Monitor #14): while this bar is on the page, a BottomNav (and its spacer) is hidden and the bar takes the
+	 * bottom edge — for a page whose own actions (Acknowledge, Visit site) replace the tab bar. Any element can do the
+	 * same with the `data-aura-hide-bottomnav` attribute. */
+	hidesBottomNav?: boolean | undefined;
 	/** Bulk actions: the number of selected rows. Shows "N selected" in the status; at 0 the bar hides (its live region
 	 * stays, so the next selection is announced) and its actions leave the tab order. */
 	selected?: number | undefined;
@@ -1365,6 +1373,10 @@ export interface BottomNavProps {
 	linkComponent?: React$1.ElementType | undefined;
 	/** Hidden from this breakpoint up, in CSS (so the server's HTML is right). Default `lg` (1024px); `false` never hides. */
 	hideFrom?: "md" | "lg" | "xl" | false | undefined;
+	/** 5.35 (DxT Monitor #14): slides down out of view while the page scrolls down and comes back on the way up, near the
+	 * top, and when focus enters it. Viewport ActionBars and toasts follow it down. Default false. To keep it away on a
+	 * page with its own bottom bar, see ActionBar `hidesBottomNav` (or `data-aura-hide-bottomnav` on your own bar). */
+	hideOnScroll?: boolean | undefined;
 	className?: string | undefined;
 }
 export interface StatChange {

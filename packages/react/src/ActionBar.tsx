@@ -39,6 +39,8 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
       }}
       role="region"
       aria-label={props.label || t.actions}
+      /* Not while an idle bulk bar is folded away: the tabs would be gone with nothing in their place. */
+      data-aura-hide-bottomnav={props.hidesBottomNav && !idle ? '' : undefined}
       className={cx(
         'aura-actionbar',
         'aura-actionbar--' + (props.position || 'viewport'),
