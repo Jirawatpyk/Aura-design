@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.35.0 — 2026-10-09
+
+### Minor changes
+
+- 29c1268: DxT Monitor requests 11–12: Breadcrumb links and buttons get a 44px touch hit area on touch screens; StatusTile `status="unknown"` (dashed circle, plain surface, "No data"), and an unrecognised status falls back to it instead of OK.
+- 74a838d: DxT Monitor requests 13–14: AppShell `headerHideOnScroll` and BottomNav `hideOnScroll` slide the phone bars away while scrolling down and back on the way up (bar-height and bottom-nav offsets follow); ActionBar `hidesBottomNav` (or `data-aura-hide-bottomnav`) keeps the BottomNav away on a page with its own bottom bar.
+
 ## 5.34.0 — 2026-10-09
 
 ### Minor changes
