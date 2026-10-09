@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx } from './classes.js';
+import { cx, devWarnOnce } from './classes.js';
 import { respVars } from './breakpoints.js';
 import { STRINGS } from './strings.js';
-import { IconCircleAlert, IconCircleCheck, IconTriangleAlert, IconWrench } from './icons.js';
+import { IconCircleAlert, IconCircleCheck, IconCircleDotDashed, IconTriangleAlert, IconWrench } from './icons.js';
 import type { AuraIcon } from './iconSvg.js';
 import type { AuraStrings } from './strings.js';
 import type { SparklineProps, StatusTileProps, StatusTileStatus, TileGridProps, TileTone } from './types.js';
@@ -18,18 +18,21 @@ const STATUS_ICON: Record<StatusTileStatus, AuraIcon> = {
   problem: IconTriangleAlert,
   maintenance: IconWrench,
   ok: IconCircleCheck,
+  unknown: IconCircleDotDashed,
 };
 const STATUS_TONE: Record<StatusTileStatus, TileTone> = {
   down: 'danger',
   problem: 'warning',
   maintenance: 'accent',
   ok: 'default',
+  unknown: 'default',
 };
 const STATUS_WORD: Record<StatusTileStatus, keyof AuraStrings> = {
   down: 'statusDown',
   problem: 'statusProblem',
   maintenance: 'statusMaintenance',
   ok: 'statusOk',
+  unknown: 'statusUnknown',
 };
 
 /** The status word for a tile, from a strings table. */
@@ -59,7 +62,15 @@ export function statusTileElement(
   t: AuraStrings,
   titleRef?: React.Ref<HTMLSpanElement>,
 ): React.ReactElement {
-  const status = STATUS_ICON[props.status] ? props.status : 'ok';
+  /* An unrecognised status claims nothing: it shows as unknown, not ok (5.35). */
+  const status = STATUS_ICON[props.status] ? props.status : 'unknown';
+  if (status !== props.status)
+    devWarnOnce(
+      'status-tile-status-' + String(props.status),
+      'StatusTile status="' +
+        String(props.status) +
+        '" is not down, problem, maintenance, ok or unknown: it shows as unknown ("No data"). Map your value first.',
+    );
   const valueTone = props.valueTone || STATUS_TONE[status];
   const word = props.statusLabel || statusWord(status, t);
   const markers = (props.markers || []).filter(Boolean);

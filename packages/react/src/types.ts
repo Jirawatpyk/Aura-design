@@ -1735,7 +1735,7 @@ export interface Theme {
 /* ---------- 5.34 (DxT Monitor S06): StatusTile, TileGrid, Sparkline ---------- */
 
 /** A monitored thing's state on a StatusTile. */
-export type StatusTileStatus = 'down' | 'problem' | 'maintenance' | 'ok';
+export type StatusTileStatus = 'down' | 'problem' | 'maintenance' | 'ok' | 'unknown';
 /** A colour for a tile's value or a marker: `danger`, `warning`, `accent` (violet), `neutral` (grey) or `default`
  * (the text colour). */
 export type TileTone = 'danger' | 'warning' | 'accent' | 'neutral' | 'default';
@@ -1755,14 +1755,15 @@ export interface StatusTileProps
     Pick<React.HTMLAttributes<HTMLElement>, 'id' | 'style' | 'lang' | 'dir'>,
     React.AriaAttributes,
     DataAttributes {
-  /** down (red), problem (amber), maintenance (violet) or ok (grey). Each has its own icon too, so colour is never the
-   * only sign. */
+  /** down (red), problem (amber), maintenance (violet), ok (grey) or unknown (5.35: no data yet — a dashed circle on
+   * the plain surface). Each has its own icon too, so colour is never the only sign. */
   status: StatusTileStatus;
   /** The name. Wraps to two lines at most, then ends with "…"; a cut name shows in full in a tip on hover. */
   title: React.ReactNode;
   /** Top right, tabular figures: "12m", "99.98%", "240 ms". */
   value?: React.ReactNode | undefined;
-  /** The value's colour. Default: the status's (down → danger, problem → warning, maintenance → accent, ok → default). */
+  /** The value's colour. Default: the status's (down → danger, problem → warning, maintenance → accent, ok and
+   * unknown → default). */
   valueTone?: TileTone | undefined;
   /** A short second line: "since 09:41", "3 of 4 checks". */
   meta?: React.ReactNode | undefined;
@@ -1772,7 +1773,7 @@ export interface StatusTileProps
   href?: string | undefined;
   /** Your router's link (e.g. `next/link`); defaults to AuraProvider's `linkComponent`, then `<a>`. */
   linkComponent?: React.ElementType | undefined;
-  /** The status word read out after the title. Default: the locale's (Down, Problem, Maintenance, OK). */
+  /** The status word read out after the title. Default: the locale's (Down, Problem, Maintenance, OK, No data). */
   statusLabel?: string | undefined;
   className?: string | undefined;
 }

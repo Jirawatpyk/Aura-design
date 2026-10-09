@@ -7178,3 +7178,130 @@ test.describe('5.34: StatusTile, TileGrid, Sparkline (DxT Monitor S06)', () => {
     }
   });
 });
+
+test.describe('5.35: DxT Monitor requests 11–12', () => {
+  const ID = 'aura-new-in-5-35-dxt-monitor-11-12--crumbs-and-no-data';
+  const hit = (l: import('@playwright/test').Locator) =>
+    l.evaluate((e) => {
+      const a = getComputedStyle(e, '::after');
+      const r = e.getBoundingClientRect();
+      return { content: a.content, w: parseFloat(a.width), h: parseFloat(a.height), textH: r.height, textW: r.width };
+    });
+
+  test.describe('11: on a touch screen', () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    test('every crumb link and button gets a 44px hit area; the text does not move', async ({ page }) => {
+      await story(page, ID);
+      const crumbs = page.getByTestId('crumbs');
+      for (const name of ['Sites', 'A']) {
+        const h = await hit(crumbs.getByRole('link', { name, exact: true }));
+        expect(h.content).not.toBe('none');
+        expect(h.h).toBe(44);
+        expect(Math.round(h.w - h.textW)).toBe(24); // 12px into the gutter each side, never into a neighbour
+        expect(h.textH).toBeLessThan(30); // the text box stays small
+      }
+      const b = await hit(crumbs.getByRole('button', { name: 'Edit monitors' }));
+      expect(b.h).toBe(44);
+      /* A tap 18px above the text centre still lands on the link (the area grows upward; only 4px below). */
+      const link = crumbs.getByRole('link', { name: 'Sites' });
+      const r = (await link.boundingBox())!;
+      const at = await page.evaluate(
+        ([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('a')?.textContent,
+        [r.x + r.width / 2, r.y + r.height / 2 - 18],
+      );
+      expect(at).toBe('Sites');
+      /* The current page is not a link and gets nothing. */
+      const cur = await hit(crumbs.locator('.aura-crumbs__current'));
+      expect(cur.content).toBe('none');
+    });
+
+    test('a tap on any crumb opens that crumb — wrapped rows, short neighbours, "…" — and never the title below', async ({
+      page,
+    }) => {
+      await story(page, ID);
+      const owner = (x: number, y: number) =>
+        page.evaluate(
+          ([x, y]) => {
+            const el = document.elementFromPoint(x, y) as HTMLElement | null;
+            const t = el && el.closest('a, button');
+            return t ? (t.textContent || '').trim() : null;
+          },
+          [x, y],
+        );
+      for (const id of ['wrapped', 'collapsed', 'crumbs']) {
+        const targets = page.getByTestId(id).locator('.aura-crumbs li > a, .aura-crumbs li > button');
+        const n = await targets.count();
+        expect(n).toBeGreaterThan(1);
+        for (let i = 0; i < n; i++) {
+          const t = targets.nth(i);
+          if (!(await t.isVisible())) continue;
+          const r = (await t.boundingBox())!;
+          const name = ((await t.textContent()) || '').trim();
+          /* Centre, both ends and 2px in from the top and bottom all open this crumb. */
+          for (const [x, y] of [
+            [r.x + r.width / 2, r.y + r.height / 2],
+            [r.x + 1, r.y + r.height / 2],
+            [r.x + r.width - 1, r.y + r.height / 2],
+            [r.x + r.width / 2, r.y + 2],
+            [r.x + r.width / 2, r.y + r.height - 2],
+          ])
+            expect(await owner(x, y), `${id} ${name} at ${Math.round(x - r.x)},${Math.round(y - r.y)}`).toBe(name);
+        }
+      }
+      /* The breadcrumb wraps here, and the PageHeader title right under it is not covered. */
+      const rows = await page
+        .getByTestId('wrapped')
+        .locator('.aura-crumbs li > a')
+        .evaluateAll((els) => new Set(els.map((e) => Math.round(e.getBoundingClientRect().top))).size);
+      expect(rows).toBeGreaterThan(1);
+      const title = (await page.getByTestId('wrapped').locator('.aura-page-header__title').boundingBox())!;
+      for (const dy of [1, 3, 6])
+        for (const fx of [0.1, 0.5, 0.9]) expect(await owner(title.x + title.width * fx, title.y + dy)).toBeNull();
+    });
+  });
+
+  test('11: with a mouse the crumbs are unchanged (no hit area)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, ID);
+    const h = await hit(page.getByTestId('crumbs').getByRole('link', { name: 'Sites' }));
+    expect(h.content).toBe('none');
+  });
+
+  test('12: status="unknown" — dashed circle in tertiary on the plain surface, "No data", Thai word; bad status falls back to it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    for (const theme of ['light', 'dark'] as const) {
+      await story(page, ID, theme);
+      const u = page.getByTestId('unknown'),
+        ok = page.getByTestId('ok');
+      await expect(
+        page.getByRole('link', { name: 'new-site.example.co.th, No data, Added 2 min ago', exact: true }),
+      ).toHaveCount(1);
+      const cs = (l: import('@playwright/test').Locator, p: string) =>
+        l.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), p);
+      expect(await cs(u, 'background-color')).toBe(await cs(ok, 'background-color'));
+      expect(await cs(u, 'border-top-color')).toBe(await cs(ok, 'border-top-color'));
+      const icon = u.locator('.aura-status-tile__icon');
+      expect(await icon.evaluate((e) => e.innerHTML)).not.toBe(
+        await ok.locator('.aura-status-tile__icon').evaluate((e) => e.innerHTML),
+      );
+      const tertiary = await page.evaluate(() => {
+        const p = document.createElement('i');
+        p.style.color = 'var(--aura-fg-tertiary)';
+        document.body.appendChild(p);
+        const c = getComputedStyle(p).color;
+        p.remove();
+        return c;
+      });
+      expect(await cs(icon, 'color')).toBe(tertiary);
+      /* An unrecognised status claims nothing: it reads and looks like unknown, not OK. */
+      await expect(page.getByRole('link', { name: 'Unrecognised status, No data', exact: true })).toHaveCount(1);
+      await expect(page.getByTestId('bogus')).toHaveClass(/aura-status-tile--unknown/);
+      await expect(
+        page.getByRole('link', { name: 'เว็บไซต์ใหม่, ยังไม่มีข้อมูล, เพิ่มเมื่อ 2 นาทีที่แล้ว', exact: true }),
+      ).toHaveCount(1);
+      expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    }
+  });
+});

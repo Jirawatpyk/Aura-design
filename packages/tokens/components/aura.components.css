@@ -864,8 +864,14 @@ a.aura-tab { text-decoration: none; }
 .aura-crumbs li.aura-crumbs__more { display: none; }
 /* "…" is the only way to the hidden items: a 24px target, 44px on touch screens. */
 .aura-crumbs__more > button { position: relative; min-width: 24px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; }
+/* 5.35 (DxT Monitor 11): on a touch screen every crumb link and button (and "…") gets a 44px-tall hit area; the text
+ * doesn't move. The area reaches 12px into the gutter on each side (the gutter is 28px, so neighbours never overlap)
+ * and only 4px below the text, so it stops short of a PageHeader title 4px under the crumbs; the rest of the 44px is
+ * above. Wrapped rows sit 24px apart on touch screens so one row's areas never cover the next. */
 @media (pointer: coarse) {
-  .aura-crumbs__more > button::after { content: ''; position: absolute; top: 50%; left: 50%; width: var(--aura-touch-target); height: var(--aura-touch-target); transform: translate(-50%, -50%); }
+  .aura-crumbs ol { row-gap: 24px; }
+  .aura-crumbs li > a, .aura-crumbs li > button { position: relative; }
+  .aura-crumbs li > a::after, .aura-crumbs li > button::after { content: ''; position: absolute; left: -12px; right: -12px; bottom: -4px; height: max(100% + 4px, var(--aura-touch-target)); }
 }
 @media (max-width: 639.98px) {
   .aura-crumbs--collapse-sm li.aura-crumbs__more { display: inline-flex; }
@@ -1187,6 +1193,7 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-status-tile--down .aura-status-tile__icon { color: var(--aura-alert-danger-fg); }
 .aura-status-tile--problem .aura-status-tile__icon { color: var(--aura-alert-warning-fg); }
 .aura-status-tile--maintenance .aura-status-tile__icon { color: var(--aura-alert-info-fg); }
+.aura-status-tile--unknown .aura-status-tile__icon { color: var(--aura-fg-tertiary); } /* 5.35: no data yet */
 /* Two lines at most: similar names stay apart. */
 .aura-status-tile__title {
   flex: 1 1 0; min-width: 0; font-weight: 600; overflow-wrap: break-word;

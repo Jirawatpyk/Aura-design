@@ -1615,7 +1615,7 @@ export interface Theme {
 	css(selector?: string): string;
 }
 /** A monitored thing's state on a StatusTile. */
-export type StatusTileStatus = "down" | "problem" | "maintenance" | "ok";
+export type StatusTileStatus = "down" | "problem" | "maintenance" | "ok" | "unknown";
 /** A colour for a tile's value or a marker: `danger`, `warning`, `accent` (violet), `neutral` (grey) or `default`
  * (the text colour). */
 export type TileTone = "danger" | "warning" | "accent" | "neutral" | "default";
@@ -1629,14 +1629,15 @@ export interface StatusTileMarker {
 	tone?: TileTone | undefined;
 }
 export interface StatusTileProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "style" | "lang" | "dir">, React$1.AriaAttributes, DataAttributes {
-	/** down (red), problem (amber), maintenance (violet) or ok (grey). Each has its own icon too, so colour is never the
-	 * only sign. */
+	/** down (red), problem (amber), maintenance (violet), ok (grey) or unknown (5.35: no data yet — a dashed circle on
+	 * the plain surface). Each has its own icon too, so colour is never the only sign. */
 	status: StatusTileStatus;
 	/** The name. Wraps to two lines at most, then ends with "…"; a cut name shows in full in a tip on hover. */
 	title: React$1.ReactNode;
 	/** Top right, tabular figures: "12m", "99.98%", "240 ms". */
 	value?: React$1.ReactNode | undefined;
-	/** The value's colour. Default: the status's (down → danger, problem → warning, maintenance → accent, ok → default). */
+	/** The value's colour. Default: the status's (down → danger, problem → warning, maintenance → accent, ok and
+	 * unknown → default). */
 	valueTone?: TileTone | undefined;
 	/** A short second line: "since 09:41", "3 of 4 checks". */
 	meta?: React$1.ReactNode | undefined;
@@ -1646,7 +1647,7 @@ export interface StatusTileProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	href?: string | undefined;
 	/** Your router's link (e.g. `next/link`); defaults to AuraProvider's `linkComponent`, then `<a>`. */
 	linkComponent?: React$1.ElementType | undefined;
-	/** The status word read out after the title. Default: the locale's (Down, Problem, Maintenance, OK). */
+	/** The status word read out after the title. Default: the locale's (Down, Problem, Maintenance, OK, No data). */
 	statusLabel?: string | undefined;
 	className?: string | undefined;
 }
@@ -1986,6 +1987,8 @@ export interface AuraStrings {
 	statusProblem: string;
 	statusMaintenance: string;
 	statusOk: string;
+	/** StatusTile `unknown` (5.35). */
+	statusUnknown: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */

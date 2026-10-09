@@ -2,7 +2,7 @@
   "everything (import *)": 69632,
   "Button only": 5120,
   "DataTable only": 22528,
-  "DatePicker only": 15360,
+  "DatePicker only": 16384,
   "createTheme only": 3072,
   "styles.css": 34816,
   "aura.css (tokens)": 3584,

@@ -505,6 +505,8 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       /* 5.34 (DxT Monitor S06) */
       ['StatusTile', { status: 'down', title: 'API', value: '12m', meta: 'since 09:41', markers: [{ icon: 'lock', label: 'SSL soon', tone: 'warning' }, { icon: 'bell', label: 'Muted' }], href: '/s/1', 'data-testid': 't' }],
       ['StatusTile', { status: 'maintenance', title: 'Billing', valueTone: 'neutral', value: 'until 14:00', statusLabel: 'ปิดปรับปรุง' }],
+      /* 5.35 (DxT Monitor 12) */
+      ['StatusTile', { status: 'unknown', title: 'New site', meta: 'Added today', href: '/s/2' }],
       ['TileGrid', { columns: { base: 2, lg: 4 }, 'aria-label': 'Sites', children: [e('b', { key: 'x' }, 'x'), null, 'y'] }],
       ['Sparkline', { data: [1, null, 3, 4], failed: [false, false, true, true], failures: 'ticks', tone: 'danger', label: 'Latency', id: 'sp' }],
     ];
@@ -521,6 +523,11 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const th = m(e(A.AuraProvider, { locale: 'th' }, e(A.StatusTile, { status: 'problem', title: 'x', value: '1' })));
       const grid = m(e(A.TileGrid, null, e(A.StatusTile, { status: 'ok', title: 'A' }), false, e(A.StatusTile, { status: 'ok', title: 'B' })));
       const sp = m(e(A.Sparkline, { data: [1, null, 3, 4], failed: [true, true], label: 'L' }));
+      const unk = m(e(A.StatusTile, { status: 'unknown', title: 'New' })) + m(e(A.StatusTile, { status: 'paused', title: 'X' }));
+      if ((unk.match(/class="aura-status-tile aura-status-tile--unknown"/g) || []).length !== 2 || (unk.match(/>No data</g) || []).length !== 2) {
+        console.log(label, '5.35 unknown status:', unk);
+        fail++;
+      }
       const sp2 = m(e(A.Sparkline, { data: [1, 2], failed: [true, false], failures: 'band' }));
       if (
         !want.test(tile) ||

@@ -131,6 +131,7 @@ export const sv: AuraLocalePack = {
   statusProblem: 'Problem',
   statusMaintenance: 'Underhåll',
   statusOk: 'OK',
+  statusUnknown: 'Ingen data',
   accepts: function (list, max) {
     return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
   },

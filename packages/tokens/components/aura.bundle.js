@@ -949,6 +949,7 @@ window.Aura = (() => {
     statusProblem: "\u0E21\u0E35\u0E1B\u0E31\u0E0D\u0E2B\u0E32",
     statusMaintenance: "\u0E1B\u0E34\u0E14\u0E1B\u0E23\u0E31\u0E1A\u0E1B\u0E23\u0E38\u0E07",
     statusOk: "\u0E1B\u0E01\u0E15\u0E34",
+    statusUnknown: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25",
     accepts: function(list, max) {
       return [list, max && "\u0E44\u0E21\u0E48\u0E40\u0E01\u0E34\u0E19 " + max + " \u0E15\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C"].filter(Boolean).join(" \xB7 ");
     }
@@ -1084,6 +1085,7 @@ window.Aura = (() => {
     statusProblem: "Problem",
     statusMaintenance: "Underh\xE5ll",
     statusOk: "OK",
+    statusUnknown: "Ingen data",
     accepts: function(list, max) {
       return [list, max && "h\xF6gst " + max + " per fil"].filter(Boolean).join(", ");
     }
@@ -1220,6 +1222,7 @@ window.Aura = (() => {
       statusProblem: "Problem",
       statusMaintenance: "Maintenance",
       statusOk: "OK",
+      statusUnknown: "No data",
       accepts: function(list, max) {
         return [list, max && "up to " + max + " each"].filter(Boolean).join(", ");
       }
@@ -7685,19 +7688,22 @@ window.Aura = (() => {
     down: IconCircleAlert,
     problem: IconTriangleAlert,
     maintenance: IconWrench,
-    ok: IconCircleCheck
+    ok: IconCircleCheck,
+    unknown: IconCircleDotDashed
   };
   var STATUS_TONE = {
     down: "danger",
     problem: "warning",
     maintenance: "accent",
-    ok: "default"
+    ok: "default",
+    unknown: "default"
   };
   var STATUS_WORD = {
     down: "statusDown",
     problem: "statusProblem",
     maintenance: "statusMaintenance",
-    ok: "statusOk"
+    ok: "statusOk",
+    unknown: "statusUnknown"
   };
   function statusWord(status, t) {
     return String(t[STATUS_WORD[status]] || STATUS_WORD[status]);
@@ -7712,7 +7718,12 @@ window.Aura = (() => {
   }
   var comma = h9("span", { className: "aura-status-tile__sep" }, ",");
   function statusTileElement(props, ref, Link, t, titleRef) {
-    const status = STATUS_ICON[props.status] ? props.status : "ok";
+    const status = STATUS_ICON[props.status] ? props.status : "unknown";
+    if (status !== props.status)
+      devWarnOnce(
+        "status-tile-status-" + String(props.status),
+        'StatusTile status="' + String(props.status) + '" is not down, problem, maintenance, ok or unknown: it shows as unknown ("No data"). Map your value first.'
+      );
     const valueTone = props.valueTone || STATUS_TONE[status];
     const word = props.statusLabel || statusWord(status, t);
     const markers = (props.markers || []).filter(Boolean);
