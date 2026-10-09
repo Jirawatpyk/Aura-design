@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.35.0
+
+### Minor Changes
+
+- 29c1268: DxT Monitor requests 11–12: Breadcrumb links and buttons get a 44px touch hit area on touch screens; StatusTile `status="unknown"` (dashed circle, plain surface, "No data"), and an unrecognised status falls back to it instead of OK.
+
 ## 5.34.0
 
 ### Minor Changes
