@@ -7450,6 +7450,55 @@ test.describe('5.35: DxT Monitor requests 13–14 (scroll away)', () => {
       ).toBeNull();
     });
 
+    test('real touch drags (compositor scrolling, fling) hide and show both bars; the address bar resizing the viewport at the end of the page does not bring them back', async ({
+      browser,
+    }) => {
+      const ctx = await browser.newContext({ viewport: { width: 412, height: 780 }, isMobile: true, hasTouch: true });
+      const page = await ctx.newPage();
+      const cdp = await ctx.newCDPSession(page);
+      await story(page, ID);
+      const drag = async (dy: number, steps = 10) => {
+        const y0 = dy > 0 ? 700 : 150,
+          y1 = y0 - dy;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 200, y: y0 }] });
+        for (let i = 1; i <= steps; i++) {
+          await cdp.send('Input.dispatchTouchEvent', {
+            type: 'touchMove',
+            touchPoints: [{ x: 200, y: y0 + ((y1 - y0) * i) / steps }],
+          });
+          await page.waitForTimeout(16);
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await page.waitForTimeout(1200);
+      };
+      const bar = page.locator('.aura-shell__bar'),
+        nav = page.locator('nav.aura-bottomnav');
+      await drag(300, 20);
+      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
+      await expect(bar).toHaveClass(/is-away/);
+      await expect(nav).toHaveClass(/is-away/);
+      await drag(-120, 12);
+      await expect(bar).not.toHaveClass(/is-away/);
+      await expect(nav).not.toHaveClass(/is-away/);
+      /* Flick to the end, then the address bar slides away (taller viewport): the page clamps up 80px by itself. */
+      for (let i = 0; i < 6; i++) await drag(560, 3);
+      await expect(bar).toHaveClass(/is-away/);
+      const y = await page.evaluate(() => window.scrollY);
+      await page.setViewportSize({ width: 412, height: 860 });
+      await page.waitForTimeout(400);
+      expect(await page.evaluate(() => window.scrollY)).toBeLessThan(y);
+      await expect(bar).toHaveClass(/is-away/);
+      await expect(nav).toHaveClass(/is-away/);
+      await page.setViewportSize({ width: 412, height: 780 });
+      await page.waitForTimeout(400);
+      await expect(bar).toHaveClass(/is-away/);
+      /* Rotating past lg (width and height both change) while away: shown, not stuck away. */
+      await page.setViewportSize({ width: 1100, height: 700 });
+      await expect(bar).not.toHaveClass(/is-away/);
+      await expect(nav).not.toHaveClass(/is-away/);
+      await ctx.close();
+    });
+
     test('reduced motion: no slide', async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await story(page, ID);

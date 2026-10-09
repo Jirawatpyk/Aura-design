@@ -7948,7 +7948,7 @@ window.Aura = (() => {
           return;
         }
         const mq = window.matchMedia ? window.matchMedia(media) : null;
-        let last = window.scrollY, run = 0;
+        let last = window.scrollY, lastH = window.innerHeight, resizedAt = -1e9, run = 0;
         function update() {
           const y = window.scrollY, dy = y - last;
           last = y;
@@ -7956,6 +7956,12 @@ window.Aura = (() => {
           if (mq && !mq.matches || y <= from || node2 && document.activeElement && node2.contains(document.activeElement)) {
             run = 0;
             setHidden(false);
+            return;
+          }
+          if (window.innerHeight !== lastH || performance.now() - resizedAt < 150) {
+            lastH = window.innerHeight;
+            resizedAt = performance.now();
+            run = 0;
             return;
           }
           if (y + window.innerHeight > document.documentElement.scrollHeight + 1) return;
@@ -7980,12 +7986,14 @@ window.Aura = (() => {
           setHidden(false);
         }
         window.addEventListener("scroll", update, { passive: true });
+        window.addEventListener("resize", update);
         document.addEventListener("keydown", onKey, true);
         const node = el.current;
         if (node) node.addEventListener("focusin", reveal);
         if (mq && mq.addEventListener) mq.addEventListener("change", update);
         return function() {
           window.removeEventListener("scroll", update);
+          window.removeEventListener("resize", update);
           document.removeEventListener("keydown", onKey, true);
           if (node) node.removeEventListener("focusin", reveal);
           if (mq && mq.removeEventListener) mq.removeEventListener("change", update);

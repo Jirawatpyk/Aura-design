@@ -23,6 +23,8 @@ export function useHideOnScroll(
       }
       const mq = window.matchMedia ? window.matchMedia(media) : null;
       let last = window.scrollY,
+        lastH = window.innerHeight,
+        resizedAt = -1e9,
         run = 0;
       function update() {
         const y = window.scrollY,
@@ -36,6 +38,16 @@ export function useHideOnScroll(
         ) {
           run = 0;
           setHidden(false);
+          return;
+        }
+        /* A phone's address bar sliding in or out resizes the viewport; at the end of the page that clamps the scroll
+         * position (the page "scrolls up" by the bar's height) without the user moving. Not a direction, whether the
+         * scroll event comes before or after the resize. The checks above still run first: a rotation past lg or a
+         * resize near the top shows the bar. */
+        if (window.innerHeight !== lastH || performance.now() - resizedAt < 150) {
+          lastH = window.innerHeight;
+          resizedAt = performance.now();
+          run = 0;
           return;
         }
         /* iOS rubber-banding past the bottom scrolls "up": ignore movement beyond the end of the page. */
@@ -66,12 +78,14 @@ export function useHideOnScroll(
         setHidden(false);
       }
       window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
       document.addEventListener('keydown', onKey, true);
       const node = el.current;
       if (node) node.addEventListener('focusin', reveal);
       if (mq && mq.addEventListener) mq.addEventListener('change', update);
       return function () {
         window.removeEventListener('scroll', update);
+        window.removeEventListener('resize', update);
         document.removeEventListener('keydown', onKey, true);
         if (node) node.removeEventListener('focusin', reveal);
         if (mq && mq.removeEventListener) mq.removeEventListener('change', update);
