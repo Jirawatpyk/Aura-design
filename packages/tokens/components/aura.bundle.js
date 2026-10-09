@@ -7949,7 +7949,18 @@ window.Aura = (() => {
         }
         const mq = window.matchMedia ? window.matchMedia(media) : null;
         let last = window.scrollY, lastH = window.innerHeight, resizedAt = -1e9, run = 0;
+        let restore = null;
         function update() {
+          if (restore) {
+            const r2 = restore;
+            if (performance.now() > r2.until || window.scrollY >= r2.y - 1) restore = null;
+            else {
+              restore = null;
+              last = r2.y;
+              window.scrollTo(window.scrollX, r2.y);
+              return;
+            }
+          }
           const y = window.scrollY, dy = y - last;
           last = y;
           const node2 = el.current;
@@ -7970,8 +7981,14 @@ window.Aura = (() => {
           else if (run < -STEP) setHidden(false);
         }
         let tabbing = false;
+        function disarm() {
+          restore = null;
+        }
         function onKey(e) {
-          if (e.key !== "Tab") return;
+          if (e.key !== "Tab" && e.code !== "Tab") {
+            if (e.key !== "Shift") restore = null;
+            return;
+          }
           tabbing = true;
           requestAnimationFrame(function() {
             tabbing = false;
@@ -7981,13 +7998,19 @@ window.Aura = (() => {
           const n3 = el.current;
           if (n3 && n3.classList.contains("is-away")) {
             n3.classList.remove("is-away");
-            if (tabbing && window.scrollY < last) window.scrollTo(window.scrollX, last);
+            if (tabbing) {
+              if (window.scrollY < last) window.scrollTo(window.scrollX, last);
+              else restore = { y: last, until: performance.now() + 400 };
+            }
           }
           setHidden(false);
         }
         window.addEventListener("scroll", update, { passive: true });
         window.addEventListener("resize", update);
         document.addEventListener("keydown", onKey, true);
+        window.addEventListener("wheel", disarm, { passive: true, capture: true });
+        window.addEventListener("touchstart", disarm, { passive: true, capture: true });
+        window.addEventListener("pointerdown", disarm, true);
         const node = el.current;
         if (node) node.addEventListener("focusin", reveal);
         if (mq && mq.addEventListener) mq.addEventListener("change", update);
@@ -7995,6 +8018,9 @@ window.Aura = (() => {
           window.removeEventListener("scroll", update);
           window.removeEventListener("resize", update);
           document.removeEventListener("keydown", onKey, true);
+          window.removeEventListener("wheel", disarm, true);
+          window.removeEventListener("touchstart", disarm, true);
+          window.removeEventListener("pointerdown", disarm, true);
           if (node) node.removeEventListener("focusin", reveal);
           if (mq && mq.removeEventListener) mq.removeEventListener("change", update);
         };

@@ -6646,10 +6646,19 @@ test.describe('5.32: WCAG 2.5.3 label in name (axe 4.14)', () => {
     const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as { nodes: AX[] };
     return nodes.filter((n) => n.role?.value === role).map((n) => [n.name?.value ?? '', n.description?.value ?? '']);
   };
-  const rule = async (page: import('@playwright/test').Page) =>
-    (
-      await new AxeBuilder({ page }).include('#storybook-root').withRules(['label-content-name-mismatch']).analyze()
-    ).violations.flatMap((v) => v.nodes.map((n) => n.target.join(' ')));
+  /* Storybook's a11y addon may be mid-run as the story mounts: wait and retry, like axeScan. */
+  const rule = async (page: import('@playwright/test').Page): Promise<string[]> => {
+    for (let i = 0; ; i++) {
+      try {
+        return (
+          await new AxeBuilder({ page }).include('#storybook-root').withRules(['label-content-name-mismatch']).analyze()
+        ).violations.flatMap((v) => v.nodes.map((n) => n.target.join(' ')));
+      } catch (e) {
+        if (i >= 4 || !/Axe is already running/.test(String(e))) throw e;
+        await page.waitForTimeout(250);
+      }
+    }
+  };
 
   test('Accordion: named by its title, the description still its description; no 2.5.3 finding', async ({ page }) => {
     await story(page, 'aura-new-in-5-26-descriptions--descriptions-not-names');

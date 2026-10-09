@@ -26,7 +26,20 @@ export function useHideOnScroll(
         lastH = window.innerHeight,
         resizedAt = -1e9,
         run = 0;
+      /* WebKit scrolls a focused control into view after focusin, not before (Chromium), and to a sticky bar's place in
+       * the flow: catch that scroll too, for a moment after a Tab into the bar. */
+      let restore: { y: number; until: number } | null = null;
       function update() {
+        if (restore) {
+          const r = restore;
+          if (performance.now() > r.until || window.scrollY >= r.y - 1) restore = null;
+          else {
+            restore = null;
+            last = r.y;
+            window.scrollTo(window.scrollX, r.y);
+            return;
+          }
+        }
         const y = window.scrollY,
           dy = y - last;
         last = y;
@@ -62,8 +75,15 @@ export function useHideOnScroll(
       /* Only a Tab press moves the page back: app code that scrolls and then focuses the bar (back to top, then the
        * search) keeps its own scroll. The flag lasts until the next frame. */
       let tabbing = false;
+      /* The user's own scrolling (wheel, touch, a press, a scrolling key) is never put back. */
+      function disarm() {
+        restore = null;
+      }
       function onKey(e: KeyboardEvent) {
-        if (e.key !== 'Tab') return;
+        if (e.key !== 'Tab' && e.code !== 'Tab') {
+          if (e.key !== 'Shift') restore = null;
+          return;
+        }
         tabbing = true;
         requestAnimationFrame(function () {
           tabbing = false;
@@ -73,13 +93,19 @@ export function useHideOnScroll(
         const n = el.current;
         if (n && n.classList.contains('is-away')) {
           n.classList.remove('is-away');
-          if (tabbing && window.scrollY < last) window.scrollTo(window.scrollX, last);
+          if (tabbing) {
+            if (window.scrollY < last) window.scrollTo(window.scrollX, last);
+            else restore = { y: last, until: performance.now() + 400 };
+          }
         }
         setHidden(false);
       }
       window.addEventListener('scroll', update, { passive: true });
       window.addEventListener('resize', update);
       document.addEventListener('keydown', onKey, true);
+      window.addEventListener('wheel', disarm, { passive: true, capture: true });
+      window.addEventListener('touchstart', disarm, { passive: true, capture: true });
+      window.addEventListener('pointerdown', disarm, true);
       const node = el.current;
       if (node) node.addEventListener('focusin', reveal);
       if (mq && mq.addEventListener) mq.addEventListener('change', update);
@@ -87,6 +113,9 @@ export function useHideOnScroll(
         window.removeEventListener('scroll', update);
         window.removeEventListener('resize', update);
         document.removeEventListener('keydown', onKey, true);
+        window.removeEventListener('wheel', disarm, true);
+        window.removeEventListener('touchstart', disarm, true);
+        window.removeEventListener('pointerdown', disarm, true);
         if (node) node.removeEventListener('focusin', reveal);
         if (mq && mq.removeEventListener) mq.removeEventListener('change', update);
       };
