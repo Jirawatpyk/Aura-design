@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.34.0
+
+### Minor Changes
+
+- 542e9b5: DxT Monitor Overview S06: new `StatusTile` (status icon and tint, two-line title, value top right in its tone, meta line, labelled markers, whole-tile link named by its content), `TileGrid` (equal columns, 8px gap, two on phones and three from 768px) and `Sparkline` (null gaps, failures as band or ticks, tones, 80×24 / 120×32, labelled or decorative). All three also from `/server`.
+
 ## 5.33.0
 
 ### Minor Changes
