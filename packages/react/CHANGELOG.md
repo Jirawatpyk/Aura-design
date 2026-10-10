@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.36.0
+
+### Minor Changes
+
+- f9a1400: DxT Monitor request 15: a focused link or button in a DataTable cell keeps its whole focus ring (the cell clips text with a 4px clip margin, the control sits above the sticky gutter, plain links get AURA's ring; drawn inside in Safari).
+
 ## 5.35.0
 
 ### Minor Changes
