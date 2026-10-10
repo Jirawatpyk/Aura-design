@@ -7525,3 +7525,147 @@ test.describe('5.35: DxT Monitor requests 13–14 (scroll away)', () => {
     expect(await offset(page)).toBe('');
   });
 });
+
+test.describe('5.36: DxT Monitor requests 15–16', () => {
+  const ID = 'aura-new-in-5-36-dxt-monitor-15-16--cells';
+  /* Is the focus ring painted on all four sides of the focused element? Samples the screenshot 3px outside each side
+   * (the ring is 2px wide, 2px out) and compares with the ring colour. */
+  const ringSides = async (page: Page, el: import('@playwright/test').Locator) => {
+    const r = (await el.boundingBox())!;
+    const ring = await el.evaluate((e) => getComputedStyle(e).outlineColor);
+    const shot = await page.screenshot({
+      clip: { x: r.x - 8, y: r.y - 8, width: r.width + 16, height: r.height + 16 },
+    });
+    return page.evaluate(
+      async ({ b64, w, h, ring }) => {
+        const img = new Image();
+        img.src = 'data:image/png;base64,' + b64;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        const g = c.getContext('2d')!;
+        g.drawImage(img, 0, 0);
+        const k = img.width / (w + 16);
+        const m = ring.match(/\d+/g)!.map(Number);
+        const near = (x: number, y: number) => {
+          const d = g.getImageData(Math.round(x * k), Math.round(y * k), 1, 1).data;
+          return Math.abs(d[0] - m[0]) + Math.abs(d[1] - m[1]) + Math.abs(d[2] - m[2]) < 60;
+        };
+        return {
+          left: near(8 - 3, 8 + h / 2),
+          right: near(8 + w + 3, 8 + h / 2),
+          top: near(8 + w / 2, 8 - 3),
+          bottom: near(8 + w / 2, 8 + h + 3),
+        };
+      },
+      { b64: shot.toString('base64'), w: r.width, h: r.height, ring },
+    );
+  };
+  const tabTo = async (page: Page, el: import('@playwright/test').Locator) => {
+    /* Keyboard modality first (so :focus-visible applies), then focus: the grid moves focus with arrow keys. */
+    await page.keyboard.press('Shift');
+    await el.focus();
+    await expect(el).toBeFocused();
+    expect(await el.evaluate((e) => e.matches(':focus-visible'))).toBe(true);
+  };
+
+  test('15: a focused link in a table cell keeps all four sides of its ring (row link, a link in a cell; default, auto and compact rows)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    for (const id of ['incidents', 'auto', 'compact']) {
+      const t = page.getByTestId(id);
+      for (const name of ['INC-1042', 'api.example.co.th']) {
+        const link = t.getByRole('link', { name, exact: true });
+        await tabTo(page, link);
+        expect(await ringSides(page, link), id + ' ' + name).toEqual({
+          left: true,
+          right: true,
+          top: true,
+          bottom: true,
+        });
+      }
+    }
+  });
+
+  test('15: with a checkbox column the first column keeps its ring; the checkbox does not move on focus; a focused link scrolled under a pinned column stays under it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const sel = page.getByTestId('select');
+    const link = sel.getByRole('link', { name: 'INC-1042', exact: true });
+    await tabTo(page, link);
+    expect(await ringSides(page, link)).toEqual({ left: true, right: true, top: true, bottom: true });
+    const box = sel.locator('.aura-table__row').nth(1).locator('.aura-check__box, .aura-check').first();
+    const before = (await box.boundingBox())!;
+    const input = sel.getByRole('checkbox').nth(1);
+    await tabTo(page, input);
+    const after = (await box.boundingBox())!;
+    expect(Math.round(after.x - before.x)).toBe(0);
+    /* Scroll the narrow table so the SITE link passes under the pinned INCIDENT column, then focus it. */
+    const pin = page.getByTestId('pinned');
+    await pin.scrollIntoViewIfNeeded();
+    const plink = pin.getByRole('link', { name: 'api.example.co.th' });
+    const scroller = pin.locator('.aura-table__scroll');
+    const pr = (await pin.locator('.aura-table__td.is-pinned').first().boundingBox())!;
+    const lr0 = (await plink.boundingBox())!;
+    await scroller.evaluate((e, d) => (e.scrollLeft = d), Math.round(lr0.x - pr.x - 30));
+    await page.waitForTimeout(200);
+    await page.keyboard.press('Shift');
+    await plink.evaluate((e) => (e as HTMLElement).focus({ preventScroll: true }));
+    const lr = (await plink.boundingBox())!;
+    expect(lr.x).toBeLessThan(pr.x + pr.width); // it is under the pinned column now
+    const top = await page.evaluate(
+      ([x, y]) => (document.elementFromPoint(x, y) as HTMLElement).closest('a, .aura-table__td')!.className,
+      [lr.x + 4, lr.y + lr.height / 2],
+    );
+    expect(top).toContain('is-pinned');
+  });
+
+  test('15: long text still ends in an ellipsis inside its cell', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const cell = page.getByTestId('long').locator('.aura-table__td').filter({ hasText: 'a-very-long' });
+    const m = await cell.evaluate((e) => ({
+      over: e.scrollWidth > e.clientWidth,
+      to: getComputedStyle(e).textOverflow,
+      ws: getComputedStyle(e).whiteSpace,
+    }));
+    expect(m).toEqual({ over: true, to: 'ellipsis', ws: 'nowrap' });
+  });
+
+  test('16: align "end" right-aligns the header and every cell, with tabular figures (default and auto rows)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    for (const id of ['incidents', 'auto']) {
+      const t = page.getByTestId(id);
+      const head = t.getByRole('columnheader', { name: /DURATION/ });
+      const hl = t.locator('.aura-table__th.is-end .aura-table__th-inner > :first-child');
+      const hb = (await head.boundingBox())!,
+        lb = (await hl.boundingBox())!;
+      const cells = t.locator('.aura-table__td.is-end');
+      await expect(cells).toHaveCount(3);
+      for (let i = 0; i < 3; i++) {
+        const c = cells.nth(i);
+        const right = await c.evaluate((e) => {
+          const range = document.createRange();
+          range.selectNodeContents(e);
+          const rr = range.getBoundingClientRect(),
+            cr = e.getBoundingClientRect();
+          return { gap: Math.round(cr.right - rr.right), num: getComputedStyle(e).fontVariantNumeric };
+        });
+        expect(right.gap, id + ' cell ' + i).toBe(16); // flush with the cell's 16px end padding
+        expect(right.num).toContain('tabular-nums');
+        /* The header's label ends where the values end. */
+        const cb = (await c.boundingBox())!;
+        expect(Math.abs(lb.x + lb.width - (cb.x + cb.width - 16)), id + ' header vs cell').toBeLessThanOrEqual(24);
+      }
+      expect(hb.width).toBeGreaterThan(0);
+    }
+  });
+});

@@ -102,6 +102,30 @@ try {
   );
   check(x.under && x.lines === 2 && x.tip && x.cols === 2 && x.row > 100, 'tiles: value under the title, 2-line clamp with tip, 2 columns, flex-row tile not collapsed', x);
 
+  /* 5.36: no overflow-clip-margin in WebKit, so a ring in a table cell is drawn inside it, whole; align "end" cells. */
+  await go('aura-new-in-5-36-dxt-monitor-15-16--cells');
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await sleep(300);
+  await call('POST', S('/actions'), { actions: [{ type: 'key', id: 'k2', actions: [{ type: 'keyDown', value: '\uE008' }, { type: 'keyUp', value: '\uE008' }] }] });
+  x = JSON.parse(
+    await ex(`const out = {};
+      for (const n of ['INC-1042', 'api.example.co.th']) {
+        const a = [...document.querySelectorAll('[data-testid=incidents] a')].find((e) => e.textContent === n);
+        a.focus();
+        const s = getComputedStyle(a), td = a.closest('.aura-table__td').getBoundingClientRect(), r = a.getBoundingClientRect();
+        out[n] = { fv: a.matches(':focus-visible'), style: s.outlineStyle, offset: s.outlineOffset, inside: r.left - parseFloat(s.outlineOffset) - parseFloat(s.outlineWidth) >= td.left - 0.5 };
+      }
+      const c = document.querySelector('[data-testid=incidents] .aura-table__td.is-end'), rg = document.createRange(); rg.selectNodeContents(c);
+      out.endGap = Math.round(c.getBoundingClientRect().right - rg.getBoundingClientRect().right);
+      return JSON.stringify(out)`),
+  );
+  check(
+    x['INC-1042'].style === 'solid' && x['INC-1042'].inside && x['api.example.co.th'].style === 'solid' && x['api.example.co.th'].inside && x.endGap === 16,
+    'table cells: rings drawn inside the cell (no clip margin in WebKit), AURA ring on a plain link, align end flush',
+    x,
+  );
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);

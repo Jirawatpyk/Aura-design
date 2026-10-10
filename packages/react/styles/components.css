@@ -161,6 +161,22 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   box-sizing: border-box; height: 100%; line-height: calc(var(--aura-table-row-height) - 1px);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: var(--aura-space-4);
 }
+/* 5.36 (DxT Monitor 15): the cell clips its text, not the focus ring of a link or button in it (2px wide, 2px out,
+ * so 4px). A cell's start edge is its content edge, so a ring there lost its start side. In the first data column the
+ * row's sticky start gutter (or pinned checkbox column) painted over it too: there a focused link or button is lifted
+ * just above them — not while the table is scrolled sideways (it would cover the pinned columns), and never above the
+ * sticky header or totals (z-index 3). Where the browser can't give the clip a margin (Safari), rings in cells are
+ * drawn inside instead. */
+.aura-table:not(.is-scrolled-x) :is(.aura-table__gutter, .aura-table__sel) + .aura-table__td :is(a, button, [role="button"]):focus-visible { position: relative; z-index: 2; }
+/* A plain link or button of yours in a cell gets AURA's ring rather than the browser's (no specificity: your own focus
+ * style wins). */
+:where(.aura-table__td) :where(a, button):focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
+@supports (overflow-clip-margin: 1px) {
+  .aura-table__td { overflow: clip; overflow-clip-margin: var(--aura-space-1); }
+}
+@supports not (overflow-clip-margin: 1px) {
+  .aura-table__td :focus-visible { outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+}
 /* 5.11 rowHeight="auto" (never virtualized): a row grows to fit what wraps in it; each cell centres its content.
  * The padding only shows once content is taller than the row: a small Button or IconButton (32px), a pill or one line
  * still fits the density's row height (7.5px above and below at 48px, 3.5px compact). */
