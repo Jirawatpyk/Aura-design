@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.37.0
+
+### Minor Changes
+
+- 09d5622: DxT Monitor requests 17–18: PageHeader `actionsFullWidthBelow` ('sm' | 'md' | 'lg') lets the actions span the row under the text on small screens; SegmentedControl `touchHeight` (true: below 640px or a coarse pointer; 'always') gives 44px options.
+
 ## 5.36.0
 
 ### Minor Changes
