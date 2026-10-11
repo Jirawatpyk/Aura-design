@@ -296,6 +296,15 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.37 (DxT Monitor 17, 18): PageHeader actionsFullWidthBelow and SegmentedControl touchHeight are classes on the
+     * root, never DOM attributes; an unknown breakpoint adds nothing. */
+    {
+      const ph = m(e(A.PageHeader, { title: 'Site', actions: e('button', null, 'Mute'), actionsFullWidthBelow: 'md' }));
+      const phX = m(e(A.PageHeader, { title: 'Site', actionsFullWidthBelow: 'xl' as 'md' })), ph0 = m(e(A.PageHeader, { title: 'Site' }));
+      const sc = m(e(A.SegmentedControl, { label: 'T', options: ['a', 'b'], fullWidth: true, touchHeight: true }));
+      const sca = m(e(A.SegmentedControl, { label: 'T', options: ['a'], size: 'sm', touchHeight: 'always' })), sc0 = m(e(A.SegmentedControl, { label: 'T', options: ['a'] }));
+      if (!/^<div class="aura-page-header aura-page-header--actions-full-below-md"><div class="aura-page-header__text">/.test(ph) || !/<div class="aura-page-header__actions"><button>Mute<\/button><\/div><\/div>$/.test(ph) || !/^<div class="aura-page-header">/.test(phX) || !/^<div class="aura-page-header">/.test(ph0) || /actionsfullwidthbelow|touchheight/i.test(ph + phX + sc + sca) || !/class="aura-segmented is-full is-touch"/.test(sc) || !/class="aura-segmented aura-segmented--sm is-touch-always"/.test(sca) || /is-touch/.test(sc0)) bad('DxT 17/18:', ph, phX, ph0, sc, sca, sc0);
+    }
     /* 5.33 (DxT Monitor 6, 7): AppShell headerHideFrom, PageHeader breadcrumb. */
     {
       const sh = m(e(A.AppShell, { header: 'Brand', headerHideFrom: 'lg', nav: e(A.SideNav, { items: [{ id: 'a', label: 'A' }] }) }, 'x'));

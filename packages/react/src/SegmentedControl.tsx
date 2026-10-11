@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
 import { cx, uid, useMaybeControlled } from './internal.js';
+import { touchClass } from './classes.js';
 import { useAutoTip } from './autoTip.js';
 import type { SegmentedControlProps, SegmentedOption } from './types.js';
 
@@ -70,6 +71,7 @@ export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedContro
           'aura-segmented',
           props.size === 'sm' && 'aura-segmented--sm',
           props.fullWidth && 'is-full',
+          touchClass(props.touchHeight),
           props.disabled && 'is-disabled',
           props.className,
         )}

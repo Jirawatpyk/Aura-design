@@ -91,6 +91,8 @@ for (const [name, A] of [
       tree(A.Sparkline.render({ data: [1, null, 3, 4], label: 'Latency' }, null)),
       /* 5.32 (DxT Monitor 3): PageHeader is stateless. */
       tree(A.PageHeader.render({ eyebrow: 'Monitor', title: 'Overview', meta: '12 sites' }, null)),
+      /* 5.37 (DxT Monitor 17): actionsFullWidthBelow is a class, still stateless. */
+      tree(A.PageHeader.render({ title: 'Site', actions: 'Mute', actionsFullWidthBelow: 'md' }, null)),
       /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
       tree(
         A.Container.render(
@@ -131,6 +133,7 @@ for (const [name, A] of [
       '<ul role="list" class="aura-grid-layout aura-tile-grid"><li>a</li><li>b</li></ul>',
       'role="img" aria-label="Latency"',
       'd="M52.67 8.67L78 2"',
+      '<div class="aura-page-header aura-page-header--actions-full-below-md"><div class="aura-page-header__text">',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')

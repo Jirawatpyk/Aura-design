@@ -7663,9 +7663,18 @@ window.Aura = (() => {
         attrs2[k] = props[k];
     });
     const level = props.headingLevel || 1;
+    const below2 = props.actionsFullWidthBelow;
     return h8(
       "div",
-      Object.assign(attrs2, { ref, className: cx("aura-page-header", props.className), style: props.style }),
+      Object.assign(attrs2, {
+        ref,
+        className: cx(
+          "aura-page-header",
+          (below2 === "sm" || below2 === "md" || below2 === "lg") && "aura-page-header--actions-full-below-" + below2,
+          props.className
+        ),
+        style: props.style
+      }),
       h8(
         "div",
         { className: "aura-page-header__text" },
@@ -10239,6 +10248,7 @@ window.Aura = (() => {
             "aura-segmented",
             props.size === "sm" && "aura-segmented--sm",
             props.fullWidth && "is-full",
+            touchClass(props.touchHeight),
             props.disabled && "is-disabled",
             props.className
           )

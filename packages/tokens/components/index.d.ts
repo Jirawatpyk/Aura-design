@@ -1036,6 +1036,10 @@ export interface SegmentedControlProps {
 	size?: "sm" | "md" | undefined;
 	/** Stretch across the container, segments equal width. */
 	fullWidth?: boolean | undefined;
+	/** 5.37 (DxT Monitor #18): 44px options (`sm` too; icon-only options 44px square). `true`: below 640px or on a
+	 * coarse pointer, as Button's and TextField's `touchHeight`; `'always'`: at every width. Without it, options are
+	 * 44px on a coarse pointer only. */
+	touchHeight?: TouchHeight | undefined;
 	disabled?: boolean | undefined;
 	id?: string | undefined;
 	className?: string | undefined;
@@ -1893,6 +1897,11 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	meta?: React$1.ReactNode | undefined;
 	/** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
 	actions?: React$1.ReactNode | undefined;
+	/** 5.37 (DxT Monitor #17): below this breakpoint (`sm` 640px, `md` 768px, `lg` 1024px) the actions take the whole
+	 * row under the text, 12px apart, and its buttons share each line in equal widths unless a label needs more (a trigger inside a DropdownMenu,
+	 * Tooltip or Popover too; IconButtons keep their size) — a single Button or your own grid spans the row. Wider
+	 * than that, the actions hug their content at the end as before. */
+	actionsFullWidthBelow?: "sm" | "md" | "lg" | undefined;
 	/** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
 	headingLevel?: 1 | 2 | 3 | undefined;
 	/** The heading's id, for `aria-labelledby` on the page's region. */

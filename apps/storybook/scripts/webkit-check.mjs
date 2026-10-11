@@ -126,6 +126,20 @@ try {
   );
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
 
+  /* 5.37: PageHeader actions span the row below md (two, then one, 12px apart); SegmentedControl touchHeight 44px. */
+  await go('aura-new-in-5-37-dxt-monitor-17-18--header-actions');
+  x = JSON.parse(
+    await ex(`const h = document.querySelector('[data-testid=md]').getBoundingClientRect();
+      const b = [...document.querySelectorAll('[data-testid=md] .aura-page-header__actions > *')].map((e) => e.getBoundingClientRect());
+      return JSON.stringify({ row1: Math.round(b[0].top) === Math.round(b[1].top), gap: Math.round(b[1].left - b[0].right),
+        ends: Math.round(b[1].right) === Math.round(h.right), third: Math.round(b[2].width) === Math.round(h.width), vgap: Math.round(b[2].top - b[0].bottom) })`),
+  );
+  check(x.row1 && x.gap === 12 && x.ends && x.third && x.vgap === 12, 'PageHeader actionsFullWidthBelow: two then one, 12px apart, to the edge', x);
+  await go('aura-new-in-5-37-dxt-monitor-17-18--segmented-touch');
+  x = await ex(`return ['type', 'start', 'icons', 'plain'].map((id) => Math.round(document.querySelector('[data-testid=' + id + '] [role=radio]').getBoundingClientRect().height))
+    .concat(Math.round(document.querySelector('[data-testid=icons] [role=radio]').getBoundingClientRect().width))`);
+  check(JSON.stringify(x) === '[44,44,44,38,44]', 'SegmentedControl touchHeight: 44px options at 390 (sm, icon square); plain 38', x);
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);

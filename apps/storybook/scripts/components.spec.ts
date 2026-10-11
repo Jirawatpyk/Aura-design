@@ -7669,3 +7669,159 @@ test.describe('5.36: DxT Monitor requests 15–16', () => {
     }
   });
 });
+
+test.describe('5.37: DxT Monitor requests 17–18', () => {
+  const HEAD = 'aura-new-in-5-37-dxt-monitor-17-18--header-actions';
+  const SEG = 'aura-new-in-5-37-dxt-monitor-17-18--segmented-touch';
+  const box = async (l: import('@playwright/test').Locator) => {
+    const b = (await l.boundingBox())!;
+    return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) };
+  };
+  /* The header's own width and its actions box, and each direct child of the actions. */
+  const header = async (page: Page, id: string) => {
+    const h = page.getByTestId(id);
+    const kids = h.locator('.aura-page-header__actions > *');
+    const out = {
+      head: await box(h),
+      actions: await box(h.locator('.aura-page-header__actions')),
+      kids: [] as Array<{ x: number; y: number; w: number; h: number }>,
+    };
+    for (let i = 0; i < (await kids.count()); i++) out.kids.push(await box(kids.nth(i)));
+    return out;
+  };
+
+  test('17: below md at 390px the actions span the row — two half-width buttons, then one full-width, 12px apart, 44px tall', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, HEAD);
+    const m = await header(page, 'md');
+    expect(m.actions.w).toBe(m.head.w);
+    expect(m.actions.x).toBe(m.head.x);
+    const [a, b, c] = m.kids;
+    expect(a.y).toBe(b.y); // Mute and Maintenance share the first row
+    expect(Math.abs(a.w - b.w)).toBeLessThanOrEqual(1); // equal halves, whatever the labels
+    expect(a.x).toBe(m.head.x);
+    expect(b.x - (a.x + a.w)).toBe(12);
+    expect(b.x + b.w).toBe(m.head.x + m.head.w);
+    expect(c.y - (a.y + a.h)).toBe(12); // Edit monitors on its own row, 12px below
+    expect({ x: c.x, w: c.w }).toEqual({ x: m.head.x, w: m.head.w });
+    expect([a.h, b.h, c.h]).toEqual([44, 44, 44]);
+    /* Your own grid as the one child spans the row too; a single button reaches the edge. */
+    const g = await header(page, 'grid');
+    expect(g.kids[0].w).toBe(g.head.w);
+    const third = await box(page.getByTestId('grid').getByRole('button', { name: 'Edit monitors' }));
+    expect(third.w).toBe(g.head.w);
+    const one = await header(page, 'one');
+    expect(one.kids[0]).toMatchObject({ x: one.head.x, w: one.head.w });
+    /* Without the prop each button keeps its own width and stops short of the edge. */
+    const d = await header(page, 'default');
+    expect(d.kids.map((k) => k.w < d.head.w / 2)).toEqual([true, true, true]);
+  });
+
+  test('17: a Tooltip-wrapped button and a DropdownMenu trigger fill their share; icon buttons (bare or as a menu trigger) stay square', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, HEAD);
+    const w = page.getByTestId('wrapped');
+    const head = await box(w);
+    const mute = await box(w.getByRole('button', { name: 'Mute' }));
+    const edit = await box(w.getByRole('button', { name: 'Edit' }));
+    const more = await box(w.getByRole('button', { name: 'More' }));
+    const open = await box(w.getByRole('button', { name: 'Open site' }));
+    expect(mute.x).toBe(head.x);
+    expect(Math.abs(mute.w - edit.w)).toBeLessThanOrEqual(1);
+    expect(edit.x - (mute.x + mute.w)).toBe(12);
+    expect([more.w, more.h, open.w, open.h]).toEqual([more.h, more.h, open.h, open.h]);
+    expect(more.w).toBeLessThan(50);
+    /* The row ends at the edge: the last control's right edge is the header's. */
+    const right = Math.max(mute.x + mute.w, edit.x + edit.w, more.x + more.w, open.x + open.w);
+    expect(right).toBe(head.x + head.w);
+  });
+
+  test('17: each breakpoint applies below its own width only', async ({ page }) => {
+    const full = async (id: string) => {
+      const x = await header(page, id);
+      return x.actions.w === x.head.w;
+    };
+    await page.setViewportSize({ width: 700, height: 900 });
+    await story(page, HEAD);
+    expect({ sm: await full('one'), md: await full('md'), lg: await full('lg') }).toEqual({
+      sm: false,
+      md: true,
+      lg: true,
+    });
+    await page.setViewportSize({ width: 900, height: 900 });
+    await page.waitForTimeout(100);
+    expect({ sm: await full('one'), md: await full('md'), lg: await full('lg') }).toEqual({
+      sm: false,
+      md: false,
+      lg: true,
+    });
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await page.waitForTimeout(100);
+    expect({ md: await full('md'), lg: await full('lg') }).toEqual({ md: false, lg: false });
+    /* Wide: the actions sit at the end, on the text's row, 8px apart as before. */
+    const m = await header(page, 'md');
+    expect(m.actions.x + m.actions.w).toBe(m.head.x + m.head.w);
+    expect(m.kids[1].x - (m.kids[0].x + m.kids[0].w)).toBe(8);
+    const t = await box(page.getByTestId('md').locator('.aura-page-header__text'));
+    expect(m.actions.y).toBeLessThan(t.y + t.h);
+  });
+
+  const heights = async (page: Page) => {
+    const out: Record<string, number[]> = {};
+    for (const id of ['type', 'duration', 'start', 'icons', 'always', 'plain']) {
+      const opts = page.getByTestId(id).getByRole('radio');
+      out[id] = [];
+      for (let i = 0; i < (await opts.count()); i++) out[id].push((await box(opts.nth(i))).h);
+    }
+    out.iconW = [(await box(page.getByTestId('icons').getByRole('radio').first())).w];
+    return out;
+  };
+
+  test('18: touchHeight options are 44px below 640px with a mouse (sm and icon-only too); without it 38px; "always" at every width', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, SEG);
+    expect(await heights(page)).toEqual({
+      type: [44, 44],
+      duration: [44, 44, 44, 44],
+      start: [44, 44],
+      icons: [44, 44],
+      always: [44, 44],
+      plain: [38, 38],
+      iconW: [44],
+    });
+    /* Full width still shares the row equally. */
+    const t = page.getByTestId('type');
+    const tr = await box(t.locator('.aura-segmented'));
+    expect(tr.w).toBe((await box(t)).w);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForTimeout(100);
+    expect(await heights(page)).toEqual({
+      type: [38, 38],
+      duration: [38, 38, 38, 38],
+      start: [24, 24],
+      icons: [38, 38],
+      always: [44, 44],
+      plain: [38, 38],
+      iconW: [38],
+    });
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('18: on a coarse pointer every option is 44px at any width, as before; icon-only options with touchHeight are 44px square', async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 1200, height: 800 } });
+    const page = await ctx.newPage();
+    await story(page, SEG);
+    const h = await heights(page);
+    expect(h.type.concat(h.duration, h.start, h.icons, h.always, h.plain)).toEqual(Array(14).fill(44));
+    expect(h.iconW).toEqual([44]);
+    await ctx.close();
+  });
+});

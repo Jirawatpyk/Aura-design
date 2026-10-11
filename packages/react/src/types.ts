@@ -1127,6 +1127,10 @@ export interface SegmentedControlProps {
   size?: 'sm' | 'md' | undefined;
   /** Stretch across the container, segments equal width. */
   fullWidth?: boolean | undefined;
+  /** 5.37 (DxT Monitor #18): 44px options (`sm` too; icon-only options 44px square). `true`: below 640px or on a
+   * coarse pointer, as Button's and TextField's `touchHeight`; `'always'`: at every width. Without it, options are
+   * 44px on a coarse pointer only. */
+  touchHeight?: TouchHeight | undefined;
   disabled?: boolean | undefined;
   id?: string | undefined;
   className?: string | undefined;
