@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.37.0 — 2026-10-11
+
+### Minor changes
+
+- 09d5622: DxT Monitor requests 17–18: PageHeader `actionsFullWidthBelow` ('sm' | 'md' | 'lg') lets the actions span the row under the text on small screens; SegmentedControl `touchHeight` (true: below 640px or a coarse pointer; 'always') gives 44px options.
+
 ## 5.36.0 — 2026-10-10
 
 ### Minor changes
