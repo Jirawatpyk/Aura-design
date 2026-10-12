@@ -296,6 +296,17 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.38 (Chamber-OS 140–142): touchHeight on FilterBar, FilterSelect, Combobox, DatePicker, TimePicker and
+     * NumberField is a class, never a DOM attribute; DataTable rowProps sets only data-* and id on each row. */
+    {
+      const fb = m(e(A.FilterBar, { onSearchChange: () => {}, touchHeight: true }, e(A.FilterSelect, { label: 'Role', options: ['All', 'A'], touchHeight: 'always' })));
+      const fb0 = m(e(A.FilterBar, { onSearchChange: () => {} }, e(A.FilterSelect, { label: 'Role', options: ['All', 'A'] })));
+      const fields = [A.Combobox, A.DatePicker, A.TimePicker, A.NumberField].map((C: any) => m(e(C, { label: 'L', options: ['a'], touchHeight: true })));
+      const always = m(e(A.Combobox, { label: 'L', options: ['a'], touchHeight: 'always' })), plain = m(e(A.Combobox, { label: 'L', options: ['a'] }));
+      const dt = m(e(A.DataTable, { label: 'U', rowKey: 'id', rows: [{ id: 'u1', n: 'A' }], columns: [{ key: 'n', label: 'N' }], rowProps: (r: any) => ({ id: 'user-' + r.id, 'data-user-id': r.id, role: 'none', onClick: 'x', className: 'x' }) }));
+      const rowTag = (/<div[^>]*data-user-id="u1"[^>]*>/.exec(dt) || [''])[0];
+      if (!/class="aura-filterbar is-touch"/.test(fb) || !/class="aura-filterselect aura-select aura-select--custom is-touch-always"|class="aura-filterselect is-touch-always"/.test(fb) || /is-touch/.test(fb0) || /touchheight/i.test(fb + fields.join('') + always + dt) || fields.some((f) => !/^<div class="aura-field is-touch"/.test(f)) || !/^<div class="aura-field is-touch-always"/.test(always) || /is-touch/.test(plain) || !/id="user-u1"/.test(rowTag) || !/role="row"/.test(rowTag) || /role="none"|class="x"/.test(rowTag) || !/class="aura-table__row"/.test(rowTag)) bad('Chamber-OS 140–142:', fb, fb0, fields.join('\n'), always, plain, rowTag);
+    }
     /* 5.37 (DxT Monitor 17, 18): PageHeader actionsFullWidthBelow and SegmentedControl touchHeight are classes on the
      * root, never DOM attributes; an unknown breakpoint adds nothing. */
     {

@@ -551,7 +551,14 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
    * face keeps showing the server's value until JavaScript runs; a pick made before hydration shows once it does). */
   if (!live && filter)
     return (
-      <div className={cx('aura-filterselect', props.disabled && 'is-disabled', props.className)}>
+      <div
+        className={cx(
+          'aura-filterselect',
+          props.disabled && 'is-disabled',
+          touchClass(props.touchHeight),
+          props.className,
+        )}
+      >
         <span className="aura-filterselect__face" aria-hidden={true} style={props.style}>
           {face}
         </span>
@@ -707,6 +714,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         ro && 'is-readonly',
         open && 'is-open',
         filter && props.disabled && 'is-disabled',
+        filter && touchClass(props.touchHeight),
         filter && props.className,
       )}
       data-invalid={props.error ? '' : undefined}

@@ -1617,6 +1617,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   }
   .aura-tag__remove { position: relative; }
   .aura-combo.is-multi .aura-combo__clear, .aura-combo.is-multi .aura-combo__toggle { top: calc((var(--aura-input-height) - 2px - 40px) / 2); }
+  .aura-combo.is-multi { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); } /* 5.38: room for both 44px buttons */
 }
 
 /* ---------- Small screens (< 640px) ---------- */
@@ -1665,6 +1666,25 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-check--labelled.is-touch-always .aura-check__input { top: calc((var(--aura-touch-target) - 20px) / 2 + 3px); }
 .aura-radio-group.is-touch-always .aura-radio-group__list { gap: 0; }
 .aura-radio-group.is-touch-always .aura-radio-group__list.is-horizontal { gap: 0 var(--aura-space-6); align-items: flex-start; }
+/* 5.38 (Chamber-OS 141): Combobox, DatePicker, TimePicker and NumberField take touchHeight too; their buttons inside
+ * the box get the touch-screen sizes (44px wide, side by side) with the 44px box, so neither is a 32px target. A
+ * FilterBar with touchHeight (Chamber-OS 140) does the same for those fields in it. */
+:is(.aura-field, .aura-filterbar).is-touch-always :is(.aura-combo__clear, .aura-combo__toggle, .aura-date__toggle) { width: var(--aura-touch-target); height: 40px; }
+:is(.aura-field, .aura-filterbar).is-touch-always :is(.aura-combo__toggle, .aura-date__toggle) { right: 0; }
+:is(.aura-field, .aura-filterbar).is-touch-always .aura-combo__clear { right: var(--aura-touch-target); }
+:is(.aura-field, .aura-filterbar).is-touch-always :is(.aura-combo, .aura-date) .aura-input__control { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+:is(.aura-field, .aura-filterbar).is-touch-always .aura-combo.is-multi { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+:is(.aura-field, .aura-filterbar).is-touch-always .aura-combo.is-multi :is(.aura-combo__clear, .aura-combo__toggle) { top: calc((var(--aura-input-height) - 2px - 40px) / 2); }
+:is(.aura-field, .aura-filterbar).is-touch-always .aura-number__step { width: var(--aura-touch-target); }
+@media (max-width: 639.98px), (pointer: coarse) {
+  :is(.aura-field, .aura-filterbar).is-touch :is(.aura-combo__clear, .aura-combo__toggle, .aura-date__toggle) { width: var(--aura-touch-target); height: 40px; }
+  :is(.aura-field, .aura-filterbar).is-touch :is(.aura-combo__toggle, .aura-date__toggle) { right: 0; }
+  :is(.aura-field, .aura-filterbar).is-touch .aura-combo__clear { right: var(--aura-touch-target); }
+  :is(.aura-field, .aura-filterbar).is-touch :is(.aura-combo, .aura-date) .aura-input__control { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+  :is(.aura-field, .aura-filterbar).is-touch .aura-combo.is-multi { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+  :is(.aura-field, .aura-filterbar).is-touch .aura-combo.is-multi :is(.aura-combo__clear, .aura-combo__toggle) { top: calc((var(--aura-input-height) - 2px - 40px) / 2); }
+  :is(.aura-field, .aura-filterbar).is-touch .aura-number__step { width: var(--aura-touch-target); }
+}
 @media (max-width: 639.98px), (pointer: coarse) {
   .aura-field.is-touch { --aura-input-height: var(--aura-touch-target); }
   .aura-radio-group.is-touch .aura-choice, .aura-check--labelled.is-touch {
@@ -1788,6 +1808,18 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterselect__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; font-size: 16px; cursor: pointer; appearance: none; }
 .aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); cursor: not-allowed; }
 .aura-filterselect.is-disabled .aura-filterselect__native { cursor: not-allowed; }
+/* 5.38 (Chamber-OS 140): touchHeight on FilterBar (its search and field-height controls) or on one FilterSelect —
+ * 44px below 640px or on a coarse pointer (is-touch), or always. */
+:is(.aura-filterbar, .aura-filterselect).is-touch-always { --aura-input-height: var(--aura-touch-target); }
+.aura-filterbar.is-touch-always .aura-segmented__option { height: var(--aura-touch-target); }
+.aura-filterbar.is-touch-always .aura-segmented__option.is-icon { width: var(--aura-touch-target); }
+.aura-filterbar.is-touch-always .aura-filterbar__clear-search { width: var(--aura-touch-target); height: 40px; margin-right: 0; }
+@media (max-width: 639.98px), (pointer: coarse) {
+  :is(.aura-filterbar, .aura-filterselect).is-touch { --aura-input-height: var(--aura-touch-target); }
+  .aura-filterbar.is-touch .aura-segmented__option { height: var(--aura-touch-target); }
+  .aura-filterbar.is-touch .aura-segmented__option.is-icon { width: var(--aura-touch-target); }
+  .aura-filterbar.is-touch .aura-filterbar__clear-search { width: var(--aura-touch-target); height: 40px; margin-right: 0; }
+}
 @media (forced-colors: active) { .aura-filterselect__face { border-color: ButtonText; } }
 /* 5.26 (Chamber-OS 128) FilterDateRange: presets beside the range calendar; above it on phones. */
 .aura-filterdate__pop { display: flex; gap: var(--aura-space-3); overflow-y: auto; }

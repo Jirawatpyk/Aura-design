@@ -7825,3 +7825,235 @@ test.describe('5.37: DxT Monitor requests 17–18', () => {
     await ctx.close();
   });
 });
+
+test.describe('5.38: Chamber-OS addenda 43–45', () => {
+  const FB = 'aura-new-in-5-38-chamber-os-140-142--filter-bar-touch';
+  const FIELDS = 'aura-new-in-5-38-chamber-os-140-142--fields-touch';
+  const ROWS = 'aura-new-in-5-38-chamber-os-140-142--row-props';
+  const heights = (page: Page, sel: string) =>
+    page.evaluate(
+      (s) => [...document.querySelectorAll(s)].map((e) => Math.round(e.getBoundingClientRect().height)),
+      sel,
+    );
+  const bar = async (page: Page) => ({
+    search: await heights(page, '[data-testid=touch] .aura-filterbar__search'),
+    selects: await heights(page, '[data-testid=touch] .aura-filterselect__face'),
+    button: await heights(page, '[data-testid=touch] .aura-btn'),
+    plainSearch: await heights(page, '[data-testid=plain] .aura-filterbar__search'),
+    plainSelect: await heights(page, '[data-testid=plain] .aura-filterselect__face'),
+    one: await heights(page, '[data-testid=one] .aura-filterselect__face'),
+  });
+
+  test('140: FilterBar touchHeight — search and FilterSelects are 44px below 640px with a mouse, like the Button; 36px from 640px; plain bar unchanged', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, FB);
+    expect(await bar(page)).toEqual({
+      search: [44],
+      selects: [44, 44],
+      button: [44],
+      plainSearch: [36],
+      plainSelect: [36],
+      one: [44, 36],
+    });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForTimeout(100);
+    expect(await bar(page)).toEqual({
+      search: [36],
+      selects: [36, 36],
+      button: [36],
+      plainSearch: [36],
+      plainSelect: [36],
+      one: [44, 36],
+    });
+  });
+
+  test('140: in a touch bar the search’s clear button, SegmentedControl options and a Combobox’s buttons are 44px wide too', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, FB);
+    const t = page.getByTestId('touch');
+    await t.getByRole('searchbox').fill('anna');
+    const sizes = await t.evaluate((root) => {
+      const wh = (s: string) =>
+        [...root.querySelectorAll(s)].map((e) => {
+          const r = e.getBoundingClientRect();
+          return [Math.round(r.width), Math.round(r.height)];
+        });
+      return {
+        clear: wh('.aura-filterbar__clear-search'),
+        options: wh('.aura-segmented__option').map((x) => x[1]),
+        combo: wh('.aura-combo__clear, .aura-combo__toggle'),
+        comboBox: wh('.aura-combo').map((x) => x[1]),
+      };
+    });
+    expect(sizes).toEqual({
+      clear: [[44, 40]],
+      options: [44, 44],
+      combo: [
+        [44, 40],
+        [44, 40],
+      ],
+      comboBox: [44],
+    });
+    const plain = page.getByTestId('plain');
+    await plain.getByRole('searchbox').fill('x');
+    const pc = (await plain.locator('.aura-filterbar__clear-search').boundingBox())!;
+    expect(Math.round(pc.width)).toBeLessThan(44);
+  });
+
+  test('140: on a coarse pointer every search and FilterSelect is 44px, as before', async ({ browser }) => {
+    const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 1200, height: 900 } });
+    const page = await ctx.newPage();
+    await story(page, FB);
+    const b = await bar(page);
+    expect(Object.values(b).flat()).toEqual(Array(8).fill(44));
+    await ctx.close();
+  });
+
+  /* Each field's box, and its buttons inside (clear, chevron, calendar, steppers): size, and side by side inside the box. */
+  const field = (page: Page, id: string) =>
+    page.evaluate((id) => {
+      const root = document.querySelector(`[data-testid="${id}"]`)!;
+      const box = root.querySelector('.aura-input, .aura-select')!.getBoundingClientRect();
+      const btns = [
+        ...root.querySelectorAll('.aura-combo__clear, .aura-combo__toggle, .aura-date__toggle, .aura-number__step'),
+      ].map((e) => e.getBoundingClientRect());
+      /* A multiple Combobox reserves its end padding for the buttons: chips and the input wrap before it. */
+      const boxEl = root.querySelector('.aura-combo.is-multi');
+      const contentEnd = boxEl ? box.right - 1 - parseFloat(getComputedStyle(boxEl).paddingRight) : null;
+      const chips = [...root.querySelectorAll('.aura-combo__chip')]
+        .map((e) => e.getBoundingClientRect().right)
+        .concat(contentEnd == null ? [] : [contentEnd]);
+      return {
+        h: Math.round(box.height),
+        btns: btns.map((r) => [Math.round(r.width), Math.round(r.height)]),
+        inside: btns.every(
+          (r) => r.left >= box.left && r.right <= box.right + 0.5 && r.top >= box.top && r.bottom <= box.bottom + 0.5,
+        ),
+        apart: btns.length < 2 || btns[0].right <= btns[1].left + 0.5,
+        chipsClear: !chips.length || Math.max(...chips) <= Math.min(...btns.map((r) => r.left)) + 0.5,
+      };
+    }, id);
+
+  test('141: Combobox, DatePicker, TimePicker and NumberField take touchHeight — 44px boxes below 640px with a mouse, buttons 44px wide side by side', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, FIELDS);
+    for (const id of ['email', 'role']) expect((await field(page, id)).h, id).toBe(44);
+    for (const id of ['combo', 'date', 'time', 'combo-always']) {
+      const f = await field(page, id);
+      expect(f, id).toEqual({
+        h: 44,
+        btns: [
+          [44, 40],
+          [44, 40],
+        ],
+        inside: true,
+        apart: true,
+        chipsClear: true,
+      });
+    }
+    const n = await field(page, 'number');
+    expect([n.h, n.btns.map((b) => b[0]), n.inside, n.apart]).toEqual([44, [44, 44], true, true]);
+    const m = await field(page, 'multi');
+    expect([m.btns, m.inside, m.apart, m.chipsClear]).toEqual([
+      [
+        [44, 40],
+        [44, 40],
+      ],
+      true,
+      true,
+      true,
+    ]);
+    const plain = await field(page, 'combo-plain');
+    expect([plain.h, plain.btns]).toEqual([
+      36,
+      [
+        [32, 32],
+        [32, 32],
+      ],
+    ]);
+    /* The bigger buttons still work: clear empties the field, the chevron opens the list. */
+    const combo = page.getByTestId('combo');
+    await combo.locator('.aura-combo__clear').click();
+    await expect(combo.getByRole('combobox')).toHaveValue('');
+    await combo.locator('.aura-combo__toggle').click();
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('Escape');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  });
+
+  test('141: from 640px with a mouse touchHeight fields keep the density size; "always" stays 44px with 44px buttons', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, FIELDS);
+    for (const id of ['combo', 'date', 'time']) {
+      const f = await field(page, id);
+      expect([f.h, f.btns], id).toEqual([
+        36,
+        [
+          [32, 32],
+          [32, 32],
+        ],
+      ]);
+    }
+    const a = await field(page, 'combo-always');
+    expect(a).toEqual({
+      h: 44,
+      btns: [
+        [44, 40],
+        [44, 40],
+      ],
+      inside: true,
+      apart: true,
+      chipsClear: true,
+    });
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('141: on a coarse pointer a multiple Combobox leaves room for both 44px buttons (chips never under them)', async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 1200, height: 900 } });
+    const page = await ctx.newPage();
+    await story(page, FIELDS);
+    for (const id of ['multi', 'combo-plain']) {
+      const f = await field(page, id);
+      expect([f.h >= 44, f.btns, f.inside, f.apart, f.chipsClear], id).toEqual([
+        true,
+        [
+          [44, 40],
+          [44, 40],
+        ],
+        true,
+        true,
+        true,
+      ]);
+    }
+    await ctx.close();
+  });
+
+  test('142: rowProps puts data-* and id on each row, in the grid and as stacked cards; role, class and selection stay AURA’s', async ({
+    page,
+  }) => {
+    for (const width of [1000, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await story(page, ROWS);
+      const t = page.getByTestId('users');
+      const row = t.locator('[data-user-email="somchai@example.co.th"]');
+      await expect(row).toHaveCount(1);
+      expect(
+        await row.evaluate((r) => [r.id, r.getAttribute('data-user-id'), r.getAttribute('role'), r.className]),
+      ).toEqual(['user-u_102', 'u_102', 'row', 'aura-table__row']);
+      await expect(t.locator('[data-user-id]')).toHaveCount(3);
+      await row.getByRole('checkbox').check();
+      await expect(row).toHaveAttribute('aria-selected', 'true');
+      await expect(row).toHaveClass(/is-selected/);
+    }
+  });
+});

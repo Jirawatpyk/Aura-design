@@ -218,6 +218,10 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
   linkComponent?: React.ElementType | undefined;
   /** Skeleton row count when there is no pageSize. Default 5. */
   skeletonRows?: number | undefined;
+  /** 5.38 (Chamber-OS 142): attributes of your own on each row's element — `data-*` (a test hook such as
+   * `data-user-id`) and `id` — in the table layout and as a stacked card. Anything else is ignored, so a row keeps
+   * its own role, classes and handlers. */
+  rowProps?: RowCallback<DataTableRowProps | null | undefined, Row> | undefined;
   /** Called on row click or Enter. */
   onRowActivate?: RowCallback<void, Row> | undefined;
   /** Fixed height in px: sticky header, and only the rows in view are rendered. */
@@ -575,6 +579,11 @@ export interface FilterBarProps {
   /** `fill`: the filter controls share their row in equal columns (at least 120px each, wrapping when they can't),
    * and the count and actions keep to the end (5.15, Chamber-OS 92). Default `auto`: each at its own width. */
   controlsLayout?: 'auto' | 'fill' | undefined;
+  /** 5.38 (Chamber-OS 140): 44px search and field-height controls in the bar (FilterSelect, Select, SegmentedControl…)
+   * — `true` below 640px or on a coarse pointer, as Button's and TextField's `touchHeight`; `'always'` at every
+   * width. Without it they follow the density's input height (44px on a coarse pointer). Buttons in `actions` take
+   * their own `touchHeight`. */
+  touchHeight?: TouchHeight | undefined;
   /** Below this width (the viewport's) the search takes a row of its own above the controls. Default `md` (768px);
    * `lg` (1024px) for bars with several filters (5.15, Chamber-OS 92). */
   stackBelow?: 'md' | 'lg' | undefined;
@@ -676,6 +685,9 @@ export interface FilterSelectProps extends Omit<
   /** A shorter word the face shows while the first option is chosen ("All" for "All statuses"). The list and screen
    * readers keep the option's own text. */
   allLabel?: string | undefined;
+  /** 5.38 (Chamber-OS 140): a 44px face — `true` below 640px or on a coarse pointer (as Button's and TextField's
+   * `touchHeight`), `'always'` at every width. Without it: the density's input height, 44px on a coarse pointer. */
+  touchHeight?: TouchHeight | undefined;
 }
 /** A RadioGroup option. `description` is a second line under the label; since 5.26 the radio is named by `label`
  * alone and the description is read after it (`aria-describedby`), also when the option is disabled (Chamber-OS 125). */
@@ -1018,6 +1030,9 @@ export interface ComboboxMultipleProps extends Omit<
   max?: number | undefined;
 }
 export interface ComboboxProps extends FieldProps {
+  /** 5.38 (Chamber-OS 141): a 44px box, its buttons 44px wide — `true` below 640px or on a coarse pointer, as
+   * TextField's `touchHeight`; `'always'` at every width. Default: the density's input height. */
+  touchHeight?: TouchHeight | undefined;
   /** The options. Optional with `groups` (5.16). */
   options?: Array<ComboboxOption | string> | undefined;
   /** Selected option value (controlled). */
@@ -1055,6 +1070,9 @@ export interface ComboboxProps extends FieldProps {
 
 /** Number input: thousands separators, +/− buttons, arrow keys, min/max/step, prefix/suffix (฿, %). */
 export interface NumberFieldProps extends FieldProps {
+  /** 5.38 (Chamber-OS 141): a 44px box, its buttons 44px wide — `true` below 640px or on a coarse pointer, as
+   * TextField's `touchHeight`; `'always'` at every width. Default: the density's input height. */
+  touchHeight?: TouchHeight | undefined;
   /** The number (controlled). `null` = empty. */
   value?: number | null | undefined;
   defaultValue?: number | null | undefined;
@@ -1169,6 +1187,9 @@ export interface CalendarProps extends DateDisplayOptions {
   autoFocus?: boolean | undefined;
 }
 interface DateFieldProps extends FieldProps, DateDisplayOptions {
+  /** 5.38 (Chamber-OS 141): a 44px box, its buttons 44px wide — `true` below 640px or on a coarse pointer, as
+   * TextField's `touchHeight`; `'always'` at every width. Default: the density's input height. */
+  touchHeight?: TouchHeight | undefined;
   id?: string | undefined;
   name?: string | undefined;
   placeholder?: string | undefined;
@@ -1242,6 +1263,8 @@ export interface DateRangePickerProps extends DateFieldProps {
 
 /** `data-*` attributes in an object prop (TypeScript checks object literals, where JSX would allow them anyway). */
 export type DataAttributes = { [key: `data-${string}`]: string | number | boolean | undefined };
+/** What DataTable's `rowProps` may set on a row (5.38): `data-*` attributes and an `id`. */
+export type DataTableRowProps = DataAttributes & { id?: string | undefined };
 /** Attributes for a button AURA renders for you (a Drawer's close button, a tab): `data-testid`, `aria-*`, `id`… */
 export type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement> & DataAttributes;
 
@@ -1536,6 +1559,9 @@ export interface StatProps
 }
 
 export interface TimePickerProps extends FieldProps {
+  /** 5.38 (Chamber-OS 141): a 44px box, its buttons 44px wide — `true` below 640px or on a coarse pointer, as
+   * TextField's `touchHeight`; `'always'` at every width. Default: the density's input height. */
+  touchHeight?: TouchHeight | undefined;
   /** "HH:mm", 24-hour. */
   value?: string | null | undefined;
   defaultValue?: string | null | undefined;

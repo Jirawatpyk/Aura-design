@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { Tag } from './Tag.js';
-import { cx, uid } from './internal.js';
+import { cx, touchClass, uid } from './internal.js';
 import { useStrings } from './locale.js';
 import type { ActiveFilter, FilterBarProps } from './types.js';
 import { IconSearch, IconX } from './icons.js';
@@ -69,6 +69,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
         props.searchGrow && 'aura-filterbar--grow',
         props.controlsLayout === 'fill' && 'aura-filterbar--fill',
         props.stackBelow === 'lg' && 'aura-filterbar--stack-lg',
+        touchClass(props.touchHeight),
         props.className,
       )}
     >

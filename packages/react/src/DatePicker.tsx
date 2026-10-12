@@ -1,7 +1,16 @@
 import * as React from 'react';
 import { useAuraLocale } from './locale.js';
 import { createPortal } from 'react-dom';
-import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, trapTab, useMergedRef } from './internal.js';
+import {
+  cx,
+  uid,
+  useMaybeControlled,
+  useMounted,
+  useIsoLayoutEffect,
+  trapTab,
+  useMergedRef,
+  touchClass,
+} from './internal.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { Field } from './Field.js';
@@ -639,7 +648,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(fu
         required={props.required}
         optional={props.optional}
         disabled={props.disabled}
-        className={props.className}
+        className={cx(touchClass(props.touchHeight), props.className)}
         name={props.name}
         boxRef={boxRef}
         inputRef={inputMerged}
@@ -786,7 +795,7 @@ export const DateRangePicker = React.forwardRef<HTMLInputElement, DateRangePicke
           required={props.required}
           optional={props.optional}
           disabled={props.disabled}
-          className={props.className}
+          className={cx(touchClass(props.touchHeight), props.className)}
           name={props.name}
           boxRef={boxRef}
           inputRef={inputMerged}

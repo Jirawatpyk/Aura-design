@@ -33,6 +33,22 @@ import {
   IconRotateCcw,
 } from './icons.js';
 
+/* 5.38 (Chamber-OS 142): rowProps may set data-* and id on a row, nothing else (role, aria-*, classes, handlers stay
+ * AURA's); data-rc is the table's own cell address for keyboard navigation. */
+function ownRowAttrs(p: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
+  if (!p) return null;
+  const out: Record<string, unknown> = {};
+  Object.keys(p).forEach(function (k: string) {
+    if (k === 'id' || (/^data-/.test(k) && k !== 'data-rc')) out[k] = p[k];
+    else
+      devWarnOnce(
+        'datatable-rowprops-' + k,
+        'DataTable rowProps: "' + k + '" is ignored; only data-* (not data-rc) and id are set on a row.',
+      );
+  });
+  return out;
+}
+
 type Col = DataTableColumn;
 type Row = Record<string, any>;
 type RowKey = string | number;
@@ -1486,6 +1502,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
               (props.onRowActivate || rowHref) && 'is-actionable',
             )}
             style={rowStyle}
+            {...ownRowAttrs(props.rowProps ? props.rowProps(r) : null)}
             onClick={function (e: React.MouseEvent<HTMLElement>) {
               const el = e.target as HTMLElement;
               if (el.closest && el.closest('.aura-check, button, a, input')) return;

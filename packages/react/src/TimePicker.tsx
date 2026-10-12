@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef } from './internal.js';
+import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef, touchClass } from './internal.js';
 import { useStrings } from './locale.js';
 import { Icon } from './Icon.js';
 import { Field } from './Field.js';
@@ -279,7 +279,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
       required={props.required}
       optional={props.optional}
       disabled={props.disabled}
-      className={props.className}
+      className={cx(touchClass(props.touchHeight), props.className)}
     >
       <div ref={boxRef} className={cx('aura-input aura-combo aura-time has-icon', open && 'is-open')}>
         <Icon name={<IconClock />} className="aura-input__icon" />

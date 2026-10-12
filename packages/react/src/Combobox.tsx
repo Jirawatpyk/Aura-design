@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useStrings, useAuraLocale, useDensity } from './locale.js';
 import { createPortal } from 'react-dom';
-import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef } from './internal.js';
+import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef, touchClass } from './internal.js';
 import { Icon } from './Icon.js';
 import { Field } from './Field.js';
 import type { ComboboxMultipleProps, ComboboxOption, ComboboxProps } from './types.js';
@@ -427,7 +427,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         required={props.required}
         optional={props.optional}
         disabled={props.disabled}
-        className={props.className}
+        className={cx(touchClass(props.touchHeight), props.className)}
       >
         <div ref={boxRef} className={cx('aura-input aura-combo has-icon', open && 'is-open', multi && 'is-multi')}>
           <Icon name={props.icon || <IconSearch />} className="aura-input__icon" />

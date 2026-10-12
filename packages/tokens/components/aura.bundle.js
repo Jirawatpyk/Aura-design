@@ -2501,18 +2501,30 @@ window.Aura = (() => {
     const nameId = id + "-name";
     const face = filter ? /* @__PURE__ */ React16.createElement(React16.Fragment, null, /* @__PURE__ */ React16.createElement("span", { id: nameId, className: "aura-filterselect__name", "aria-hidden": true }, filter.name), /* @__PURE__ */ React16.createElement("span", { className: "aura-filterselect__value", "aria-hidden": shown[0].label !== shown[0].full || void 0 }, shown[0].label || " "), shown[0].label !== shown[0].full ? /* @__PURE__ */ React16.createElement("span", { className: "aura-sr-only" }, shown[0].full) : null, /* @__PURE__ */ React16.createElement(Icon, { name: /* @__PURE__ */ React16.createElement(IconChevronDown, null), className: "aura-filterselect__chevron" })) : null;
     if (!live && filter)
-      return /* @__PURE__ */ React16.createElement("div", { className: cx("aura-filterselect", props.disabled && "is-disabled", props.className) }, /* @__PURE__ */ React16.createElement("span", { className: "aura-filterselect__face", "aria-hidden": true, style: props.style }, face), h4(
-        "select",
-        Object.assign(extra, omit(rest, ["style"]), {
-          ref: selMerged,
-          id,
-          className: "aura-filterselect__native",
-          "aria-label": rest["aria-label"] || (rest["aria-labelledby"] ? void 0 : filter.name),
-          "aria-describedby": described
-        }),
-        opts,
-        props.children
-      ));
+      return /* @__PURE__ */ React16.createElement(
+        "div",
+        {
+          className: cx(
+            "aura-filterselect",
+            props.disabled && "is-disabled",
+            touchClass(props.touchHeight),
+            props.className
+          )
+        },
+        /* @__PURE__ */ React16.createElement("span", { className: "aura-filterselect__face", "aria-hidden": true, style: props.style }, face),
+        h4(
+          "select",
+          Object.assign(extra, omit(rest, ["style"]), {
+            ref: selMerged,
+            id,
+            className: "aura-filterselect__native",
+            "aria-label": rest["aria-label"] || (rest["aria-labelledby"] ? void 0 : filter.name),
+            "aria-describedby": described
+          }),
+          opts,
+          props.children
+        )
+      );
     if (!live)
       return field(
         /* @__PURE__ */ React16.createElement("div", { className: cx("aura-input aura-select", props.icon && "has-icon", ro && "is-readonly") }, props.icon ? /* @__PURE__ */ React16.createElement(Icon, { name: props.icon, className: "aura-input__icon" }) : null, h4(
@@ -2625,6 +2637,7 @@ window.Aura = (() => {
             ro && "is-readonly",
             open && "is-open",
             filter && props.disabled && "is-disabled",
+            filter && touchClass(props.touchHeight),
             filter && props.className
           ),
           "data-invalid": props.error ? "" : void 0
@@ -3393,7 +3406,7 @@ window.Aura = (() => {
         required: props.required,
         optional: props.optional,
         disabled: props.disabled,
-        className: props.className,
+        className: cx(touchClass(props.touchHeight), props.className),
         name: props.name,
         boxRef,
         inputRef: inputMerged,
@@ -3527,7 +3540,7 @@ window.Aura = (() => {
           required: props.required,
           optional: props.optional,
           disabled: props.disabled,
-          className: props.className,
+          className: cx(touchClass(props.touchHeight), props.className),
           name: props.name,
           boxRef,
           inputRef: inputMerged,
@@ -4117,7 +4130,7 @@ window.Aura = (() => {
           required: props.required,
           optional: props.optional,
           disabled: props.disabled,
-          className: props.className
+          className: cx(touchClass(props.touchHeight), props.className)
         },
         /* @__PURE__ */ React22.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo has-icon", open && "is-open", multi && "is-multi") }, /* @__PURE__ */ React22.createElement(Icon, { name: props.icon || /* @__PURE__ */ React22.createElement(IconSearch, null), className: "aura-input__icon" }), multi && picked.length ? /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__chips" }, picked.map(function(o) {
           return /* @__PURE__ */ React22.createElement("span", { key: o.value, className: "aura-combo__chip" }, /* @__PURE__ */ React22.createElement("span", { className: "aura-combo__chip-label" }, o.label), props.disabled || props.readOnly ? null : /* @__PURE__ */ React22.createElement(
@@ -4962,6 +4975,7 @@ window.Aura = (() => {
           props.searchGrow && "aura-filterbar--grow",
           props.controlsLayout === "fill" && "aura-filterbar--fill",
           props.stackBelow === "lg" && "aura-filterbar--stack-lg",
+          touchClass(props.touchHeight),
           props.className
         )
       },
@@ -5529,6 +5543,19 @@ window.Aura = (() => {
   // src/DataTable.tsx
   var React33 = __toESM(require_react(), 1);
   var import_react_dom10 = __toESM(require_react_dom(), 1);
+  function ownRowAttrs(p) {
+    if (!p) return null;
+    const out = {};
+    Object.keys(p).forEach(function(k) {
+      if (k === "id" || /^data-/.test(k) && k !== "data-rc") out[k] = p[k];
+      else
+        devWarnOnce(
+          "datatable-rowprops-" + k,
+          'DataTable rowProps: "' + k + '" is ignored; only data-* (not data-rc) and id are set on a row.'
+        );
+    });
+    return out;
+  }
   var BP = { sm: 640, md: 768, lg: 1024, xl: 1280 };
   var DEFAULT_COLUMNS = [
     { key: "id", label: "ID", width: 96, mono: true },
@@ -6740,6 +6767,7 @@ window.Aura = (() => {
                   (props.onRowActivate || rowHref) && "is-actionable"
                 ),
                 style: rowStyle,
+                ...ownRowAttrs(props.rowProps ? props.rowProps(r2) : null),
                 onClick: function(e) {
                   const el = e.target;
                   if (el.closest && el.closest(".aura-check, button, a, input")) return;
@@ -8832,7 +8860,7 @@ window.Aura = (() => {
         required: props.required,
         optional: props.optional,
         disabled: props.disabled,
-        className: props.className
+        className: cx(touchClass(props.touchHeight), props.className)
       },
       /* @__PURE__ */ React54.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo aura-time has-icon", open && "is-open") }, /* @__PURE__ */ React54.createElement(Icon, { name: /* @__PURE__ */ React54.createElement(IconClock, null), className: "aura-input__icon" }), /* @__PURE__ */ React54.createElement(
         "input",
@@ -10034,7 +10062,7 @@ window.Aura = (() => {
         required: props.required,
         optional: props.optional,
         disabled: props.disabled,
-        className: props.className
+        className: cx(touchClass(props.touchHeight), props.className)
       },
       /* @__PURE__ */ React65.createElement("div", { className: cx("aura-input aura-number", stepper && "has-stepper") }, props.prefix != null ? /* @__PURE__ */ React65.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.prefix) : null, /* @__PURE__ */ React65.createElement(
         "input",

@@ -140,6 +140,20 @@ try {
     .concat(Math.round(document.querySelector('[data-testid=icons] [role=radio]').getBoundingClientRect().width))`);
   check(JSON.stringify(x) === '[44,44,44,38,44]', 'SegmentedControl touchHeight: 44px options at 390 (sm, icon square); plain 38', x);
 
+  /* 5.38: touchHeight at 390 with a mouse — FilterBar search and FilterSelects, a Combobox and its two 44px buttons;
+   * DataTable rowProps on a stacked card. */
+  await go('aura-new-in-5-38-chamber-os-140-142--filter-bar-touch');
+  x = await ex(`return [...document.querySelectorAll('[data-testid=touch] .aura-filterbar__search, [data-testid=touch] .aura-filterselect__face, [data-testid=plain] .aura-filterselect__face')].map((e) => Math.round(e.getBoundingClientRect().height))`);
+  check(JSON.stringify(x) === '[44,44,44,36]', 'FilterBar touchHeight: search and FilterSelects 44px at 390, plain bar 36px', x);
+  await go('aura-new-in-5-38-chamber-os-140-142--fields-touch');
+  x = await ex(`const r = document.querySelector('[data-testid=combo]'), b = r.querySelector('.aura-input').getBoundingClientRect();
+    const k = [...r.querySelectorAll('.aura-combo__clear, .aura-combo__toggle')].map((e) => e.getBoundingClientRect());
+    return [Math.round(b.height), Math.round(k[0].width), Math.round(k[1].width), k[0].right <= k[1].left + 0.5, k[1].right <= b.right + 0.5]`);
+  check(JSON.stringify(x) === '[44,44,44,true,true]', 'Combobox touchHeight: 44px box, clear and chevron 44px wide side by side', x);
+  await go('aura-new-in-5-38-chamber-os-140-142--row-props');
+  x = await ex(`const r = document.querySelector('[data-user-id="u_102"]'); return r && [r.id, r.getAttribute('role'), r.className]`);
+  check(JSON.stringify(x) === '["user-u_102","row","aura-table__row"]', 'DataTable rowProps: data-* and id on a card, role and class kept', x);
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);

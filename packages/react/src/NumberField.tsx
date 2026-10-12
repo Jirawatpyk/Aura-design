@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Field, describedBy } from './Field.js';
 import { Icon } from './Icon.js';
-import { cx, uid, useMaybeControlled } from './internal.js';
+import { cx, uid, useMaybeControlled, touchClass } from './internal.js';
 import { useStrings } from './locale.js';
 import type { NumberFieldProps } from './types.js';
 import { IconMinus, IconPlus } from './icons.js';
@@ -99,7 +99,7 @@ export const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
       required={props.required}
       optional={props.optional}
       disabled={props.disabled}
-      className={props.className}
+      className={cx(touchClass(props.touchHeight), props.className)}
     >
       <div className={cx('aura-input aura-number', stepper && 'has-stepper')}>
         {props.prefix != null ? (
