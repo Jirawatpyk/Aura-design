@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.39.0
+
+### Minor Changes
+
+- 89bb2ac: Chamber-OS addendum 46: Tabs `touchHeight` (#143) for link and button tabs in both variants; FilterDateRange `touchHeight`; a link tab is no longer 2px taller than a button tab.
+
 ## 5.38.0
 
 ### Minor Changes
