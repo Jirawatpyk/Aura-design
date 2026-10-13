@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.38.0
+
+### Minor Changes
+
+- b2dbc9f: Chamber-OS addenda 43–45: `touchHeight` on FilterBar and FilterSelect (#140) and on Combobox, DatePicker, DateRangePicker, TimePicker and NumberField with 44px inner buttons (#141); DataTable `rowProps` for `data-*` and `id` on rows (#142).
+
 ## 5.37.0
 
 ### Minor Changes
