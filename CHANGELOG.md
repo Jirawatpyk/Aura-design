@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.39.0 — 2026-10-13
+
+### Minor changes
+
+- 89bb2ac: Chamber-OS addendum 46: Tabs `touchHeight` (#143) for link and button tabs in both variants; FilterDateRange `touchHeight`; a link tab is no longer 2px taller than a button tab.
+
 ## 5.38.0 — 2026-10-12
 
 ### Minor changes
