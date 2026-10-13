@@ -296,6 +296,15 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.39 (Chamber-OS 143): Tabs touchHeight (links and buttons) and FilterDateRange touchHeight are classes on the
+     * root, never DOM attributes. */
+    {
+      const tl = m(e(A.Tabs, { label: 'S', touchHeight: true, tabs: [{ id: 'a', label: 'A', href: '/a', count: 2 }], value: 'a' }));
+      const tb = m(e(A.Tabs, { label: 'S', touchHeight: 'always', variant: 'segmented', tabs: [{ id: 'a', label: 'A', content: 'x' }] }));
+      const t0 = m(e(A.Tabs, { label: 'S', tabs: [{ id: 'a', label: 'A', content: 'x' }] }));
+      const fd = m(e(A.FilterDateRange, { label: 'When', touchHeight: true, today: '2026-10-13' }));
+      if (!/^<nav[^>]*class="aura-tabs is-touch aura-tabs--links"/.test(tl) || !/^<div class="aura-tabs aura-tabs--segmented is-touch-always"/.test(tb) || /is-touch/.test(t0) || /touchheight/i.test(tl + tb + fd) || !/class="aura-filterselect is-touch"/.test(fd)) bad('Chamber-OS 143:', tl, tb, t0, fd);
+    }
     /* 5.38 (Chamber-OS 140–142): touchHeight on FilterBar, FilterSelect, Combobox, DatePicker, TimePicker and
      * NumberField is a class, never a DOM attribute; DataTable rowProps sets only data-* and id on each row. */
     {

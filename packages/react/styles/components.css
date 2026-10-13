@@ -756,6 +756,7 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-tabs__list { display: flex; gap: var(--aura-space-6); box-shadow: inset 0 -1px 0 var(--aura-border-default); overflow-x: auto; scrollbar-width: none; }
 .aura-tab {
   position: relative; display: inline-flex; align-items: center; gap: var(--aura-space-2); flex: none;
+  box-sizing: border-box; /* 5.39: a link tab (<a>) was 2px taller than a button tab — its underline sat outside the height */
   height: var(--aura-input-height); padding: 0;
   border: 0; border-bottom: 2px solid transparent; background: transparent;
   color: var(--aura-fg-secondary); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
@@ -772,6 +773,10 @@ a.aura-tab { text-decoration: none; }
   font-size: 11px; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums;
 }
 .aura-tabs__panel { padding-top: var(--aura-space-6); outline: none; }
+/* 5.39 (Chamber-OS 143): touchHeight — 44px tabs (underline or segmented, buttons or links) below 640px or on a coarse
+ * pointer (is-touch), or always. The height is set on the tabs, not through --aura-input-height, so panels keep theirs. */
+.aura-tabs.is-touch-always .aura-tab { height: var(--aura-touch-target); }
+@media (max-width: 639.98px), (pointer: coarse) { .aura-tabs.is-touch .aura-tab { height: var(--aura-touch-target); } }
 .aura-tabs__panel[hidden] { display: none; }
 .aura-tabs__panel:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-sm); }
 

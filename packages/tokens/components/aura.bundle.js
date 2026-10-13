@@ -3686,7 +3686,13 @@ window.Aura = (() => {
         "div",
         {
           ref: boxRef,
-          className: cx("aura-filterselect", pop.open && "is-open", props.disabled && "is-disabled", props.className)
+          className: cx(
+            "aura-filterselect",
+            pop.open && "is-open",
+            props.disabled && "is-disabled",
+            touchClass(props.touchHeight),
+            props.className
+          )
         },
         /* @__PURE__ */ React19.createElement(
           "button",
@@ -7077,7 +7083,7 @@ window.Aura = (() => {
     const tabCls = function(on, extra) {
       return cx("aura-tab", on && "is-active", seg && "aura-segmented__option", seg && on && "is-selected", extra);
     };
-    const rootCls = cx("aura-tabs", seg && "aura-tabs--segmented");
+    const rootCls = cx("aura-tabs", seg && "aura-tabs--segmented", touchClass(props.touchHeight));
     const [focusId, setFocusId] = React35.useState(null);
     items2.forEach(function(t) {
       const al = t.tabProps && t.tabProps["aria-label"];

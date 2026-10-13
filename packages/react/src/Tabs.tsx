@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx, devWarnOnce, omit, uid, useMaybeControlled } from './internal.js';
+import { cx, devWarnOnce, omit, touchClass, uid, useMaybeControlled } from './internal.js';
 import { useLinkComponent } from './locale.js';
 import type { TabItem, TabsProps } from './types.js';
 
@@ -47,7 +47,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
   const tabCls = function (on: boolean | undefined, extra?: string) {
     return cx('aura-tab', on && 'is-active', seg && 'aura-segmented__option', seg && on && 'is-selected', extra);
   };
-  const rootCls = cx('aura-tabs', seg && 'aura-tabs--segmented');
+  const rootCls = cx('aura-tabs', seg && 'aura-tabs--segmented', touchClass(props.touchHeight));
   const [focusId, setFocusId] = React.useState<string | null>(null);
   items.forEach(function (t: TabItem) {
     const al = t.tabProps && t.tabProps['aria-label'];

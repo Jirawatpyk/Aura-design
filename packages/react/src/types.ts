@@ -895,6 +895,10 @@ export interface TabsProps {
   /** Link tabs: what the current link is (5.14). `page` (default) for routes; `location` for links to sections of
    * this page (`#contacts`). */
   current?: 'page' | 'location' | undefined;
+  /** 5.39 (Chamber-OS 143): 44px tabs, button or link form, either variant — `true` below 640px or on a coarse
+   * pointer, as Button's `touchHeight`; `'always'` at every width. Without it: the density's input height (44px on a
+   * coarse pointer). Panels are not affected. */
+  touchHeight?: TouchHeight | undefined;
 }
 export interface NavItem {
   id: string;
@@ -1254,6 +1258,8 @@ export interface FilterDateRangeProps
   disabled?: boolean | undefined;
   id?: string | undefined;
   className?: string | undefined;
+  /** 5.39: a 44px face, as FilterSelect's `touchHeight` (FilterBar's `touchHeight` already reaches it). */
+  touchHeight?: TouchHeight | undefined;
 }
 export interface DateRangePickerProps extends DateFieldProps {
   value?: DateRange | undefined;

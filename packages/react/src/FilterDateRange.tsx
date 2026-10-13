@@ -4,7 +4,7 @@ import { Calendar, allowedDate, useCalendarPopover } from './DatePicker.js';
 import { Button } from './Button.js';
 import { Icon } from './Icon.js';
 import { IconChevronDown } from './icons.js';
-import { cx, trapTab, uid, useMaybeControlled, useMergedRef } from './internal.js';
+import { cx, touchClass, trapTab, uid, useMaybeControlled, useMergedRef } from './internal.js';
 import { useAuraLocale } from './locale.js';
 import { dateText, defaultCalendar, formatDateRange } from './dates.js';
 import type { DateRange, FilterDateRangeProps, ISODate } from './types.js';
@@ -149,7 +149,13 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
       <React.Fragment>
         <div
           ref={boxRef}
-          className={cx('aura-filterselect', pop.open && 'is-open', props.disabled && 'is-disabled', props.className)}
+          className={cx(
+            'aura-filterselect',
+            pop.open && 'is-open',
+            props.disabled && 'is-disabled',
+            touchClass(props.touchHeight),
+            props.className,
+          )}
         >
           <button
             {...attrs}

@@ -154,6 +154,11 @@ try {
   x = await ex(`const r = document.querySelector('[data-user-id="u_102"]'); return r && [r.id, r.getAttribute('role'), r.className]`);
   check(JSON.stringify(x) === '["user-u_102","row","aura-table__row"]', 'DataTable rowProps: data-* and id on a card, role and class kept', x);
 
+  /* 5.39: Tabs touchHeight at 390 with a mouse — link, button and segmented tabs 44px; plain link tabs 36px (not 38). */
+  await go('aura-new-in-5-39-chamber-os-143--tabs-touch');
+  x = await ex(`return ['links', 'buttons', 'segmented', 'plain'].map((id) => Math.round(document.querySelector('[data-testid=' + id + '] .aura-tab').getBoundingClientRect().height))`);
+  check(JSON.stringify(x) === '[44,44,44,36]', 'Tabs touchHeight: 44px link, button and segmented tabs at 390; plain link tab 36px', x);
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);

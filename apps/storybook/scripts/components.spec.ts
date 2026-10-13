@@ -8057,3 +8057,89 @@ test.describe('5.38: Chamber-OS addenda 43–45', () => {
     }
   });
 });
+
+test.describe('5.39: Chamber-OS addendum 46', () => {
+  const TABS = 'aura-new-in-5-39-chamber-os-143--tabs-touch';
+  const DATES = 'aura-new-in-5-39-chamber-os-143--date-range-touch';
+  const tabs = (page: Page) =>
+    page.evaluate(() => {
+      const o: Record<string, number[]> = {};
+      for (const id of ['links', 'buttons', 'segmented', 'always', 'plain'])
+        o[id] = [...document.querySelectorAll(`[data-testid=${id}] .aura-tab`)].map((e) =>
+          Math.round(e.getBoundingClientRect().height),
+        );
+      return o;
+    });
+
+  test('143: Tabs touchHeight — link and button tabs, underline and segmented, 44px below 640px with a mouse, like the search beside them', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, TABS);
+    expect(await tabs(page)).toEqual({
+      links: [44, 44, 44, 44],
+      buttons: [44, 44],
+      segmented: [44, 44],
+      always: [44, 44, 44, 44],
+      plain: [36, 36, 36, 36],
+    });
+    const search = (await page.getByTestId('links').locator('.aura-input').boundingBox())!;
+    expect(Math.round(search.height)).toBe(44);
+    /* The count badge and the icon stay centred on the label line (the underline's 2px is below it). */
+    const centred = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-testid=links] .aura-tab, [data-testid=buttons] .aura-tab')].every((t) => {
+        const r = t.getBoundingClientRect();
+        const mid = (r.top + r.bottom - 2) / 2;
+        return [...t.querySelectorAll('.aura-tab__count, .aura-icon')].every((c) => {
+          const cr = c.getBoundingClientRect();
+          return Math.abs((cr.top + cr.bottom) / 2 - mid) <= 1;
+        });
+      }),
+    );
+    expect(centred).toBe(true);
+    /* Panels keep their own field height (the tabs' height is set on the tabs, not the density variable). */
+    const field = (await page.getByTestId('buttons').locator('.aura-tabs__panel .aura-input').boundingBox())!;
+    expect(Math.round(field.height)).toBe(36);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  });
+
+  test('143: from 640px with a mouse touchHeight tabs keep the density height; "always" stays 44px; a link tab is as tall as a button tab', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, TABS);
+    expect(await tabs(page)).toEqual({
+      links: [36, 36, 36, 36],
+      buttons: [36, 36],
+      segmented: [30, 30],
+      always: [44, 44, 44, 44],
+      plain: [36, 36, 36, 36],
+    });
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('143: on a coarse pointer every tab is 44px, as before', async ({ browser }) => {
+    const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 1200, height: 900 } });
+    const page = await ctx.newPage();
+    await story(page, TABS);
+    expect(Object.values(await tabs(page)).flat()).toEqual(Array(16).fill(44));
+    await ctx.close();
+  });
+
+  test('143: FilterBar touchHeight reaches FilterDateRange; FilterDateRange takes touchHeight alone too', async ({
+    page,
+  }) => {
+    const faces = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll('.aura-filterselect__face')].map((e) =>
+          Math.round(e.getBoundingClientRect().height),
+        ),
+      );
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, DATES);
+    expect(await faces()).toEqual([44, 44, 36]);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForTimeout(100);
+    expect(await faces()).toEqual([36, 44, 36]);
+  });
+});

@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.39 — Chamber-OS addendum 46
+
+- **Tabs `touchHeight`** (#143): 44px tabs — buttons or links, underline or segmented — with `true` below 640px or on a coarse pointer (Button's rule), or `'always'` at every width. The count badge and icon stay centred on the label (above the 2px underline). The height is set on the tabs themselves, so fields in the panels keep their own size. Without it nothing changes.
+- **Link tabs are as tall as button tabs.** A link tab (`href`) was 2px taller than a button tab — its 2px underline sat outside the height (38px instead of 36px in compact density, 46px instead of 44px on touch screens). Tests that measure link tabs will see 2px less.
+- **FilterDateRange `touchHeight`**: a 44px face on its own, as FilterSelect's. A FilterBar with `touchHeight` already reaches it (checked for Chamber-OS's audit log filter row).
+
 ## 5.38 — Chamber-OS addenda 43–45
 
 - **FilterBar and FilterSelect `touchHeight`** (#140): `true` makes the search (and its clear button) and every field-height control in the bar (FilterSelect, Select, Combobox, DatePicker and TimePicker with their buttons, SegmentedControl's options) 44px below 640px or on a coarse pointer — the same rule as Button's and TextField's `touchHeight` — and `'always'` at every width; `touchHeight` on one FilterSelect does the same for it alone. Without it nothing changes: the density's input height with a mouse, 44px on a coarse pointer. Buttons in `actions` take their own `touchHeight`. A SegmentedControl's track is 50px there (44px options plus its edge and padding), as with its own `touchHeight`. Opt-in rather than a new default, like every other `touchHeight`, so a narrow desktop window doesn't change size unasked.
