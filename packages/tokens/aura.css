@@ -358,7 +358,7 @@
   --aura-container-narrow: 720px;
   --aura-cal-cell: 36px;
   --aura-popover-max-height: 320px;
-  --aura-input-font-size: 14px;
+  --aura-input-font-size: max(14px, 0.875rem);
   --aura-touch-target: 44px;
   --aura-table-row-height: 48px;
   --aura-bp-sm: 640px;
@@ -387,14 +387,14 @@
   --font-thai: "Noto Sans Thai", sans-serif;
 }
 
-.aura-text-display { font-family: var(--font-display); font-size: 72px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; }
-.aura-text-h1 { font-family: var(--font-display); font-size: 36px; font-weight: 600; }
-.aura-text-h2 { font-family: var(--font-sans); font-size: 24px; font-weight: 600; }
-.aura-text-h3 { font-family: var(--font-sans); font-size: 16px; line-height: 1.5; font-weight: 600; }
-.aura-text-body { font-family: var(--font-sans); font-size: 14px; line-height: 1.7; font-weight: 400; }
-.aura-text-button-label { font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
-.aura-text-table-cell { font-family: var(--font-sans); font-size: 13px; font-weight: 400; }
-.aura-text-pill-label { font-family: var(--font-sans); font-size: 11px; font-weight: 400; }
-.aura-text-label { font-family: var(--font-sans); font-size: 13px; line-height: 1.4; font-weight: 500; }
-.aura-text-caption { font-family: var(--font-sans); font-size: 12px; line-height: 1.5; font-weight: 400; }
-.aura-text-mono { font-family: var(--font-mono); font-size: 12px; }
+.aura-text-display { font-family: var(--font-display); font-size: max(72px, 4.5rem); line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; }
+.aura-text-h1 { font-family: var(--font-display); font-size: max(36px, 2.25rem); font-weight: 600; }
+.aura-text-h2 { font-family: var(--font-sans); font-size: max(24px, 1.5rem); font-weight: 600; }
+.aura-text-h3 { font-family: var(--font-sans); font-size: max(16px, 1rem); line-height: 1.5; font-weight: 600; }
+.aura-text-body { font-family: var(--font-sans); font-size: max(14px, 0.875rem); line-height: 1.7; font-weight: 400; }
+.aura-text-button-label { font-family: var(--font-sans); font-size: max(13px, 0.8125rem); font-weight: 500; }
+.aura-text-table-cell { font-family: var(--font-sans); font-size: max(13px, 0.8125rem); font-weight: 400; }
+.aura-text-pill-label { font-family: var(--font-sans); font-size: max(11px, 0.6875rem); font-weight: 400; }
+.aura-text-label { font-family: var(--font-sans); font-size: max(13px, 0.8125rem); line-height: 1.4; font-weight: 500; }
+.aura-text-caption { font-family: var(--font-sans); font-size: max(12px, 0.75rem); line-height: 1.5; font-weight: 400; }
+.aura-text-mono { font-family: var(--font-mono); font-size: max(12px, 0.75rem); }

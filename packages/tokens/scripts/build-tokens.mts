@@ -53,15 +53,23 @@ const darkLines = (pad: string) => {
 L.push('.dark, [data-theme="dark"] {', ...darkLines('  '), '}', '');
 L.push('/* data-theme="system": light or dark from prefers-color-scheme. */');
 L.push('@media (prefers-color-scheme: dark) {', '  [data-theme="system"] {', ...darkLines('    '), '  }', '}', '');
+/* 5.40 (Chamber-OS 145): type follows the browser's default font size. max(px, rem) is the token's px at the default
+ * 16px root and grows with a larger default; an app root set smaller (62.5%) never shrinks it below the px. */
+const followsDefault = (v: string) => {
+  const m = /^(\d+(?:\.\d+)?)px$/.exec(String(v));
+  return m ? `max(${v}, ${+(+m[1] / 16).toFixed(4)}rem)` : v;
+};
 L.push(':root {');
-for (const fam of ['spacing', 'radius', 'size', 'breakpoint', 'opacity', 'zIndex']) for (const [k, v] of entries(T[fam])) L.push(`  --aura-${k}: ${v};`);
+for (const fam of ['spacing', 'radius', 'size', 'breakpoint', 'opacity', 'zIndex'])
+  for (const [k, v] of entries(T[fam])) L.push(`  --aura-${k}: ${k === 'input-font-size' ? followsDefault(v as string) : v};`);
 for (const [k, v] of entries(T.motion.easing)) L.push(`  --aura-${k}: ${v};`);
 for (const [k, v] of entries(T.motion.duration)) L.push(`  --aura-${k}: ${v};`);
 for (const [k, v] of entries(T.typography.families)) L.push(`  --font-${k}: ${v};`);
 L.push('}', '');
 for (const [name, s] of entries(T.typography.styles)) {
   const decl = [`font-family: var(--font-${s.family})`];
-  for (const k of ['fontSize', 'lineHeight', 'fontWeight', 'letterSpacing']) if (s[k] != null) decl.push(`${kebab(k)}: ${s[k]}`);
+  for (const k of ['fontSize', 'lineHeight', 'fontWeight', 'letterSpacing'])
+    if (s[k] != null) decl.push(`${kebab(k)}: ${k === 'fontSize' || k === 'lineHeight' ? followsDefault(s[k]) : s[k]}`);
   L.push(`.aura-text-${name} { ${decl.join('; ')}; }`);
 }
 fs.writeFileSync(path.join(root, 'aura.css'), L.join('\n') + '\n');

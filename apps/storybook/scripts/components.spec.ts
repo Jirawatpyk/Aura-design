@@ -8143,3 +8143,78 @@ test.describe('5.39: Chamber-OS addendum 46', () => {
     expect(await faces()).toEqual([36, 44, 36]);
   });
 });
+
+test.describe('5.40: Chamber-OS addendum 48 (type follows the browser default font size)', () => {
+  const ID = 'aura-new-in-5-40-chamber-os-145--default-font-size';
+  /* A browser whose default font size is `size` (Settings → Font size), as a persistent profile preference. */
+  const withDefault = async (browser: import('@playwright/test').Browser, size: number) => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aura-font-'));
+    fs.mkdirSync(path.join(dir, 'Default'));
+    fs.writeFileSync(
+      path.join(dir, 'Default', 'Preferences'),
+      JSON.stringify({ webkit: { webprefs: { default_font_size: size } } }),
+    );
+    const use = test.info().project.use;
+    const ctx = await browser.browserType().launchPersistentContext(dir, {
+      ...(use.launchOptions || {}),
+      baseURL: use.baseURL,
+      viewport: { width: 390, height: 900 },
+    });
+    /* Closing the context also removes its temporary profile. */
+    const close = ctx.close.bind(ctx);
+    ctx.close = async (...a: Parameters<typeof close>) => {
+      await close(...a);
+      fs.rmSync(dir, { recursive: true, force: true });
+    };
+    return ctx;
+  };
+  const sizes = (page: Page) =>
+    page.evaluate(() => {
+      const fs = (s: string) => parseFloat(getComputedStyle(document.querySelector(s)!).fontSize);
+      return {
+        cardTitle: fs('[data-testid=card] .aura-card__title'),
+        cardDesc: fs('[data-testid=card] .aura-card__desc'),
+        body: fs('[data-testid=card] .aura-text-body'),
+        switchDesc: fs('[data-testid=switch] .aura-choice__desc'),
+        cell: fs('[data-testid=table] td'),
+        input: fs('[data-testid=controls] input'),
+        tab: fs('[data-testid=controls] .aura-tab'),
+      };
+    });
+  const PX = { body: 14, input: 16, tab: 13 };
+
+  test('145: at the default 16px nothing changes; at 32px the card, switch description and table text double and nothing scrolls sideways', async ({
+    browser,
+  }) => {
+    const ctx16 = await withDefault(browser, 16);
+    const p16 = await ctx16.newPage();
+    await story(p16, ID);
+    const s16 = await sizes(p16);
+    /* The px sizes AURA has always used (input: 16px on phones so iOS doesn't zoom). */
+    expect([s16.body, s16.input, s16.tab]).toEqual([PX.body, PX.input, PX.tab]);
+    expect(s16.cardDesc).toBe(13);
+    expect(s16.cell).toBe(13);
+    await ctx16.close();
+
+    const ctx32 = await withDefault(browser, 32);
+    const p32 = await ctx32.newPage();
+    await story(p32, ID);
+    const s32 = await sizes(p32);
+    for (const k of Object.keys(s16) as Array<keyof typeof s16>) if (k !== 'input') expect(s32[k], k).toBe(s16[k] * 2);
+    /* Inputs are 14px, raised to 16px on phones so iOS doesn't zoom; doubled, 28px is above that floor. */
+    expect(s32.input).toBe(28);
+    expect(await p32.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    await ctx32.close();
+  });
+
+  test('145: an app root set smaller (html 62.5%) never shrinks AURA text below its px size', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID);
+    await page.addStyleTag({ content: 'html { font-size: 62.5% !important; }' });
+    const s = await sizes(page);
+    expect([s.cardDesc, s.cell, s.body, s.input, s.tab]).toEqual([13, 13, 14, 16, 13]);
+  });
+});

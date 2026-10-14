@@ -13,7 +13,7 @@
   background: transparent;
   color: inherit;
   font-family: var(--font-sans); /* 5.30: not inherit — a trigger outside a styled root fell back to Arial */
-  font-size: 13px;
+  font-size: max(13px, .8125rem);
   font-weight: 500;
   line-height: 1;
   display: inline-flex;
@@ -118,14 +118,14 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   display: flex; height: var(--aura-table-row-height); min-width: var(--aura-row-min, 0);
   background: var(--aura-table-head-bg);
   border-bottom: 1px solid var(--aura-border-default);
-  font-family: var(--font-mono); font-size: 12px; color: var(--aura-fg-secondary);
+  font-family: var(--font-mono); font-size: max(12px, .75rem); color: var(--aura-fg-secondary);
 }
 .aura-table__row {
   box-sizing: border-box; display: flex; height: var(--aura-table-row-height);   /* exactly the virtual row height */
   min-width: var(--aura-row-min, 0);
   background: var(--aura-bg-surface);
   border-bottom: 1px solid var(--aura-border-default);
-  font-size: 13px;
+  font-size: max(13px, .8125rem);
 }
 .aura-table__row:last-child { border-bottom: 0; }
 .aura-table__row:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
@@ -183,7 +183,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 .aura-table__row--auto { height: auto; min-height: var(--aura-table-row-height); }
 .aura-table__td--auto {
   --aura-cell-pad-y: clamp(0px, calc((var(--aura-table-row-height) - 1px - var(--aura-button-height-sm)) / 2), var(--aura-space-2));
-  display: flex; align-items: center; height: auto; line-height: 20px; white-space: normal;
+  display: flex; align-items: center; height: auto; line-height: max(20px, 1.25rem); white-space: normal;
   padding-top: var(--aura-cell-pad-y); padding-bottom: var(--aura-cell-pad-y);
 }
 .aura-table__cell { flex: 1 1 auto; min-width: 0; overflow-wrap: break-word; }
@@ -281,7 +281,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-md);
   box-shadow: var(--aura-shadow-enterprise);
-  font-family: var(--font-sans); font-size: 13px;
+  font-family: var(--font-sans); font-size: max(13px, .8125rem);
 }
 .aura-menu__item {
   display: flex; align-items: center; gap: var(--aura-space-2); width: 100%;
@@ -319,19 +319,19 @@ a.aura-menu__item { text-decoration: none; box-sizing: border-box; }
 .aura-menu__radio.is-on { border-color: var(--aura-control-checked-bg); }
 .aura-menu__radio.is-on::after { content: ''; width: 8px; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-control-checked-bg); }
 /* 5.7: a header above the items (who is signed in), set off by a hairline like a separator. */
-.aura-menu__header { margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-1)) var(--aura-space-1); padding: var(--aura-space-3); border-bottom: 1px solid var(--aura-border-default); color: var(--aura-fg-secondary); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.aura-menu__header { margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-1)) var(--aura-space-1); padding: var(--aura-space-3); border-bottom: 1px solid var(--aura-border-default); color: var(--aura-fg-secondary); font-size: max(12px, .75rem); line-height: max(18px, 1.125rem); overflow-wrap: anywhere; }
 .aura-menu__header > * { margin: 0; }
 /* Stays in view when a long menu scrolls. */
 .aura-menu.has-header .aura-menu__header { position: sticky; top: calc(-1 * var(--aura-space-1)); z-index: 1; background: var(--aura-bg-surface); }
-.aura-menu__header strong, .aura-menu__header b { color: var(--aura-fg-primary); font-weight: 500; font-size: 13px; }
+.aura-menu__header strong, .aura-menu__header b { color: var(--aura-fg-primary); font-weight: 500; font-size: max(13px, .8125rem); }
 .aura-menu__sep { height: 1px; margin: var(--aura-space-1) calc(-1 * var(--aura-space-1)); background: var(--aura-border-default); }
 
 /* Footer + pager */
 .aura-table__foot {
-  height: var(--aura-table-row-height); display: flex; align-items: center; justify-content: space-between;
+  min-height: var(--aura-table-row-height); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: var(--aura-space-3); /* 5.40: grows and wraps with a larger default font */
   padding: 0 var(--aura-space-3) 0 var(--aura-space-6);
   border-top: 1px solid var(--aura-border-default); background: var(--aura-bg-surface);
-  font-size: 13px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums;
+  font-size: max(13px, .8125rem); color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums;
 }
 .aura-table__pager { display: inline-flex; align-items: center; gap: var(--aura-space-1); }
 .aura-table__pager > span { margin-right: var(--aura-space-2); }
@@ -398,8 +398,8 @@ a.aura-icon-btn { text-decoration: none; }
   border-radius: var(--aura-radius-full); background: var(--aura-bg-canvas); color: var(--aura-fg-secondary);
   margin-bottom: var(--aura-space-4);
 }
-.aura-table__empty-title { margin: 0; font-size: 14px; font-weight: 600; color: var(--aura-fg-primary); }
-.aura-table__empty-text { margin: var(--aura-space-1) 0 0; font-size: 13px; line-height: 1.7; color: var(--aura-fg-secondary); }
+.aura-table__empty-title { margin: 0; font-size: max(14px, .875rem); font-weight: 600; color: var(--aura-fg-primary); }
+.aura-table__empty-text { margin: var(--aura-space-1) 0 0; font-size: max(13px, .8125rem); line-height: 1.7; color: var(--aura-fg-secondary); }
 .aura-table__empty-action { margin-top: var(--aura-space-6); }
 
 /* Checkbox — 16px, 4px corners, ink when checked */
@@ -429,9 +429,9 @@ a.aura-icon-btn { text-decoration: none; }
   max-width: 100%;
   border-radius: var(--aura-radius-full);
   padding: 2px var(--aura-space-2) 2px 6px;
-  font-size: 11px;
+  font-size: max(11px, .6875rem);
   font-weight: 500; /* 5.30 (Chamber-OS 137): medium everywhere, not the parent's weight; Badge stays 600 */
-  line-height: 16px;
+  line-height: max(16px, 1rem);
   white-space: nowrap;
   background: var(--aura-status-neutral-bg);
   color: var(--aura-status-neutral-fg);
@@ -487,14 +487,14 @@ a.aura-icon-btn { text-decoration: none; }
 
 /* ---------- Forms ---------- */
 .aura-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 0; padding: 0; border: 0; font-family: var(--font-sans); }
-.aura-field__label { padding: 0; font-size: 13px; line-height: 1.4; font-weight: 500; color: var(--aura-fg-primary); }
+.aura-field__label { padding: 0; font-size: max(13px, .8125rem); line-height: 1.4; font-weight: 500; color: var(--aura-fg-primary); }
 .aura-field__req { color: var(--aura-fg-danger); }
 .aura-field__opt { font-weight: 400; color: var(--aura-fg-tertiary); }
-.aura-field__hint, .aura-field__error { display: flex; align-items: flex-start; gap: var(--aura-space-1); margin: 0; font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-field__hint, .aura-field__error { display: flex; align-items: flex-start; gap: var(--aura-space-1); margin: 0; font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 .aura-field__error { color: var(--aura-fg-danger); }
 .aura-field__error .aura-icon { margin-top: 2px; }
 /* 5.31 (Chamber-OS addendum 41): TextField/Textarea `labelAddon`, between the label and the box, in the field's gap. */
-.aura-field__addon { min-width: 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-primary); }
+.aura-field__addon { min-width: 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-primary); }
 .aura-field.is-disabled .aura-field__label { color: var(--aura-fg-secondary); }
 
 .aura-input {
@@ -517,7 +517,7 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-input__control::placeholder, .aura-textarea::placeholder { color: var(--aura-fg-tertiary); opacity: 1; }
 .aura-input.has-icon .aura-input__control { padding-left: calc(var(--aura-space-3) + var(--aura-icon-sm) + var(--aura-space-2)); }
 .aura-input__icon { position: absolute; left: var(--aura-space-3); color: var(--aura-fg-secondary); pointer-events: none; }
-.aura-input__suffix { padding: 0 var(--aura-space-3) 0 0; color: var(--aura-fg-secondary); font-size: 13px; white-space: nowrap; }
+.aura-input__suffix { padding: 0 var(--aura-space-3) 0 0; color: var(--aura-fg-secondary); font-size: max(13px, .8125rem); white-space: nowrap; }
 .aura-field.is-invalid .aura-input, .aura-field.is-invalid .aura-textarea { border-color: var(--aura-border-danger); }
 .aura-field.is-disabled .aura-input { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); }
 .aura-field.is-disabled .aura-input__control { cursor: not-allowed; }
@@ -542,7 +542,7 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-select__trigger:disabled { cursor: not-allowed; }
 .aura-select__value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-select__value.is-placeholder { color: var(--aura-fg-tertiary); }
-.aura-select__group { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-tertiary); }
+.aura-select__group { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: max(11px, .6875rem); text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-tertiary); }
 .aura-select.is-open .aura-select__chevron { transform: rotate(180deg); }
 /* 5.19 (Chamber-OS 114): a read-only Select looks like a read-only TextField — the same ground, no chevron (it doesn't
  * open), no pointer; the value keeps full contrast. */
@@ -552,11 +552,11 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-radio-group > legend { margin-bottom: 6px; }
 .aura-radio-group__list { display: flex; flex-direction: column; gap: var(--aura-space-3); }
 .aura-radio-group__list.is-horizontal { flex-direction: row; flex-wrap: wrap; gap: var(--aura-space-3) var(--aura-space-6); }
-.aura-choice { display: flex; align-items: flex-start; gap: var(--aura-space-2); cursor: pointer; font-size: 14px; color: var(--aura-fg-primary); }
+.aura-choice { display: flex; align-items: flex-start; gap: var(--aura-space-2); cursor: pointer; font-size: max(14px, .875rem); color: var(--aura-fg-primary); }
 .aura-choice.is-disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
 .aura-choice__text { display: flex; flex-direction: column; gap: 2px; }
-.aura-choice__label { font-size: 14px; line-height: 20px; color: var(--aura-fg-primary); cursor: inherit; }
-.aura-choice__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-choice__label { font-size: max(14px, .875rem); line-height: max(20px, 1.25rem); color: var(--aura-fg-primary); cursor: inherit; }
+.aura-choice__desc { font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 .aura-radio {
   appearance: none; -webkit-appearance: none; flex: none; margin: 2px 0 0; box-sizing: border-box;
   width: var(--aura-icon-sm); height: var(--aura-icon-sm); border-radius: var(--aura-radius-full);
@@ -599,11 +599,11 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-alert {
   display: flex; align-items: flex-start; gap: var(--aura-space-3); padding: var(--aura-space-4);
   border: 1px solid var(--aura-alert-info-border); border-radius: var(--aura-radius-lg);
-  background: var(--aura-alert-info-bg); color: var(--aura-fg-primary); font-family: var(--font-sans); font-size: 14px;
+  background: var(--aura-alert-info-bg); color: var(--aura-fg-primary); font-family: var(--font-sans); font-size: max(14px, .875rem);
 }
 .aura-alert__icon { margin-top: 2px; color: var(--aura-alert-info-fg); }
 .aura-alert__body { flex: 1; min-width: 0; }
-.aura-alert__title { margin: 0; font-size: 14px; font-weight: 600; line-height: 20px; color: var(--aura-alert-info-fg); }
+.aura-alert__title { margin: 0; font-size: max(14px, .875rem); font-weight: 600; line-height: max(20px, 1.25rem); color: var(--aura-alert-info-fg); }
 .aura-alert__text { margin-top: 2px; line-height: 1.6; }
 .aura-alert__title + .aura-alert__text { margin-top: var(--aura-space-1); }
 .aura-alert__text p { margin: 0; }
@@ -636,8 +636,8 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-toast--warning .aura-toast__icon { color: var(--aura-alert-warning-fg); }
 .aura-toast--danger .aura-toast__icon { color: var(--aura-alert-danger-fg); }
 .aura-toast__body { flex: 1; min-width: 0; padding-top: 1px; }
-.aura-toast__title { margin: 0; font-size: 14px; font-weight: 500; line-height: 20px; }
-.aura-toast__text { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-toast__title { margin: 0; font-size: max(14px, .875rem); font-weight: 500; line-height: max(20px, 1.25rem); }
+.aura-toast__text { margin: 2px 0 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 .aura-toast__text > * { margin: 0; }
 .aura-toast__text a { color: var(--aura-fg-accent); text-underline-offset: 2px; }
 .aura-toast__text a:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-radius: var(--aura-radius-xs); }
@@ -650,7 +650,7 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-toast__action {
   flex: none; align-self: center; height: var(--aura-control-sm); padding: 0 var(--aura-space-2);
   border: 0; border-radius: var(--aura-radius-sm); background: transparent; color: var(--aura-fg-accent);
-  font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  font: inherit; font-size: max(13px, .8125rem); font-weight: 500; cursor: pointer;
   display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap;
 }
 /* Touch (5.6): the 32px action gets a 44px hit area, as IconButton does. Links in the text only get a little padding —
@@ -670,7 +670,7 @@ a.aura-icon-btn { text-decoration: none; }
   position: fixed; z-index: var(--aura-z-tooltip); max-width: var(--aura-tooltip-max);
   padding: 6px var(--aura-space-2); border-radius: var(--aura-radius-sm);
   background: var(--aura-bg-inverted); color: var(--aura-fg-inverted);
-  font-family: var(--font-sans); font-size: 12px; line-height: 1.5; pointer-events: none;
+  font-family: var(--font-sans); font-size: max(12px, .75rem); line-height: 1.5; pointer-events: none;
   animation: aura-fade-in var(--aura-duration-fast) var(--aura-ease);
 }
 /* The Tooltip component's own tips can be hovered (WCAG 1.4.13, 5.1.1); rail labels and cell tips stay click-through. */
@@ -695,11 +695,11 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-dialog--md { max-width: var(--aura-dialog-md); }
 .aura-dialog--lg { max-width: var(--aura-dialog-lg); }
 .aura-dialog__head { display: flex; align-items: flex-start; gap: var(--aura-space-3); }
-.aura-dialog__title { flex: 1; margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
+.aura-dialog__title { flex: 1; margin: 0; font-size: max(16px, 1rem); line-height: 1.5; font-weight: 600; }
 .aura-dialog__close { margin: -6px -8px 0 0; }
-.aura-dialog__desc { margin: var(--aura-space-1) 0 0; font-size: 14px; line-height: 1.7; color: var(--aura-fg-secondary); }
+.aura-dialog__desc { margin: var(--aura-space-1) 0 0; font-size: max(14px, .875rem); line-height: 1.7; color: var(--aura-fg-secondary); }
 /* Head and footer stay put; only the body scrolls (long forms keep their Save button in view). Side padding moves into the body so focus rings are not clipped. */
-.aura-dialog__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: var(--aura-space-4) calc(-1 * var(--aura-space-6)) 0; padding: var(--aura-space-1) var(--aura-space-6); font-size: 14px; line-height: 1.7; }
+.aura-dialog__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: var(--aura-space-4) calc(-1 * var(--aura-space-6)) 0; padding: var(--aura-space-1) var(--aura-space-6); font-size: max(14px, .875rem); line-height: 1.7; }
 .aura-dialog__head, .aura-dialog__desc, .aura-dialog__foot { flex: none; }
 .aura-dialog__foot { margin-top: var(--aura-space-6); display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--aura-space-3); }
 @media (prefers-reduced-motion: reduce) { .aura-dialog, .aura-scrim, .aura-toast, .aura-tooltip { animation: none; } }
@@ -709,7 +709,7 @@ a.aura-icon-btn { text-decoration: none; }
   box-sizing: border-box; display: flex; flex-direction: column; gap: var(--aura-space-4);
   padding: var(--aura-card-padding); background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-card-radius); box-shadow: var(--aura-shadow-enterprise);
-  font-family: var(--font-sans); font-size: 14px;
+  font-family: var(--font-sans); font-size: max(14px, .875rem);
   --aura-card-bleed: var(--aura-card-padding); /* 5.26: how far a bleeding table reaches out; 0 where the card is flush */
 }
 .aura-card.is-interactive { cursor: pointer; transition: border-color var(--aura-duration-fast) var(--aura-ease); }
@@ -741,9 +741,9 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-card--creative { border: 2px solid var(--aura-border-strong); box-shadow: var(--aura-card-shadow-creative); }
 .aura-card__head { display: flex; align-items: flex-start; gap: var(--aura-space-3); }
 .aura-card__heading { flex: 1; min-width: 0; }
-.aura-card__title { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
-.aura-card--creative .aura-card__title { font-family: var(--font-display); font-size: 24px; line-height: 1.2; }
-.aura-card__desc { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-card__title { margin: 0; font-size: max(16px, 1rem); line-height: 1.5; font-weight: 600; }
+.aura-card--creative .aura-card__title { font-family: var(--font-display); font-size: max(24px, 1.5rem); line-height: 1.2; }
+.aura-card__desc { margin: 2px 0 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 .aura-card__actions { display: flex; gap: var(--aura-space-2); margin: -4px -8px 0 0; }
 .aura-card__body { line-height: 1.7; }
 .aura-card__foot { display: flex; justify-content: flex-end; gap: var(--aura-space-3); padding-top: var(--aura-space-4); border-top: 1px solid var(--aura-border-subtle); }
@@ -759,7 +759,7 @@ a.aura-icon-btn { text-decoration: none; }
   box-sizing: border-box; /* 5.39: a link tab (<a>) was 2px taller than a button tab — its underline sat outside the height */
   height: var(--aura-input-height); padding: 0;
   border: 0; border-bottom: 2px solid transparent; background: transparent;
-  color: var(--aura-fg-secondary); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  color: var(--aura-fg-secondary); font: inherit; font-size: max(13px, .8125rem); font-weight: 500; cursor: pointer;
   transition: color var(--aura-duration-fast) var(--aura-ease), border-color var(--aura-duration-fast) var(--aura-ease);
 }
 .aura-tab:hover { color: var(--aura-fg-primary); }
@@ -770,7 +770,7 @@ a.aura-tab { text-decoration: none; }
 .aura-tab__count {
   min-width: 18px; padding: 0 6px; box-sizing: border-box; border-radius: var(--aura-radius-full);
   background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg);
-  font-size: 11px; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums;
+  font-size: max(11px, .6875rem); line-height: max(18px, 1.125rem); text-align: center; font-variant-numeric: tabular-nums;
 }
 .aura-tabs__panel { padding-top: var(--aura-space-6); outline: none; }
 /* 5.39 (Chamber-OS 143): touchHeight — 44px tabs (underline or segmented, buttons or links) below 640px or on a coarse
@@ -796,12 +796,12 @@ a.aura-tab { text-decoration: none; }
 .aura-nav > .aura-nav__scroll:first-child { padding-top: var(--aura-space-3); }
 .aura-nav--borderless { border-right: 0; }
 .aura-nav__section + .aura-nav__section { margin-top: var(--aura-space-5); }
-.aura-nav__title { margin: 0 0 var(--aura-space-1); padding: 0 var(--aura-space-3); font-family: var(--font-mono); font-size: 11px; line-height: 20px; color: var(--aura-fg-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+.aura-nav__title { margin: 0 0 var(--aura-space-1); padding: 0 var(--aura-space-3); font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: max(20px, 1.25rem); color: var(--aura-fg-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
 .aura-nav__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .aura-nav__item {
   box-sizing: border-box; display: flex; align-items: center; gap: var(--aura-space-3); width: 100%;
   min-height: 36px; padding: var(--aura-space-1) var(--aura-space-3); border: 0; border-radius: var(--aura-radius-sm);
-  background: transparent; color: var(--aura-fg-secondary); font: inherit; font-size: 13px; font-weight: 500;
+  background: transparent; color: var(--aura-fg-secondary); font: inherit; font-size: max(13px, .8125rem); font-weight: 500;
   text-decoration: none; text-align: left; cursor: pointer;
   transition: background var(--aura-duration-fast) var(--aura-ease), color var(--aura-duration-fast) var(--aura-ease);
 }
@@ -827,10 +827,10 @@ a.aura-tab { text-decoration: none; }
  * ("Marknadsförings-" / "målgrupp"); breaking anywhere is only the last resort. Only words of 12+ letters hyphenate,
  * with 5+ on each side, so ordinary English labels keep wrapping between words. */
 .aura-nav__label {
-  flex: 1; min-width: 0; line-height: 18px; overflow: hidden; overflow-wrap: anywhere; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 12 5 5;
+  flex: 1; min-width: 0; line-height: max(18px, 1.125rem); overflow: hidden; overflow-wrap: anywhere; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 12 5 5;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
 }
-.aura-nav__count { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--aura-fg-secondary); }
+.aura-nav__count { font-size: max(11px, .6875rem); font-variant-numeric: tabular-nums; color: var(--aura-fg-secondary); }
 .aura-nav__badge { display: inline-flex; align-items: center; flex: none; }
 /* Groups: a disclosure button, its items indented one step per level. */
 .aura-nav__item { padding-left: calc(var(--aura-space-3) + var(--aura-nav-depth, 0) * (var(--aura-icon-sm) + var(--aura-space-3))); }
@@ -860,7 +860,7 @@ a.aura-tab { text-decoration: none; }
 .aura-nav--collapsed .aura-nav__item--group.has-active .aura-icon { color: var(--aura-fg-accent); }
 .aura-nav__initial {
   display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--aura-radius-sm);
-  background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg); font-size: 12px; font-weight: 600; text-transform: uppercase;
+  background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg); font-size: max(12px, .75rem); font-weight: 600; text-transform: uppercase;
 }
 .aura-nav__dot {
   position: absolute; top: 6px; left: calc(50% + 5px); width: 8px; height: 8px; border-radius: var(--aura-radius-full);
@@ -870,7 +870,7 @@ a.aura-tab { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) { .aura-nav { transition: none; } }
 
 /* ---------- Breadcrumb ---------- */
-.aura-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); list-style: none; margin: 0; padding: 0; font-family: var(--font-sans); font-size: 13px; }
+.aura-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); list-style: none; margin: 0; padding: 0; font-family: var(--font-sans); font-size: max(13px, .8125rem); }
 .aura-crumbs li { display: inline-flex; align-items: center; gap: var(--aura-space-2); }
 .aura-crumbs a, .aura-crumbs button {
   padding: 0; border: 0; background: none; font: inherit; color: var(--aura-fg-secondary); text-decoration: none; cursor: pointer; border-radius: var(--aura-radius-xs);
@@ -910,6 +910,7 @@ a.aura-tab { text-decoration: none; }
   background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg);
 }
 .aura-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+/* Initials keep px: they are sized to the circle, and the name is the accessible name (5.40). */
 .aura-avatar--sm { width: var(--aura-avatar-sm); height: var(--aura-avatar-sm); font-size: 10px; }
 .aura-avatar--md { width: var(--aura-avatar-md); height: var(--aura-avatar-md); font-size: 12px; }
 .aura-avatar--lg { width: var(--aura-avatar-lg); height: var(--aura-avatar-lg); font-size: 14px; }
@@ -941,7 +942,7 @@ a.aura-tab { text-decoration: none; }
   position: fixed; z-index: var(--aura-z-menu); box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain;
   background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-md); box-shadow: var(--aura-shadow-overlay);
-  font-family: var(--font-sans); font-size: 14px;
+  font-family: var(--font-sans); font-size: max(14px, .875rem);
 }
 .aura-combo__list { list-style: none; margin: 0; padding: var(--aura-space-1); }
 .aura-combo__option {
@@ -954,15 +955,15 @@ a.aura-tab { text-decoration: none; }
 .aura-combo__option.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-combo__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .aura-combo__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aura-combo__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-combo__desc { font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 /* Same specificity as `.aura-combo__option > .aura-icon` above and later in the file, so it wins by order (4.18). */
 .aura-combo__option > .aura-combo__check { color: var(--aura-fg-accent); }
 /* 5.16 (Chamber-OS 105): option groups under a heading. */
 .aura-combo__group { list-style: none; }
 .aura-combo__group + .aura-combo__group, .aura-combo__option + .aura-combo__group { margin-top: var(--aura-space-1); padding-top: var(--aura-space-1); border-top: 1px solid var(--aura-border-subtle); }
-.aura-combo__group-label { display: block; padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; line-height: 16px; color: var(--aura-fg-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+.aura-combo__group-label { display: block; padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: max(16px, 1rem); color: var(--aura-fg-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
 .aura-combo__grouplist { list-style: none; margin: 0; padding: 0; }
-.aura-combo__note { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-3) var(--aura-space-2); font-size: 13px; color: var(--aura-fg-secondary); }
+.aura-combo__note { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-3) var(--aura-space-2); font-size: max(13px, .8125rem); color: var(--aura-fg-secondary); }
 
 /* ---------- DatePicker / Calendar ---------- */
 .aura-date .aura-input__control { padding-right: calc(var(--aura-space-2) + 2 * var(--aura-control-sm)); font-variant-numeric: tabular-nums; }
@@ -975,21 +976,21 @@ a.aura-tab { text-decoration: none; }
   font-family: var(--font-sans);
 }
 .aura-cal { width: calc(7 * var(--aura-cal-cell)); }
-.aura-cal__hint { margin: 0 0 var(--aura-space-2); font-size: 12px; color: var(--aura-fg-secondary); text-align: center; }
+.aura-cal__hint { margin: 0 0 var(--aura-space-2); font-size: max(12px, .75rem); color: var(--aura-fg-secondary); text-align: center; }
 .aura-cal__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--aura-space-2); }
 .aura-cal__title {
-  display: inline-flex; align-items: center; gap: var(--aura-space-1); height: var(--aura-control-sm); padding: 0 var(--aura-space-2);
+  display: inline-flex; align-items: center; gap: var(--aura-space-1); min-height: var(--aura-control-sm); padding: 0 var(--aura-space-2);
   border: 0; border-radius: var(--aura-radius-sm); background: transparent; color: var(--aura-fg-primary);
-  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  font: inherit; font-size: max(14px, .875rem); font-weight: 600; cursor: pointer;
 }
 .aura-cal__title:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__title:focus-visible, .aura-cal__link:focus-visible, .aura-cal__year:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 0; }
 .aura-cal__grid { border-collapse: separate; border-spacing: 0 2px; width: 100%; }
-.aura-cal__grid th { height: 28px; padding: 0; font-size: 12px; font-weight: 500; color: var(--aura-fg-secondary); }
+.aura-cal__grid th { height: 28px; padding: 0; font-size: max(12px, .75rem); font-weight: 500; color: var(--aura-fg-secondary); }
 .aura-cal__grid td { padding: 0; text-align: center; }
 .aura-cal__day {
   width: var(--aura-cal-cell); height: var(--aura-cal-cell); padding: 0; border: 0; border-radius: var(--aura-radius-full);
-  background: transparent; color: var(--aura-fg-primary); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
+  background: transparent; color: var(--aura-fg-primary); font: inherit; font-size: max(13px, .8125rem); font-variant-numeric: tabular-nums; cursor: pointer;
 }
 .aura-cal__day:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__day.is-outside { color: var(--aura-fg-tertiary); }
@@ -1004,14 +1005,14 @@ a.aura-tab { text-decoration: none; }
 .aura-cal__years { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--aura-space-1); }
 .aura-cal__year {
   height: 40px; border: 0; border-radius: var(--aura-radius-sm); background: transparent; color: var(--aura-fg-primary);
-  font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer;
+  font: inherit; font-size: max(13px, .8125rem); font-variant-numeric: tabular-nums; cursor: pointer;
 }
 .aura-cal__year:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__year.is-selected { background: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); }
 .aura-cal__foot { display: flex; justify-content: space-between; margin-top: var(--aura-space-2); padding-top: var(--aura-space-2); border-top: 1px solid var(--aura-border-subtle); }
 .aura-cal__link {
   height: var(--aura-control-sm); padding: 0 var(--aura-space-2); border: 0; border-radius: var(--aura-radius-sm);
-  background: transparent; color: var(--aura-fg-accent); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  background: transparent; color: var(--aura-fg-accent); font: inherit; font-size: max(13px, .8125rem); font-weight: 500; cursor: pointer;
 }
 .aura-cal__link:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-cal__link:disabled { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
@@ -1034,10 +1035,10 @@ a.aura-tab { text-decoration: none; }
 .aura-drawer--nav { max-width: var(--aura-sidenav-width); }
 .aura-drawer__head { display: flex; align-items: center; gap: var(--aura-space-3); padding: var(--aura-space-4) var(--aura-space-4) var(--aura-space-2) var(--aura-space-6); }
 .aura-drawer--nav .aura-drawer__head { position: absolute; top: var(--aura-space-2); inset-inline-end: var(--aura-space-2); padding: 0; z-index: 1; } /* 5.32: inline-end, so RTL puts it on the left with the header's room */
-.aura-drawer__title { flex: 1; margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
-.aura-drawer__desc { margin: 0; padding: 0 var(--aura-space-6); font-size: 14px; line-height: 1.7; color: var(--aura-fg-secondary); }
+.aura-drawer__title { flex: 1; margin: 0; font-size: max(16px, 1rem); line-height: 1.5; font-weight: 600; }
+.aura-drawer__desc { margin: 0; padding: 0 var(--aura-space-6); font-size: max(14px, .875rem); line-height: 1.7; color: var(--aura-fg-secondary); }
 .aura-drawer__body {
-  flex: 1; overflow-y: auto; padding: var(--aura-space-4) var(--aura-space-6); font-size: 14px; line-height: 1.7;
+  flex: 1; overflow-y: auto; padding: var(--aura-space-4) var(--aura-space-6); font-size: max(14px, .875rem); line-height: 1.7;
   /* 5.14 (Chamber-OS 91): a field scrolled into view (focus, the phone keyboard) keeps clear of the head and foot. */
   scroll-padding-block: var(--aura-space-4);
 }
@@ -1138,10 +1139,10 @@ a.aura-tab { text-decoration: none; }
  * 28px and the actions wrap under the text. */
 .aura-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--aura-space-4) var(--aura-space-6); min-width: 0; font-family: var(--font-sans); }
 .aura-page-header__text { display: flex; flex-direction: column; gap: var(--aura-space-1); flex: 1 1 320px; min-width: 0; }
-.aura-page-header__eyebrow { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
-.aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
+.aura-page-header__eyebrow { margin: 0; font-family: var(--font-mono); font-size: max(12px, .75rem); line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
+.aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: max(28px, 1.75rem); line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
 .aura-page-header__breadcrumb { min-width: 0; } /* 5.33 (DxT Monitor #7): Breadcrumb keeps its own type */
-.aura-page-header__meta { min-width: 0; font-size: 13px; line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
+.aura-page-header__meta { min-width: 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
 .aura-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
 /* 5.37 (DxT Monitor #17): actionsFullWidthBelow — the actions take the row under the text; their children share
  * each line equally (wrapping when a label won't fit), a trigger inside a DropdownMenu, Tooltip or Popover wrapper
@@ -1167,7 +1168,7 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
 }
-@media (min-width: 640px) { .aura-page-header__title { font-size: 36px; } }
+@media (min-width: 640px) { .aura-page-header__title { font-size: max(36px, 2.25rem); } }
 /* Thai marks need the room a 1.15 line takes away. */
 .aura-page-header__title:lang(th) { line-height: 1.4; letter-spacing: 0; }
 .aura-page-header__meta:lang(th) { line-height: 1.6; }
@@ -1185,27 +1186,27 @@ a.aura-tab { text-decoration: none; }
   box-sizing: border-box; display: flex; flex-direction: column; gap: var(--aura-space-2); min-width: 0;
   padding: var(--aura-space-5); background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-card-radius); box-shadow: var(--aura-shadow-enterprise);
-  font-family: var(--font-sans); font-size: 14px; text-align: left; text-decoration: none;
+  font-family: var(--font-sans); font-size: max(14px, .875rem); text-align: left; text-decoration: none;
 }
 button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-stat.is-interactive { cursor: pointer; transition: border-color var(--aura-duration-fast) var(--aura-ease), background var(--aura-duration-fast) var(--aura-ease); }
 .aura-stat.is-interactive:hover { border-color: var(--aura-border-strong); }
 .aura-stat.is-interactive:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-stat__head { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-2); }
-.aura-stat__label { margin: 0; font-size: 13px; font-weight: 500; color: var(--aura-fg-secondary); } /* 5.14: may be a heading */
+.aura-stat__label { margin: 0; font-size: max(13px, .8125rem); font-weight: 500; color: var(--aura-fg-secondary); } /* 5.14: may be a heading */
 .aura-stat__icon { display: inline-flex; color: var(--aura-fg-secondary); }
-.aura-stat__value { display: flex; align-items: baseline; gap: var(--aura-space-1); font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; min-height: 34px; }
+.aura-stat__value { display: flex; align-items: baseline; gap: var(--aura-space-1); font-size: max(28px, 1.75rem); line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; min-height: 34px; }
 .aura-stat__value.is-numeric { font-variant-numeric: tabular-nums; }
-.aura-stat__unit { font-size: 14px; font-weight: 500; color: var(--aura-fg-secondary); letter-spacing: 0; }
+.aura-stat__unit { font-size: max(14px, .875rem); font-weight: 500; color: var(--aura-fg-secondary); letter-spacing: 0; }
 .aura-stat__skel { width: 55%; height: 24px; align-self: center; }
-.aura-stat__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); font-size: 12px; }
+.aura-stat__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); font-size: max(12px, .75rem); }
 .aura-stat__change { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .aura-stat__change.is-positive { color: var(--aura-fg-positive); }
 .aura-stat__change.is-negative { color: var(--aura-fg-danger); }
 .aura-stat__change.is-neutral { color: var(--aura-fg-secondary); }
 .aura-stat__caption { color: var(--aura-fg-secondary); }
 /* 5.17 (Chamber-OS 110): a status line under the value, and a link on the label that covers the tile. */
-.aura-stat__status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); font-size: 13px; color: var(--aura-fg-secondary); }
+.aura-stat__status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-2); font-size: max(13px, .8125rem); color: var(--aura-fg-secondary); }
 .aura-stat--label-link { position: relative; }
 .aura-stat__link { color: inherit; text-decoration: none; }
 .aura-stat__link::after { content: ''; position: absolute; inset: 0; border-radius: var(--aura-card-radius); }
@@ -1227,7 +1228,7 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
   position: relative; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; min-width: 0;
   padding: var(--aura-space-2) var(--aura-space-3); background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-sm);
-  font-family: var(--font-sans); font-size: 13px; line-height: 18px; text-align: start; text-decoration: none;
+  font-family: var(--font-sans); font-size: max(13px, .8125rem); line-height: max(18px, 1.125rem); text-align: start; text-decoration: none;
   --aura-hover: var(--aura-bg-surface-hover);
 }
 .aura-status-tile--down { background: var(--aura-alert-danger-bg); border-color: var(--aura-alert-danger-border); }
@@ -1263,11 +1264,11 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
   .aura-status-tile__value { flex-basis: 100%; margin-inline-start: 0; padding-inline-start: 24px; }
 }
 /* The second line starts under the title. */
-.aura-status-tile__foot { display: flex; align-items: center; gap: var(--aura-space-2); min-width: 0; padding-inline-start: 24px; font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-status-tile__foot { display: flex; align-items: center; gap: var(--aura-space-2); min-width: 0; padding-inline-start: 24px; font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 .aura-status-tile__meta { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .aura-status-tile__markers { display: inline-flex; align-items: center; gap: var(--aura-space-1); margin-inline-start: auto; flex: none; }
 .aura-status-tile__marker { display: inline-flex; }
-.aura-status-tile:lang(th) { line-height: 20px; }
+.aura-status-tile:lang(th) { line-height: max(20px, 1.25rem); }
 .aura-sparkline { display: inline-block; flex: none; vertical-align: middle; overflow: visible; color: var(--aura-fg-secondary); }
 .aura-sparkline.is-accent { color: var(--aura-fg-accent); }
 .aura-sparkline.is-danger { color: var(--aura-fg-danger); }
@@ -1290,7 +1291,7 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-upload {
   position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--aura-space-2);
   min-height: 96px; padding: var(--aura-space-5); text-align: center; cursor: pointer;
-  background: var(--aura-bg-input); color: var(--aura-fg-secondary); font-size: 14px;
+  background: var(--aura-bg-input); color: var(--aura-fg-secondary); font-size: max(14px, .875rem);
   border: 1px dashed var(--aura-border-control); border-radius: var(--aura-radius-md);
   transition: border-color var(--aura-duration-fast) var(--aura-ease), background var(--aura-duration-fast) var(--aura-ease);
 }
@@ -1301,7 +1302,7 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-upload.is-disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; background: var(--aura-bg-input-disabled); }
 .aura-upload__icon { flex-basis: 100%; color: var(--aura-fg-secondary); }
 .aura-upload__browse { color: var(--aura-fg-accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
-.aura-upload__note { flex-basis: 100%; font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-upload__note { flex-basis: 100%; font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 .aura-upload__input { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .aura-upload__list { list-style: none; margin: var(--aura-space-3) 0 0; padding: 0; display: grid; gap: var(--aura-space-2); }
 .aura-upload__item {
@@ -1312,26 +1313,26 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-upload__thumb { flex: none; width: 40px; height: 40px; border-radius: var(--aura-radius-sm); object-fit: cover; background: var(--aura-bg-surface-hover); }
 .aura-upload__thumb.is-icon { display: inline-flex; align-items: center; justify-content: center; color: var(--aura-fg-secondary); }
 .aura-upload__meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.aura-upload__name { font-size: 13px; font-weight: 500; color: var(--aura-fg-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aura-upload__name { font-size: max(13px, .8125rem); font-weight: 500; color: var(--aura-fg-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.aura-upload__name { color: var(--aura-fg-accent); text-decoration: underline; text-underline-offset: 2px; border-radius: var(--aura-radius-xs); }
 a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
-.aura-upload__sub { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-upload__sub { display: inline-flex; align-items: center; gap: 4px; font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 .aura-upload__item.is-error .aura-upload__sub { color: var(--aura-fg-danger); }
 .aura-upload__bar { display: block; height: 4px; border-radius: var(--aura-radius-full); background: var(--aura-progress-track); box-shadow: inset 0 0 0 1px var(--aura-progress-track-edge); overflow: hidden; }
 .aura-upload__bar > span { display: block; height: 100%; background: var(--aura-fg-accent); transition: width var(--aura-duration-base) var(--aura-ease); }
 
 /* ---------- Checkbox with a visible label ---------- */
-.aura-check--labelled { width: auto; height: auto; max-width: 100%; display: inline-flex; align-items: flex-start; gap: var(--aura-space-2); cursor: pointer; font-size: 14px; line-height: 1.5; color: var(--aura-fg-primary); }
+.aura-check--labelled { width: auto; height: auto; max-width: 100%; display: inline-flex; align-items: flex-start; gap: var(--aura-space-2); cursor: pointer; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-primary); }
 .aura-check--labelled .aura-check__input { inset: auto; top: 3px; left: 0; width: var(--aura-icon-sm); height: var(--aura-icon-sm); }
 .aura-check--labelled .aura-check__box { flex: none; width: var(--aura-icon-sm); height: var(--aura-icon-sm); margin-top: 3px; }
 .aura-check__text { display: flex; flex-direction: column; }
-.aura-check__desc { font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-check__desc { font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 .aura-check.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 
 /* ---------- Badge ---------- */
 .aura-badge {
-  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 var(--aura-space-2); box-sizing: border-box;
-  border-radius: var(--aura-radius-full); border: 1px solid transparent; font-family: var(--font-sans); font-size: 11px; font-weight: 600; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; gap: 4px; min-height: 20px; padding: 0 var(--aura-space-2); box-sizing: border-box; /* 5.40: min-, so a larger default font grows it */
+  border-radius: var(--aura-radius-full); border: 1px solid transparent; font-family: var(--font-sans); font-size: max(11px, .6875rem); font-weight: 600; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums;
   background: var(--aura-status-neutral-bg); color: var(--aura-status-neutral-fg); /* 5.30: surface-hover vanished on the light canvas */
 }
 .aura-badge--accent { background: var(--aura-alert-info-bg); color: var(--aura-alert-info-fg); }
@@ -1347,7 +1348,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-tag {
   display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 var(--aura-space-3); box-sizing: border-box;
   border: 1px solid var(--aura-border-control); border-radius: var(--aura-radius-full); background: var(--aura-bg-surface); color: var(--aura-fg-primary);
-  font-family: var(--font-sans); font-size: 13px; font-weight: 500; white-space: nowrap;
+  font-family: var(--font-sans); font-size: max(13px, .8125rem); font-weight: 500; white-space: nowrap;
 }
 .aura-tag__text { overflow: hidden; text-overflow: ellipsis; max-width: 24ch; }
 .aura-tag.is-selectable { cursor: pointer; transition: background var(--aura-duration-fast) var(--aura-ease), border-color var(--aura-duration-fast) var(--aura-ease); }
@@ -1363,7 +1364,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 
 /* ---------- Progress ---------- */
 .aura-progress { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); }
-.aura-progress__head { display: flex; justify-content: space-between; gap: var(--aura-space-2); font-size: 13px; }
+.aura-progress__head { display: flex; justify-content: space-between; gap: var(--aura-space-2); font-size: max(13px, .8125rem); }
 .aura-progress__label { font-weight: 500; color: var(--aura-fg-primary); }
 .aura-progress__value { color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
 .aura-progress__track { position: relative; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-progress-track); box-shadow: inset 0 0 0 1px var(--aura-progress-track-edge); overflow: hidden; }
@@ -1382,7 +1383,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-progress__track.is-indeterminate .aura-progress__bar { width: 35%; animation: aura-progress-slide var(--aura-duration-pulse) var(--aura-ease) infinite; }
 @keyframes aura-progress-slide { from { left: -35%; } to { left: 100%; } }
 @media (prefers-reduced-motion: reduce) { .aura-progress__track.is-indeterminate .aura-progress__bar { animation-duration: calc(var(--aura-duration-pulse) * 3); } }
-.aura-progress__hint { margin: 0; font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-progress__hint { margin: 0; font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 
 /* ---------- Skeleton ---------- */
 .aura-skel--text { height: 10px; margin: 5px 0; }
@@ -1397,8 +1398,8 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-empty.is-bordered { border: 1px dashed var(--aura-border-control); border-radius: var(--aura-radius-lg); }
 .aura-empty__icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; margin-bottom: var(--aura-space-2); border-radius: var(--aura-radius-full); background: var(--aura-status-neutral-bg); color: var(--aura-fg-secondary); }
 .aura-empty.is-sm .aura-empty__icon { width: 36px; height: 36px; }
-.aura-empty__title { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; }
-.aura-empty__text { margin: 0; max-width: 44ch; font-size: 14px; line-height: 1.6; color: var(--aura-fg-secondary); }
+.aura-empty__title { margin: 0; font-size: max(16px, 1rem); line-height: 1.5; font-weight: 600; }
+.aura-empty__text { margin: 0; max-width: 44ch; font-size: max(14px, .875rem); line-height: 1.6; color: var(--aura-fg-secondary); }
 .aura-empty__action { margin-top: var(--aura-space-3); display: flex; gap: var(--aura-space-3); flex-wrap: wrap; justify-content: center; }
 /* 5.13 (Chamber-OS 82): tone="danger" — a load failure. */
 .aura-empty.is-danger { background: var(--aura-alert-danger-bg); border-radius: var(--aura-radius-lg); }
@@ -1406,7 +1407,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-empty.is-danger .aura-empty__icon { background: var(--aura-bg-surface); color: var(--aura-fg-danger); }
 
 /* ---------- Pagination ---------- */
-.aura-pagination { display: flex; align-items: center; gap: var(--aura-space-1); font-family: var(--font-sans); font-size: 13px; }
+.aura-pagination { display: flex; align-items: center; gap: var(--aura-space-1); font-family: var(--font-sans); font-size: max(13px, .8125rem); }
 .aura-pagination__list { display: flex; align-items: center; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .aura-page {
   display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 var(--aura-space-2); box-sizing: border-box;
@@ -1425,7 +1426,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 /* ---------- Accordion ---------- */
 .aura-accordion { border-top: 1px solid var(--aura-border-default); font-family: var(--font-sans); }
 .aura-accordion__item { border-bottom: 1px solid var(--aura-border-default); }
-.aura-accordion__heading { margin: 0; font-size: 14px; font-weight: 600; }
+.aura-accordion__heading { margin: 0; font-size: max(14px, .875rem); font-weight: 600; }
 .aura-accordion__heading > button {
   display: flex; align-items: center; gap: var(--aura-space-3); width: 100%; min-height: 48px; padding: var(--aura-space-3) var(--aura-space-1); box-sizing: border-box;
   border: 0; background: transparent; color: var(--aura-fg-primary); font: inherit; text-align: left; cursor: pointer;
@@ -1434,22 +1435,22 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-accordion__heading > button:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); border-radius: var(--aura-radius-sm); }
 .aura-accordion__heading > button:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-accordion__title { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.aura-accordion__desc { font-size: 13px; font-weight: 400; color: var(--aura-fg-secondary); }
+.aura-accordion__desc { font-size: max(13px, .8125rem); font-weight: 400; color: var(--aura-fg-secondary); }
 .aura-accordion__lead { color: var(--aura-fg-secondary); }
 .aura-accordion__chevron { flex: none; color: var(--aura-fg-secondary); transition: transform var(--aura-duration-fast) var(--aura-ease); }
 .aura-accordion__item.is-open .aura-accordion__chevron { transform: rotate(180deg); }
-.aura-accordion__panel { padding: 0 var(--aura-space-1) var(--aura-space-4); font-size: 14px; line-height: 1.7; color: var(--aura-fg-primary); }
+.aura-accordion__panel { padding: 0 var(--aura-space-1) var(--aura-space-4); font-size: max(14px, .875rem); line-height: 1.7; color: var(--aura-fg-primary); }
 
 /* ---------- Popover ---------- */
 .aura-popover-anchor { display: inline-flex; }
 .aura-popover {
   position: fixed; z-index: var(--aura-z-menu); box-sizing: border-box; width: max-content; min-width: 200px; max-width: min(360px, calc(100vw - 16px));
   background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg);
-  box-shadow: var(--aura-shadow-overlay); font-family: var(--font-sans); font-size: 14px; outline: none; animation: aura-fade-in var(--aura-duration-fast) var(--aura-ease);
+  box-shadow: var(--aura-shadow-overlay); font-family: var(--font-sans); font-size: max(14px, .875rem); outline: none; animation: aura-fade-in var(--aura-duration-fast) var(--aura-ease);
   overflow-y: auto; overscroll-behavior: contain;
 }
 .aura-popover__head { display: flex; align-items: center; justify-content: space-between; gap: var(--aura-space-2); padding: var(--aura-space-2) var(--aura-space-2) 0 var(--aura-space-4); position: sticky; top: 0; z-index: 1; background: var(--aura-bg-surface); } /* 5.2: stays while a tall popover scrolls */
-.aura-popover__title { margin: 0; font-size: 14px; font-weight: 600; }
+.aura-popover__title { margin: 0; font-size: max(14px, .875rem); font-weight: 600; }
 .aura-popover__body { padding: var(--aura-space-4); }
 .aura-popover__head + .aura-popover__body { padding-top: var(--aura-space-2); }
 @media (prefers-reduced-motion: reduce) { .aura-popover { animation: none; } }
@@ -1464,7 +1465,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-combo__chip {
   display: inline-flex; align-items: center; gap: 2px; max-width: 100%; height: 28px; box-sizing: border-box;
   padding: 0 2px 0 var(--aura-space-2); border-radius: var(--aura-radius-full);
-  background: var(--aura-bg-selected); color: var(--aura-fg-primary); font-size: 13px; font-weight: 500;
+  background: var(--aura-bg-selected); color: var(--aura-fg-primary); font-size: max(13px, .8125rem); font-weight: 500;
 }
 .aura-combo__chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 24ch; }
 .aura-combo__chip-remove {
@@ -1476,7 +1477,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 
 /* ---------- NumberField ---------- */
 .aura-number .aura-input__control { font-variant-numeric: tabular-nums; }
-.aura-number__affix { padding-left: var(--aura-space-3); color: var(--aura-fg-secondary); font-size: 14px; white-space: nowrap; }
+.aura-number__affix { padding-left: var(--aura-space-3); color: var(--aura-fg-secondary); font-size: max(14px, .875rem); white-space: nowrap; }
 .aura-number__affix + .aura-input__control { padding-left: var(--aura-space-2); }
 .aura-input__control + .aura-number__affix { padding: 0 var(--aura-space-2) 0 0; }
 .aura-number__steps { display: flex; align-self: stretch; border-left: 1px solid var(--aura-border-default); }
@@ -1504,16 +1505,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-stepper__marker {
   position: relative; z-index: 1; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; box-sizing: border-box;
   border-radius: var(--aura-radius-full); border: 1px solid var(--aura-border-control); background: var(--aura-bg-surface);
-  color: var(--aura-fg-secondary); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+  color: var(--aura-fg-secondary); font-size: max(13px, .8125rem); font-weight: 600; font-variant-numeric: tabular-nums;
 }
 .aura-stepper__marker .aura-icon { width: 16px; height: 16px; }
 .aura-stepper__item.is-done .aura-stepper__marker { background: var(--aura-control-checked-bg); border-color: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); }
 .aura-stepper__item.is-current .aura-stepper__marker { border: 2px solid var(--aura-fg-accent); color: var(--aura-fg-accent); }
 .aura-stepper__text { display: flex; flex-direction: column; min-width: 0; padding-top: 4px; }
-.aura-stepper__label { font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--aura-fg-secondary); }
+.aura-stepper__label { font-size: max(13px, .8125rem); font-weight: 500; line-height: 1.4; color: var(--aura-fg-secondary); }
 .aura-stepper__item.is-current .aura-stepper__label, .aura-stepper__item.is-done .aura-stepper__label { color: var(--aura-fg-primary); }
 .aura-stepper__item.is-current .aura-stepper__label { font-weight: 600; }
-.aura-stepper__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-stepper__desc { font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 /* Connector: a line from each marker to the next (labels sit under the markers), or down the left when vertical. */
 .aura-stepper--horizontal .aura-stepper__item:not(:last-child)::after {
   content: ""; position: absolute; top: 14px; left: 36px; right: var(--aura-space-2); height: 1px; background: var(--aura-border-control); pointer-events: none;
@@ -1526,7 +1527,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   content: ""; position: absolute; left: 14px; top: 32px; bottom: 4px; width: 1px; background: var(--aura-border-control);
 }
 .aura-stepper--vertical .aura-stepper__item.is-done::after { background: var(--aura-control-checked-bg); }
-.aura-stepper__compact { display: none; margin: var(--aura-space-2) 0 0; font-size: 13px; }
+.aura-stepper__compact { display: none; margin: var(--aura-space-2) 0 0; font-size: max(13px, .8125rem); }
 .aura-stepper__count { color: var(--aura-fg-secondary); margin-right: var(--aura-space-2); }
 .aura-stepper__compact-label { font-weight: 600; }
 /* 5.18 (Chamber-OS 112): a step with errors — the danger fill and an alert icon; outlined when it is the current step. */
@@ -1547,7 +1548,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   height: calc(var(--aura-input-height) - 6px); /* 5.30: the control is as tall as a field beside it (2px padding, 1px edge) */
   padding: 0 var(--aura-space-4); box-sizing: border-box;
   border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-secondary);
-  font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  font: inherit; font-size: max(13px, .8125rem); font-weight: 500; white-space: nowrap; cursor: pointer;
   transition: background-color var(--aura-duration-fast) var(--aura-ease), color var(--aura-duration-fast) var(--aura-ease), box-shadow var(--aura-duration-fast) var(--aura-ease);
 }
 .aura-segmented.is-full .aura-segmented__option { flex: 1 1 0; min-width: 0; }
@@ -1556,7 +1557,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-segmented__option.is-selected { background: var(--aura-segmented-thumb-bg); color: var(--aura-fg-primary); font-weight: 600; box-shadow: inset 0 0 0 1px var(--aura-border-control), var(--aura-shadow-enterprise); } /* 5.2: the edge marks the choice at 3:1; the fill alone was 1.04:1 on the track */
 .aura-segmented__option:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; }
 .aura-segmented__option:disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
-.aura-segmented--sm .aura-segmented__option { height: 24px; padding: 0 var(--aura-space-3); font-size: 12px; }
+.aura-segmented--sm .aura-segmented__option { height: auto; min-height: 24px; padding: 0 var(--aura-space-3); font-size: max(12px, .75rem); }
 .aura-segmented--sm .aura-segmented__option.is-icon { width: 28px; padding: 0; }
 .aura-segmented.is-disabled { opacity: var(--aura-disabled-opacity); }
 /* 5.37 (DxT Monitor #18): touchHeight — 44px options below 640px or on a coarse pointer (is-touch), or always. */
@@ -1644,7 +1645,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-toaster.is-top { top: calc(var(--aura-toaster-offset, var(--aura-space-4)) + env(safe-area-inset-top, 0px)); }
   .aura-card { padding: var(--aura-space-4); --aura-card-bleed: var(--aura-space-4); }
   .aura-stat { padding: var(--aura-space-4); }
-  .aura-stat__value { font-size: 24px; }
+  .aura-stat__value { font-size: max(24px, 1.5rem); }
   .aura-tabs__list { gap: var(--aura-space-4); }
 }
 @keyframes aura-sheet-in { from { transform: translateY(24px); opacity: 0; } }
@@ -1709,22 +1710,22 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 /* FormErrorSummary: a danger alert whose items link to their fields */
 .aura-error-summary:focus-visible, .aura-error-summary:focus { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-error-summary h2.aura-alert__title { font-family: inherit; }
-.aura-error-summary__list { margin: var(--aura-space-2) 0 0; padding-left: var(--aura-space-5); display: grid; gap: var(--aura-space-1); font-size: 14px; line-height: 20px; }
+.aura-error-summary__list { margin: var(--aura-space-2) 0 0; padding-left: var(--aura-space-5); display: grid; gap: var(--aura-space-1); font-size: max(14px, .875rem); line-height: max(20px, 1.25rem); }
 .aura-error-summary__list a { color: var(--aura-alert-danger-fg); text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
 .aura-error-summary__list a:hover { text-decoration-thickness: 2px; }
 .aura-error-summary__list a:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-xs); }
 
 /* aura-prose: sanitised rich text (editor output, e-mail previews). Styles exactly p, h1–h4, ul/ol/li, blockquote,
  * hr, a, strong, em, u with AURA type and spacing, in both themes. */
-.aura-prose { font-family: var(--font-sans); font-size: 14px; line-height: 1.7; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
+.aura-prose { font-family: var(--font-sans); font-size: max(14px, .875rem); line-height: 1.7; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
 .aura-prose > :first-child { margin-top: 0; }
 .aura-prose > :last-child { margin-bottom: 0; }
 .aura-prose p { margin: 0 0 var(--aura-space-4); }
 .aura-prose h1, .aura-prose h2, .aura-prose h3, .aura-prose h4 { color: var(--aura-fg-primary); margin: var(--aura-space-8) 0 var(--aura-space-3); }
-.aura-prose h1 { font-family: var(--font-display); font-weight: 600; font-size: 30px; line-height: 1.2; letter-spacing: -0.01em; }
-.aura-prose h2 { font-weight: 600; font-size: 22px; line-height: 1.3; }
-.aura-prose h3 { font-weight: 600; font-size: 17px; line-height: 1.45; }
-.aura-prose h4 { font-weight: 600; font-size: 15px; line-height: 1.5; }
+.aura-prose h1 { font-family: var(--font-display); font-weight: 600; font-size: max(30px, 1.875rem); line-height: 1.2; letter-spacing: -0.01em; }
+.aura-prose h2 { font-weight: 600; font-size: max(22px, 1.375rem); line-height: 1.3; }
+.aura-prose h3 { font-weight: 600; font-size: max(17px, 1.0625rem); line-height: 1.45; }
+.aura-prose h4 { font-weight: 600; font-size: max(15px, .9375rem); line-height: 1.5; }
 .aura-prose ul, .aura-prose ol { margin: 0 0 var(--aura-space-4); padding-left: var(--aura-space-6); }
 .aura-prose li { margin: var(--aura-space-1) 0; }
 .aura-prose li > ul, .aura-prose li > ol { margin: var(--aura-space-1) 0 0; }
@@ -1748,7 +1749,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterbar__clear-search { margin-right: 6px; }
 .aura-filterbar__controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-3); }
 .aura-filterbar__spacer { flex: 1 1 0; }
-.aura-filterbar__count { font-size: 13px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aura-filterbar__count { font-size: max(13px, .8125rem); color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .aura-filterbar__actions { display: flex; align-items: center; gap: var(--aura-space-2); }
 .aura-filterbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
 /* 5.28 (Chamber-OS 132): an applied-filter chip takes its text's width, cut only when it is wider than the row. */
@@ -1759,7 +1760,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterbar__chips > .aura-tag .aura-tag__text { max-width: none; min-width: 0; }
 .aura-filterbar__clear {
   border: 0; background: transparent; padding: 4px var(--aura-space-2); border-radius: var(--aura-radius-sm);
-  font: inherit; font-size: 13px; font-weight: 500; color: var(--aura-fg-accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  font: inherit; font-size: max(13px, .8125rem); font-weight: 500; color: var(--aura-fg-accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
 }
 .aura-filterbar__clear:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 .aura-filterbar__clear:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
@@ -1790,7 +1791,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   min-height: var(--aura-input-height); padding-block: 0; padding-inline: var(--aura-space-2) var(--aura-space-1);
   background: var(--aura-bg-input); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-control); border-radius: var(--aura-radius-md);
-  font: inherit; font-size: 13px; line-height: 18px; text-align: start; cursor: pointer;
+  font: inherit; font-size: max(13px, .8125rem); line-height: max(18px, 1.125rem); text-align: start; cursor: pointer;
   transition: border-color var(--aura-duration-fast) var(--aura-ease);
 }
 .aura-filterselect__face:hover { border-color: var(--aura-fg-secondary); }
@@ -1800,7 +1801,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 /* 5.30: from 640px the face has a field's inset and text size, like the search box beside it; phones keep the tight
  * face so three filters and a chip share one row. */
 @media (min-width: 640px) {
-  .aura-filterselect__face { padding-inline: var(--aura-space-3) var(--aura-space-2); font-size: 14px; }
+  .aura-filterselect__face { padding-inline: var(--aura-space-3) var(--aura-space-2); font-size: max(14px, .875rem); }
   .aura-filterselect__chevron { width: var(--aura-icon-sm); height: var(--aura-icon-sm); }
 }
 .aura-filterselect.is-open .aura-filterselect__chevron { transform: rotate(180deg); }
@@ -1810,7 +1811,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterselect__face:focus { outline-style: none; }
 .aura-filterselect__face:focus-visible { outline-style: solid; }
 /* Before hydration: the real <select>, invisible, over the face (16px so iOS doesn't zoom when it opens). */
-.aura-filterselect__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; font-size: 16px; cursor: pointer; appearance: none; }
+.aura-filterselect__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; font-size: max(16px, 1rem); cursor: pointer; appearance: none; }
 .aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); cursor: not-allowed; }
 .aura-filterselect.is-disabled .aura-filterselect__native { cursor: not-allowed; }
 /* 5.38 (Chamber-OS 140): touchHeight on FilterBar (its search and field-height controls) or on one FilterSelect —
@@ -1855,21 +1856,21 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-command__input::placeholder { color: var(--aura-fg-tertiary); opacity: 1; }
 .aura-command__list { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: var(--aura-space-2); }
 .aura-command__group + .aura-command__group { margin-top: var(--aura-space-2); }
-.aura-command__heading { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-secondary); }
-.aura-command__item { display: flex; align-items: center; gap: var(--aura-space-3); min-height: 40px; padding: 6px var(--aura-space-2); border-radius: var(--aura-radius-sm); cursor: pointer; font-size: 14px; }
+.aura-command__heading { padding: var(--aura-space-2) var(--aura-space-2) var(--aura-space-1); font-family: var(--font-mono); font-size: max(11px, .6875rem); text-transform: uppercase; letter-spacing: 0.04em; color: var(--aura-fg-secondary); }
+.aura-command__item { display: flex; align-items: center; gap: var(--aura-space-3); min-height: 40px; padding: 6px var(--aura-space-2); border-radius: var(--aura-radius-sm); cursor: pointer; font-size: max(14px, .875rem); }
 .aura-command__item > .aura-icon { color: var(--aura-fg-secondary); }
 .aura-command__item.is-active { background: var(--aura-hover, var(--aura-bg-surface-hover)); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
 .aura-command__item.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-command__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .aura-command__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aura-command__desc { font-size: 12px; line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-command__desc { font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
 .aura-command__kbd {
   flex: none; padding: 2px 6px; border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-xs);
-  font-family: var(--font-mono); font-size: 11px; line-height: 16px; color: var(--aura-fg-secondary); background: var(--aura-bg-canvas);
+  font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: max(16px, 1rem); color: var(--aura-fg-secondary); background: var(--aura-bg-canvas);
 }
-.aura-command__loading { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-2) var(--aura-space-3); font-size: 13px; color: var(--aura-fg-secondary); }
-.aura-command__empty { margin: 0; padding: var(--aura-space-6) var(--aura-space-2); text-align: center; font-size: 14px; color: var(--aura-fg-secondary); }
-.aura-command__foot { display: flex; justify-content: space-between; gap: var(--aura-space-3); padding: var(--aura-space-2) var(--aura-space-4); border-top: 1px solid var(--aura-border-default); font-size: 12px; color: var(--aura-fg-secondary); }
+.aura-command__loading { display: flex; align-items: center; gap: var(--aura-space-2); padding: var(--aura-space-2) var(--aura-space-3); font-size: max(13px, .8125rem); color: var(--aura-fg-secondary); }
+.aura-command__empty { margin: 0; padding: var(--aura-space-6) var(--aura-space-2); text-align: center; font-size: max(14px, .875rem); color: var(--aura-fg-secondary); }
+.aura-command__foot { display: flex; justify-content: space-between; gap: var(--aura-space-3); padding: var(--aura-space-2) var(--aura-space-4); border-top: 1px solid var(--aura-border-default); font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 @media (max-width: 639.98px) {
   .aura-dialog-layer.aura-command-layer { align-items: flex-start; padding: var(--aura-space-4); }
   .aura-command { max-height: 80vh; }
@@ -1913,7 +1914,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-bottomnav__item {
   box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   width: 100%; height: var(--aura-bottomnav-height); padding: 0 2px; border: 0; background: transparent;
-  color: var(--aura-fg-secondary); font: inherit; font-size: 11px; font-weight: 500; line-height: 14px;
+  color: var(--aura-fg-secondary); font: inherit; font-size: max(11px, .6875rem); font-weight: 500; line-height: max(14px, .875rem);
   text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .aura-bottomnav__item:hover { color: var(--aura-fg-primary); }
@@ -1927,9 +1928,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-bottomnav__item.is-active .aura-bottomnav__icon { background: var(--aura-bg-selected); }
 .aura-bottomnav__label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aura-bottomnav__count {
-  position: absolute; top: -2px; left: calc(50% + 4px); min-width: 16px; height: 16px; box-sizing: border-box; padding: 0 4px;
+  position: absolute; top: -2px; left: calc(50% + 4px); min-width: 16px; min-height: 16px; box-sizing: border-box; padding: 0 4px;
   border-radius: var(--aura-radius-full); background: var(--aura-bg-inverted); color: var(--aura-fg-inverted);
-  font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; font-variant-numeric: tabular-nums;
+  font-size: max(10px, .625rem); font-weight: 600; line-height: max(16px, 1rem); text-align: center; font-variant-numeric: tabular-nums;
   box-shadow: 0 0 0 2px var(--aura-bg-surface);
 }
 .aura-bottomnav__dot {
@@ -1966,7 +1967,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 }
 .aura-actionbar--container { bottom: 0; border-top: 1px solid var(--aura-border-default); }
 .aura-actionbar__inner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2) var(--aura-space-3); min-height: 60px; box-sizing: border-box; padding-block: var(--aura-space-2); padding-inline: var(--aura-space-4) var(--aura-space-3); }
-.aura-actionbar__status { flex: 1 1 8rem; min-width: 0; font-size: 14px; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
+.aura-actionbar__status { flex: 1 1 8rem; min-width: 0; font-size: max(14px, .875rem); color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
 .aura-actionbar__status:empty { flex-basis: 0; }
 /* 5.20: an empty status leaves the row (it would still take a gap and push the start slot away from its edge) but
  * stays in the page as a live region, so the next status is announced. */
@@ -2003,8 +2004,8 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     linear-gradient(to left, var(--aura-scroll-shadow), transparent) right / 12px 100% no-repeat scroll,
     var(--aura-tbl-bg, var(--aura-bg-surface));
 }
-.aura-tbl { width: 100%; border-collapse: collapse; border-spacing: 0; font-size: 13px; line-height: 20px; }
-.aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) var(--aura-space-3); text-align: left; font-size: 14px; font-weight: 600; }
+.aura-tbl { width: 100%; border-collapse: collapse; border-spacing: 0; font-size: max(13px, .8125rem); line-height: max(20px, 1.25rem); }
+.aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) var(--aura-space-3); text-align: left; font-size: max(14px, .875rem); font-weight: 600; }
 /* 5.30: from 640px a cell is at least 10ch wide, so the table never squeezes a column to one letter; a longer word (an
  * email, a URL) still breaks to fit instead of widening the table. Phones keep fitting the box: use stackBelow there. */
 .aura-tbl__th, .aura-tbl__td { padding: var(--aura-tbl-cell-py, var(--aura-space-3)) var(--aura-space-4); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
@@ -2013,14 +2014,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl__th:last-child, .aura-tbl__td:last-child { padding-right: var(--aura-space-6); }
 .aura-tbl__head .aura-tbl__th {
   background: var(--aura-table-head-bg); border-bottom: 1px solid var(--aura-border-default);
-  font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--aura-fg-secondary); white-space: nowrap;
+  font-family: var(--font-mono); font-size: max(12px, .75rem); font-weight: 400; color: var(--aura-fg-secondary); white-space: nowrap;
 }
 .aura-tbl__body .aura-tbl__row + .aura-tbl__row > * { border-top: 1px solid var(--aura-border-default); }
 .aura-tbl__body .aura-tbl__th { font-weight: 500; }
 .aura-tbl__foot > .aura-tbl__row > * { background: var(--aura-table-head-bg); font-weight: 600; }
 .aura-tbl__foot > .aura-tbl__row:first-child > * { border-top: 2px solid var(--aura-border-default); }
 /* 5.30: with several totals rows (Subtotal, VAT, Total) the last one reads as the total. */
-.aura-tbl__foot > .aura-tbl__row:last-child:not(:first-child) > * { font-size: 14px; font-weight: 700; }
+.aura-tbl__foot > .aura-tbl__row:last-child:not(:first-child) > * { font-size: max(14px, .875rem); font-weight: 700; }
 .aura-tbl__foot > .aura-tbl__row + .aura-tbl__row > * { border-top: 1px solid var(--aura-border-default); }
 .aura-tbl .is-end { text-align: right; }
 .aura-tbl .is-center { text-align: center; }
@@ -2069,18 +2070,18 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row + .aura-tbl__row, .aura-tbl--stack-md > .aura-tbl__foot > .aura-tbl__row:first-child { border-top: 1px solid var(--aura-border-default); }
   .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
   .aura-tbl--stack-md > * > .aura-tbl__row > * + * { margin-top: var(--aura-space-2); }
-  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: max(14px, .875rem); font-weight: 600; }
   /* 5.13 (Chamber-OS 84): a row with a title or action cell — title and action share the first line, fields two to a line under them. */
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) { display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: var(--aura-space-4); }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card])::after { content: ''; order: 3; flex: 0 0 100%; }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > * { order: 4; flex: 0 0 calc(50% - var(--aura-space-4) / 2); min-width: 0; margin-top: var(--aura-space-2); }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card] { margin-top: 0; }
-  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='title'] { order: 1; flex: 1 1 0; font-size: max(14px, .875rem); font-weight: 600; }
   .aura-tbl--stack-md > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='action'] { order: 2; flex: none; margin-inline-start: auto; }
   .aura-tbl-wrap.is-flush > .aura-tbl--stack-md > .aura-tbl__caption { padding-inline: var(--aura-space-4); }
   .aura-tbl--stack-md > * > .aura-tbl__row > .aura-tbl__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';
-    display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
+    display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: max(16px, 1rem); font-weight: 400; color: var(--aura-fg-secondary);
   }
   /* 5.26: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
   .aura-card__body .aura-bleed.aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-md:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
@@ -2093,18 +2094,18 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row + .aura-tbl__row, .aura-tbl--stack-sm > .aura-tbl__foot > .aura-tbl__row:first-child { border-top: 1px solid var(--aura-border-default); }
   .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__th, .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td { padding: 0; border-top: 0; background: none; text-align: start; white-space: normal; }
   .aura-tbl--stack-sm > * > .aura-tbl__row > * + * { margin-top: var(--aura-space-2); }
-  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row > .aura-tbl__th { font-size: max(14px, .875rem); font-weight: 600; }
   /* 5.13 (Chamber-OS 84): a row with a title or action cell — title and action share the first line, fields two to a line under them. */
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) { display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: var(--aura-space-4); }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card])::after { content: ''; order: 3; flex: 0 0 100%; }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > * { order: 4; flex: 0 0 calc(50% - var(--aura-space-4) / 2); min-width: 0; margin-top: var(--aura-space-2); }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card] { margin-top: 0; }
-  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
+  .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='title'] { order: 1; flex: 1 1 0; font-size: max(14px, .875rem); font-weight: 600; }
   .aura-tbl--stack-sm > .aura-tbl__body > .aura-tbl__row:has(> [data-card]) > [data-card='action'] { order: 2; flex: none; margin-inline-start: auto; }
   .aura-tbl-wrap.is-flush > .aura-tbl--stack-sm > .aura-tbl__caption { padding-inline: var(--aura-space-4); }
   .aura-tbl--stack-sm > * > .aura-tbl__row > .aura-tbl__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';
-    display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; color: var(--aura-fg-secondary);
+    display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: max(16px, 1rem); font-weight: 400; color: var(--aura-fg-secondary);
   }
   /* 5.26: a bleeding list keeps its rows' text level with the Card's content (16px where it doesn't bleed). */
   .aura-card__body .aura-bleed.aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row, .aura-card__body .aura-bleed > .aura-bleed-frame > .aura-tbl--stack-sm:not(.aura-tbl--cards) > * > .aura-tbl__row { padding-inline: max(var(--aura-card-bleed), var(--aura-space-4) - var(--aura-card-bleed) * 1000); }
@@ -2167,7 +2168,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__picker { display: none; }
   .aura-table__head {
     position: static; height: auto; min-width: 0; padding: 0 0 var(--aura-space-3); border: 0; background: none;
-    font-family: var(--font-sans); font-size: 13px;
+    font-family: var(--font-sans); font-size: max(13px, .8125rem);
   }
   .aura-table__head > .aura-table__th {
     position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -2207,16 +2208,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__td[data-label]::before {
     content: attr(data-label); content: attr(data-label) / '';
     display: block; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start;
-    font-family: var(--font-mono); font-size: 11px; line-height: normal; font-weight: 400; color: var(--aura-fg-secondary);
+    font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: normal; font-weight: 400; color: var(--aura-fg-secondary);
   }
   .aura-table__td[data-card='title'], .aura-table__td[data-card='pill'], .aura-table__td[data-card='actions'] { align-self: center; margin-bottom: 0; }
-  .aura-table__td[data-card='title'] { order: 1; flex: 1 1 0; font-size: 14px; font-weight: 600; }
+  .aura-table__td[data-card='title'] { order: 1; flex: 1 1 0; font-size: max(14px, .875rem); font-weight: 600; }
   .aura-table__td[data-card='pill'] { order: 2; flex: none; }
   .aura-table__td[data-card='actions'] { order: 3; flex: none; margin: calc(-1 * var(--aura-space-1)) calc(-1 * var(--aura-space-2)) calc(-1 * var(--aura-space-1)) 0; }
   /* 5.22 (Chamber-OS 119): the title wraps rather than being cut — a member's full name before a one-click action —
    * and the row box and the pill line up with its first line (a 20px line; the 16px box 2px down). */
-  .aura-table__td[data-card='title'] { white-space: normal; overflow-wrap: anywhere; overflow: visible; line-height: 20px; align-self: flex-start; }
-  .aura-table__td[data-card='pill'] { align-self: flex-start; line-height: 20px; }
+  .aura-table__td[data-card='title'] { white-space: normal; overflow-wrap: anywhere; overflow: visible; line-height: max(20px, 1.25rem); align-self: flex-start; }
+  .aura-table__td[data-card='pill'] { align-self: flex-start; line-height: max(20px, 1.25rem); }
   .aura-table__row > .aura-table__sel { align-self: flex-start; margin-top: 2px; }
   /* Actions top-right sit on that first line too (a 32px button centred on 20px, the same 24px footprint as before). */
   .aura-table__td[data-card='actions'] { align-self: flex-start; margin-top: calc(-1 * var(--aura-space-1) - 2px); margin-bottom: -2px; }
@@ -2278,18 +2279,18 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 
 /* 5.30: Thai needs more room than Latin — tone marks and vowels stack above and below the line. Where the page or a
  * part of it is Thai (lang="th"), small labels are at least 12px and lines are taller. */
-.aura-pill:lang(th), .aura-badge:lang(th), .aura-tab__count:lang(th) { font-size: 12px; }
-.aura-pill:lang(th) { line-height: 18px; }
+.aura-pill:lang(th), .aura-badge:lang(th), .aura-tab__count:lang(th) { font-size: max(12px, .75rem); }
+.aura-pill:lang(th) { line-height: max(18px, 1.125rem); }
 .aura-skel--pill:lang(th) { height: 22px; } /* the loading pill stays as tall as the Thai one */
-.aura-bottomnav__item:lang(th) { font-size: 12px; line-height: 18px; }
-.aura-stepper__desc:lang(th) { font-size: 13px; line-height: 1.6; }
-.aura-nav__label:lang(th) { line-height: 22px; }
+.aura-bottomnav__item:lang(th) { font-size: max(12px, .75rem); line-height: max(18px, 1.125rem); }
+.aura-stepper__desc:lang(th) { font-size: max(13px, .8125rem); line-height: 1.6; }
+.aura-nav__label:lang(th) { line-height: max(22px, 1.375rem); }
 /* 5.30 (audit D): field labels, hints and errors and choice descriptions get Thai line room; a stacked card's field
  * labels are 12px in the sans face (the mono face has no Thai), and a stacked DataTable card's values sit on a set
  * 1.6 line, so a loading card (its bars follow 1lh) is as tall as one with Thai text. */
 .aura-field__label:lang(th), .aura-field__hint:lang(th), .aura-field__error:lang(th), .aura-field__addon:lang(th) { line-height: 1.6; }
-.aura-choice__desc:lang(th), .aura-check__desc:lang(th) { font-size: 13px; line-height: 1.6; }
-.aura-tbl__row > .aura-tbl__td[data-label]:lang(th)::before, .aura-table__td[data-label]:lang(th)::before { font-family: var(--font-sans); font-size: 12px; line-height: 18px; }
+.aura-choice__desc:lang(th), .aura-check__desc:lang(th) { font-size: max(13px, .8125rem); line-height: 1.6; }
+.aura-tbl__row > .aura-tbl__td[data-label]:lang(th)::before, .aura-table__td[data-label]:lang(th)::before { font-family: var(--font-sans); font-size: max(12px, .75rem); line-height: max(18px, 1.125rem); }
 .aura-table--stacked .aura-table__td[data-label]:lang(th) { line-height: 1.6; }
 
 /* 5.30: a plain link (no class) inside AURA's surfaces takes the accent colour instead of the browser's blue. Zero

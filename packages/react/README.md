@@ -186,6 +186,14 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.40 — Chamber-OS addendum 48
+
+- **Type follows the browser's default font size** (#145, WCAG 1.4.4). Every font size and px line height in `styles.css`, the `.aura-text-*` classes and `--aura-input-font-size` is now `max(<px>, <rem>)` — for example `max(13px, .8125rem)`. At the default 16px root nothing changes. When someone raises the browser's default font size (Settings → Font size, not page zoom), AURA's text grows with the app's own: at 32px a card's description, a Switch's description and a table cell are twice the size. Spacing, borders and control heights stay in px; boxes that hold text grow where they already could (fields, cards, rows with `rowHeight="auto"`), and one-line controls keep their height with larger text inside.
+- An app that sets a smaller root (`html { font-size: 62.5% }`) keeps AURA's px sizes as a floor, so nothing gets smaller than before. An app with a fixed larger root (`html { font-size: 18px }`) will see AURA's text grow with it.
+- Boxes with text that had a fixed height now have a minimum instead, so they grow with the text: Badge, the small SegmentedControl option, the calendar's month title (it wraps under the arrows rather than overlapping the weekdays), the DataTable footer (which also wraps the count and the pager) and BottomNav's count. Avatar initials stay in px, sized to their circle; the name is the accessible name.
+- A smaller browser default never makes AURA's text smaller than its px size.
+- A row `Stack` without `wrap` holding buttons or tags can run past a phone's edge at a large default size; give it `wrap`.
+
 ## 5.39 — Chamber-OS addendum 46
 
 - **Tabs `touchHeight`** (#143): 44px tabs — buttons or links, underline or segmented — with `true` below 640px or on a coarse pointer (Button's rule), or `'always'` at every width. The count badge and icon stay centred on the label (above the 2px underline). The height is set on the tabs themselves, so fields in the panels keep their own size. Without it nothing changes.
