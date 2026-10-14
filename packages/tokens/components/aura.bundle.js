@@ -950,6 +950,7 @@ window.Aura = (() => {
     statusMaintenance: "\u0E1B\u0E34\u0E14\u0E1B\u0E23\u0E31\u0E1A\u0E1B\u0E23\u0E38\u0E07",
     statusOk: "\u0E1B\u0E01\u0E15\u0E34",
     statusUnknown: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25",
+    opensInNewTab: "\u0E40\u0E1B\u0E34\u0E14\u0E43\u0E19\u0E41\u0E17\u0E47\u0E1A\u0E43\u0E2B\u0E21\u0E48",
     accepts: function(list, max) {
       return [list, max && "\u0E44\u0E21\u0E48\u0E40\u0E01\u0E34\u0E19 " + max + " \u0E15\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C"].filter(Boolean).join(" \xB7 ");
     }
@@ -1086,6 +1087,7 @@ window.Aura = (() => {
     statusMaintenance: "Underh\xE5ll",
     statusOk: "OK",
     statusUnknown: "Ingen data",
+    opensInNewTab: "\xF6ppnas i en ny flik",
     accepts: function(list, max) {
       return [list, max && "h\xF6gst " + max + " per fil"].filter(Boolean).join(", ");
     }
@@ -1223,6 +1225,7 @@ window.Aura = (() => {
       statusMaintenance: "Maintenance",
       statusOk: "OK",
       statusUnknown: "No data",
+      opensInNewTab: "opens in a new tab",
       accepts: function(list, max) {
         return [list, max && "up to " + max + " each"].filter(Boolean).join(", ");
       }
@@ -1624,6 +1627,7 @@ window.Aura = (() => {
     const headerId = uid(), itemId = uid();
     const hasHeader = props.header != null && props.header !== false && props.header !== "";
     const Link = useLinkComponent(props.linkComponent);
+    const t = useStrings();
     function place2() {
       const a = props.anchor, m = own.current;
       if (!a || !m) return;
@@ -1750,6 +1754,8 @@ window.Aura = (() => {
       if (reasonId)
         body[2] = /* Hidden from the name (it would be read twice); aria-describedby still reads it. */
         /* @__PURE__ */ React9.createElement("span", { key: "h", id: reasonId, className: "aura-menu__hint aura-menu__reason", "aria-hidden": true }, it.disabledReason);
+      if (it.href && !it.disabled && it.target === "_blank")
+        body[1] = /* @__PURE__ */ React9.createElement("span", { key: "t", className: "aura-menu__label" }, it.label, /* @__PURE__ */ React9.createElement("span", { className: "aura-sr-only" }, " (" + t.opensInNewTab + ")"));
       if (it.href && !it.disabled)
         return /* @__PURE__ */ React9.createElement(
           Link,
@@ -7698,6 +7704,8 @@ window.Aura = (() => {
     });
     const level = props.headingLevel || 1;
     const below2 = props.actionsFullWidthBelow;
+    const hide2 = props.titleHideBelow;
+    const hasMeta = props.meta != null && props.meta !== false;
     return h8(
       "div",
       Object.assign(attrs2, {
@@ -7705,6 +7713,8 @@ window.Aura = (() => {
         className: cx(
           "aura-page-header",
           (below2 === "sm" || below2 === "md" || below2 === "lg") && "aura-page-header--actions-full-below-" + below2,
+          (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && "aura-page-header--title-hide-below-" + hide2,
+          (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && !hasMeta && "has-no-meta",
           props.className
         ),
         style: props.style
@@ -8183,6 +8193,7 @@ window.Aura = (() => {
           className: cx(
             "aura-shell__bar",
             (!props.header || props.headerHideFrom === "lg") && "aura-shell__bar--menu-only",
+            !props.header && "aura-shell__bar--no-header",
             props.headerHideOnScroll && "aura-shell__bar--hides",
             away && "is-away"
           )

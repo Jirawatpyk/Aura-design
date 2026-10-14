@@ -31,6 +31,10 @@ export interface PageHeaderProps
    * Tooltip or Popover too; IconButtons keep their size) — a single Button or your own grid spans the row. Wider
    * than that, the actions hug their content at the end as before. */
   actionsFullWidthBelow?: 'sm' | 'md' | 'lg' | undefined;
+  /** 5.41 (DxT Monitor #20): below this breakpoint the title moves out of sight — still the page's heading for screen
+   * readers — and the breadcrumb and eyebrow are hidden, for phone layouts that show the title in the top bar. The
+   * meta line and actions stay; with no meta, the actions start the header. */
+  titleHideBelow?: 'sm' | 'md' | 'lg' | undefined;
   /** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
   headingLevel?: 1 | 2 | 3 | undefined;
   /** The heading's id, for `aria-labelledby` on the page's region. */
@@ -47,6 +51,8 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
   });
   const level = props.headingLevel || 1;
   const below = props.actionsFullWidthBelow;
+  const hide = props.titleHideBelow;
+  const hasMeta = props.meta != null && props.meta !== false;
   return h(
     'div',
     Object.assign(attrs, {
@@ -54,6 +60,8 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
       className: cx(
         'aura-page-header',
         (below === 'sm' || below === 'md' || below === 'lg') && 'aura-page-header--actions-full-below-' + below,
+        (hide === 'sm' || hide === 'md' || hide === 'lg') && 'aura-page-header--title-hide-below-' + hide,
+        (hide === 'sm' || hide === 'md' || hide === 'lg') && !hasMeta && 'has-no-meta',
         props.className,
       ),
       style: props.style,

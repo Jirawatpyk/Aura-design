@@ -132,6 +132,7 @@ export const sv: AuraLocalePack = {
   statusMaintenance: 'Underhåll',
   statusOk: 'OK',
   statusUnknown: 'Ingen data',
+  opensInNewTab: 'öppnas i en ny flik',
   accepts: function (list, max) {
     return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
   },

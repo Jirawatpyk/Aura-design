@@ -155,6 +155,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
             className={cx(
               'aura-shell__bar',
               (!props.header || props.headerHideFrom === 'lg') && 'aura-shell__bar--menu-only',
+              !props.header && 'aura-shell__bar--no-header',
               props.headerHideOnScroll && 'aura-shell__bar--hides',
               away && 'is-away',
             )}

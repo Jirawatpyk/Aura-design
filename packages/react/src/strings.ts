@@ -103,6 +103,8 @@ export interface AuraStrings {
   statusOk: string;
   /** StatusTile `unknown` (5.35). */
   statusUnknown: string;
+  /** Read after a Menu link item with `target="_blank"` (5.41): "Visit site (opens in a new tab)". */
+  opensInNewTab: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */
@@ -236,6 +238,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     statusMaintenance: 'Maintenance',
     statusOk: 'OK',
     statusUnknown: 'No data',
+    opensInNewTab: 'opens in a new tab',
     accepts: function (list, max) {
       return [list, max && 'up to ' + max + ' each'].filter(Boolean).join(', ');
     },

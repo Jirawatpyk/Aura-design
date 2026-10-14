@@ -159,6 +159,12 @@ try {
   x = await ex(`return ['links', 'buttons', 'segmented', 'plain'].map((id) => Math.round(document.querySelector('[data-testid=' + id + '] .aura-tab').getBoundingClientRect().height))`);
   check(JSON.stringify(x) === '[44,44,44,36]', 'Tabs touchHeight: 44px link, button and segmented tabs at 390; plain link tab 36px', x);
 
+  /* 5.41: data-aura-hide-menubutton hides the phone bar's menu button (:has in WebKit); titleHideBelow keeps the h1. */
+  await go('aura-new-in-5-41-dxt-monitor-19-22--back-arrow-page');
+  x = await ex(`const h = document.querySelector('[data-testid=header]');
+    return [getComputedStyle(document.querySelector('.aura-shell__menu')).display, Math.round(h.querySelector('h1').getBoundingClientRect().width), getComputedStyle(h.querySelector('.aura-page-header__breadcrumb')).display]`);
+  check(JSON.stringify(x) === '["none",1,"none"]', 'AppShell menu button hidden by the page mark; PageHeader title visually hidden, breadcrumb gone', x);
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);

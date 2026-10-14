@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { cx, uid, useIsoLayoutEffect, useMounted, useMergedRef } from './internal.js';
 import { Icon } from './Icon.js';
-import { useLinkComponent } from './locale.js';
+import { useLinkComponent, useStrings } from './locale.js';
 import type { MenuItem, MenuProps } from './types.js';
 import { IconCheck } from './icons.js';
 
@@ -75,6 +75,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     itemId = uid();
   const hasHeader = props.header != null && props.header !== false && props.header !== '';
   const Link = useLinkComponent(props.linkComponent);
+  const t = useStrings();
   /* Placement: below the trigger if it fits, else above; called on open and (5.30) on every scroll and resize. */
   function place(): void {
     const a = props.anchor,
@@ -243,6 +244,14 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
         /* Hidden from the name (it would be read twice); aria-describedby still reads it. */
         <span key="h" id={reasonId} className="aura-menu__hint aura-menu__reason" aria-hidden={true}>
           {it.disabledReason}
+        </span>
+      );
+    if (it.href && !it.disabled && it.target === '_blank')
+      /* 5.41 (DxT Monitor #21): a new tab is announced with the name, after the visible label (WCAG 2.5.3). */
+      body[1] = (
+        <span key="t" className="aura-menu__label">
+          {it.label}
+          <span className="aura-sr-only">{' (' + t.opensInNewTab + ')'}</span>
         </span>
       );
     if (it.href && !it.disabled)

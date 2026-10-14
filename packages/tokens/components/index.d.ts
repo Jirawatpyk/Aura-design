@@ -1936,6 +1936,10 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	 * Tooltip or Popover too; IconButtons keep their size) — a single Button or your own grid spans the row. Wider
 	 * than that, the actions hug their content at the end as before. */
 	actionsFullWidthBelow?: "sm" | "md" | "lg" | undefined;
+	/** 5.41 (DxT Monitor #20): below this breakpoint the title moves out of sight — still the page's heading for screen
+	 * readers — and the breadcrumb and eyebrow are hidden, for phone layouts that show the title in the top bar. The
+	 * meta line and actions stay; with no meta, the actions start the header. */
+	titleHideBelow?: "sm" | "md" | "lg" | undefined;
 	/** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
 	headingLevel?: 1 | 2 | 3 | undefined;
 	/** The heading's id, for `aria-labelledby` on the page's region. */
@@ -2044,6 +2048,8 @@ export interface AuraStrings {
 	statusOk: string;
 	/** StatusTile `unknown` (5.35). */
 	statusUnknown: string;
+	/** Read after a Menu link item with `target="_blank"` (5.41): "Visit site (opens in a new tab)". */
+	opensInNewTab: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */

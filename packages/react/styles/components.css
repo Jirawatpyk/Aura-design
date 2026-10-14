@@ -70,10 +70,10 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 .aura-btn--primary:hover { background: var(--aura-button-primary-bg-hover); }
 
 .aura-btn--secondary { border: 1px solid var(--aura-button-secondary-border); color: var(--aura-fg-primary); }
-.aura-btn--secondary:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
+.aura-btn--secondary:hover, .aura-btn--secondary[aria-haspopup][aria-expanded="true"] { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 /* Destructive: filled for the confirm step, outline beside other actions. Loading keeps the colour (busy, not unavailable). */
 .aura-btn--ghost { color: var(--aura-fg-primary); }
-.aura-btn--ghost:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
+.aura-btn--ghost:hover, .aura-btn--ghost[aria-haspopup][aria-expanded="true"] { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
 /* size="sm" (4.16): 32px for toolbars, table rows and card footers. On touch the pill stays 32px and a transparent
  * ::after grows the hit area to 44px, as IconButton does. */
 .aura-btn--sm { height: var(--aura-button-height-sm); padding: 0 var(--aura-space-3); gap: 6px; }
@@ -344,7 +344,7 @@ a.aura-icon-btn { text-decoration: none; }
   border: 0; border-radius: var(--aura-radius-full); background: transparent; color: var(--aura-fg-primary);
   cursor: pointer; transition: background var(--aura-duration-fast) var(--aura-ease);
 }
-.aura-icon-btn:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); }
+.aura-icon-btn:hover, .aura-icon-btn[aria-haspopup][aria-expanded="true"] { background: var(--aura-hover, var(--aura-bg-surface-hover)); } /* 5.41 (DxT #22): looks open while its menu shows */
 .aura-icon-btn--danger { color: var(--aura-fg-danger); }
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
@@ -1124,6 +1124,9 @@ a.aura-tab { text-decoration: none; }
   .aura-shell__bar--menu-only { display: none; }
 }
 .aura-shell__bar-content { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--aura-space-3); }
+/* 5.41 (DxT Monitor #19): a page with its own back arrow marks itself with data-aura-hide-menubutton (on any element)
+ * and the bar drops the menu button, as BottomNav does for data-aura-hide-bottomnav. */
+:root:has([data-aura-hide-menubutton]) :is(.aura-shell__menu, .aura-shell__bar--no-header) { display: none; } /* with no header the bar would be empty */
 .aura-shell__content { flex: 1; min-width: 0; padding: var(--aura-space-6) var(--aura-space-4); }
 /* 5.7: <main> takes focus (tabIndex -1) for skip links and "the row you acted on is gone"; a landmark gets no ring. */
 .aura-shell__content:focus { outline: none; }
@@ -1144,6 +1147,20 @@ a.aura-tab { text-decoration: none; }
 .aura-page-header__breadcrumb { min-width: 0; } /* 5.33 (DxT Monitor #7): Breadcrumb keeps its own type */
 .aura-page-header__meta { min-width: 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
 .aura-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
+/* 5.41 (DxT Monitor #20): titleHideBelow — the title is visually hidden (still the heading), the breadcrumb and eyebrow
+ * are gone; with no meta line the text block takes no room, so the actions start the header. */
+@media (max-width: 639.98px) {
+  .aura-page-header--title-hide-below-sm .aura-page-header__title, .aura-page-header--title-hide-below-sm.has-no-meta > .aura-page-header__text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .aura-page-header--title-hide-below-sm :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow) { display: none; }
+}
+@media (max-width: 767.98px) {
+  .aura-page-header--title-hide-below-md .aura-page-header__title, .aura-page-header--title-hide-below-md.has-no-meta > .aura-page-header__text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .aura-page-header--title-hide-below-md :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow) { display: none; }
+}
+@media (max-width: 1023.98px) {
+  .aura-page-header--title-hide-below-lg .aura-page-header__title, .aura-page-header--title-hide-below-lg.has-no-meta > .aura-page-header__text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .aura-page-header--title-hide-below-lg :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow) { display: none; }
+}
 /* 5.37 (DxT Monitor #17): actionsFullWidthBelow — the actions take the row under the text; their children share
  * each line equally (wrapping when a label won't fit), a trigger inside a DropdownMenu, Tooltip or Popover wrapper
  * fills it, and icon buttons keep their size. The :has rule is alone so older browsers drop only it. */

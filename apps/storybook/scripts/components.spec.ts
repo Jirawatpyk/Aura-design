@@ -8204,3 +8204,107 @@ test.describe('5.40: Chamber-OS addendum 48 (type follows the browser default fo
     expect([s.cardDesc, s.cell, s.body, s.input, s.tab]).toEqual([13, 13, 14, 16, 13]);
   });
 });
+
+test.describe('5.41: DxT Monitor requests 19–22', () => {
+  const BACK = 'aura-new-in-5-41-dxt-monitor-19-22--back-arrow-page';
+  const TAB = 'aura-new-in-5-41-dxt-monitor-19-22--tab-page';
+  const menuShown = (page: Page) =>
+    page.locator('.aura-shell__menu').evaluate((e) => getComputedStyle(e).display !== 'none');
+
+  test('19: a page marked data-aura-hide-menubutton has no menu button in the phone bar; other pages keep it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, TAB);
+    expect(await menuShown(page)).toBe(true);
+    const titleTab = (await page.getByTestId('bar').locator('strong').boundingBox())!.width;
+    await story(page, BACK);
+    expect(await menuShown(page)).toBe(false);
+    const titleBack = (await page.getByTestId('bar').locator('strong').boundingBox())!.width;
+    expect(titleBack - titleTab).toBeGreaterThanOrEqual(36); // the title gets the menu button's room
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Back to Sites' })).toBeFocused(); // nothing invisible in the tab order first
+    /* With no header the bar held only the menu button: a marked page has no empty bar. */
+    await story(page, 'aura-new-in-5-41-dxt-monitor-19-22--no-header-marked');
+    await expect(page.locator('.aura-shell__bar')).toBeHidden();
+  });
+
+  test('20: titleHideBelow="lg" — below 1024px the h1 stays for screen readers, breadcrumb hidden, the meta line starts the header; from 1024px all show', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, BACK);
+    const h = page.getByTestId('header');
+    await expect(h.getByRole('heading', { level: 1, name: 'status.example.co.th' })).toHaveCount(1);
+    const g = await h.evaluate((el) => {
+      const r = (s: string) => el.querySelector(s)!.getBoundingClientRect();
+      return {
+        titleW: Math.round(r('h1').width),
+        crumbs: getComputedStyle(el.querySelector('.aura-page-header__breadcrumb')!).display,
+        metaAtTop: Math.round(r('.aura-page-header__meta').top - el.getBoundingClientRect().top),
+      };
+    });
+    expect(g).toEqual({ titleW: 1, crumbs: 'none', metaAtTop: 0 });
+    /* No meta: the actions start the header (no empty text row, no 16px gap above them). */
+    const nm = page.getByTestId('no-meta').locator('.aura-page-header');
+    const top = (await nm.boundingBox())!.y,
+      actions = (await nm.locator('.aura-page-header__actions').boundingBox())!.y;
+    expect(Math.round(actions - top)).toBe(0);
+    await expect(nm.getByRole('heading', { level: 1, name: 'Incidents' })).toHaveCount(1);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForTimeout(100);
+    expect(Math.round((await h.locator('h1').boundingBox())!.width)).toBeGreaterThan(100);
+    await expect(h.locator('.aura-page-header__breadcrumb')).toBeVisible();
+  });
+
+  test('21: a menu link with target="_blank" says it opens a new tab, after its label; other links unchanged', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, BACK);
+    await page.getByRole('button', { name: 'Site actions' }).click();
+    const visit = page.getByRole('menuitem', { name: 'Visit site (opens in a new tab)', exact: true });
+    await expect(visit).toHaveAttribute('target', '_blank');
+    await expect(visit).toHaveAttribute('rel', 'noreferrer');
+    await expect(page.getByRole('menuitem', { name: 'Export report', exact: true })).toHaveCount(1);
+    /* The visible text is just the label. */
+    expect(
+      await visit.evaluate((e) => [
+        e.querySelector('.aura-menu__label')!.firstChild!.textContent,
+        e.querySelector('.aura-menu__label .aura-sr-only')!.textContent,
+      ]),
+    ).toEqual(['Visit site', ' (opens in a new tab)']);
+  });
+
+  test('22: an IconButton or secondary Button trigger keeps the hover fill while its menu is open, and loses it when closed', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, BACK);
+    const bg = (n: string) =>
+      page.getByRole('button', { name: n, exact: true }).evaluate((e) => getComputedStyle(e).backgroundColor);
+    for (const name of ['Site actions', 'More']) {
+      const b = page.getByRole('button', { name, exact: true });
+      await page.mouse.move(5, 800);
+      await page.waitForTimeout(300);
+      const closed = await bg(name);
+      await b.hover();
+      await page.waitForTimeout(300); // the fill transitions
+      const hover = await bg(name);
+      expect(hover, name).not.toBe(closed);
+      await page.mouse.move(5, 800);
+      await b.focus();
+      await page.keyboard.press('Enter');
+      await expect(b).toHaveAttribute('aria-expanded', 'true');
+      await expect.poll(() => bg(name), { message: name + ' open' }).toBe(hover);
+      await page.keyboard.press('Escape');
+      await expect(b).toHaveAttribute('aria-expanded', 'false');
+      await expect.poll(() => bg(name), { message: name + ' closed' }).toBe(closed);
+    }
+    /* A disclosure button of the app's own (aria-expanded, no aria-haspopup) keeps its plain look. */
+    const own = page.getByRole('button', { name: 'Mute', exact: true });
+    await own.evaluate((e) => e.setAttribute('aria-expanded', 'true'));
+    await page.waitForTimeout(300);
+    expect(await bg('Mute')).toBe(await bg('More'));
+  });
+});

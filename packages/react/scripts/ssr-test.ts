@@ -296,6 +296,15 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.41 (DxT Monitor 20, 21): PageHeader titleHideBelow is classes only (has-no-meta without a meta line); every
+     * built-in language has the "opens in a new tab" words. */
+    {
+      const ph = m(e(A.PageHeader, { title: 'Site', meta: 'Down', titleHideBelow: 'lg' }));
+      const ph2 = m(e(A.PageHeader, { title: 'Site', titleHideBelow: 'md' }));
+      const ph0 = m(e(A.PageHeader, { title: 'Site' }));
+      const S = (A as any).STRINGS;
+      if (!/^<div class="aura-page-header aura-page-header--title-hide-below-lg">/.test(ph) || !/^<div class="aura-page-header aura-page-header--title-hide-below-md has-no-meta">/.test(ph2) || /title-hide|has-no-meta/.test(ph0) || /titlehidebelow/i.test(ph + ph2) || !/<h1 class="aura-page-header__title">Site<\/h1>/.test(ph2) || (S && ['en', 'th', 'sv'].some((l) => !S[l].opensInNewTab))) bad('DxT 20/21:', ph, ph2, ph0);
+    }
     /* 5.39 (Chamber-OS 143): Tabs touchHeight (links and buttons) and FilterDateRange touchHeight are classes on the
      * root, never DOM attributes. */
     {

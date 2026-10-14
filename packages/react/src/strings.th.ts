@@ -132,6 +132,7 @@ export const th: AuraLocalePack = {
   statusMaintenance: 'ปิดปรับปรุง',
   statusOk: 'ปกติ',
   statusUnknown: 'ยังไม่มีข้อมูล',
+  opensInNewTab: 'เปิดในแท็บใหม่',
   accepts: function (list, max) {
     return [list, max && 'ไม่เกิน ' + max + ' ต่อไฟล์'].filter(Boolean).join(' · ');
   },
