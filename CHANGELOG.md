@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.41.0 — 2026-10-14
+
+### Minor changes
+
+- 0e0c05a: DxT Monitor requests 19–22: `data-aura-hide-menubutton` drops AppShell's menu button; PageHeader `titleHideBelow`; menu links with `target="_blank"` announce "opens in a new tab" (new `opensInNewTab` string); menu triggers keep their hover fill while open.
+
 ## 5.40.0 — 2026-10-14
 
 ### Minor changes
