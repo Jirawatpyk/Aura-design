@@ -165,6 +165,32 @@ try {
     return [getComputedStyle(document.querySelector('.aura-shell__menu')).display, Math.round(h.querySelector('h1').getBoundingClientRect().width), getComputedStyle(h.querySelector('.aura-page-header__breadcrumb')).display]`);
   check(JSON.stringify(x) === '["none",1,"none"]', 'AppShell menu button hidden by the page mark; PageHeader title visually hidden, breadcrumb gone', x);
 
+  /* 5.42: FilterBar collapseBelow — at a phone width the controls hide and "Filters (1)" shares the search's row;
+   * the sheet holds the labelled fields (the bar's copy gone), Done closes it. */
+  await go('aura-new-in-5-42-chamber-os-146--collapsed-filters');
+  x = await ex(`const b = document.querySelector('[data-testid=members]'), s = b.querySelector('.aura-filterbar__search').getBoundingClientRect(), m = b.querySelector('.aura-filterbar__more'), r = m.getBoundingClientRect();
+    return [getComputedStyle(b.querySelector('.aura-filterbar__controls')).display, getComputedStyle(b.querySelector('.aura-filterbar__lead')).display, Math.round(r.height), Math.round(r.top - s.top), m.querySelector('span[aria-hidden]').textContent]`);
+  check(JSON.stringify(x) === '["none","flex",44,0,"Filters (1)"]', 'FilterBar collapseBelow: controls folded, Filters (1) beside the search, 44px', x);
+  await ex(`document.querySelector('[data-testid=members] .aura-filterbar__more').click()`);
+  await new Promise((r) => setTimeout(r, 400));
+  x = await ex(`const d = document.querySelector('.aura-dialog'); return d ? [d.getAttribute('aria-labelledby') && document.getElementById(d.getAttribute('aria-labelledby')).textContent, [...d.querySelectorAll('.aura-field__label')].map((l) => l.textContent).join('|'), document.querySelectorAll('[data-testid=members] .aura-filterbar__controls').length, Math.round(d.querySelector('.aura-select').getBoundingClientRect().height)] : null`);
+  check(JSON.stringify(x) === '["Filters","Status|Tier|Submitted",0,44]', 'FilterBar sheet: labelled 44px fields, rendered once', x);
+  await click('Done');
+  await new Promise((r) => setTimeout(r, 300));
+  x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
+  check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
+
+  /* 5.42 (#147): with the root font doubled (as a 32px default does) a TextField in a grid cell
+   * keeps to the page; with 5.41's sizing put back it doesn't (the control). */
+  for (const id of ['aura-new-in-5-31-addendum-41--label-addon']) {
+    await go(id);
+    x = await ex(`const s = document.createElement('style'); s.textContent = 'html { font-size: 200% }'; document.head.appendChild(s);
+      const now = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+      const r = document.createElement('style'); r.textContent = '.aura-input__control { width: auto !important } .aura-input { min-width: auto !important }'; document.head.appendChild(r);
+      const old = document.documentElement.scrollWidth - document.documentElement.clientWidth; r.remove(); s.remove(); return [now, old]`);
+    check(x[0] <= 0 && x[1] > 0, 'fields at a doubled root font stay on the page (' + id + ')', x);
+  }
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);

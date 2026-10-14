@@ -109,3 +109,7 @@ export function useMergedRef<T>(a: React.Ref<T> | undefined, b: React.Ref<T> | u
 export function plainClick(e: React.MouseEvent): boolean {
   return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 }
+
+/* 5.42 (Chamber-OS 146): true inside FilterBar's phone "Filters" sheet, where FilterSelect and FilterDateRange show
+ * their name as a visible label above a full-width field instead of the compact face. */
+export const FilterSheet = React.createContext(false);

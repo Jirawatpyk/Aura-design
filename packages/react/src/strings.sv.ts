@@ -133,6 +133,10 @@ export const sv: AuraLocalePack = {
   statusOk: 'OK',
   statusUnknown: 'Ingen data',
   opensInNewTab: 'öppnas i en ny flik',
+  filtersApplied: function (n) {
+    return 'Filter, ' + n.toLocaleString('sv-SE') + ' aktiva';
+  },
+  done: 'Klar',
   accepts: function (list, max) {
     return [list, max && 'högst ' + max + ' per fil'].filter(Boolean).join(', ');
   },

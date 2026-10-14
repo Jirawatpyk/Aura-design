@@ -264,7 +264,7 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 }
 /** An AURA icon name, or any icon element (e.g. `<Building />` from lucide-react). AURA sizes it and hides it from screen readers. */
 export type IconInput = IconName | React$1.ReactElement;
-export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor" | "panel-left-close" | "panel-left-open" | "server" | "globe" | "activity" | "shield-alert" | "phone" | "wrench";
+export type IconName = "check" | "x" | "plus" | "minus" | "search" | "chevron-down" | "chevron-up" | "chevron-left" | "chevron-right" | "arrow-right" | "arrow-up-right" | "arrow-up-down" | "loader-circle" | "circle-alert" | "circle-check" | "info" | "triangle-alert" | "settings" | "user" | "users" | "filter" | "ellipsis" | "external-link" | "copy" | "trash-2" | "pencil" | "download" | "upload" | "calendar" | "bell" | "menu" | "eye" | "log-out" | "circle" | "circle-dot-dashed" | "ban" | "arrow-up" | "arrow-down" | "inbox" | "pin" | "pin-off" | "eye-off" | "columns-3" | "arrow-left" | "rotate-ccw" | "house" | "layout-dashboard" | "folder" | "chart-column" | "file-text" | "mail" | "lock" | "clock" | "trending-up" | "trending-down" | "image" | "paperclip" | "cloud-upload" | "file" | "sun" | "moon" | "monitor" | "panel-left-close" | "panel-left-open" | "server" | "globe" | "activity" | "shield-alert" | "phone" | "wrench" | "sliders-horizontal";
 /** Lucide stroke icon drawn inline in currentColor. */
 export interface IconProps {
 	/** A name from the set, or an icon element of your own (sized and styled the same way). */
@@ -508,6 +508,16 @@ export interface FilterBarProps {
 	/** Below this width (the viewport's) the search takes a row of its own above the controls. Default `md` (768px);
 	 * `lg` (1024px) for bars with several filters (5.15, Chamber-OS 92). */
 	stackBelow?: "md" | "lg" | undefined;
+	/** 5.42 (Chamber-OS 146): below this width (the viewport's: `sm` 640px, `md` 768px) the `children` fold into a
+	 * "Filters" sheet behind one button at the end of the search's row — "Filters (2)", read "Filters, 2 applied". The
+	 * search, chips, Clear all, `resultCount` and `actions` stay in the bar. In the sheet the children stack at full
+	 * width with their labels showing (a FilterSelect is a labelled Select there), 44px high; changes apply at once,
+	 * and Done, Escape or the scrim close it, focus going back to the button. The children render in one place at a
+	 * time, so they move to the sheet when it opens: keep their state with the page (`value` + `onChange`), not in
+	 * `defaultValue`. No children, no button. From the breakpoint up the bar is as without the prop. */
+	collapseBelow?: "sm" | "md" | undefined;
+	/** 5.42: the number on the "Filters" button. Default the number of `filters` (chips). 0 shows no number. */
+	filterCount?: number | undefined;
 	className?: string | undefined;
 }
 /** One command in the palette. */
@@ -2050,6 +2060,10 @@ export interface AuraStrings {
 	statusUnknown: string;
 	/** Read after a Menu link item with `target="_blank"` (5.41): "Visit site (opens in a new tab)". */
 	opensInNewTab: string;
+	/** 5.42: FilterBar's collapsed-filters button, read with its count ("Filters, 2 applied"). */
+	filtersApplied: (n: number) => string;
+	/** 5.42: closes FilterBar's "Filters" sheet. */
+	done: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */

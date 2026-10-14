@@ -296,6 +296,25 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.42 (Chamber-OS 146): FilterBar collapseBelow — the class, the search and a closed "Filters (n)" button in a
+     * lead box, the children still in the bar (no sheet in server HTML); no children, no button; every language has
+     * the button's words. */
+    {
+      const chips = [{ id: 'a', label: 'Status: Active', onRemove: () => {} }, { id: 'b', label: 'Tier: SME', onRemove: () => {} }];
+      /* A filter without `value` resets when it moves into the sheet: a dev notice, once; controlled ones and a Tag are quiet. */
+      const w: string[] = [], ow = console.warn;
+      console.warn = (x: unknown) => w.push(String(x));
+      m(e(A.FilterBar, { collapseBelow: 'sm' }, e(A.FilterSelect, { label: 'Role', options: ['All', 'A'], value: 'A', onChange: () => {} }), e(A.Tag, { selected: false, onClick: () => {} }, 'Mine'), e(A.IconButton, { icon: 'columns-3', label: 'Columns' }), e(A.FilterDateRange, { label: 'When', value: { start: null, end: null }, onChange: () => {} })));
+      const quiet = w.length;
+      const fb = m(e(A.FilterBar, { collapseBelow: 'sm', search: '', onSearchChange: () => {}, filters: chips }, e(A.FilterSelect, { label: 'Role', options: ['All', 'A'] })));
+      const fbN = m(e(A.FilterBar, { collapseBelow: 'md', filterCount: 0 }, e(A.FilterSelect, { label: 'Role', options: ['All', 'A'] })));
+      const fbS = m(e(A.FilterBar, { collapseBelow: 'sm', search: '', onSearchChange: () => {} }));
+      console.warn = ow;
+      if (quiet !== 0 || w.length !== 1 || !/FilterBar collapseBelow: a filter without `value`/.test(w[0]!)) bad('Chamber-OS 146 notice:', w);
+      const fb0 = m(e(A.FilterBar, { search: '', onSearchChange: () => {} }, e(A.FilterSelect, { label: 'Role', options: ['All', 'A'] })));
+      const S = (A as any).STRINGS;
+      if (!/^<div role="region" aria-label="Filters" class="aura-filterbar aura-filterbar--collapse-sm">/.test(fb) || !/<div class="aura-filterbar__lead"><div class="aura-input has-icon aura-filterbar__search">/.test(fb) || !/aria-haspopup="dialog" aria-expanded="false"[^>]*class="aura-btn aura-btn--secondary aura-filterbar__more"|class="aura-btn aura-btn--secondary aura-filterbar__more"[^>]*aria-haspopup="dialog" aria-expanded="false"/.test(fb) || !/<span class="aura-sr-only">Filters, 2 applied<\/span><span aria-hidden="true">Filters \(2\)<\/span>/.test(fb) || !/class="aura-filterbar__controls"><div class="aura-filterselect/.test(fb) || /aria-controls|aura-dialog|collapsebelow|filtercount/i.test(fb + fbN) || !/aura-filterbar--collapse-md/.test(fbN) || /aura-sr-only|\(0\)/.test(fbN) || /aura-filterbar__more|collapse/.test(fbS) || /aura-filterbar__more|__lead|collapse/.test(fb0) || ['en', 'th', 'sv'].some((l) => !S[l].done || !/2/.test(S[l].filtersApplied(2)))) bad('Chamber-OS 146:', fb, fbN, fbS, fb0);
+    }
     /* 5.41 (DxT Monitor 20, 21): PageHeader titleHideBelow is classes only (has-no-meta without a meta line); every
      * built-in language has the "opens in a new tab" words. */
     {

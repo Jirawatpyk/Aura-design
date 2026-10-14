@@ -8308,3 +8308,137 @@ test.describe('5.41: DxT Monitor requests 19–22', () => {
     expect(await bg('Mute')).toBe(await bg('More'));
   });
 });
+
+test.describe('5.42: Chamber-OS 146–147 — FilterBar collapseBelow, fields at a large default font', () => {
+  const ID = 'aura-new-in-5-42-chamber-os-146--collapsed-filters';
+  const box = async (page: Page, sel: string) => (await page.locator(sel).first().boundingBox())!;
+
+  test('below 640px the filters fold into "Filters (n)" at the end of the search row; chips, Clear all and the count stay', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const bar = page.getByTestId('members');
+    const btn = bar.getByRole('button', { name: 'Filters, 1 applied' });
+    await expect(btn).toBeVisible();
+    await expect(btn).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(btn).toHaveAttribute('aria-expanded', 'false');
+    await expect(btn.locator('span[aria-hidden="true"]')).toHaveText('Filters (1)');
+    await expect(bar.locator('.aura-filterbar__controls')).toBeHidden();
+    const s = (await bar.locator('.aura-filterbar__search').boundingBox())!,
+      b = (await btn.boundingBox())!,
+      r = (await bar.boundingBox())!;
+    expect(Math.round(b.height)).toBe(44);
+    expect(Math.round(b.y)).toBe(Math.round(s.y));
+    expect(Math.round(b.x + b.width)).toBe(Math.round(r.x + r.width));
+    expect(s.width).toBeGreaterThan(150);
+    await expect(bar.getByText('42 results')).toBeVisible();
+    await expect(bar.getByRole('button', { name: /Remove Status: Active|Status: Active/ }).first()).toBeVisible();
+    await expect(bar.getByRole('button', { name: 'Clear all' })).toBeVisible();
+    /* filterCount overrides the number; a bar without children (search only) and one without the prop have no button. */
+    await expect(page.getByTestId('md').getByRole('button', { name: 'Filters, 3 applied' })).toBeVisible();
+    await expect(page.getByTestId('search-only').locator('.aura-filterbar__more')).toHaveCount(0);
+    await expect(page.getByTestId('plain').locator('.aura-filterbar__more')).toHaveCount(0);
+    await expect(page.getByTestId('plain').locator('.aura-filterselect')).toBeVisible();
+  });
+
+  test('the sheet: labelled 44px fields, changes apply at once, Done/Escape close and focus returns; the children render once', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const bar = page.getByTestId('members');
+    const btn = bar.locator('.aura-filterbar__more');
+    await btn.click();
+    const dlg = page.getByRole('dialog', { name: 'Filters' });
+    await expect(dlg).toBeVisible();
+    await expect(btn).toHaveAttribute('aria-expanded', 'true');
+    expect(await btn.getAttribute('aria-controls')).toBe(await dlg.getAttribute('id'));
+    /* One Status control on the page: the sheet's, not a second copy in the bar. */
+    await expect(dlg.getByRole('combobox', { name: 'Status' })).toHaveCount(1);
+    await expect(bar.getByRole('combobox', { name: 'Status', includeHidden: true })).toHaveCount(0);
+    await expect(bar.locator('.aura-filterbar__controls')).toHaveCount(0);
+    const status = dlg.getByRole('combobox', { name: 'Status' });
+    await expect(status).toHaveText(/Active/);
+    await expect(dlg.locator('.aura-field__label', { hasText: 'Status' })).toBeVisible();
+    await expect(dlg.locator('.aura-field__label', { hasText: 'Submitted' })).toBeVisible();
+    await expect(dlg.getByRole('button', { name: 'Submitted: Any time' })).toBeVisible();
+    const dw = (await dlg.locator('.aura-filterbar--sheet').boundingBox())!.width;
+    for (const sel of ['.aura-select', '.aura-filterselect__face']) {
+      const f = (await dlg.locator(sel).first().boundingBox())!;
+      expect(Math.round(f.height)).toBe(44);
+      expect(Math.round(f.width)).toBe(Math.round(dw));
+    }
+    /* Tier → SME applies at once: a chip on the page and the button's number. */
+    await dlg.getByRole('combobox', { name: 'Tier' }).click();
+    await page.getByRole('option', { name: 'SME' }).click();
+    await expect(bar.getByText('Tier: SME')).toHaveCount(1);
+    await expect(btn).toHaveAttribute('aria-expanded', 'true');
+    await expect(dlg.getByRole('button', { name: 'Clear all' })).toBeVisible();
+    await dlg.getByRole('button', { name: 'Done' }).click();
+    await expect(dlg).toHaveCount(0);
+    await expect(btn).toBeFocused();
+    await expect(bar.getByRole('button', { name: 'Filters, 2 applied' })).toBeVisible();
+    /* Escape closes too; Clear all in the sheet clears and the footer drops it with no chips left. */
+    await btn.click();
+    await expect(dlg).toBeVisible();
+    await dlg.getByRole('button', { name: 'Clear all' }).click();
+    await expect(dlg.getByRole('button', { name: 'Clear all' })).toHaveCount(0);
+    await expect(bar.getByRole('button', { name: 'Filters', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(btn).toBeFocused();
+    expect(await axeScan(page, '[data-testid="members"]')).toEqual([]);
+  });
+
+  test("from 640px it is today's bar; widening past the breakpoint with the sheet open closes it", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await story(page, ID);
+    const bar = page.getByTestId('members');
+    await expect(bar.locator('.aura-filterbar__more')).toBeHidden();
+    await expect(bar.locator('.aura-filterbar__controls')).toBeVisible();
+    /* The first filter follows the search 12px on, in the same row, as without collapseBelow. */
+    const s = await box(page, '[data-testid="members"] .aura-filterbar__search'),
+      f = await box(page, '[data-testid="members"] .aura-filterbar__controls');
+    expect(Math.round(f.x - (s.x + s.width))).toBe(12);
+    expect(Math.abs(f.y - s.y)).toBeLessThan(2);
+    expect(await bar.locator('.aura-filterbar__lead').evaluate((e) => getComputedStyle(e).display)).toBe('contents');
+    /* md: a button below 768px. */
+    await page.setViewportSize({ width: 700, height: 800 });
+    await expect(page.getByTestId('md').locator('.aura-filterbar__more')).toBeVisible();
+    await expect(bar.locator('.aura-filterbar__more')).toBeHidden();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await bar.locator('.aura-filterbar__more').click();
+    await expect(page.getByRole('dialog', { name: 'Filters' })).toBeVisible();
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await expect(page.getByRole('dialog', { name: 'Filters' })).toHaveCount(0);
+    await expect(bar.locator('.aura-filterbar__controls')).toBeVisible();
+    /* The hidden button can't take focus back: the first filter, now in the bar, does. */
+    await expect(bar.getByRole('combobox', { name: 'Status' })).toBeFocused();
+    await expect(bar.getByRole('combobox', { name: 'Status' })).toHaveCount(1);
+  });
+
+  /* #147: at a 32px browser default the search (and a TextField in a grid cell) no longer widens a 390px page. */
+  test('147: at a 32px default font no search box or field scrolls a 390px page sideways', async ({ browser }) => {
+    const ctx = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      viewport: { width: 390, height: 900 },
+    });
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Page.enable');
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32, fixed: 26 } });
+    for (const id of [ID, 'aura-new-in-5-12--filter-selects', 'aura-new-in-5-31-addendum-41--label-addon']) {
+      await story(page, id);
+      const g = await page.evaluate(() => ({
+        input: parseFloat(getComputedStyle(document.querySelector('.aura-input')!).fontSize),
+        over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        right: Math.max(...[...document.querySelectorAll('.aura-input')].map((e) => e.getBoundingClientRect().right)),
+      }));
+      expect(g.input, id).toBeGreaterThanOrEqual(28); // the default really is large
+      expect(g.over, id).toBeLessThanOrEqual(0);
+      expect(g.right, id).toBeLessThanOrEqual(390);
+    }
+    await ctx.close();
+  });
+});

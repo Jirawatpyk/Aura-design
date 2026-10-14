@@ -232,7 +232,7 @@ window.Aura = (() => {
   }
 
   // src/Icon.tsx
-  var map = { "check": [["path", { "d": "M20 6 9 17l-5-5" }]], "x": [["path", { "d": "M18 6 6 18" }], ["path", { "d": "m6 6 12 12" }]], "plus": [["path", { "d": "M5 12h14" }], ["path", { "d": "M12 5v14" }]], "minus": [["path", { "d": "M5 12h14" }]], "search": [["path", { "d": "m21 21-4.34-4.34" }], ["circle", { "cx": "11", "cy": "11", "r": "8" }]], "chevron-down": [["path", { "d": "m6 9 6 6 6-6" }]], "chevron-up": [["path", { "d": "m18 15-6-6-6 6" }]], "chevron-left": [["path", { "d": "m15 18-6-6 6-6" }]], "chevron-right": [["path", { "d": "m9 18 6-6-6-6" }]], "arrow-right": [["path", { "d": "M5 12h14" }], ["path", { "d": "m12 5 7 7-7 7" }]], "arrow-up-right": [["path", { "d": "M7 7h10v10" }], ["path", { "d": "M7 17 17 7" }]], "arrow-up-down": [["path", { "d": "m21 16-4 4-4-4" }], ["path", { "d": "M17 20V4" }], ["path", { "d": "m3 8 4-4 4 4" }], ["path", { "d": "M7 4v16" }]], "loader-circle": [["path", { "d": "M21 12a9 9 0 1 1-6.219-8.56" }]], "circle-alert": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["line", { "x1": "12", "x2": "12", "y1": "8", "y2": "12" }], ["line", { "x1": "12", "x2": "12.01", "y1": "16", "y2": "16" }]], "circle-check": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "m16 9-5.5 5.5L8 12" }]], "info": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 16v-4" }], ["path", { "d": "M12 8h.01" }]], "triangle-alert": [["path", { "d": "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" }], ["path", { "d": "M12 9v4" }], ["path", { "d": "M12 17h.01" }]], "settings": [["path", { "d": "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "user": [["path", { "d": "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" }], ["circle", { "cx": "12", "cy": "7", "r": "4" }]], "users": [["path", { "d": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }], ["path", { "d": "M16 3.128a4 4 0 0 1 0 7.744" }], ["path", { "d": "M22 21v-2a4 4 0 0 0-3-3.87" }], ["circle", { "cx": "9", "cy": "7", "r": "4" }]], "filter": [["path", { "d": "M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" }]], "ellipsis": [["circle", { "cx": "12", "cy": "12", "r": "1" }], ["circle", { "cx": "19", "cy": "12", "r": "1" }], ["circle", { "cx": "5", "cy": "12", "r": "1" }]], "external-link": [["path", { "d": "M15 3h6v6" }], ["path", { "d": "M10 14 21 3" }], ["path", { "d": "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" }]], "copy": [["rect", { "width": "14", "height": "14", "x": "8", "y": "8", "rx": "2", "ry": "2" }], ["path", { "d": "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" }]], "trash-2": [["path", { "d": "M10 11v6" }], ["path", { "d": "M14 11v6" }], ["path", { "d": "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" }], ["path", { "d": "M3 6h18" }], ["path", { "d": "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }]], "pencil": [["path", { "d": "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" }], ["path", { "d": "m15 5 4 4" }]], "download": [["path", { "d": "M12 15V3" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }], ["path", { "d": "m7 10 5 5 5-5" }]], "upload": [["path", { "d": "M12 3v12" }], ["path", { "d": "m17 8-5-5-5 5" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }]], "calendar": [["path", { "d": "M8 2v3" }], ["path", { "d": "M16 2v3" }], ["rect", { "x": "3", "y": "3", "width": "18", "height": "18", "rx": "2" }], ["path", { "d": "M3 9h18" }]], "bell": [["path", { "d": "M10.268 21a2 2 0 0 0 3.464 0" }], ["path", { "d": "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" }]], "menu": [["path", { "d": "M4 5h16" }], ["path", { "d": "M4 12h16" }], ["path", { "d": "M4 19h16" }]], "eye": [["path", { "d": "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "log-out": [["path", { "d": "m16 17 5-5-5-5" }], ["path", { "d": "M21 12H9" }], ["path", { "d": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }]], "circle": [["circle", { "cx": "12", "cy": "12", "r": "10" }]], "circle-dot-dashed": [["path", { "d": "M10.1 2.18a9.93 9.93 0 0 1 3.8 0" }], ["path", { "d": "M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7" }], ["path", { "d": "M21.82 10.1a9.93 9.93 0 0 1 0 3.8" }], ["path", { "d": "M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69" }], ["path", { "d": "M13.9 21.82a9.94 9.94 0 0 1-3.8 0" }], ["path", { "d": "M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7" }], ["path", { "d": "M2.18 13.9a9.93 9.93 0 0 1 0-3.8" }], ["path", { "d": "M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69" }], ["circle", { "cx": "12", "cy": "12", "r": "1" }]], "ban": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M4.929 4.929 19.07 19.071" }]], "arrow-up": [["path", { "d": "m5 12 7-7 7 7" }], ["path", { "d": "M12 19V5" }]], "arrow-down": [["path", { "d": "M12 5v14" }], ["path", { "d": "m19 12-7 7-7-7" }]], "inbox": [["polyline", { "points": "22 12 16 12 14 15 10 15 8 12 2 12" }], ["path", { "d": "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" }]], "pin": [["path", { "d": "M12 17v5" }], ["path", { "d": "M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" }]], "pin-off": [["path", { "d": "M12 17v5" }], ["path", { "d": "M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" }], ["path", { "d": "m2 2 20 20" }], ["path", { "d": "M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11" }]], "eye-off": [["path", { "d": "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" }], ["path", { "d": "M14.084 14.158a3 3 0 0 1-4.242-4.242" }], ["path", { "d": "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" }], ["path", { "d": "m2 2 20 20" }]], "columns-3": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "M15 3v18" }]], "arrow-left": [["path", { "d": "m12 19-7-7 7-7" }], ["path", { "d": "M19 12H5" }]], "rotate-ccw": [["path", { "d": "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }], ["path", { "d": "M3 3v5h5" }]], "house": [["path", { "d": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" }], ["path", { "d": "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }]], "layout-dashboard": [["rect", { "width": "7", "height": "9", "x": "3", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "14", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "9", "x": "14", "y": "12", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "3", "y": "16", "rx": "1" }]], "folder": [["path", { "d": "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" }]], "chart-column": [["path", { "d": "M3 3v16a2 2 0 0 0 2 2h16" }], ["path", { "d": "M18 17V9" }], ["path", { "d": "M13 17V5" }], ["path", { "d": "M8 17v-3" }]], "file-text": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }], ["path", { "d": "M10 9H8" }], ["path", { "d": "M16 13H8" }], ["path", { "d": "M16 17H8" }]], "mail": [["path", { "d": "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" }], ["rect", { "x": "2", "y": "4", "width": "20", "height": "16", "rx": "2" }]], "lock": [["rect", { "width": "18", "height": "11", "x": "3", "y": "11", "rx": "2", "ry": "2" }], ["path", { "d": "M7 11V7a5 5 0 0 1 10 0v4" }]], "clock": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 6v6l4 2" }]], "trending-up": [["path", { "d": "M16 7h6v6" }], ["path", { "d": "m22 7-8.5 8.5-5-5L2 17" }]], "trending-down": [["path", { "d": "M16 17h6v-6" }], ["path", { "d": "m22 17-8.5-8.5-5 5L2 7" }]], "image": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2", "ry": "2" }], ["circle", { "cx": "9", "cy": "9", "r": "2" }], ["path", { "d": "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" }]], "paperclip": [["path", { "d": "m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551" }]], "cloud-upload": [["path", { "d": "M12 13v8" }], ["path", { "d": "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }], ["path", { "d": "m8 17 4-4 4 4" }]], "file": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }]], "sun": [["circle", { "cx": "12", "cy": "12", "r": "4" }], ["path", { "d": "M12 2v2" }], ["path", { "d": "M12 20v2" }], ["path", { "d": "m4.93 4.93 1.41 1.41" }], ["path", { "d": "m17.66 17.66 1.41 1.41" }], ["path", { "d": "M2 12h2" }], ["path", { "d": "M20 12h2" }], ["path", { "d": "m6.34 17.66-1.41 1.41" }], ["path", { "d": "m19.07 4.93-1.41 1.41" }]], "moon": [["path", { "d": "M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" }]], "monitor": [["rect", { "width": "20", "height": "14", "x": "2", "y": "3", "rx": "2" }], ["line", { "x1": "8", "x2": "16", "y1": "21", "y2": "21" }], ["line", { "x1": "12", "x2": "12", "y1": "17", "y2": "21" }]], "panel-left-close": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "m16 15-3-3 3-3" }]], "panel-left-open": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "m14 9 3 3-3 3" }]], "server": [["rect", { "width": "20", "height": "8", "x": "2", "y": "2", "rx": "2", "ry": "2" }], ["rect", { "width": "20", "height": "8", "x": "2", "y": "14", "rx": "2", "ry": "2" }], ["line", { "x1": "6", "x2": "6.01", "y1": "6", "y2": "6" }], ["line", { "x1": "6", "x2": "6.01", "y1": "18", "y2": "18" }]], "globe": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" }], ["path", { "d": "M2 12h20" }]], "activity": [["path", { "d": "M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" }]], "shield-alert": [["path", { "d": "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" }], ["path", { "d": "M12 8v4" }], ["path", { "d": "M12 16h.01" }]], "phone": [["path", { "d": "M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" }]], "wrench": [["path", { "d": "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" }]] };
+  var map = { "check": [["path", { "d": "M20 6 9 17l-5-5" }]], "x": [["path", { "d": "M18 6 6 18" }], ["path", { "d": "m6 6 12 12" }]], "plus": [["path", { "d": "M5 12h14" }], ["path", { "d": "M12 5v14" }]], "minus": [["path", { "d": "M5 12h14" }]], "search": [["path", { "d": "m21 21-4.34-4.34" }], ["circle", { "cx": "11", "cy": "11", "r": "8" }]], "chevron-down": [["path", { "d": "m6 9 6 6 6-6" }]], "chevron-up": [["path", { "d": "m18 15-6-6-6 6" }]], "chevron-left": [["path", { "d": "m15 18-6-6 6-6" }]], "chevron-right": [["path", { "d": "m9 18 6-6-6-6" }]], "arrow-right": [["path", { "d": "M5 12h14" }], ["path", { "d": "m12 5 7 7-7 7" }]], "arrow-up-right": [["path", { "d": "M7 7h10v10" }], ["path", { "d": "M7 17 17 7" }]], "arrow-up-down": [["path", { "d": "m21 16-4 4-4-4" }], ["path", { "d": "M17 20V4" }], ["path", { "d": "m3 8 4-4 4 4" }], ["path", { "d": "M7 4v16" }]], "loader-circle": [["path", { "d": "M21 12a9 9 0 1 1-6.219-8.56" }]], "circle-alert": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["line", { "x1": "12", "x2": "12", "y1": "8", "y2": "12" }], ["line", { "x1": "12", "x2": "12.01", "y1": "16", "y2": "16" }]], "circle-check": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "m16 9-5.5 5.5L8 12" }]], "info": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 16v-4" }], ["path", { "d": "M12 8h.01" }]], "triangle-alert": [["path", { "d": "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" }], ["path", { "d": "M12 9v4" }], ["path", { "d": "M12 17h.01" }]], "settings": [["path", { "d": "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "user": [["path", { "d": "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" }], ["circle", { "cx": "12", "cy": "7", "r": "4" }]], "users": [["path", { "d": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }], ["path", { "d": "M16 3.128a4 4 0 0 1 0 7.744" }], ["path", { "d": "M22 21v-2a4 4 0 0 0-3-3.87" }], ["circle", { "cx": "9", "cy": "7", "r": "4" }]], "filter": [["path", { "d": "M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" }]], "ellipsis": [["circle", { "cx": "12", "cy": "12", "r": "1" }], ["circle", { "cx": "19", "cy": "12", "r": "1" }], ["circle", { "cx": "5", "cy": "12", "r": "1" }]], "external-link": [["path", { "d": "M15 3h6v6" }], ["path", { "d": "M10 14 21 3" }], ["path", { "d": "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" }]], "copy": [["rect", { "width": "14", "height": "14", "x": "8", "y": "8", "rx": "2", "ry": "2" }], ["path", { "d": "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" }]], "trash-2": [["path", { "d": "M10 11v6" }], ["path", { "d": "M14 11v6" }], ["path", { "d": "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" }], ["path", { "d": "M3 6h18" }], ["path", { "d": "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }]], "pencil": [["path", { "d": "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" }], ["path", { "d": "m15 5 4 4" }]], "download": [["path", { "d": "M12 15V3" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }], ["path", { "d": "m7 10 5 5 5-5" }]], "upload": [["path", { "d": "M12 3v12" }], ["path", { "d": "m17 8-5-5-5 5" }], ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }]], "calendar": [["path", { "d": "M8 2v3" }], ["path", { "d": "M16 2v3" }], ["rect", { "x": "3", "y": "3", "width": "18", "height": "18", "rx": "2" }], ["path", { "d": "M3 9h18" }]], "bell": [["path", { "d": "M10.268 21a2 2 0 0 0 3.464 0" }], ["path", { "d": "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" }]], "menu": [["path", { "d": "M4 5h16" }], ["path", { "d": "M4 12h16" }], ["path", { "d": "M4 19h16" }]], "eye": [["path", { "d": "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" }], ["circle", { "cx": "12", "cy": "12", "r": "3" }]], "log-out": [["path", { "d": "m16 17 5-5-5-5" }], ["path", { "d": "M21 12H9" }], ["path", { "d": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }]], "circle": [["circle", { "cx": "12", "cy": "12", "r": "10" }]], "circle-dot-dashed": [["path", { "d": "M10.1 2.18a9.93 9.93 0 0 1 3.8 0" }], ["path", { "d": "M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7" }], ["path", { "d": "M21.82 10.1a9.93 9.93 0 0 1 0 3.8" }], ["path", { "d": "M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69" }], ["path", { "d": "M13.9 21.82a9.94 9.94 0 0 1-3.8 0" }], ["path", { "d": "M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7" }], ["path", { "d": "M2.18 13.9a9.93 9.93 0 0 1 0-3.8" }], ["path", { "d": "M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69" }], ["circle", { "cx": "12", "cy": "12", "r": "1" }]], "ban": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M4.929 4.929 19.07 19.071" }]], "arrow-up": [["path", { "d": "m5 12 7-7 7 7" }], ["path", { "d": "M12 19V5" }]], "arrow-down": [["path", { "d": "M12 5v14" }], ["path", { "d": "m19 12-7 7-7-7" }]], "inbox": [["polyline", { "points": "22 12 16 12 14 15 10 15 8 12 2 12" }], ["path", { "d": "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" }]], "pin": [["path", { "d": "M12 17v5" }], ["path", { "d": "M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" }]], "pin-off": [["path", { "d": "M12 17v5" }], ["path", { "d": "M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" }], ["path", { "d": "m2 2 20 20" }], ["path", { "d": "M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11" }]], "eye-off": [["path", { "d": "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" }], ["path", { "d": "M14.084 14.158a3 3 0 0 1-4.242-4.242" }], ["path", { "d": "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" }], ["path", { "d": "m2 2 20 20" }]], "columns-3": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "M15 3v18" }]], "arrow-left": [["path", { "d": "m12 19-7-7 7-7" }], ["path", { "d": "M19 12H5" }]], "rotate-ccw": [["path", { "d": "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }], ["path", { "d": "M3 3v5h5" }]], "house": [["path", { "d": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" }], ["path", { "d": "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }]], "layout-dashboard": [["rect", { "width": "7", "height": "9", "x": "3", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "14", "y": "3", "rx": "1" }], ["rect", { "width": "7", "height": "9", "x": "14", "y": "12", "rx": "1" }], ["rect", { "width": "7", "height": "5", "x": "3", "y": "16", "rx": "1" }]], "folder": [["path", { "d": "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" }]], "chart-column": [["path", { "d": "M3 3v16a2 2 0 0 0 2 2h16" }], ["path", { "d": "M18 17V9" }], ["path", { "d": "M13 17V5" }], ["path", { "d": "M8 17v-3" }]], "file-text": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }], ["path", { "d": "M10 9H8" }], ["path", { "d": "M16 13H8" }], ["path", { "d": "M16 17H8" }]], "mail": [["path", { "d": "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" }], ["rect", { "x": "2", "y": "4", "width": "20", "height": "16", "rx": "2" }]], "lock": [["rect", { "width": "18", "height": "11", "x": "3", "y": "11", "rx": "2", "ry": "2" }], ["path", { "d": "M7 11V7a5 5 0 0 1 10 0v4" }]], "clock": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 6v6l4 2" }]], "trending-up": [["path", { "d": "M16 7h6v6" }], ["path", { "d": "m22 7-8.5 8.5-5-5L2 17" }]], "trending-down": [["path", { "d": "M16 17h6v-6" }], ["path", { "d": "m22 17-8.5-8.5-5 5L2 7" }]], "image": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2", "ry": "2" }], ["circle", { "cx": "9", "cy": "9", "r": "2" }], ["path", { "d": "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" }]], "paperclip": [["path", { "d": "m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551" }]], "cloud-upload": [["path", { "d": "M12 13v8" }], ["path", { "d": "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }], ["path", { "d": "m8 17 4-4 4 4" }]], "file": [["path", { "d": "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" }], ["path", { "d": "M14 2v5a1 1 0 0 0 1 1h5" }]], "sun": [["circle", { "cx": "12", "cy": "12", "r": "4" }], ["path", { "d": "M12 2v2" }], ["path", { "d": "M12 20v2" }], ["path", { "d": "m4.93 4.93 1.41 1.41" }], ["path", { "d": "m17.66 17.66 1.41 1.41" }], ["path", { "d": "M2 12h2" }], ["path", { "d": "M20 12h2" }], ["path", { "d": "m6.34 17.66-1.41 1.41" }], ["path", { "d": "m19.07 4.93-1.41 1.41" }]], "moon": [["path", { "d": "M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" }]], "monitor": [["rect", { "width": "20", "height": "14", "x": "2", "y": "3", "rx": "2" }], ["line", { "x1": "8", "x2": "16", "y1": "21", "y2": "21" }], ["line", { "x1": "12", "x2": "12", "y1": "17", "y2": "21" }]], "panel-left-close": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "m16 15-3-3 3-3" }]], "panel-left-open": [["rect", { "width": "18", "height": "18", "x": "3", "y": "3", "rx": "2" }], ["path", { "d": "M9 3v18" }], ["path", { "d": "m14 9 3 3-3 3" }]], "server": [["rect", { "width": "20", "height": "8", "x": "2", "y": "2", "rx": "2", "ry": "2" }], ["rect", { "width": "20", "height": "8", "x": "2", "y": "14", "rx": "2", "ry": "2" }], ["line", { "x1": "6", "x2": "6.01", "y1": "6", "y2": "6" }], ["line", { "x1": "6", "x2": "6.01", "y1": "18", "y2": "18" }]], "globe": [["circle", { "cx": "12", "cy": "12", "r": "10" }], ["path", { "d": "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" }], ["path", { "d": "M2 12h20" }]], "activity": [["path", { "d": "M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" }]], "shield-alert": [["path", { "d": "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" }], ["path", { "d": "M12 8v4" }], ["path", { "d": "M12 16h.01" }]], "phone": [["path", { "d": "M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" }]], "wrench": [["path", { "d": "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" }]], "sliders-horizontal": [["path", { "d": "M10 5H3" }], ["path", { "d": "M12 19H3" }], ["path", { "d": "M14 3v4" }], ["path", { "d": "M16 17v4" }], ["path", { "d": "M21 12h-9" }], ["path", { "d": "M21 19h-5" }], ["path", { "d": "M21 5h-7" }], ["path", { "d": "M8 10v4" }], ["path", { "d": "M8 12H3" }]] };
   var ICONS = map;
   var registered = {};
   function registerIcons(icons) {
@@ -377,6 +377,7 @@ window.Aura = (() => {
   function plainClick(e) {
     return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
   }
+  var FilterSheet = React3.createContext(false);
 
   // src/display.tsx
   var React4 = __toESM(require_react(), 1);
@@ -600,6 +601,17 @@ window.Aura = (() => {
         d: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"
       }
     ]
+  ]);
+  var IconSlidersHorizontal = /* @__PURE__ */ defineIcon("sliders-horizontal", [
+    ["path", { d: "M10 5H3" }],
+    ["path", { d: "M12 19H3" }],
+    ["path", { d: "M14 3v4" }],
+    ["path", { d: "M16 17v4" }],
+    ["path", { d: "M21 12h-9" }],
+    ["path", { d: "M21 19h-5" }],
+    ["path", { d: "M21 5h-7" }],
+    ["path", { d: "M8 10v4" }],
+    ["path", { d: "M8 12H3" }]
   ]);
 
   // src/display.tsx
@@ -951,6 +963,10 @@ window.Aura = (() => {
     statusOk: "\u0E1B\u0E01\u0E15\u0E34",
     statusUnknown: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25",
     opensInNewTab: "\u0E40\u0E1B\u0E34\u0E14\u0E43\u0E19\u0E41\u0E17\u0E47\u0E1A\u0E43\u0E2B\u0E21\u0E48",
+    filtersApplied: function(n3) {
+      return "\u0E15\u0E31\u0E27\u0E01\u0E23\u0E2D\u0E07, \u0E43\u0E0A\u0E49\u0E2D\u0E22\u0E39\u0E48 " + n3.toLocaleString("en") + " \u0E23\u0E32\u0E22\u0E01\u0E32\u0E23";
+    },
+    done: "\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E2A\u0E34\u0E49\u0E19",
     accepts: function(list, max) {
       return [list, max && "\u0E44\u0E21\u0E48\u0E40\u0E01\u0E34\u0E19 " + max + " \u0E15\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C"].filter(Boolean).join(" \xB7 ");
     }
@@ -1088,6 +1104,10 @@ window.Aura = (() => {
     statusOk: "OK",
     statusUnknown: "Ingen data",
     opensInNewTab: "\xF6ppnas i en ny flik",
+    filtersApplied: function(n3) {
+      return "Filter, " + n3.toLocaleString("sv-SE") + " aktiva";
+    },
+    done: "Klar",
     accepts: function(list, max) {
       return [list, max && "h\xF6gst " + max + " per fil"].filter(Boolean).join(", ");
     }
@@ -1226,6 +1246,10 @@ window.Aura = (() => {
       statusOk: "OK",
       statusUnknown: "No data",
       opensInNewTab: "opens in a new tab",
+      filtersApplied: function(n3) {
+        return "Filters, " + n3.toLocaleString("en") + " applied";
+      },
+      done: "Done",
       accepts: function(list, max) {
         return [list, max && "up to " + max + " each"].filter(Boolean).join(", ");
       }
@@ -2727,12 +2751,18 @@ window.Aura = (() => {
   var React17 = __toESM(require_react(), 1);
   var FilterSelect = React17.forwardRef(function FilterSelect2(props, ref) {
     const onChange = props.onChange;
-    const pass = Object.assign(omit(props, ["label", "allLabel", "onChange"]), {
-      [FILTER_KEY]: { name: props.label, allLabel: props.allLabel },
-      onChange: onChange ? function(e) {
-        onChange(e.target.value);
-      } : void 0
-    });
+    const inSheet = React17.useContext(FilterSheet);
+    const pass = Object.assign(
+      omit(props, ["label", "allLabel", "onChange"]),
+      inSheet ? { label: props.label } : {
+        [FILTER_KEY]: { name: props.label, allLabel: props.allLabel }
+      },
+      {
+        onChange: onChange ? function(e) {
+          onChange(e.target.value);
+        } : void 0
+      }
+    );
     return /* @__PURE__ */ React17.createElement(Select, { ...pass, ref });
   });
 
@@ -3588,6 +3618,7 @@ window.Aura = (() => {
       const anyLabel = props.anyLabel || dt.anyTime;
       const value = v.start && v.end ? formatDateRange(v.start, v.end, { locale, calendar }) : anyLabel;
       const setFace = useMergedRef(ref, faceRef);
+      const inSheet = React19.useContext(FilterSheet);
       const limits = {
         min: props.min,
         max: props.max,
@@ -3688,7 +3719,7 @@ window.Aura = (() => {
         ),
         document.body
       ) : null;
-      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(
+      const box = /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(
         "div",
         {
           ref: boxRef,
@@ -3696,6 +3727,7 @@ window.Aura = (() => {
             "aura-filterselect",
             pop.open && "is-open",
             props.disabled && "is-disabled",
+            inSheet && "aura-filterselect--sheet",
             touchClass(props.touchHeight),
             props.className
           )
@@ -3724,6 +3756,8 @@ window.Aura = (() => {
           /* @__PURE__ */ React19.createElement(Icon, { name: /* @__PURE__ */ React19.createElement(IconChevronDown, null), className: "aura-filterselect__chevron" })
         )
       ), cal);
+      if (!inSheet) return box;
+      return /* @__PURE__ */ React19.createElement("div", { className: cx("aura-field", props.disabled && "is-disabled") }, /* @__PURE__ */ React19.createElement("span", { className: "aura-field__label", "aria-hidden": own ? void 0 : true }, props.label), box);
     }
   );
 
@@ -4714,341 +4748,14 @@ window.Aura = (() => {
   );
 
   // src/FilterBar.tsx
-  var React29 = __toESM(require_react(), 1);
-
-  // src/Tag.tsx
-  var React28 = __toESM(require_react(), 1);
-
-  // src/Tooltip.tsx
-  var React27 = __toESM(require_react(), 1);
-  var import_react_dom7 = __toESM(require_react_dom(), 1);
-  var Tooltip = React27.forwardRef(function Tooltip2(props, ref) {
-    const id = uid(), st = React27.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
-    const anchor = React27.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip2 = React27.useRef(null), timer2 = React27.useRef(void 0);
-    const pos = React27.useState(null), mounted = useMounted();
-    function show3(now) {
-      clearTimeout(timer2.current);
-      timer2.current = setTimeout(
-        function() {
-          set(true);
-        },
-        now ? 0 : props.delay == null ? 400 : props.delay
-      );
-    }
-    function hide2() {
-      clearTimeout(timer2.current);
-      set(false);
-    }
-    function hideSoon2() {
-      clearTimeout(timer2.current);
-      timer2.current = setTimeout(function() {
-        set(false);
-      }, 120);
-    }
-    React27.useEffect(function() {
-      return function() {
-        clearTimeout(timer2.current);
-      };
-    }, []);
-    function place2() {
-      if (!anchor.current || !tip2.current) return;
-      const r2 = anchor.current.getBoundingClientRect(), t = tip2.current.getBoundingClientRect();
-      const vw = window.innerWidth, vh = window.innerHeight, gap = 8, m = 8;
-      let side = props.side || "top";
-      if (side === "top" && r2.top - t.height - gap < m && r2.bottom + gap + t.height <= vh - m) side = "bottom";
-      else if (side === "bottom" && r2.bottom + gap + t.height > vh - m && r2.top - t.height - gap >= m) side = "top";
-      else if (side === "left" && r2.left - t.width - gap < m && r2.right + gap + t.width <= vw - m) side = "right";
-      else if (side === "right" && r2.right + gap + t.width > vw - m && r2.left - t.width - gap >= m) side = "left";
-      const clampX = function(x) {
-        return Math.max(m, Math.min(x, vw - t.width - m));
-      };
-      const clampY = function(y) {
-        return Math.max(m, Math.min(y, vh - t.height - m));
-      };
-      let top, left;
-      if (side === "top" || side === "bottom") {
-        top = clampY(side === "top" ? r2.top - t.height - gap : r2.bottom + gap);
-        left = clampX(r2.left + r2.width / 2 - t.width / 2);
-      } else {
-        left = side === "left" ? r2.left - t.width - gap : r2.right + gap;
-        left = clampX(left);
-        top = clampY(r2.top + r2.height / 2 - t.height / 2);
-      }
-      pos[1]({ top, left });
-    }
-    useIsoLayoutEffect(
-      function() {
-        if (!open) return;
-        place2();
-        window.addEventListener("scroll", place2, true);
-        window.addEventListener("resize", place2);
-        return function() {
-          window.removeEventListener("scroll", place2, true);
-          window.removeEventListener("resize", place2);
-        };
-      },
-      [open, mounted]
-    );
-    React27.useEffect(
-      function() {
-        if (!open) return;
-        function esc(e) {
-          if (e.key === "Escape") hide2();
-        }
-        document.addEventListener("keydown", esc);
-        return function() {
-          document.removeEventListener("keydown", esc);
-        };
-      },
-      [open]
-    );
-    const child = React27.Children.only(props.children);
-    const trigger = /* @__PURE__ */ React27.createElement(
-      "span",
-      {
-        ref: anchorMerged,
-        className: "aura-tooltip-anchor",
-        onMouseEnter: function() {
-          show3(false);
-        },
-        onMouseLeave: hideSoon2,
-        onFocus: function() {
-          show3(true);
-        },
-        onBlur: hide2
-      },
-      React27.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
-    );
-    return /* @__PURE__ */ React27.createElement(React27.Fragment, null, trigger, open && mounted ? (0, import_react_dom7.createPortal)(
-      /* @__PURE__ */ React27.createElement(
-        "div",
-        {
-          ref: tip2,
-          id,
-          role: "tooltip",
-          onMouseEnter: function() {
-            clearTimeout(timer2.current);
-          },
-          onMouseLeave: hideSoon2,
-          className: "aura-tooltip aura-tooltip--hoverable",
-          style: { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 }
-        },
-        props.content
-      ),
-      document.body
-    ) : null);
-  });
-
-  // src/Tag.tsx
-  function textOf2(node, all) {
-    if (node == null || typeof node === "boolean") return "";
-    if (typeof node === "string" || typeof node === "number") return String(node);
-    if (Array.isArray(node))
-      return node.map(function(n3) {
-        return textOf2(n3, all);
-      }).join("");
-    if (React28.isValidElement(node)) {
-      const p = node.props;
-      return !all && (p["aria-hidden"] === true || p["aria-hidden"] === "true") ? "" : textOf2(p.children, all);
-    }
-    return "";
-  }
-  var Tag = React28.forwardRef(function Tag2(props, ref) {
-    const t = useStrings();
-    const selectable = props.onClick != null || props.selected != null;
-    const rest = omit(props, [
-      "onRemove",
-      "selected",
-      "icon",
-      "className",
-      "children",
-      "disabled",
-      "removeLabel",
-      "touchHeight"
-    ]);
-    const textRef = React28.useRef(null);
-    useAutoTip();
-    const cutState = React28.useState(false), isCut = cutState[0];
-    const check = React28.useCallback(function() {
-      const el = textRef.current;
-      if (el) cutState[1](el.scrollWidth > el.clientWidth + 1);
-    }, []);
-    useIsoLayoutEffect(check);
-    useIsoLayoutEffect(
-      function() {
-        const el = textRef.current;
-        if (!el || typeof ResizeObserver === "undefined") return;
-        const ro = new ResizeObserver(check);
-        ro.observe(el);
-        return function() {
-          ro.disconnect();
-        };
-      },
-      [check]
-    );
-    const fullText = isCut ? textOf2(props.children, true).replace(/\s+/g, " ").trim() : "";
-    const inner = [
-      props.icon ? /* @__PURE__ */ React28.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
-      /* @__PURE__ */ React28.createElement("span", { key: "t", ref: textRef, className: "aura-tag__text", "data-aura-tip": fullText || void 0 }, props.children)
-    ];
-    if (selectable) {
-      return /* @__PURE__ */ React28.createElement(
-        "button",
-        {
-          ...rest,
-          ref,
-          type: "button",
-          "aria-pressed": !!props.selected,
-          disabled: props.disabled,
-          className: cx(
-            "aura-tag is-selectable",
-            props.selected && "is-selected",
-            props.touchHeight && "aura-tag--touch",
-            props.className
-          )
-        },
-        props.selected ? /* @__PURE__ */ React28.createElement(Icon, { name: /* @__PURE__ */ React28.createElement(IconCheck, null), size: 14 }) : inner[0],
-        inner[1]
-      );
-    }
-    const name = props.onRemove && !props.removeLabel ? textOf2(props.children).replace(/\s+/g, " ").trim() : "";
-    if (props.onRemove && !props.disabled && !props.removeLabel && !name)
-      devWarnOnce(
-        "tag-remove-label",
-        'Tag: the remove button has no name \u2014 its children have no text. Pass removeLabel (e.g. "Remove Acme AB").'
-      );
-    return /* @__PURE__ */ React28.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? function() {
-      const btn = /* @__PURE__ */ React28.createElement(
-        "button",
-        {
-          type: "button",
-          className: "aura-tag__remove",
-          "aria-label": props.removeLabel || t.remove(name),
-          onClick: props.onRemove
-        },
-        /* @__PURE__ */ React28.createElement(Icon, { name: /* @__PURE__ */ React28.createElement(IconX, null), size: 14 })
-      );
-      return /* @__PURE__ */ React28.createElement(Tooltip, { content: fullText, open: fullText ? void 0 : false }, btn);
-    }() : null);
-  });
-
-  // src/FilterBar.tsx
-  var FilterBar = React29.forwardRef(function FilterBar2(props, ref) {
-    const t = useStrings();
-    const id = uid();
-    const hasSearch = !!props.onSearchChange;
-    const draft = React29.useState(props.search || "");
-    const timer2 = React29.useRef(null);
-    const sent = React29.useRef(props.search || "");
-    const onChange = React29.useRef(props.onSearchChange);
-    onChange.current = props.onSearchChange;
-    React29.useEffect(
-      function() {
-        if ((props.search || "") !== sent.current) {
-          sent.current = props.search || "";
-          draft[1](props.search || "");
-        }
-      },
-      [props.search]
-    );
-    React29.useEffect(function() {
-      return function() {
-        if (timer2.current) clearTimeout(timer2.current);
-      };
-    }, []);
-    function send(v) {
-      if (timer2.current) clearTimeout(timer2.current);
-      timer2.current = null;
-      if (v === sent.current) return;
-      sent.current = v;
-      if (onChange.current) onChange.current(v);
-    }
-    function type(v) {
-      draft[1](v);
-      if (timer2.current) clearTimeout(timer2.current);
-      timer2.current = setTimeout(
-        function() {
-          send(v);
-        },
-        props.searchDelay == null ? 300 : props.searchDelay
-      );
-    }
-    const filters = props.filters || [];
-    const anything = filters.length > 0 || !!(props.search || draft[0]);
-    const count = props.resultCount == null ? null : typeof props.resultCount === "number" ? t.results(props.resultCount) : props.resultCount;
-    return /* @__PURE__ */ React29.createElement(
-      "div",
-      {
-        ref,
-        role: "region",
-        "aria-label": props.label || t.filters,
-        className: cx(
-          "aura-filterbar",
-          props.searchGrow && "aura-filterbar--grow",
-          props.controlsLayout === "fill" && "aura-filterbar--fill",
-          props.stackBelow === "lg" && "aura-filterbar--stack-lg",
-          touchClass(props.touchHeight),
-          props.className
-        )
-      },
-      /* @__PURE__ */ React29.createElement("div", { className: "aura-filterbar__row" }, hasSearch ? /* @__PURE__ */ React29.createElement("div", { className: "aura-input has-icon aura-filterbar__search" }, /* @__PURE__ */ React29.createElement(Icon, { name: /* @__PURE__ */ React29.createElement(IconSearch, null), className: "aura-input__icon" }), /* @__PURE__ */ React29.createElement(
-        "input",
-        {
-          id,
-          type: "search",
-          className: "aura-input__control",
-          "aria-label": props.searchLabel || t.search,
-          placeholder: props.searchPlaceholder || props.searchLabel || t.search,
-          value: draft[0],
-          onChange: function(e) {
-            type(e.target.value);
-          },
-          onKeyDown: function(e) {
-            if (e.key === "Enter") send(draft[0]);
-            if (e.key === "Escape" && draft[0]) {
-              e.preventDefault();
-              draft[1]("");
-              send("");
-            }
-          }
-        }
-      ), draft[0] ? /* @__PURE__ */ React29.createElement(
-        IconButton,
-        {
-          icon: /* @__PURE__ */ React29.createElement(IconX, null),
-          label: t.clear((props.searchLabel || t.search).toLowerCase()),
-          className: "aura-filterbar__clear-search",
-          onClick: function() {
-            draft[1]("");
-            send("");
-          }
-        }
-      ) : null) : null, props.children ? /* @__PURE__ */ React29.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React29.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React29.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React29.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
-      filters.length || props.onClearAll && anything ? /* @__PURE__ */ React29.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
-        return /* @__PURE__ */ React29.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);
-      }), props.onClearAll && anything ? /* @__PURE__ */ React29.createElement(
-        "button",
-        {
-          type: "button",
-          className: "aura-filterbar__clear",
-          onClick: function() {
-            draft[1]("");
-            sent.current = "";
-            if (timer2.current) clearTimeout(timer2.current);
-            props.onClearAll();
-          }
-        },
-        t.clearFilters
-      ) : null) : null
-    );
-  });
-
-  // src/Command.tsx
   var React31 = __toESM(require_react(), 1);
-  var import_react_dom8 = __toESM(require_react_dom(), 1);
+
+  // src/Dialog.tsx
+  var React28 = __toESM(require_react(), 1);
+  var import_react_dom7 = __toESM(require_react_dom(), 1);
 
   // src/useModal.tsx
-  var React30 = __toESM(require_react(), 1);
+  var React27 = __toESM(require_react(), 1);
   var locks = 0;
   var savedOverflow = "";
   function lockScroll() {
@@ -5075,11 +4782,11 @@ window.Aura = (() => {
   }
   function useModal(open, ref, opts) {
     const mounted = useMounted();
-    const prev = React30.useRef(null);
+    const prev = React27.useRef(null);
     const o = opts || {};
-    const latest = React30.useRef(o);
+    const latest = React27.useRef(o);
     latest.current = o;
-    React30.useEffect(
+    React27.useEffect(
       function() {
         if (!open || !mounted) return;
         prev.current = document.activeElement;
@@ -5134,7 +4841,634 @@ window.Aura = (() => {
     return { ready: !!open && mounted, onKeyDown };
   }
 
+  // src/Dialog.tsx
+  var DialogClose = React28.createContext(null);
+  function useDialogClose() {
+    return React28.useContext(DialogClose) || function() {
+    };
+  }
+  var Dialog = React28.forwardRef(function Dialog2(props, ref) {
+    const t = useStrings();
+    const density = useDensity();
+    const own = React28.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+    const openState = useMaybeControlled(props.open, false, null), open = openState[0];
+    if (props.open === void 0 && !props.trigger)
+      devWarnOnce("dialog-no-open", "Dialog has neither `open` nor `trigger`, so it can never open. Pass one of them.");
+    const trigId = uid();
+    function closeNow() {
+      if (props.open === void 0) openState[1](false);
+      if (props.onClose) props.onClose();
+    }
+    function close() {
+      if (props.dismissible === false) return;
+      closeNow();
+    }
+    const scrimCloses = props.dismissible !== false && (props.dismissOnScrim !== void 0 ? props.dismissOnScrim : props.role !== "alertdialog");
+    const modal = useModal(open, own, {
+      autoFocus: props.autoFocus,
+      onEscape: close,
+      bodySelector: ".aura-dialog__body",
+      footSelector: ".aura-dialog__foot",
+      /* With a trigger, focus goes back to it even where a click doesn't focus buttons (Safari). */
+      finalFocus: props.trigger ? function() {
+        const ff = props.finalFocus;
+        const to = ff ? typeof ff === "function" ? ff() : ff.current : null;
+        return to || document.querySelector('[data-aura-trigger="' + trigId + '"]');
+      } : props.finalFocus,
+      onCloseComplete: props.onCloseComplete
+    });
+    const trig = props.trigger;
+    const trigger = trig && React28.isValidElement(trig) ? React28.cloneElement(trig, {
+      "aria-haspopup": "dialog",
+      "aria-expanded": open,
+      "data-aura-trigger": trigId,
+      onClick: function(e) {
+        const own2 = trig.props.onClick;
+        if (own2) own2(e);
+        if (e.defaultPrevented) return;
+        if (props.open === void 0) openState[1](true);
+        if (props.onOpen) props.onOpen();
+      }
+    }) : null;
+    if (!modal.ready) return trigger;
+    const rest = omit(props, [
+      "open",
+      "onClose",
+      "title",
+      "description",
+      "children",
+      "footer",
+      "size",
+      "dismissible",
+      "dismissOnScrim",
+      "role",
+      "autoFocus",
+      "className",
+      "trigger",
+      "onOpen",
+      "finalFocus",
+      "onCloseComplete",
+      "aria-labelledby",
+      "aria-describedby",
+      "aria-modal"
+    ]);
+    const panel = (0, import_react_dom7.createPortal)(
+      /* @__PURE__ */ React28.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React28.createElement(
+        "div",
+        {
+          className: "aura-scrim",
+          onClick: scrimCloses ? close : void 0,
+          onMouseDown: scrimCloses ? void 0 : function(e) {
+            e.preventDefault();
+          },
+          "aria-hidden": true
+        }
+      ), /* @__PURE__ */ React28.createElement(
+        "div",
+        {
+          ...rest,
+          ref: merged,
+          role: props.role || "dialog",
+          "aria-modal": true,
+          "aria-labelledby": titleId,
+          "aria-describedby": cx(props.description ? descId : "", props["aria-describedby"]) || void 0,
+          tabIndex: -1,
+          className: cx("aura-dialog", "aura-dialog--" + (props.size || "md"), props.className)
+        },
+        /* @__PURE__ */ React28.createElement("div", { className: "aura-dialog__head" }, /* @__PURE__ */ React28.createElement("h2", { className: "aura-dialog__title", id: titleId }, props.title), props.dismissible !== false ? /* @__PURE__ */ React28.createElement(IconButton, { icon: /* @__PURE__ */ React28.createElement(IconX, null), label: t.close, className: "aura-dialog__close", onClick: close }) : null),
+        props.description ? /* @__PURE__ */ React28.createElement("p", { className: "aura-dialog__desc", id: descId }, props.description) : null,
+        /* @__PURE__ */ React28.createElement(DialogClose.Provider, { value: closeNow }, props.children ? /* @__PURE__ */ React28.createElement("div", { className: "aura-dialog__body" }, props.children) : null, props.footer ? /* @__PURE__ */ React28.createElement("div", { className: "aura-dialog__foot" }, props.footer) : null)
+      )),
+      document.body
+    );
+    return trigger ? /* @__PURE__ */ React28.createElement(React28.Fragment, null, trigger, panel) : panel;
+  });
+  var Drawer = React28.forwardRef(function Drawer2(props, ref) {
+    const t = useStrings();
+    const density = useDensity();
+    const own = React28.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
+    function close() {
+      if (props.dismissible !== false && props.onClose) props.onClose();
+    }
+    const modal = useModal(props.open, own, {
+      autoFocus: props.autoFocus,
+      onEscape: close,
+      bodySelector: ".aura-drawer__body",
+      footSelector: ".aura-drawer__foot",
+      finalFocus: props.finalFocus,
+      onCloseComplete: props.onCloseComplete
+    });
+    if (!modal.ready) return null;
+    const side = props.side === "left" ? "left" : "right";
+    const rest = omit(props, [
+      "open",
+      "onClose",
+      "side",
+      "size",
+      "title",
+      "description",
+      "children",
+      "footer",
+      "dismissible",
+      "dismissOnScrim",
+      "autoFocus",
+      "aria-label",
+      "aria-describedby",
+      "aria-labelledby",
+      "className",
+      "closeLabel",
+      "closeProps",
+      "finalFocus",
+      "onCloseComplete"
+    ]);
+    const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
+    return (0, import_react_dom7.createPortal)(
+      /* @__PURE__ */ React28.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React28.createElement(
+        "div",
+        {
+          className: "aura-scrim",
+          onClick: drawerScrimCloses ? close : void 0,
+          onMouseDown: !drawerScrimCloses ? function(e) {
+            e.preventDefault();
+          } : void 0,
+          "aria-hidden": true
+        }
+      ), /* @__PURE__ */ React28.createElement(
+        "div",
+        {
+          ...rest,
+          ref: merged,
+          role: "dialog",
+          "aria-modal": true,
+          "aria-labelledby": props.title ? titleId : props["aria-labelledby"],
+          "aria-label": props.title ? void 0 : props["aria-label"],
+          "aria-describedby": cx(props.description ? descId : "", props["aria-describedby"]) || void 0,
+          tabIndex: -1,
+          className: cx("aura-drawer", "aura-drawer--" + side, "aura-drawer--" + (props.size || "md"), props.className)
+        },
+        props.title || props.dismissible !== false ? /* @__PURE__ */ React28.createElement("div", { className: "aura-drawer__head" }, props.title ? /* @__PURE__ */ React28.createElement("h2", { className: "aura-drawer__title", id: titleId }, props.title) : /* @__PURE__ */ React28.createElement("span", { style: { flex: 1 } }), props.dismissible !== false ? /* @__PURE__ */ React28.createElement(
+          IconButton,
+          {
+            ...props.closeProps,
+            icon: /* @__PURE__ */ React28.createElement(IconX, null),
+            label: props.closeLabel || t.close,
+            onClick: function(e) {
+              const own2 = props.closeProps && props.closeProps.onClick;
+              if (own2) own2(e);
+              if (!e.defaultPrevented) close();
+            }
+          }
+        ) : null) : null,
+        props.description ? /* @__PURE__ */ React28.createElement("p", { className: "aura-drawer__desc", id: descId }, props.description) : null,
+        /* @__PURE__ */ React28.createElement("div", { className: "aura-drawer__body" }, props.children),
+        props.footer ? /* @__PURE__ */ React28.createElement("div", { className: "aura-drawer__foot" }, props.footer) : null
+      )),
+      document.body
+    );
+  });
+
+  // src/Tag.tsx
+  var React30 = __toESM(require_react(), 1);
+
+  // src/Tooltip.tsx
+  var React29 = __toESM(require_react(), 1);
+  var import_react_dom8 = __toESM(require_react_dom(), 1);
+  var Tooltip = React29.forwardRef(function Tooltip2(props, ref) {
+    const id = uid(), st = React29.useState(false), open = props.open !== void 0 ? props.open : st[0], set = st[1];
+    const anchor = React29.useRef(null), anchorMerged = useMergedRef(ref, anchor), tip2 = React29.useRef(null), timer2 = React29.useRef(void 0);
+    const pos = React29.useState(null), mounted = useMounted();
+    function show3(now) {
+      clearTimeout(timer2.current);
+      timer2.current = setTimeout(
+        function() {
+          set(true);
+        },
+        now ? 0 : props.delay == null ? 400 : props.delay
+      );
+    }
+    function hide2() {
+      clearTimeout(timer2.current);
+      set(false);
+    }
+    function hideSoon2() {
+      clearTimeout(timer2.current);
+      timer2.current = setTimeout(function() {
+        set(false);
+      }, 120);
+    }
+    React29.useEffect(function() {
+      return function() {
+        clearTimeout(timer2.current);
+      };
+    }, []);
+    function place2() {
+      if (!anchor.current || !tip2.current) return;
+      const r2 = anchor.current.getBoundingClientRect(), t = tip2.current.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight, gap = 8, m = 8;
+      let side = props.side || "top";
+      if (side === "top" && r2.top - t.height - gap < m && r2.bottom + gap + t.height <= vh - m) side = "bottom";
+      else if (side === "bottom" && r2.bottom + gap + t.height > vh - m && r2.top - t.height - gap >= m) side = "top";
+      else if (side === "left" && r2.left - t.width - gap < m && r2.right + gap + t.width <= vw - m) side = "right";
+      else if (side === "right" && r2.right + gap + t.width > vw - m && r2.left - t.width - gap >= m) side = "left";
+      const clampX = function(x) {
+        return Math.max(m, Math.min(x, vw - t.width - m));
+      };
+      const clampY = function(y) {
+        return Math.max(m, Math.min(y, vh - t.height - m));
+      };
+      let top, left;
+      if (side === "top" || side === "bottom") {
+        top = clampY(side === "top" ? r2.top - t.height - gap : r2.bottom + gap);
+        left = clampX(r2.left + r2.width / 2 - t.width / 2);
+      } else {
+        left = side === "left" ? r2.left - t.width - gap : r2.right + gap;
+        left = clampX(left);
+        top = clampY(r2.top + r2.height / 2 - t.height / 2);
+      }
+      pos[1]({ top, left });
+    }
+    useIsoLayoutEffect(
+      function() {
+        if (!open) return;
+        place2();
+        window.addEventListener("scroll", place2, true);
+        window.addEventListener("resize", place2);
+        return function() {
+          window.removeEventListener("scroll", place2, true);
+          window.removeEventListener("resize", place2);
+        };
+      },
+      [open, mounted]
+    );
+    React29.useEffect(
+      function() {
+        if (!open) return;
+        function esc(e) {
+          if (e.key === "Escape") hide2();
+        }
+        document.addEventListener("keydown", esc);
+        return function() {
+          document.removeEventListener("keydown", esc);
+        };
+      },
+      [open]
+    );
+    const child = React29.Children.only(props.children);
+    const trigger = /* @__PURE__ */ React29.createElement(
+      "span",
+      {
+        ref: anchorMerged,
+        className: "aura-tooltip-anchor",
+        onMouseEnter: function() {
+          show3(false);
+        },
+        onMouseLeave: hideSoon2,
+        onFocus: function() {
+          show3(true);
+        },
+        onBlur: hide2
+      },
+      React29.cloneElement(child, { "aria-describedby": open ? id : child.props["aria-describedby"] })
+    );
+    return /* @__PURE__ */ React29.createElement(React29.Fragment, null, trigger, open && mounted ? (0, import_react_dom8.createPortal)(
+      /* @__PURE__ */ React29.createElement(
+        "div",
+        {
+          ref: tip2,
+          id,
+          role: "tooltip",
+          onMouseEnter: function() {
+            clearTimeout(timer2.current);
+          },
+          onMouseLeave: hideSoon2,
+          className: "aura-tooltip aura-tooltip--hoverable",
+          style: { top: pos[0] ? pos[0].top : -9999, left: pos[0] ? pos[0].left : -9999 }
+        },
+        props.content
+      ),
+      document.body
+    ) : null);
+  });
+
+  // src/Tag.tsx
+  function textOf2(node, all) {
+    if (node == null || typeof node === "boolean") return "";
+    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (Array.isArray(node))
+      return node.map(function(n3) {
+        return textOf2(n3, all);
+      }).join("");
+    if (React30.isValidElement(node)) {
+      const p = node.props;
+      return !all && (p["aria-hidden"] === true || p["aria-hidden"] === "true") ? "" : textOf2(p.children, all);
+    }
+    return "";
+  }
+  var Tag = React30.forwardRef(function Tag2(props, ref) {
+    const t = useStrings();
+    const selectable = props.onClick != null || props.selected != null;
+    const rest = omit(props, [
+      "onRemove",
+      "selected",
+      "icon",
+      "className",
+      "children",
+      "disabled",
+      "removeLabel",
+      "touchHeight"
+    ]);
+    const textRef = React30.useRef(null);
+    useAutoTip();
+    const cutState = React30.useState(false), isCut = cutState[0];
+    const check = React30.useCallback(function() {
+      const el = textRef.current;
+      if (el) cutState[1](el.scrollWidth > el.clientWidth + 1);
+    }, []);
+    useIsoLayoutEffect(check);
+    useIsoLayoutEffect(
+      function() {
+        const el = textRef.current;
+        if (!el || typeof ResizeObserver === "undefined") return;
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        return function() {
+          ro.disconnect();
+        };
+      },
+      [check]
+    );
+    const fullText = isCut ? textOf2(props.children, true).replace(/\s+/g, " ").trim() : "";
+    const inner = [
+      props.icon ? /* @__PURE__ */ React30.createElement(Icon, { key: "i", name: props.icon, size: 14 }) : null,
+      /* @__PURE__ */ React30.createElement("span", { key: "t", ref: textRef, className: "aura-tag__text", "data-aura-tip": fullText || void 0 }, props.children)
+    ];
+    if (selectable) {
+      return /* @__PURE__ */ React30.createElement(
+        "button",
+        {
+          ...rest,
+          ref,
+          type: "button",
+          "aria-pressed": !!props.selected,
+          disabled: props.disabled,
+          className: cx(
+            "aura-tag is-selectable",
+            props.selected && "is-selected",
+            props.touchHeight && "aura-tag--touch",
+            props.className
+          )
+        },
+        props.selected ? /* @__PURE__ */ React30.createElement(Icon, { name: /* @__PURE__ */ React30.createElement(IconCheck, null), size: 14 }) : inner[0],
+        inner[1]
+      );
+    }
+    const name = props.onRemove && !props.removeLabel ? textOf2(props.children).replace(/\s+/g, " ").trim() : "";
+    if (props.onRemove && !props.disabled && !props.removeLabel && !name)
+      devWarnOnce(
+        "tag-remove-label",
+        'Tag: the remove button has no name \u2014 its children have no text. Pass removeLabel (e.g. "Remove Acme AB").'
+      );
+    return /* @__PURE__ */ React30.createElement("span", { ...rest, ref, className: cx("aura-tag", props.disabled && "is-disabled", props.className) }, inner, props.onRemove && !props.disabled ? function() {
+      const btn = /* @__PURE__ */ React30.createElement(
+        "button",
+        {
+          type: "button",
+          className: "aura-tag__remove",
+          "aria-label": props.removeLabel || t.remove(name),
+          onClick: props.onRemove
+        },
+        /* @__PURE__ */ React30.createElement(Icon, { name: /* @__PURE__ */ React30.createElement(IconX, null), size: 14 })
+      );
+      return /* @__PURE__ */ React30.createElement(Tooltip, { content: fullText, open: fullText ? void 0 : false }, btn);
+    }() : null);
+  });
+
+  // src/breakpoints.ts
+  var breakpoints = { sm: 640, md: 768, lg: 1024, xl: 1280 };
+  var ORDER = ["base", "sm", "md", "lg", "xl"];
+  function respVars(prefix, value, map2) {
+    const style = {};
+    if (value == null) return style;
+    if (typeof value !== "object") value = { base: value };
+    let byBp = value, cur2;
+    ORDER.forEach(function(k) {
+      if (byBp[k] !== void 0) cur2 = map2 ? map2(byBp[k]) : byBp[k];
+      if (cur2 !== void 0) style["--" + prefix + "-" + k] = cur2;
+    });
+    return style;
+  }
+  var space = function(v) {
+    return typeof v === "number" ? "var(--aura-space-" + v + ")" : v;
+  };
+
+  // src/FilterBar.tsx
+  var FilterBar = React31.forwardRef(function FilterBar2(props, ref) {
+    const t = useStrings();
+    const id = uid();
+    const hasSearch = !!props.onSearchChange;
+    const draft = React31.useState(props.search || "");
+    const timer2 = React31.useRef(null);
+    const sent = React31.useRef(props.search || "");
+    const onChange = React31.useRef(props.onSearchChange);
+    onChange.current = props.onSearchChange;
+    React31.useEffect(
+      function() {
+        if ((props.search || "") !== sent.current) {
+          sent.current = props.search || "";
+          draft[1](props.search || "");
+        }
+      },
+      [props.search]
+    );
+    React31.useEffect(function() {
+      return function() {
+        if (timer2.current) clearTimeout(timer2.current);
+      };
+    }, []);
+    function send(v) {
+      if (timer2.current) clearTimeout(timer2.current);
+      timer2.current = null;
+      if (v === sent.current) return;
+      sent.current = v;
+      if (onChange.current) onChange.current(v);
+    }
+    function type(v) {
+      draft[1](v);
+      if (timer2.current) clearTimeout(timer2.current);
+      timer2.current = setTimeout(
+        function() {
+          send(v);
+        },
+        props.searchDelay == null ? 300 : props.searchDelay
+      );
+    }
+    const filters = props.filters || [];
+    const hasChildren = React31.Children.toArray(props.children).length > 0;
+    const collapse = props.collapseBelow && hasChildren ? props.collapseBelow : null;
+    const sheet = React31.useState(false), open = !!collapse && sheet[0];
+    const sheetId = id + "-filters";
+    const doneRef = React31.useRef(null), moreRef = React31.useRef(null), own = React31.useRef(null), rootRef = useMergedRef(ref, own);
+    if (collapse)
+      React31.Children.forEach(props.children, function(c) {
+        if (!React31.isValidElement(c) || c.type === Button || c.type === IconButton) return;
+        const p = c.props;
+        if (p.defaultValue !== void 0 || p.defaultChecked !== void 0 || "label" in p && !("value" in p) && !("selected" in p) && !("checked" in p))
+          devWarnOnce(
+            "filterbar-uncontrolled",
+            "FilterBar collapseBelow: a filter without `value` resets when the Filters sheet opens or closes (its children move there and back). Keep each filter's value with the page: `value` + `onChange`."
+          );
+      });
+    function backTo() {
+      const m = moreRef.current;
+      if (m && m.getClientRects().length) return m;
+      const bar = own.current;
+      if (!bar) return null;
+      return bar.querySelector(
+        '.aura-filterbar__controls :is(button, input, select, [tabindex]):not([disabled]):not([tabindex="-1"])'
+      ) || bar.querySelector(".aura-filterbar__search input");
+    }
+    const applied = props.filterCount != null ? props.filterCount : filters.length;
+    React31.useEffect(
+      function() {
+        if (!open || !collapse || typeof window.matchMedia !== "function") return;
+        const mq = window.matchMedia("(min-width: " + breakpoints[collapse] + "px)");
+        function check() {
+          if (mq.matches) sheet[1](false);
+        }
+        check();
+        if (mq.addEventListener) mq.addEventListener("change", check);
+        else mq.addListener(check);
+        return function() {
+          if (mq.removeEventListener) mq.removeEventListener("change", check);
+          else mq.removeListener(check);
+        };
+      },
+      [open, collapse]
+    );
+    function clearAll() {
+      draft[1]("");
+      sent.current = "";
+      if (timer2.current) clearTimeout(timer2.current);
+      props.onClearAll();
+    }
+    const anything = filters.length > 0 || !!(props.search || draft[0]);
+    const count = props.resultCount == null ? null : typeof props.resultCount === "number" ? t.results(props.resultCount) : props.resultCount;
+    const searchBox = hasSearch ? /* @__PURE__ */ React31.createElement("div", { className: "aura-input has-icon aura-filterbar__search" }, /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconSearch, null), className: "aura-input__icon" }), /* @__PURE__ */ React31.createElement(
+      "input",
+      {
+        id,
+        type: "search",
+        className: "aura-input__control",
+        "aria-label": props.searchLabel || t.search,
+        placeholder: props.searchPlaceholder || props.searchLabel || t.search,
+        value: draft[0],
+        onChange: function(e) {
+          type(e.target.value);
+        },
+        onKeyDown: function(e) {
+          if (e.key === "Enter") send(draft[0]);
+          if (e.key === "Escape" && draft[0]) {
+            e.preventDefault();
+            draft[1]("");
+            send("");
+          }
+        }
+      }
+    ), draft[0] ? /* @__PURE__ */ React31.createElement(
+      IconButton,
+      {
+        icon: /* @__PURE__ */ React31.createElement(IconX, null),
+        label: t.clear((props.searchLabel || t.search).toLowerCase()),
+        className: "aura-filterbar__clear-search",
+        onClick: function() {
+          draft[1]("");
+          send("");
+        }
+      }
+    ) : null) : null;
+    const more = collapse ? /* @__PURE__ */ React31.createElement(
+      Button,
+      {
+        ref: moreRef,
+        variant: "secondary",
+        icon: /* @__PURE__ */ React31.createElement(IconSlidersHorizontal, null),
+        className: "aura-filterbar__more",
+        "aria-haspopup": "dialog",
+        "aria-expanded": open,
+        "aria-controls": open ? sheetId : void 0,
+        onClick: function() {
+          sheet[1](true);
+        }
+      },
+      applied > 0 ? /* @__PURE__ */ React31.createElement(React31.Fragment, null, /* @__PURE__ */ React31.createElement("span", { className: "aura-sr-only" }, t.filtersApplied(applied)), /* @__PURE__ */ React31.createElement("span", { "aria-hidden": true }, t.filters + " (" + applied + ")")) : t.filters
+    ) : null;
+    return /* @__PURE__ */ React31.createElement(
+      "div",
+      {
+        ref: rootRef,
+        role: "region",
+        "aria-label": props.label || t.filters,
+        className: cx(
+          "aura-filterbar",
+          props.searchGrow && "aura-filterbar--grow",
+          props.controlsLayout === "fill" && "aura-filterbar--fill",
+          props.stackBelow === "lg" && "aura-filterbar--stack-lg",
+          collapse && "aura-filterbar--collapse-" + collapse,
+          touchClass(props.touchHeight),
+          props.className
+        )
+      },
+      /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__row" }, collapse ? (
+        /* 5.42: the search and the Filters button share a row of their own below the breakpoint (count and actions
+         * wrap under them); from the breakpoint up this box is display: contents and the bar is as before. */
+        /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__lead" }, searchBox, more)
+      ) : searchBox, hasChildren && !open ? /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React31.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React31.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
+      filters.length || props.onClearAll && anything ? /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
+        return /* @__PURE__ */ React31.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);
+      }), props.onClearAll && anything ? /* @__PURE__ */ React31.createElement("button", { type: "button", className: "aura-filterbar__clear", onClick: clearAll }, t.clearFilters) : null) : null,
+      collapse ? /* @__PURE__ */ React31.createElement(
+        Dialog,
+        {
+          open,
+          onClose: function() {
+            sheet[1](false);
+          },
+          id: sheetId,
+          finalFocus: backTo,
+          title: t.filters,
+          size: "sm",
+          className: "aura-filterbar__sheet",
+          footer: /* @__PURE__ */ React31.createElement(React31.Fragment, null, props.onClearAll && filters.length ? /* @__PURE__ */ React31.createElement(
+            Button,
+            {
+              variant: "secondary",
+              touchHeight: true,
+              onClick: function() {
+                clearAll();
+                if (doneRef.current) doneRef.current.focus();
+              }
+            },
+            t.clearFilters
+          ) : null, /* @__PURE__ */ React31.createElement(
+            Button,
+            {
+              ref: doneRef,
+              touchHeight: true,
+              onClick: function() {
+                sheet[1](false);
+              }
+            },
+            t.done
+          ))
+        },
+        /* @__PURE__ */ React31.createElement(FilterSheet.Provider, { value: true }, /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar aura-filterbar--sheet is-touch-always" }, props.children))
+      ) : null
+    );
+  });
+
   // src/Command.tsx
+  var React32 = __toESM(require_react(), 1);
+  var import_react_dom9 = __toESM(require_react_dom(), 1);
   function isMac() {
     return typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   }
@@ -5142,21 +5476,21 @@ window.Aura = (() => {
     const t = useStrings();
     const density = useDensity();
     const id = uid(), listId = id + "-list";
-    const box = React31.useRef(null);
-    const input = React31.useRef(null);
-    const qState = React31.useState(""), act = React31.useState(null);
+    const box = React32.useRef(null);
+    const input = React32.useRef(null);
+    const qState = React32.useState(""), act = React32.useState(null);
     const query = props.query !== void 0 ? props.query : qState[0];
     function setQuery(v) {
       if (props.query === void 0) qState[1](v);
       if (props.onQueryChange) props.onQueryChange(v);
     }
-    const openRef = React31.useRef(props.open);
+    const openRef = React32.useRef(props.open);
     openRef.current = props.open;
     const close = function() {
       props.onOpenChange(false);
     };
     const modal = useModal(props.open, box, { onEscape: close });
-    React31.useEffect(
+    React32.useEffect(
       function() {
         if (props.hotkey === false) return;
         function onKey2(e) {
@@ -5172,7 +5506,7 @@ window.Aura = (() => {
       },
       [props.hotkey, props.onOpenChange]
     );
-    React31.useEffect(
+    React32.useEffect(
       function() {
         if (!props.open) {
           if (query) setQuery("");
@@ -5212,7 +5546,7 @@ window.Aura = (() => {
     const optId = function(i2) {
       return id + "-o" + i2;
     };
-    React31.useEffect(
+    React32.useEffect(
       function() {
         if (!box.current || active < 0) return;
         const el = box.current.querySelector("#" + CSS.escape(optId(active)));
@@ -5256,8 +5590,8 @@ window.Aura = (() => {
     }
     if (!modal.ready) return null;
     let i = -1;
-    return (0, import_react_dom8.createPortal)(
-      /* @__PURE__ */ React31.createElement(
+    return (0, import_react_dom9.createPortal)(
+      /* @__PURE__ */ React32.createElement(
         "div",
         {
           className: "aura-dialog-layer aura-command-layer",
@@ -5267,8 +5601,8 @@ window.Aura = (() => {
             e.stopPropagation();
           }
         },
-        /* @__PURE__ */ React31.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }),
-        /* @__PURE__ */ React31.createElement(
+        /* @__PURE__ */ React32.createElement("div", { className: "aura-scrim", onClick: close, "aria-hidden": true }),
+        /* @__PURE__ */ React32.createElement(
           "div",
           {
             ref: box,
@@ -5278,7 +5612,7 @@ window.Aura = (() => {
             tabIndex: -1,
             className: cx("aura-command", props.className)
           },
-          /* @__PURE__ */ React31.createElement("div", { className: "aura-command__search" }, /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconSearch, null), className: "aura-command__search-icon" }), /* @__PURE__ */ React31.createElement(
+          /* @__PURE__ */ React32.createElement("div", { className: "aura-command__search" }, /* @__PURE__ */ React32.createElement(Icon, { name: /* @__PURE__ */ React32.createElement(IconSearch, null), className: "aura-command__search-icon" }), /* @__PURE__ */ React32.createElement(
             "input",
             {
               ref: input,
@@ -5301,8 +5635,8 @@ window.Aura = (() => {
               },
               onKeyDown: onKey
             }
-          ), /* @__PURE__ */ React31.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
-          /* @__PURE__ */ React31.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React31.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconLoaderCircle, null), className: "aura-spin" }), t.searching) : null, !flat3.length ? props.loading ? null : /* @__PURE__ */ React31.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React31.createElement(
+          ), /* @__PURE__ */ React32.createElement("kbd", { className: "aura-command__kbd" }, "Esc")),
+          /* @__PURE__ */ React32.createElement("div", { className: "aura-command__list", "aria-busy": props.loading || void 0 }, props.loading ? /* @__PURE__ */ React32.createElement("div", { className: "aura-command__loading" }, /* @__PURE__ */ React32.createElement(Icon, { name: /* @__PURE__ */ React32.createElement(IconLoaderCircle, null), className: "aura-spin" }), t.searching) : null, !flat3.length ? props.loading ? null : /* @__PURE__ */ React32.createElement("div", { className: "aura-command__empty" }, props.empty != null ? props.empty : props.emptyText || t.noMatches) : /* @__PURE__ */ React32.createElement(
             "div",
             {
               id: listId,
@@ -5312,7 +5646,7 @@ window.Aura = (() => {
             },
             groups.map(function(g, gi) {
               const gid = id + "-g" + gi;
-              return /* @__PURE__ */ React31.createElement(
+              return /* @__PURE__ */ React32.createElement(
                 "div",
                 {
                   key: g.name || gi,
@@ -5320,11 +5654,11 @@ window.Aura = (() => {
                   "aria-labelledby": g.name ? gid : void 0,
                   className: "aura-command__group"
                 },
-                g.name ? /* @__PURE__ */ React31.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
+                g.name ? /* @__PURE__ */ React32.createElement("div", { className: "aura-command__heading", id: gid, role: "presentation" }, g.name) : null,
                 g.items.map(function(it) {
                   i++;
                   const n3 = i;
-                  return /* @__PURE__ */ React31.createElement(
+                  return /* @__PURE__ */ React32.createElement(
                     "div",
                     {
                       key: it.id,
@@ -5348,209 +5682,21 @@ window.Aura = (() => {
                         run(it);
                       }
                     },
-                    it.icon ? /* @__PURE__ */ React31.createElement(Icon, { name: it.icon }) : null,
-                    /* @__PURE__ */ React31.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React31.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React31.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc", "aria-hidden": true }, it.description) : null),
-                    it.shortcut ? /* @__PURE__ */ React31.createElement("kbd", { className: "aura-command__kbd", id: it.description ? optId(n3) + "-kbd" : void 0 }, it.shortcut) : null
+                    it.icon ? /* @__PURE__ */ React32.createElement(Icon, { name: it.icon }) : null,
+                    /* @__PURE__ */ React32.createElement("span", { className: "aura-command__text" }, /* @__PURE__ */ React32.createElement("span", { className: "aura-command__label", id: it.description ? optId(n3) + "-label" : void 0 }, it.label), it.description ? /* @__PURE__ */ React32.createElement("span", { className: "aura-command__desc", id: optId(n3) + "-desc", "aria-hidden": true }, it.description) : null),
+                    it.shortcut ? /* @__PURE__ */ React32.createElement("kbd", { className: "aura-command__kbd", id: it.description ? optId(n3) + "-kbd" : void 0 }, it.shortcut) : null
                   );
                 })
               );
             })
           )),
-          /* @__PURE__ */ React31.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat3.length ? t.noMatches : props.loading === false && query ? t.results(flat3.length) : ""),
-          /* @__PURE__ */ React31.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React31.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
+          /* @__PURE__ */ React32.createElement("span", { className: "aura-sr-only", role: "status" }, props.loading ? t.searching : query && !flat3.length ? t.noMatches : props.loading === false && query ? t.results(flat3.length) : ""),
+          /* @__PURE__ */ React32.createElement("div", { className: "aura-command__foot", "aria-hidden": true }, t.commandHint, /* @__PURE__ */ React32.createElement("span", { className: "aura-command__mod" }, isMac() ? "\u2318K" : "Ctrl K"))
         )
       ),
       document.body
     );
   }
-
-  // src/Dialog.tsx
-  var React32 = __toESM(require_react(), 1);
-  var import_react_dom9 = __toESM(require_react_dom(), 1);
-  var DialogClose = React32.createContext(null);
-  function useDialogClose() {
-    return React32.useContext(DialogClose) || function() {
-    };
-  }
-  var Dialog = React32.forwardRef(function Dialog2(props, ref) {
-    const t = useStrings();
-    const density = useDensity();
-    const own = React32.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
-    const openState = useMaybeControlled(props.open, false, null), open = openState[0];
-    if (props.open === void 0 && !props.trigger)
-      devWarnOnce("dialog-no-open", "Dialog has neither `open` nor `trigger`, so it can never open. Pass one of them.");
-    const trigId = uid();
-    function closeNow() {
-      if (props.open === void 0) openState[1](false);
-      if (props.onClose) props.onClose();
-    }
-    function close() {
-      if (props.dismissible === false) return;
-      closeNow();
-    }
-    const scrimCloses = props.dismissible !== false && (props.dismissOnScrim !== void 0 ? props.dismissOnScrim : props.role !== "alertdialog");
-    const modal = useModal(open, own, {
-      autoFocus: props.autoFocus,
-      onEscape: close,
-      bodySelector: ".aura-dialog__body",
-      footSelector: ".aura-dialog__foot",
-      /* With a trigger, focus goes back to it even where a click doesn't focus buttons (Safari). */
-      finalFocus: props.trigger ? function() {
-        const ff = props.finalFocus;
-        const to = ff ? typeof ff === "function" ? ff() : ff.current : null;
-        return to || document.querySelector('[data-aura-trigger="' + trigId + '"]');
-      } : props.finalFocus,
-      onCloseComplete: props.onCloseComplete
-    });
-    const trig = props.trigger;
-    const trigger = trig && React32.isValidElement(trig) ? React32.cloneElement(trig, {
-      "aria-haspopup": "dialog",
-      "aria-expanded": open,
-      "data-aura-trigger": trigId,
-      onClick: function(e) {
-        const own2 = trig.props.onClick;
-        if (own2) own2(e);
-        if (e.defaultPrevented) return;
-        if (props.open === void 0) openState[1](true);
-        if (props.onOpen) props.onOpen();
-      }
-    }) : null;
-    if (!modal.ready) return trigger;
-    const rest = omit(props, [
-      "open",
-      "onClose",
-      "title",
-      "description",
-      "children",
-      "footer",
-      "size",
-      "dismissible",
-      "dismissOnScrim",
-      "role",
-      "autoFocus",
-      "className",
-      "trigger",
-      "onOpen",
-      "finalFocus",
-      "onCloseComplete",
-      "aria-labelledby",
-      "aria-describedby",
-      "aria-modal"
-    ]);
-    const panel = (0, import_react_dom9.createPortal)(
-      /* @__PURE__ */ React32.createElement("div", { className: "aura-dialog-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React32.createElement(
-        "div",
-        {
-          className: "aura-scrim",
-          onClick: scrimCloses ? close : void 0,
-          onMouseDown: scrimCloses ? void 0 : function(e) {
-            e.preventDefault();
-          },
-          "aria-hidden": true
-        }
-      ), /* @__PURE__ */ React32.createElement(
-        "div",
-        {
-          ...rest,
-          ref: merged,
-          role: props.role || "dialog",
-          "aria-modal": true,
-          "aria-labelledby": titleId,
-          "aria-describedby": cx(props.description ? descId : "", props["aria-describedby"]) || void 0,
-          tabIndex: -1,
-          className: cx("aura-dialog", "aura-dialog--" + (props.size || "md"), props.className)
-        },
-        /* @__PURE__ */ React32.createElement("div", { className: "aura-dialog__head" }, /* @__PURE__ */ React32.createElement("h2", { className: "aura-dialog__title", id: titleId }, props.title), props.dismissible !== false ? /* @__PURE__ */ React32.createElement(IconButton, { icon: /* @__PURE__ */ React32.createElement(IconX, null), label: t.close, className: "aura-dialog__close", onClick: close }) : null),
-        props.description ? /* @__PURE__ */ React32.createElement("p", { className: "aura-dialog__desc", id: descId }, props.description) : null,
-        /* @__PURE__ */ React32.createElement(DialogClose.Provider, { value: closeNow }, props.children ? /* @__PURE__ */ React32.createElement("div", { className: "aura-dialog__body" }, props.children) : null, props.footer ? /* @__PURE__ */ React32.createElement("div", { className: "aura-dialog__foot" }, props.footer) : null)
-      )),
-      document.body
-    );
-    return trigger ? /* @__PURE__ */ React32.createElement(React32.Fragment, null, trigger, panel) : panel;
-  });
-  var Drawer = React32.forwardRef(function Drawer2(props, ref) {
-    const t = useStrings();
-    const density = useDensity();
-    const own = React32.useRef(null), merged = useMergedRef(ref, own), titleId = uid(), descId = uid();
-    function close() {
-      if (props.dismissible !== false && props.onClose) props.onClose();
-    }
-    const modal = useModal(props.open, own, {
-      autoFocus: props.autoFocus,
-      onEscape: close,
-      bodySelector: ".aura-drawer__body",
-      footSelector: ".aura-drawer__foot",
-      finalFocus: props.finalFocus,
-      onCloseComplete: props.onCloseComplete
-    });
-    if (!modal.ready) return null;
-    const side = props.side === "left" ? "left" : "right";
-    const rest = omit(props, [
-      "open",
-      "onClose",
-      "side",
-      "size",
-      "title",
-      "description",
-      "children",
-      "footer",
-      "dismissible",
-      "dismissOnScrim",
-      "autoFocus",
-      "aria-label",
-      "aria-describedby",
-      "aria-labelledby",
-      "className",
-      "closeLabel",
-      "closeProps",
-      "finalFocus",
-      "onCloseComplete"
-    ]);
-    const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
-    return (0, import_react_dom9.createPortal)(
-      /* @__PURE__ */ React32.createElement("div", { className: "aura-dialog-layer aura-drawer-layer", "data-density": density, onKeyDown: modal.onKeyDown }, /* @__PURE__ */ React32.createElement(
-        "div",
-        {
-          className: "aura-scrim",
-          onClick: drawerScrimCloses ? close : void 0,
-          onMouseDown: !drawerScrimCloses ? function(e) {
-            e.preventDefault();
-          } : void 0,
-          "aria-hidden": true
-        }
-      ), /* @__PURE__ */ React32.createElement(
-        "div",
-        {
-          ...rest,
-          ref: merged,
-          role: "dialog",
-          "aria-modal": true,
-          "aria-labelledby": props.title ? titleId : props["aria-labelledby"],
-          "aria-label": props.title ? void 0 : props["aria-label"],
-          "aria-describedby": cx(props.description ? descId : "", props["aria-describedby"]) || void 0,
-          tabIndex: -1,
-          className: cx("aura-drawer", "aura-drawer--" + side, "aura-drawer--" + (props.size || "md"), props.className)
-        },
-        props.title || props.dismissible !== false ? /* @__PURE__ */ React32.createElement("div", { className: "aura-drawer__head" }, props.title ? /* @__PURE__ */ React32.createElement("h2", { className: "aura-drawer__title", id: titleId }, props.title) : /* @__PURE__ */ React32.createElement("span", { style: { flex: 1 } }), props.dismissible !== false ? /* @__PURE__ */ React32.createElement(
-          IconButton,
-          {
-            ...props.closeProps,
-            icon: /* @__PURE__ */ React32.createElement(IconX, null),
-            label: props.closeLabel || t.close,
-            onClick: function(e) {
-              const own2 = props.closeProps && props.closeProps.onClick;
-              if (own2) own2(e);
-              if (!e.defaultPrevented) close();
-            }
-          }
-        ) : null) : null,
-        props.description ? /* @__PURE__ */ React32.createElement("p", { className: "aura-drawer__desc", id: descId }, props.description) : null,
-        /* @__PURE__ */ React32.createElement("div", { className: "aura-drawer__body" }, props.children),
-        props.footer ? /* @__PURE__ */ React32.createElement("div", { className: "aura-drawer__foot" }, props.footer) : null
-      )),
-      document.body
-    );
-  });
 
   // src/DataTable.tsx
   var React33 = __toESM(require_react(), 1);
@@ -7589,26 +7735,6 @@ window.Aura = (() => {
 
   // src/responsive.tsx
   var React39 = __toESM(require_react(), 1);
-
-  // src/breakpoints.ts
-  var breakpoints = { sm: 640, md: 768, lg: 1024, xl: 1280 };
-  var ORDER = ["base", "sm", "md", "lg", "xl"];
-  function respVars(prefix, value, map2) {
-    const style = {};
-    if (value == null) return style;
-    if (typeof value !== "object") value = { base: value };
-    let byBp = value, cur2;
-    ORDER.forEach(function(k) {
-      if (byBp[k] !== void 0) cur2 = map2 ? map2(byBp[k]) : byBp[k];
-      if (cur2 !== void 0) style["--" + prefix + "-" + k] = cur2;
-    });
-    return style;
-  }
-  var space = function(v) {
-    return typeof v === "number" ? "var(--aura-space-" + v + ")" : v;
-  };
-
-  // src/responsive.tsx
   var ORDER2 = ["base", "sm", "md", "lg", "xl"];
   function useBreakpoint() {
     return React39.useSyncExternalStore(subscribe, current, function() {

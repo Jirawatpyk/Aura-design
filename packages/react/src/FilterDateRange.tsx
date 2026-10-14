@@ -4,7 +4,7 @@ import { Calendar, allowedDate, useCalendarPopover } from './DatePicker.js';
 import { Button } from './Button.js';
 import { Icon } from './Icon.js';
 import { IconChevronDown } from './icons.js';
-import { cx, touchClass, trapTab, uid, useMaybeControlled, useMergedRef } from './internal.js';
+import { cx, FilterSheet, touchClass, trapTab, uid, useMaybeControlled, useMergedRef } from './internal.js';
 import { useAuraLocale } from './locale.js';
 import { dateText, defaultCalendar, formatDateRange } from './dates.js';
 import type { DateRange, FilterDateRangeProps, ISODate } from './types.js';
@@ -35,6 +35,8 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
     const anyLabel = props.anyLabel || dt.anyTime;
     const value = v.start && v.end ? formatDateRange(v.start, v.end, { locale: locale, calendar: calendar }) : anyLabel;
     const setFace = useMergedRef(ref, faceRef);
+    /* 5.42: in FilterBar's phone sheet the name is a visible label above a full-width face showing the value. */
+    const inSheet = React.useContext(FilterSheet);
     const limits = {
       min: props.min,
       max: props.max,
@@ -145,7 +147,7 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
             document.body,
           )
         : null;
-    return (
+    const box = (
       <React.Fragment>
         <div
           ref={boxRef}
@@ -153,6 +155,7 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
             'aura-filterselect',
             pop.open && 'is-open',
             props.disabled && 'is-disabled',
+            inSheet && 'aura-filterselect--sheet',
             touchClass(props.touchHeight),
             props.className,
           )}
@@ -188,6 +191,16 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
         </div>
         {cal}
       </React.Fragment>
+    );
+    if (!inSheet) return box;
+    /* The label is shown, not read: the face already says "Submitted: Any time". */
+    return (
+      <div className={cx('aura-field', props.disabled && 'is-disabled')}>
+        <span className="aura-field__label" aria-hidden={own ? undefined : true}>
+          {props.label}
+        </span>
+        {box}
+      </div>
     );
   },
 );

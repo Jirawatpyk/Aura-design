@@ -105,6 +105,10 @@ export interface AuraStrings {
   statusUnknown: string;
   /** Read after a Menu link item with `target="_blank"` (5.41): "Visit site (opens in a new tab)". */
   opensInNewTab: string;
+  /** 5.42: FilterBar's collapsed-filters button, read with its count ("Filters, 2 applied"). */
+  filtersApplied: (n: number) => string;
+  /** 5.42: closes FilterBar's "Filters" sheet. */
+  done: string;
 }
 /** Built-in strings by locale. th and sv also ship as packs (`@jirawatpyk/aura-react/locales/th`, `/sv`, 5.9); in 6.0
  * only en stays built in and a Thai or Swedish app passes its pack to AuraProvider `strings`. */
@@ -239,6 +243,10 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     statusOk: 'OK',
     statusUnknown: 'No data',
     opensInNewTab: 'opens in a new tab',
+    filtersApplied: function (n) {
+      return 'Filters, ' + n.toLocaleString('en') + ' applied';
+    },
+    done: 'Done',
     accepts: function (list, max) {
       return [list, max && 'up to ' + max + ' each'].filter(Boolean).join(', ');
     },

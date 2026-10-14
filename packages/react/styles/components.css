@@ -499,7 +499,9 @@ a.aura-icon-btn { text-decoration: none; }
 
 .aura-input {
   position: relative; box-sizing: border-box; display: flex; align-items: center; width: 100%;
-  min-height: var(--aura-input-height);
+  /* 5.42 (Chamber-OS 147): a box in a flex row (FilterBar's search) may shrink below its <input>'s 20-character
+   * size, which at a large default font (5.40) is wider than a phone. */
+  min-width: 0; min-height: var(--aura-input-height);
   background: var(--aura-bg-input); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-control); border-radius: var(--aura-radius-md);
   font-family: var(--font-sans); font-size: var(--aura-input-font-size);
@@ -510,7 +512,10 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-input:hover { border-color: var(--aura-fg-secondary); }
 .aura-input:focus-within { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-color: var(--aura-border-strong); }
 .aura-input__control {
-  flex: 1; min-width: 0; height: calc(var(--aura-input-height) - 2px); padding: 0 var(--aura-space-3);
+  /* 5.42 (Chamber-OS 147): a percentage width makes the control's min-content zero (a compressible control), so a
+   * field in a grid cell or flex row never forces it wider than the screen at a large default font; its preferred
+   * width is still the 20-character size. */
+  flex: 1; width: 100%; min-width: 0; height: calc(var(--aura-input-height) - 2px); padding: 0 var(--aura-space-3);
   border: 0; background: transparent; color: inherit; font: inherit; outline: none;
   appearance: none; -webkit-appearance: none;
 }
@@ -1787,7 +1792,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 }
 /* 5.12 searchGrow: the search fills what the controls leave. */
 .aura-filterbar--grow .aura-filterbar__search { max-width: none; }
-.aura-filterbar--grow .aura-filterbar__search ~ .aura-filterbar__spacer { display: none; }
+.aura-filterbar--grow :is(.aura-filterbar__search, .aura-filterbar__lead:has(> .aura-filterbar__search)) ~ .aura-filterbar__spacer { display: none; }
 /* 5.15 (Chamber-OS 92): the search on its own row up to 1024px; controls sharing their row in equal columns. */
 @media (max-width: 1023.98px) {
   .aura-filterbar--stack-lg .aura-filterbar__search { flex-basis: 100%; max-width: none; }
@@ -1800,6 +1805,31 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterbar--fill .aura-filterbar__controls > .aura-filterselect .aura-filterselect__chevron { margin-inline-start: auto; }
 /* Compact filters sit closer together than full fields. */
 .aura-filterbar__controls:has(> .aura-filterselect) { gap: var(--aura-space-2); }
+/* 5.42 (Chamber-OS 146): collapseBelow — below the breakpoint the controls fold into a "Filters" sheet; the button
+ * shares a row with the search, at its end, as tall as the search (the count and actions wrap below). From the
+ * breakpoint up the search and the hidden button sit in a display: contents box, so the bar lays out as before. */
+.aura-filterbar__lead { display: contents; }
+.aura-filterbar__more { display: none; flex: none; height: var(--aura-input-height); }
+@media (max-width: 639.98px) {
+  .aura-filterbar--collapse-sm > .aura-filterbar__row > .aura-filterbar__controls { display: none; }
+  .aura-filterbar--collapse-sm .aura-filterbar__lead { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); }
+  .aura-filterbar--collapse-sm .aura-filterbar__more { display: inline-flex; }
+  .aura-filterbar--collapse-sm .aura-filterbar__search { flex: 1 1 0; min-width: 0; max-width: none; }
+}
+@media (max-width: 767.98px) {
+  .aura-filterbar--collapse-md > .aura-filterbar__row > .aura-filterbar__controls { display: none; }
+  .aura-filterbar--collapse-md .aura-filterbar__lead { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); }
+  .aura-filterbar--collapse-md .aura-filterbar__more { display: inline-flex; }
+  .aura-filterbar--collapse-md .aura-filterbar__search { flex: 1 1 0; min-width: 0; max-width: none; }
+}
+/* The sheet: one control per row at full width, labels showing; a toggle Tag or a Button keeps its own width. */
+.aura-filterbar--sheet { gap: var(--aura-space-4); }
+.aura-filterbar--sheet > :is(.aura-tag, .aura-btn, .aura-segmented) { align-self: flex-start; }
+.aura-filterbar--sheet .aura-filterselect { display: flex; width: 100%; }
+.aura-filterbar--sheet .aura-filterselect__face { width: 100%; padding-inline: var(--aura-space-3) var(--aura-space-2); font-size: max(16px, 1rem); }
+.aura-filterbar--sheet .aura-filterselect__name { display: none; }
+.aura-filterbar--sheet .aura-filterselect__value { font-weight: 400; }
+.aura-filterbar--sheet .aura-filterselect__chevron { margin-inline-start: auto; width: var(--aura-icon-sm); height: var(--aura-icon-sm); }
 
 /* 5.12 FilterSelect: a compact face — "Status All ▾" — as wide as its words, over Select's machinery and list. */
 .aura-filterselect { position: relative; display: inline-flex; width: fit-content; max-width: 100%; vertical-align: middle; font-family: var(--font-sans); }

@@ -186,6 +186,21 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.42 — Chamber-OS addendum 49 (#146–147)
+
+- **Fields no longer widen a phone at a large default font** (#147, a 5.40 regression): an `<input>`'s 20-character size grew with the browser's font size, so at a 32px default FilterBar's search measured ~450px and a 390px page scrolled sideways; so did a TextField, Combobox, DatePicker or NumberField in a grid cell or flex row without `min-width: 0`. The text box now never asks for more than the room it gets (`.aura-input` has `min-width: 0` and its control a percentage width, so its smallest size is zero) while its natural width is unchanged. At the 16px default a page lays out as in 5.41 unless a field was already wider than its room: we compared every Storybook story at 390 and 1280px pixel for pixel, and the only differences are fields that used to stick out of their grid cell or row, which now fit (a touch-height Combobox in a 390px FilterBar, a time-zone field in a two-column grid). A row of nowrap Buttons or a SegmentedControl can still be wider than a phone at 32px; give such rows `wrap` (Stack) or `fullWidth`.
+
+- **FilterBar `collapseBelow`** (#146): `'sm' | 'md'` — below 640px or 768px the filters passed as `children` fold into one **Filters** button at the end of the search's row ("Filters (2)", read "Filters, 2 applied"; `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls`), as tall as the search, so it follows `touchHeight`. The search, the applied chips, Clear all, `resultCount` and `actions` stay in the bar; the count and actions wrap under the search row. The number is the count of `filters` (chips); `filterCount` overrides it.
+  ```tsx
+  <FilterBar collapseBelow="sm" touchHeight search={q} onSearchChange={setQ}
+    filters={chips} onClearAll={clear} resultCount={total}>
+    <FilterSelect label="Status" … />
+    <FilterDateRange label="Submitted" … />
+  </FilterBar>
+  ```
+  The button opens a **Filters** sheet (AURA's Dialog, a bottom sheet on phones) with the same children one per row at full width, 44px, labels showing: a FilterSelect is a labelled Select there (its "all" choice in full words) and a FilterDateRange shows its name above a full-width face. A toggle Tag, a Button or a SegmentedControl keeps its own width. Every change applies at once, as in the bar — there is no Apply step. The footer has Clear all (while chips exist) and **Done**; Done, Escape and the scrim close it and focus returns to the button (in Safari too). Widening past the breakpoint with the sheet open closes it.
+  The children render in one place at a time — the bar (hidden below the breakpoint) or, while it is open, the sheet — so a controlled filter is never doubled; they mount again when they move, so keep their state with the page (`value` + `onChange`, the URL), not in `defaultValue`. A bar with no children (search only) shows no button; without the prop nothing changes. Server HTML is the bar with the button closed. New strings `filtersApplied(n)` and `done` (th: ตัวกรอง, ใช้อยู่ 2 รายการ · เสร็จสิ้น; sv: Filter, 2 aktiva · Klar), and a `sliders-horizontal` icon (71 in all).
+
 ## 5.41 — DxT Monitor requests 19–22
 
 - **No menu button on a page with a back arrow** (request 19): put `data-aura-hide-menubutton` on any element of the page (as with `data-aura-hide-bottomnav`) and AppShell's phone bar drops its menu button, giving the title its room (a shell with no `header` then has no bar on phones). The drawer stays reachable from pages without the mark. A browser without `:has()` keeps the button.
@@ -515,7 +530,7 @@ One release: everything below shipped together in 5.26.0.
 
 | In 6.0 | Why | Do this on 5.9 |
 |---|---|---|
-| **Icon names as strings need `registerIcons`.** The name map (~3.4 kB gzip) leaves the default bundle. | Every component paid for all 70 icons. | Import icons as components: `icon={<IconUsers />}` from `@jirawatpyk/aura-react/icons` — `npx aura-icons-codemod src` rewrites literal names for you (`--dry` to preview; details below). Or keep names: `registerIcons(allIcons)` once at startup. |
+| **Icon names as strings need `registerIcons`.** The name map (~3.4 kB gzip) leaves the default bundle. | Every component paid for all 71 icons. | Import icons as components: `icon={<IconUsers />}` from `@jirawatpyk/aura-react/icons` — `npx aura-icons-codemod src` rewrites literal names for you (`--dry` to preview; details below). Or keep names: `registerIcons(allIcons)` once at startup. |
 | **Only English is built in.** Thai and Swedish move to packs. | Single-language apps stop shipping two other languages. | `import { th } from '@jirawatpyk/aura-react/locales/th'` and `<AuraProvider locale="th" strings={th}>` (same for `sv`). |
 | **Checkbox shows `label`** beside the box (today it is only the accessible name). | A hidden label fails WCAG 2.5.3 for voice users. Announced since 5.1. | Visible text as `children`, or `hideLabel` for a bare box (a table row). |
 | **DropdownMenu has one structure**: `role="menu"` is always on `.aura-menu__list` inside `.aura-menu` (today it moves to `.aura-menu` when there is no `header`). | Same DOM for CSS and tests either way. | Select menus by `[role="menu"]` or `.aura-menu__list`, not `.aura-menu[role="menu"]`. No notice (it can't see your CSS). |
@@ -621,7 +636,7 @@ const columns: DataTableColumn<Order>[] = [
 - **Checkbox `label`** is still only the accessible name in 5.x (visible text goes in children). In development a `label` without children warns once: **6.0 will show `label` beside the box**, like Switch and TextField. Mark bare boxes (table rows) with `hideLabel` now and they stay bare; DataTable's own boxes already do.
 - **Dialog and Drawer focus the first field on open** (then the first footer button), not the close button; controls out of the Tab order (`tabindex="-1"`, e.g. unselected tabs) and hidden ones are skipped.
 - **SideNav** without a `header` keeps its first item off the top edge; `bordered={false}` drops its own right edge when your layout draws the divider.
-- **Icons**: `server`, `globe`, `activity`, `shield-alert`, `phone`, `wrench` (70 in all).
+- **Icons**: `server`, `globe`, `activity`, `shield-alert`, `phone`, `wrench` (70 in all; 5.42 adds `sliders-horizontal`).
 
 ## Upgrading to 5.0
 

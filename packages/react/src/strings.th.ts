@@ -133,6 +133,10 @@ export const th: AuraLocalePack = {
   statusOk: 'ปกติ',
   statusUnknown: 'ยังไม่มีข้อมูล',
   opensInNewTab: 'เปิดในแท็บใหม่',
+  filtersApplied: function (n) {
+    return 'ตัวกรอง, ใช้อยู่ ' + n.toLocaleString('en') + ' รายการ';
+  },
+  done: 'เสร็จสิ้น',
   accepts: function (list, max) {
     return [list, max && 'ไม่เกิน ' + max + ' ต่อไฟล์'].filter(Boolean).join(' · ');
   },
