@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.43.0
+
+### Minor Changes
+
+- 85e1369: Chamber-OS #148: a FilterBar with `collapseBelow` and no search gives its Filters button the whole row below the breakpoint (label centred); with a search it keeps its place beside it.
+
 ## 5.42.0
 
 ### Minor Changes
