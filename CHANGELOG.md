@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.45.0 — 2026-10-15
+
+### Minor changes
+
+- e984263: Chamber-OS #150: PageHeader `actionsBarBelow` (`'sm' | 'md'`) and `actionsStatus` — below the breakpoint the header's actions (rendered once) become a bar fixed to the bottom of the screen with a status line, and the page scrolls clear of it; status and a lone ⋯ share one row. The ⋯ beside wrapped buttons (`actionsFullWidthBelow`, #149) is now vertically centred.
+
 ## 5.44.0 — 2026-10-15
 
 ### Minor changes
