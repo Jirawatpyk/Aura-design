@@ -1814,12 +1814,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-filterbar--collapse-sm > .aura-filterbar__row > .aura-filterbar__controls { display: none; }
   .aura-filterbar--collapse-sm .aura-filterbar__lead { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); }
   .aura-filterbar--collapse-sm .aura-filterbar__more { display: inline-flex; }
+  .aura-filterbar--collapse-sm .aura-filterbar__lead.is-alone > .aura-filterbar__more { flex: 1 1 auto; } /* 5.43 (Chamber-OS 148): no search, the button takes the row */
   .aura-filterbar--collapse-sm .aura-filterbar__search { flex: 1 1 0; min-width: 0; max-width: none; }
 }
 @media (max-width: 767.98px) {
   .aura-filterbar--collapse-md > .aura-filterbar__row > .aura-filterbar__controls { display: none; }
   .aura-filterbar--collapse-md .aura-filterbar__lead { display: flex; flex: 1 1 100%; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); }
   .aura-filterbar--collapse-md .aura-filterbar__more { display: inline-flex; }
+  .aura-filterbar--collapse-md .aura-filterbar__lead.is-alone > .aura-filterbar__more { flex: 1 1 auto; }
   .aura-filterbar--collapse-md .aura-filterbar__search { flex: 1 1 0; min-width: 0; max-width: none; }
 }
 /* The sheet: one control per row at full width, labels showing; a toggle Tag or a Button keeps its own width. */

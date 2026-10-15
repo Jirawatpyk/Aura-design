@@ -8442,3 +8442,41 @@ test.describe('5.42: Chamber-OS 146–147 — FilterBar collapseBelow, fields at
     await ctx.close();
   });
 });
+
+test.describe('5.43: Chamber-OS 148 — FilterBar collapseBelow without a search', () => {
+  const ID = 'aura-new-in-5-43-chamber-os-148--no-search';
+  const geo = (page: Page, id: string) =>
+    page.getByTestId(id).evaluate((el) => {
+      const r = (s: string) => el.querySelector(s)!.getBoundingClientRect();
+      const b = r('.aura-filterbar__more'),
+        bar = el.querySelector('.aura-filterbar')!.getBoundingClientRect(),
+        label = el.querySelector('.aura-filterbar__more span[aria-hidden="true"]')!.getBoundingClientRect();
+      return {
+        width: Math.round(b.width),
+        bar: Math.round(bar.width),
+        left: Math.round(b.left - bar.left),
+        centre: Math.abs(Math.round(label.left + label.width / 2 - (b.left + b.width / 2))) <= 12,
+        height: Math.round(b.height),
+      };
+    });
+
+  test('148: with no search the Filters button fills its row below 640px, label centred; with a search it keeps its width', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const t = await geo(page, 'timeline');
+    expect(t.width).toBe(t.bar);
+    expect(t.left).toBe(0);
+    expect(t.centre).toBe(true);
+    expect(t.height).toBe(44);
+    await expect(page.getByTestId('timeline').getByRole('button', { name: 'Filters, 1 applied' })).toBeVisible();
+    const s = await geo(page, 'with-search');
+    expect(s.width).toBeLessThan(160);
+    expect(s.left + s.width).toBe(s.bar);
+    /* From 640px: the bar as before — the filters in it, no button. */
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await expect(page.getByTestId('timeline').locator('.aura-filterbar__more')).toBeHidden();
+    await expect(page.getByTestId('timeline').locator('.aura-filterbar__controls')).toBeVisible();
+  });
+});

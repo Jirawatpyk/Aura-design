@@ -296,6 +296,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.43 (Chamber-OS 148): a collapsing bar with no search marks its lead row is-alone (the button fills it). */
+    {
+      const ctrl = e(A.FilterSelect, { label: 'Role', options: ['All', 'A'], value: 'A', onChange: () => {} });
+      const alone = m(e(A.FilterBar, { collapseBelow: 'sm' }, ctrl));
+      const withSearch = m(e(A.FilterBar, { collapseBelow: 'sm', search: '', onSearchChange: () => {} }, ctrl));
+      if (!/<div class="aura-filterbar__lead is-alone"><button/.test(alone) || /is-alone/.test(withSearch) || !/<div class="aura-filterbar__lead"><div class="aura-input/.test(withSearch)) bad('Chamber-OS 148:', alone, withSearch);
+    }
     /* 5.42 (Chamber-OS 146): FilterBar collapseBelow — the class, the search and a closed "Filters (n)" button in a
      * lead box, the children still in the bar (no sheet in server HTML); no children, no button; every language has
      * the button's words. */

@@ -180,6 +180,12 @@ try {
   x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
   check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
 
+  /* 5.43 (#148): a collapsing bar with no search — the Filters button fills its row at a phone width. */
+  await go('aura-new-in-5-43-chamber-os-148--no-search');
+  x = await ex(`const w = (t, s) => Math.round(document.querySelector('[data-testid=' + t + '] ' + s).getBoundingClientRect().width);
+    return [w('timeline', '.aura-filterbar__more') === w('timeline', '.aura-filterbar'), w('with-search', '.aura-filterbar__more') < 160]`);
+  check(JSON.stringify(x) === '[true,true]', 'FilterBar collapseBelow without a search: the button fills the row; beside a search it does not', x);
+
   /* 5.42 (#147): with the root font doubled (as a 32px default does) a TextField in a grid cell
    * keeps to the page; with 5.41's sizing put back it doesn't (the control). */
   for (const id of ['aura-new-in-5-31-addendum-41--label-addon']) {

@@ -207,7 +207,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
         {collapse ? (
           /* 5.42: the search and the Filters button share a row of their own below the breakpoint (count and actions
            * wrap under them); from the breakpoint up this box is display: contents and the bar is as before. */
-          <div className="aura-filterbar__lead">
+          <div className={cx('aura-filterbar__lead', !hasSearch && 'is-alone')}>
             {searchBox}
             {more}
           </div>

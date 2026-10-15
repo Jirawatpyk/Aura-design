@@ -5421,7 +5421,7 @@ window.Aura = (() => {
       /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__row" }, collapse ? (
         /* 5.42: the search and the Filters button share a row of their own below the breakpoint (count and actions
          * wrap under them); from the breakpoint up this box is display: contents and the bar is as before. */
-        /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__lead" }, searchBox, more)
+        /* @__PURE__ */ React31.createElement("div", { className: cx("aura-filterbar__lead", !hasSearch && "is-alone") }, searchBox, more)
       ) : searchBox, hasChildren && !open ? /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__controls" }, props.children) : null, /* @__PURE__ */ React31.createElement("span", { className: "aura-filterbar__spacer" }), count != null ? /* @__PURE__ */ React31.createElement("span", { className: "aura-filterbar__count", "aria-live": "polite" }, count) : null, props.actions ? /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__actions" }, props.actions) : null),
       filters.length || props.onClearAll && anything ? /* @__PURE__ */ React31.createElement("div", { className: "aura-filterbar__chips" }, filters.map(function(f) {
         return /* @__PURE__ */ React31.createElement(Tag, { key: f.id, onRemove: f.onRemove }, f.label);

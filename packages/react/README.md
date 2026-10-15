@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.43 — Chamber-OS addendum 50 (#148)
+
+- **FilterBar `collapseBelow` with no search** (#148): below the breakpoint the Filters button fills the row it would otherwise sit at the end of, its label centred (an activity timeline with filters and no search). With a search it stays beside it, as in 5.42. From the breakpoint up nothing changes. Remove a stand-in such as `[&_.aura-filterbar__more]:flex-1`.
+
 ## 5.42 — Chamber-OS addendum 49 (#146–147)
 
 - **Fields no longer widen a phone at a large default font** (#147, a 5.40 regression): an `<input>`'s 20-character size grew with the browser's font size, so at a 32px default FilterBar's search measured ~450px and a 390px page scrolled sideways; so did a TextField, Combobox, DatePicker or NumberField in a grid cell or flex row without `min-width: 0`. The text box now never asks for more than the room it gets (`.aura-input` has `min-width: 0` and its control a percentage width, so its smallest size is zero) while its natural width is unchanged. At the 16px default a page lays out as in 5.41 unless a field was already wider than its room: we compared every Storybook story at 390 and 1280px pixel for pixel, and the only differences are fields that used to stick out of their grid cell or row, which now fit (a touch-height Combobox in a 390px FilterBar, a time-zone field in a two-column grid). A row of nowrap Buttons or a SegmentedControl can still be wider than a phone at 32px; give such rows `wrap` (Stack) or `fullWidth`.
