@@ -87,7 +87,7 @@ window.Aura = (() => {
     IconButton: () => IconButton,
     Menu: () => Menu,
     NumberField: () => NumberField,
-    PageHeader: () => PageHeader,
+    PageHeader: () => PageHeader3,
     Pagination: () => Pagination,
     PasswordField: () => PasswordField,
     Popover: () => Popover,
@@ -6853,8 +6853,8 @@ window.Aura = (() => {
               }
             );
           };
-          const bars = [];
-          for (let b = 0; b < lines; b++) bars.push(bar(b));
+          const bars2 = [];
+          for (let b = 0; b < lines; b++) bars2.push(bar(b));
           sk.push(
             /* @__PURE__ */ React33.createElement(
               "span",
@@ -6878,7 +6878,7 @@ window.Aura = (() => {
                     c.skeletonTouch && "is-touch"
                   )
                 }
-              ) : lines > 1 ? /* @__PURE__ */ React33.createElement("span", { className: "aura-skel-lines" }, bars) : bars[0]
+              ) : lines > 1 ? /* @__PURE__ */ React33.createElement("span", { className: "aura-skel-lines" }, bars2) : bars2[0]
             )
           );
         });
@@ -7820,6 +7820,9 @@ window.Aura = (() => {
     );
   });
 
+  // src/PageHeaderClient.tsx
+  var React44 = __toESM(require_react(), 1);
+
   // src/PageHeader.tsx
   var React43 = __toESM(require_react(), 1);
   var h8 = React43.createElement;
@@ -7833,6 +7836,8 @@ window.Aura = (() => {
     const below2 = props.actionsFullWidthBelow;
     const hide2 = props.titleHideBelow;
     const hasMeta = props.meta != null && props.meta !== false;
+    const hasActions = props.actions != null && props.actions !== false;
+    const bar = hasActions && (props.actionsBarBelow === "sm" || props.actionsBarBelow === "md") ? props.actionsBarBelow : null;
     return h8(
       "div",
       Object.assign(attrs2, {
@@ -7842,6 +7847,7 @@ window.Aura = (() => {
           (below2 === "sm" || below2 === "md" || below2 === "lg") && "aura-page-header--actions-full-below-" + below2,
           (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && "aura-page-header--title-hide-below-" + hide2,
           (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && !hasMeta && "has-no-meta",
+          bar && "aura-page-header--actions-bar-below-" + bar,
           props.className
         ),
         style: props.style
@@ -7854,16 +7860,78 @@ window.Aura = (() => {
         h8("h" + level, { className: "aura-page-header__title", id: props.titleId }, props.title),
         props.meta != null && props.meta !== false ? h8("div", { className: "aura-page-header__meta" }, props.meta) : null
       ),
-      props.actions != null && props.actions !== false ? h8("div", { className: "aura-page-header__actions" }, props.actions) : null
+      props.actions != null && props.actions !== false ? h8(
+        "div",
+        { className: "aura-page-header__actions" },
+        bar && props.actionsStatus != null && props.actionsStatus !== false ? h8("div", { className: "aura-page-header__status", role: "status" }, props.actionsStatus) : null,
+        props.actions
+      ) : null
     );
   });
 
+  // src/PageHeaderClient.tsx
+  var NAME = "--aura-page-actions-height";
+  var bars = [];
+  function trapped(el) {
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      if (s.transform !== "none" || s.filter !== "none" || (s.backdropFilter || "none") !== "none" || s.contentVisibility === "auto" || s.perspective !== "none" || /transform|filter|perspective/.test(s.willChange) || /paint|layout|strict|content/.test(s.contain))
+        return true;
+    }
+    return false;
+  }
+  var PageHeader3 = React44.forwardRef(function PageHeader4(props, ref) {
+    const own = React44.useRef(null);
+    const merged = useMergedRef(ref, own);
+    const bar = props.actionsBarBelow;
+    const hasActions = props.actions != null && props.actions !== false;
+    React44.useEffect(
+      function() {
+        if (bar !== "sm" && bar !== "md" || !hasActions || !own.current) return;
+        const el = own.current.querySelector(":scope > .aura-page-header__actions");
+        if (!el) return;
+        const root = document.documentElement;
+        let checked = false;
+        function sync() {
+          if (bars[bars.length - 1] !== sync) return;
+          if (getComputedStyle(el).position === "fixed") {
+            root.style.setProperty(NAME, el.offsetHeight + "px");
+            if (!checked && (checked = true, trapped(el)))
+              devWarnOnce(
+                "pageheader-bar-trapped",
+                "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors."
+              );
+          } else root.style.removeProperty(NAME);
+        }
+        if (bars.length)
+          devWarnOnce(
+            "pageheader-bar-twice",
+            "PageHeader actionsBarBelow: two bars on one page overlap at the bottom of the screen. Give it to one PageHeader per page."
+          );
+        bars.push(sync);
+        const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
+        if (ro) ro.observe(el);
+        window.addEventListener("resize", sync);
+        sync();
+        return function() {
+          if (ro) ro.disconnect();
+          window.removeEventListener("resize", sync);
+          bars.splice(bars.indexOf(sync), 1);
+          if (bars.length) bars[bars.length - 1]();
+          else root.style.removeProperty(NAME);
+        };
+      },
+      [bar, hasActions]
+    );
+    return /* @__PURE__ */ React44.createElement(PageHeader, { ...props, ref: merged });
+  });
+
   // src/StatusTile.tsx
-  var React45 = __toESM(require_react(), 1);
+  var React46 = __toESM(require_react(), 1);
 
   // src/tiles.tsx
-  var React44 = __toESM(require_react(), 1);
-  var h9 = React44.createElement;
+  var React45 = __toESM(require_react(), 1);
+  var h9 = React45.createElement;
   var STATUS_ICON = {
     down: IconCircleAlert,
     problem: IconTriangleAlert,
@@ -7955,7 +8023,7 @@ window.Aura = (() => {
       ) : null
     );
   }
-  var TileGrid = React44.forwardRef(function TileGrid2(props, ref) {
+  var TileGrid = React45.forwardRef(function TileGrid2(props, ref) {
     const style = Object.assign(
       {},
       respVars("aura-grid-cols", props.columns == null ? { base: 2, md: 3 } : props.columns),
@@ -7971,16 +8039,16 @@ window.Aura = (() => {
       }),
       /* toArray drops null and booleans and keys each element; a Fragment's children are items too. */
       flat(props.children).map(function(c, i) {
-        return h9("li", { key: React44.isValidElement(c) && c.key != null ? c.key : i }, c);
+        return h9("li", { key: React45.isValidElement(c) && c.key != null ? c.key : i }, c);
       })
     );
   });
   function flat(children) {
     const out = [];
-    React44.Children.toArray(children).forEach(function(c) {
-      if (React44.isValidElement(c) && c.type === React44.Fragment)
+    React45.Children.toArray(children).forEach(function(c) {
+      if (React45.isValidElement(c) && c.type === React45.Fragment)
         flat(c.props.children).forEach(function(x) {
-          out.push(React44.isValidElement(x) ? React44.cloneElement(x, { key: String(c.key) + "/" + String(x.key) }) : x);
+          out.push(React45.isValidElement(x) ? React45.cloneElement(x, { key: String(c.key) + "/" + String(x.key) }) : x);
         });
       else if (c !== "") out.push(c);
     });
@@ -7994,7 +8062,7 @@ window.Aura = (() => {
   function num(v) {
     return typeof v === "number" && isFinite(v) ? v : null;
   }
-  var Sparkline = React44.forwardRef(function Sparkline2(props, ref) {
+  var Sparkline = React45.forwardRef(function Sparkline2(props, ref) {
     const wh = SIZES2[props.size || "sm"] || SIZES2.sm;
     const W = wh[0], H = wh[1];
     const data = (props.data || []).map(num);
@@ -8068,8 +8136,8 @@ window.Aura = (() => {
   });
 
   // src/StatusTile.tsx
-  var useIsoLayoutEffect2 = typeof window !== "undefined" ? React45.useLayoutEffect : React45.useEffect;
-  var StatusTile = React45.forwardRef(function StatusTile2(props, ref) {
+  var useIsoLayoutEffect2 = typeof window !== "undefined" ? React46.useLayoutEffect : React46.useEffect;
+  var StatusTile = React46.forwardRef(function StatusTile2(props, ref) {
     const Link = useLinkComponent(props.linkComponent);
     const t = useStrings();
     useAutoTip();
@@ -8078,8 +8146,8 @@ window.Aura = (() => {
         "status-tile-label",
         "StatusTile `aria-label` needs `href`: without a link the tile is a plain box, where a name is not allowed."
       );
-    const titleRef = React45.useRef(null);
-    const check = React45.useCallback(function() {
+    const titleRef = React46.useRef(null);
+    const check = React46.useCallback(function() {
       const el = titleRef.current;
       if (!el) return;
       const cut = el.scrollHeight > el.clientHeight + 1;
@@ -8089,7 +8157,7 @@ window.Aura = (() => {
     }, []);
     useIsoLayoutEffect2(check, [props.title, check]);
     const linked = !!props.href;
-    React45.useEffect(
+    React46.useEffect(
       function() {
         const el = titleRef.current;
         if (!el) return;
@@ -8114,14 +8182,14 @@ window.Aura = (() => {
   });
 
   // src/AppShell.tsx
-  var React47 = __toESM(require_react(), 1);
+  var React48 = __toESM(require_react(), 1);
 
   // src/scrollHide.ts
-  var React46 = __toESM(require_react(), 1);
+  var React47 = __toESM(require_react(), 1);
   var STEP = 8;
   function useHideOnScroll(enabled, el, media, from) {
-    const st = React46.useState(false), hidden = st[0], setHidden = st[1];
-    React46.useEffect(
+    const st = React47.useState(false), hidden = st[0], setHidden = st[1];
+    React47.useEffect(
       function() {
         if (!enabled || typeof window === "undefined") {
           setHidden(false);
@@ -8211,31 +8279,31 @@ window.Aura = (() => {
   }
 
   // src/AppShell.tsx
-  var AppShell = React47.forwardRef(function AppShell2(props, ref) {
+  var AppShell = React48.forwardRef(function AppShell2(props, ref) {
     const t = useStrings();
     const bp = useBreakpoint();
     const wide = bp === "lg" || bp === "xl";
-    const st = React47.useState(false), open = st[0], setOpen = st[1];
-    React47.useEffect(
+    const st = React48.useState(false), open = st[0], setOpen = st[1];
+    React48.useEffect(
       function() {
         if (wide) setOpen(false);
       },
       [wide]
     );
-    const navEl = props.nav && React47.isValidElement(props.nav) ? props.nav : null;
+    const navEl = props.nav && React48.isValidElement(props.nav) ? props.nav : null;
     const shared = !!navEl && navEl.props.value === void 0 && (navEl.props.defaultValue !== void 0 || navEl.props.sections !== void 0 || navEl.props.items !== void 0);
-    const navState = React47.useState(navEl ? navEl.props.defaultValue : void 0);
+    const navState = React48.useState(navEl ? navEl.props.defaultValue : void 0);
     function onNav(id) {
       if (shared) navState[1](id);
       if (navEl && navEl.props.onChange) navEl.props.onChange(id);
     }
-    const rootRef = React47.useRef(null);
-    const barRef = React47.useRef(null);
+    const rootRef = React48.useRef(null);
+    const barRef = React48.useRef(null);
     const mergedRef = useMergedRef(ref, rootRef);
     const hasBar = !!(props.header || props.nav);
-    const barH = React47.useState(null);
+    const barH = React48.useState(null);
     const away = useHideOnScroll(!!props.headerHideOnScroll && hasBar, barRef, "(max-width: 1023.98px)", barH[0] || 56);
-    const awayRef = React47.useRef(away);
+    const awayRef = React48.useRef(away);
     awayRef.current = away;
     useIsoLayoutEffect(
       function() {
@@ -8264,8 +8332,8 @@ window.Aura = (() => {
       },
       [hasBar]
     );
-    const deskNav = navEl && shared ? React47.cloneElement(navEl, { value: navState[0], onChange: onNav }) : props.nav;
-    const drawerNav = navEl ? React47.cloneElement(navEl, {
+    const deskNav = navEl && shared ? React48.cloneElement(navEl, { value: navState[0], onChange: onNav }) : props.nav;
+    const drawerNav = navEl ? React48.cloneElement(navEl, {
       value: shared ? navState[0] : navEl.props.value,
       onChange: function(id) {
         onNav(id);
@@ -8280,7 +8348,7 @@ window.Aura = (() => {
       collapsed: false,
       collapsible: false
     }) : props.nav;
-    return /* @__PURE__ */ React47.createElement(
+    return /* @__PURE__ */ React48.createElement(
       "div",
       {
         ref: mergedRef,
@@ -8295,8 +8363,8 @@ window.Aura = (() => {
           props.className
         )
       },
-      props.nav ? /* @__PURE__ */ React47.createElement("div", { className: "aura-shell__nav" }, deskNav) : null,
-      props.nav ? /* @__PURE__ */ React47.createElement(
+      props.nav ? /* @__PURE__ */ React48.createElement("div", { className: "aura-shell__nav" }, deskNav) : null,
+      props.nav ? /* @__PURE__ */ React48.createElement(
         Drawer,
         {
           open,
@@ -8313,7 +8381,7 @@ window.Aura = (() => {
         },
         drawerNav
       ) : null,
-      /* @__PURE__ */ React47.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React47.createElement(
+      /* @__PURE__ */ React48.createElement("div", { className: "aura-shell__main" }, props.header || props.nav ? /* @__PURE__ */ React48.createElement(
         "header",
         {
           ref: barRef,
@@ -8325,11 +8393,11 @@ window.Aura = (() => {
             away && "is-away"
           )
         },
-        props.nav ? /* @__PURE__ */ React47.createElement(
+        props.nav ? /* @__PURE__ */ React48.createElement(
           IconButton,
           {
             className: "aura-shell__menu",
-            icon: /* @__PURE__ */ React47.createElement(IconMenu, null),
+            icon: /* @__PURE__ */ React48.createElement(IconMenu, null),
             label: props.menuLabel || t.openNav,
             size: "md",
             onClick: function() {
@@ -8338,8 +8406,8 @@ window.Aura = (() => {
             "aria-expanded": open
           }
         ) : null,
-        /* @__PURE__ */ React47.createElement("div", { className: "aura-shell__bar-content" }, props.header)
-      ) : null, /* @__PURE__ */ React47.createElement(
+        /* @__PURE__ */ React48.createElement("div", { className: "aura-shell__bar-content" }, props.header)
+      ) : null, /* @__PURE__ */ React48.createElement(
         "main",
         {
           className: cx("aura-shell__content", props.contentPadding === false && "is-flush"),
@@ -8352,17 +8420,17 @@ window.Aura = (() => {
   });
 
   // src/ActionBar.tsx
-  var React48 = __toESM(require_react(), 1);
-  var ActionBar = React48.forwardRef(function ActionBar2(props, ref) {
+  var React49 = __toESM(require_react(), 1);
+  var ActionBar = React49.forwardRef(function ActionBar2(props, ref) {
     const t = useStrings();
     const bulk = props.selected != null;
     const idle = bulk && !props.selected;
     const count = bulk && props.selected ? t.selectedCount(props.selected) : null;
-    const hasStart = React48.Children.toArray(props.start).some(function(c) {
+    const hasStart = React49.Children.toArray(props.start).some(function(c) {
       return c !== "";
     });
-    const cameFrom = React48.useRef(null);
-    const own = React48.useRef(null);
+    const cameFrom = React49.useRef(null);
+    const own = React49.useRef(null);
     function clear() {
       props.onClearSelection();
       setTimeout(function() {
@@ -8371,7 +8439,7 @@ window.Aura = (() => {
         if ((!a || a === document.body || !a.isConnected) && back && back.isConnected) back.focus();
       }, 0);
     }
-    return /* @__PURE__ */ React48.createElement(
+    return /* @__PURE__ */ React49.createElement(
       "div",
       {
         ref: function(el) {
@@ -8393,16 +8461,16 @@ window.Aura = (() => {
           props.className
         )
       },
-      /* @__PURE__ */ React48.createElement("div", { className: cx("aura-actionbar__inner", hasStart && "has-start") }, /* @__PURE__ */ React48.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle && hasStart ? /* @__PURE__ */ React48.createElement("div", { className: "aura-actionbar__start" }, props.start) : null, !idle ? /* @__PURE__ */ React48.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React48.createElement(Button, { variant: "ghost", size: "sm", touchHeight: props.touchHeight, onClick: clear }, t.clear()) : null, props.children) : null)
+      /* @__PURE__ */ React49.createElement("div", { className: cx("aura-actionbar__inner", hasStart && "has-start") }, /* @__PURE__ */ React49.createElement("div", { className: "aura-actionbar__status", role: "status" }, count, count && props.status ? " \xB7 " : null, props.status), !idle && hasStart ? /* @__PURE__ */ React49.createElement("div", { className: "aura-actionbar__start" }, props.start) : null, !idle ? /* @__PURE__ */ React49.createElement("div", { className: "aura-actionbar__actions" }, count && props.onClearSelection ? /* @__PURE__ */ React49.createElement(Button, { variant: "ghost", size: "sm", touchHeight: props.touchHeight, onClick: clear }, t.clear()) : null, props.children) : null)
     );
   });
 
   // src/Separator.tsx
-  var React49 = __toESM(require_react(), 1);
-  var Separator = React49.forwardRef(function Separator2(props, ref) {
+  var React50 = __toESM(require_react(), 1);
+  var Separator = React50.forwardRef(function Separator2(props, ref) {
     const vertical = props.orientation === "vertical";
     const decorative = props.decorative !== false;
-    return /* @__PURE__ */ React49.createElement(
+    return /* @__PURE__ */ React50.createElement(
       "div",
       {
         ref,
@@ -8415,13 +8483,13 @@ window.Aura = (() => {
   });
 
   // src/Table.tsx
-  var React50 = __toESM(require_react(), 1);
-  var StackLabels = React50.createContext(null);
-  var ColumnIndex = React50.createContext(-1);
+  var React51 = __toESM(require_react(), 1);
+  var StackLabels = React51.createContext(null);
+  var ColumnIndex = React51.createContext(-1);
   function flat2(children) {
     const out = [];
-    React50.Children.toArray(children).forEach(function(c) {
-      if (React50.isValidElement(c) && c.type === React50.Fragment)
+    React51.Children.toArray(children).forEach(function(c) {
+      if (React51.isValidElement(c) && c.type === React51.Fragment)
         out.push.apply(out, flat2(c.props.children));
       else out.push(c);
     });
@@ -8435,7 +8503,7 @@ window.Aura = (() => {
       });
       return parts.length ? parts.join("") : void 0;
     }
-    if (React50.isValidElement(node)) {
+    if (React51.isValidElement(node)) {
       const p = node.props;
       if (p["aria-hidden"] === true || p["aria-hidden"] === "true") return void 0;
       return text(p.children);
@@ -8445,13 +8513,13 @@ window.Aura = (() => {
   function headerLabels(children) {
     let out = [];
     flat2(children).forEach(function(c) {
-      if (out.length || !React50.isValidElement(c) || c.type !== THead) return;
+      if (out.length || !React51.isValidElement(c) || c.type !== THead) return;
       const row = flat2(c.props.children).find(function(r2) {
-        return React50.isValidElement(r2);
+        return React51.isValidElement(r2);
       });
       if (!row) return;
       flat2(row.props.children).forEach(function(cell) {
-        if (!React50.isValidElement(cell)) return;
+        if (!React51.isValidElement(cell)) return;
         const p = cell.props;
         const t = text(p.children);
         const label = p.label != null ? p.label : t != null ? t.replace(/\s+/g, " ").trim() || void 0 : void 0;
@@ -8461,7 +8529,7 @@ window.Aura = (() => {
     });
     return out;
   }
-  var Table = React50.forwardRef(function Table2(props, ref) {
+  var Table = React51.forwardRef(function Table2(props, ref) {
     const {
       caption,
       captionHidden,
@@ -8491,12 +8559,12 @@ window.Aura = (() => {
         "tbl-stack-labels",
         "Table stackBelow: no THead > Tr > Th found among its children, so cells have no labels. Pass `label` on each Td."
       );
-    const outer = React50.useContext(StackLabels);
+    const outer = React51.useContext(StackLabels);
     const pageDensity = useDensity();
     const capId = uid();
-    const wrap = React50.useRef(null);
-    const sc = React50.useState(false), scrolls = sc[0];
-    const wide = React50.useState(false);
+    const wrap = React51.useRef(null);
+    const sc = React51.useState(false), scrolls = sc[0];
+    const wide = React51.useState(false);
     useIsoLayoutEffect(function() {
       const el = wrap.current;
       if (!el || typeof ResizeObserver === "undefined") return;
@@ -8513,7 +8581,7 @@ window.Aura = (() => {
         ro.disconnect();
       };
     }, []);
-    const table = /* @__PURE__ */ React50.createElement(
+    const table = /* @__PURE__ */ React51.createElement(
       "div",
       {
         ref: wrap,
@@ -8537,7 +8605,7 @@ window.Aura = (() => {
         "aria-labelledby": scrolls ? caption != null ? capId : rest["aria-labelledby"] : void 0,
         "aria-label": scrolls && caption == null ? rest["aria-label"] : void 0
       },
-      /* @__PURE__ */ React50.createElement(
+      /* @__PURE__ */ React51.createElement(
         "table",
         {
           ref,
@@ -8553,11 +8621,11 @@ window.Aura = (() => {
           role: stackBelow ? "table" : void 0,
           ...rest
         },
-        caption != null ? /* @__PURE__ */ React50.createElement("caption", { id: capId, className: cx("aura-tbl__caption", captionHidden && "aura-sr-only") }, caption) : null,
-        labels ? /* @__PURE__ */ React50.createElement(StackLabels.Provider, { value: labels }, children) : outer ? /* @__PURE__ */ React50.createElement(StackLabels.Provider, { value: null }, children) : children
+        caption != null ? /* @__PURE__ */ React51.createElement("caption", { id: capId, className: cx("aura-tbl__caption", captionHidden && "aura-sr-only") }, caption) : null,
+        labels ? /* @__PURE__ */ React51.createElement(StackLabels.Provider, { value: labels }, children) : outer ? /* @__PURE__ */ React51.createElement(StackLabels.Provider, { value: null }, children) : children
       )
     );
-    return cards ? /* @__PURE__ */ React50.createElement(
+    return cards ? /* @__PURE__ */ React51.createElement(
       "div",
       {
         className: cx(
@@ -8570,10 +8638,10 @@ window.Aura = (() => {
     ) : table;
   });
   function section(tag, cls) {
-    const C = React50.forwardRef(function TableSection(props, ref) {
+    const C = React51.forwardRef(function TableSection(props, ref) {
       const { className, ...rest } = props;
-      const stacked = React50.useContext(StackLabels) != null;
-      return React50.createElement(
+      const stacked = React51.useContext(StackLabels) != null;
+      return React51.createElement(
         tag,
         Object.assign({ ref, className: cx(cls, className), role: stacked ? "rowgroup" : void 0 }, rest)
       );
@@ -8586,14 +8654,14 @@ window.Aura = (() => {
   TBody.displayName = "TBody";
   var TFoot = section("tfoot", "aura-tbl__foot");
   TFoot.displayName = "TFoot";
-  var Tr = React50.forwardRef(function Tr2(props, ref) {
+  var Tr = React51.forwardRef(function Tr2(props, ref) {
     const { className, children, ...rest } = props;
-    const stacked = React50.useContext(StackLabels) != null;
+    const stacked = React51.useContext(StackLabels) != null;
     let col = 0;
-    return /* @__PURE__ */ React50.createElement("tr", { ref, className: cx("aura-tbl__row", className), role: stacked ? "row" : void 0, ...rest }, stacked ? flat2(children).map(function(c) {
+    return /* @__PURE__ */ React51.createElement("tr", { ref, className: cx("aura-tbl__row", className), role: stacked ? "row" : void 0, ...rest }, stacked ? flat2(children).map(function(c) {
       const at = col;
-      if (React50.isValidElement(c)) col += Math.max(1, Number(c.props.colSpan) || 1);
-      return /* @__PURE__ */ React50.createElement(ColumnIndex.Provider, { key: React50.isValidElement(c) && c.key != null ? c.key : at, value: at }, c);
+      if (React51.isValidElement(c)) col += Math.max(1, Number(c.props.colSpan) || 1);
+      return /* @__PURE__ */ React51.createElement(ColumnIndex.Provider, { key: React51.isValidElement(c) && c.key != null ? c.key : at, value: at }, c);
     }) : children);
   });
   function cellClass(base, p) {
@@ -8607,10 +8675,10 @@ window.Aura = (() => {
       p.className
     );
   }
-  var Th = React50.forwardRef(function Th2(props, ref) {
+  var Th = React51.forwardRef(function Th2(props, ref) {
     const { align, numeric, mono, className, scope, label, card, ...rest } = props;
-    const stacked = React50.useContext(StackLabels) != null;
-    return /* @__PURE__ */ React50.createElement(
+    const stacked = React51.useContext(StackLabels) != null;
+    return /* @__PURE__ */ React51.createElement(
       "th",
       {
         ref,
@@ -8622,12 +8690,12 @@ window.Aura = (() => {
       }
     );
   });
-  var Td = React50.forwardRef(function Td2(props, ref) {
+  var Td = React51.forwardRef(function Td2(props, ref) {
     const { align, numeric, mono, className, scope, label, card, ...rest } = props;
-    const labels = React50.useContext(StackLabels), col = React50.useContext(ColumnIndex);
+    const labels = React51.useContext(StackLabels), col = React51.useContext(ColumnIndex);
     const slot = labels && (card === "title" || card === "action") ? card : void 0;
     const shown = labels && !slot ? label != null ? label : col >= 0 ? labels[col] : void 0 : void 0;
-    return /* @__PURE__ */ React50.createElement(
+    return /* @__PURE__ */ React51.createElement(
       "td",
       {
         ref,
@@ -8641,8 +8709,8 @@ window.Aura = (() => {
   });
 
   // src/BottomNav.tsx
-  var React51 = __toESM(require_react(), 1);
-  var BottomNav = React51.forwardRef(function BottomNav2(props, ref) {
+  var React52 = __toESM(require_react(), 1);
+  var BottomNav = React52.forwardRef(function BottomNav2(props, ref) {
     const t = useStrings();
     const Link = useLinkComponent(props.linkComponent);
     const st = useMaybeControlled(
@@ -8652,7 +8720,7 @@ window.Aura = (() => {
     );
     const active = st[0];
     const hide2 = props.hideFrom === false ? "always" : "below-" + (props.hideFrom || "lg");
-    const own = React51.useRef(null);
+    const own = React52.useRef(null);
     const hf = props.hideFrom === false ? null : props.hideFrom || "lg";
     const away = useHideOnScroll(
       !!props.hideOnScroll,
@@ -8660,7 +8728,7 @@ window.Aura = (() => {
       hf ? "(max-width: " + (breakpoints[hf] - 0.02) + "px)" : "all",
       64
     );
-    const setRef = React51.useCallback(
+    const setRef = React52.useCallback(
       function(el) {
         own.current = el;
         if (typeof ref === "function") ref(el);
@@ -8668,7 +8736,7 @@ window.Aura = (() => {
       },
       [ref]
     );
-    return /* @__PURE__ */ React51.createElement(React51.Fragment, null, /* @__PURE__ */ React51.createElement("div", { className: cx("aura-bottomnav-spacer", "aura-bottomnav--" + hide2), "aria-hidden": "true" }), /* @__PURE__ */ React51.createElement(
+    return /* @__PURE__ */ React52.createElement(React52.Fragment, null, /* @__PURE__ */ React52.createElement("div", { className: cx("aura-bottomnav-spacer", "aura-bottomnav--" + hide2), "aria-hidden": "true" }), /* @__PURE__ */ React52.createElement(
       "nav",
       {
         ref: setRef,
@@ -8681,7 +8749,7 @@ window.Aura = (() => {
         ),
         "aria-label": props.label || t.mainNav
       },
-      /* @__PURE__ */ React51.createElement("ul", { className: "aura-bottomnav__list" }, props.items.map(function(it) {
+      /* @__PURE__ */ React52.createElement("ul", { className: "aura-bottomnav__list" }, props.items.map(function(it) {
         if (it.ariaLabel && typeof it.label === "string" && it.ariaLabel.toLowerCase().indexOf(it.label.toLowerCase()) < 0)
           devWarnOnce(
             "bottomnav-label-" + it.id,
@@ -8702,20 +8770,20 @@ window.Aura = (() => {
           }
         };
         const inner = [
-          /* @__PURE__ */ React51.createElement("span", { key: "i", className: "aura-bottomnav__icon" }, /* @__PURE__ */ React51.createElement(Icon, { name: it.icon, size: "md" }), count ? /* @__PURE__ */ React51.createElement("span", { className: "aura-bottomnav__count", "aria-hidden": "true" }, count) : it.badge ? /* @__PURE__ */ React51.createElement("span", { className: "aura-bottomnav__dot", "aria-hidden": "true" }) : null),
-          it.ariaLabel ? /* @__PURE__ */ React51.createElement("span", { key: "n", className: "aura-sr-only" }, it.ariaLabel + suffix) : null,
-          /* @__PURE__ */ React51.createElement("span", { key: "l", className: "aura-bottomnav__label", "aria-hidden": it.ariaLabel ? true : void 0 }, it.label),
-          suffix && !it.ariaLabel ? /* @__PURE__ */ React51.createElement("span", { key: "s", className: "aura-sr-only" }, suffix) : null
+          /* @__PURE__ */ React52.createElement("span", { key: "i", className: "aura-bottomnav__icon" }, /* @__PURE__ */ React52.createElement(Icon, { name: it.icon, size: "md" }), count ? /* @__PURE__ */ React52.createElement("span", { className: "aura-bottomnav__count", "aria-hidden": "true" }, count) : it.badge ? /* @__PURE__ */ React52.createElement("span", { className: "aura-bottomnav__dot", "aria-hidden": "true" }) : null),
+          it.ariaLabel ? /* @__PURE__ */ React52.createElement("span", { key: "n", className: "aura-sr-only" }, it.ariaLabel + suffix) : null,
+          /* @__PURE__ */ React52.createElement("span", { key: "l", className: "aura-bottomnav__label", "aria-hidden": it.ariaLabel ? true : void 0 }, it.label),
+          suffix && !it.ariaLabel ? /* @__PURE__ */ React52.createElement("span", { key: "s", className: "aura-sr-only" }, suffix) : null
         ];
-        return /* @__PURE__ */ React51.createElement("li", { key: it.id, className: "aura-bottomnav__cell" }, it.href ? /* @__PURE__ */ React51.createElement(Link, { href: it.href, ...common }, inner) : /* @__PURE__ */ React51.createElement("button", { type: "button", ...common }, inner));
+        return /* @__PURE__ */ React52.createElement("li", { key: it.id, className: "aura-bottomnav__cell" }, it.href ? /* @__PURE__ */ React52.createElement(Link, { href: it.href, ...common }, inner) : /* @__PURE__ */ React52.createElement("button", { type: "button", ...common }, inner));
       }))
     ));
   });
 
   // src/Surface.tsx
-  var React52 = __toESM(require_react(), 1);
-  var h10 = React52.createElement;
-  var Surface = React52.forwardRef(function Surface2(props, ref) {
+  var React53 = __toESM(require_react(), 1);
+  var h10 = React53.createElement;
+  var Surface = React53.forwardRef(function Surface2(props, ref) {
     const t = props.texture || "mesh";
     const rest = omit(props, ["texture", "className", "children", "as"]);
     return h10(
@@ -8736,14 +8804,14 @@ window.Aura = (() => {
   });
 
   // src/Stat.tsx
-  var React53 = __toESM(require_react(), 1);
-  var Stat = React53.forwardRef(function Stat2(props, ref) {
+  var React54 = __toESM(require_react(), 1);
+  var Stat = React54.forwardRef(function Stat2(props, ref) {
     const Link = useLinkComponent(props.linkComponent);
     return statElement(props, ref, Link);
   });
 
   // src/TimePicker.tsx
-  var React54 = __toESM(require_react(), 1);
+  var React55 = __toESM(require_react(), 1);
   var import_react_dom12 = __toESM(require_react_dom(), 1);
 
   // src/text.ts
@@ -8785,7 +8853,7 @@ window.Aura = (() => {
   function fromMin(n3) {
     return pad3(Math.floor(n3 / 60)) + ":" + pad3(n3 % 60);
   }
-  var TimePicker = React54.forwardRef(function TimePicker2(props, ref) {
+  var TimePicker = React55.forwardRef(function TimePicker2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto, listId = id + "-list";
     const st = useMaybeControlled(
@@ -8795,7 +8863,7 @@ window.Aura = (() => {
     );
     const value = st[0];
     const step = props.step || 30, lo = toMin(props.min) != null ? toMin(props.min) : 0, hi = toMin(props.max) != null ? toMin(props.max) : 24 * 60 - 1;
-    const slots = React54.useMemo(
+    const slots = React55.useMemo(
       function() {
         const out = [];
         for (let m = lo; m <= hi; m += step) out.push(fromMin(m));
@@ -8807,12 +8875,12 @@ window.Aura = (() => {
       const n3 = toMin(v);
       return n3 == null || n3 < lo || n3 > hi || props.isTimeDisabled && props.isTimeDisabled(v);
     }
-    const openState = React54.useState(false), open = openState[0], setOpen = openState[1];
-    const editState = React54.useState(null), editing = editState[0], setEditing = editState[1];
-    const aState = React54.useState(0), active = aState[0], setActive = aState[1];
-    const errState = React54.useState(null);
-    const pos = React54.useState(null);
-    const boxRef = React54.useRef(null), inputRef = React54.useRef(null), listRef = React54.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+    const openState = React55.useState(false), open = openState[0], setOpen = openState[1];
+    const editState = React55.useState(null), editing = editState[0], setEditing = editState[1];
+    const aState = React55.useState(0), active = aState[0], setActive = aState[1];
+    const errState = React55.useState(null);
+    const pos = React55.useState(null);
+    const boxRef = React55.useRef(null), inputRef = React55.useRef(null), listRef = React55.useRef(null), inputMerged = useMergedRef(ref, inputRef);
     const mounted = useMounted();
     function nearest(v) {
       const n3 = toMin(v);
@@ -8840,7 +8908,7 @@ window.Aura = (() => {
       },
       [open]
     );
-    React54.useEffect(
+    React55.useEffect(
       function() {
         if (!open) return;
         function outside(e) {
@@ -8862,7 +8930,7 @@ window.Aura = (() => {
       },
       [open]
     );
-    React54.useEffect(
+    React55.useEffect(
       function() {
         if (!open || !listRef.current) return;
         const el = listRef.current.querySelector('[data-idx="' + active + '"]');
@@ -8961,9 +9029,9 @@ window.Aura = (() => {
     }
     const error = errState[0] || props.error;
     const list = open && mounted && pos[0] ? (0, import_react_dom12.createPortal)(
-      /* @__PURE__ */ React54.createElement("div", { ref: listRef, className: "aura-combo__popover aura-time__popover", style: pos[0] }, /* @__PURE__ */ React54.createElement("ul", { id: listId, role: "listbox", "aria-label": props.label, className: "aura-combo__list" }, slots.map(function(s, i) {
+      /* @__PURE__ */ React55.createElement("div", { ref: listRef, className: "aura-combo__popover aura-time__popover", style: pos[0] }, /* @__PURE__ */ React55.createElement("ul", { id: listId, role: "listbox", "aria-label": props.label, className: "aura-combo__list" }, slots.map(function(s, i) {
         const dis = blocked(s), sel = s === value;
-        return /* @__PURE__ */ React54.createElement(
+        return /* @__PURE__ */ React55.createElement(
           "li",
           {
             key: s,
@@ -8988,13 +9056,13 @@ window.Aura = (() => {
               if (active !== i) setActive(i);
             }
           },
-          /* @__PURE__ */ React54.createElement("span", { className: "aura-combo__label" }, s),
-          sel ? /* @__PURE__ */ React54.createElement(Icon, { name: /* @__PURE__ */ React54.createElement(IconCheck, null), className: "aura-combo__check" }) : null
+          /* @__PURE__ */ React55.createElement("span", { className: "aura-combo__label" }, s),
+          sel ? /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconCheck, null), className: "aura-combo__check" }) : null
         );
       }))),
       document.body
     ) : null;
-    return /* @__PURE__ */ React54.createElement(
+    return /* @__PURE__ */ React55.createElement(
       Field,
       {
         id,
@@ -9006,7 +9074,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: cx(touchClass(props.touchHeight), props.className)
       },
-      /* @__PURE__ */ React54.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo aura-time has-icon", open && "is-open") }, /* @__PURE__ */ React54.createElement(Icon, { name: /* @__PURE__ */ React54.createElement(IconClock, null), className: "aura-input__icon" }), /* @__PURE__ */ React54.createElement(
+      /* @__PURE__ */ React55.createElement("div", { ref: boxRef, className: cx("aura-input aura-combo aura-time has-icon", open && "is-open") }, /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconClock, null), className: "aura-input__icon" }), /* @__PURE__ */ React55.createElement(
         "input",
         {
           ref: inputMerged,
@@ -9046,7 +9114,7 @@ window.Aura = (() => {
             }, 0);
           }
         }
-      ), props.clearable !== false && value != null && !props.disabled ? /* @__PURE__ */ React54.createElement(
+      ), props.clearable !== false && value != null && !props.disabled ? /* @__PURE__ */ React55.createElement(
         "button",
         {
           type: "button",
@@ -9059,8 +9127,8 @@ window.Aura = (() => {
             if (inputRef.current) inputRef.current.focus();
           }
         },
-        /* @__PURE__ */ React54.createElement(Icon, { name: /* @__PURE__ */ React54.createElement(IconX, null) })
-      ) : null, /* @__PURE__ */ React54.createElement(
+        /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconX, null) })
+      ) : null, /* @__PURE__ */ React55.createElement(
         "button",
         {
           type: "button",
@@ -9078,14 +9146,14 @@ window.Aura = (() => {
             }
           }
         },
-        /* @__PURE__ */ React54.createElement(Icon, { name: /* @__PURE__ */ React54.createElement(IconChevronDown, null) })
+        /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconChevronDown, null) })
       )),
       list
     );
   });
 
   // src/FileUpload.tsx
-  var React55 = __toESM(require_react(), 1);
+  var React56 = __toESM(require_react(), 1);
   function matches(file, accept) {
     if (!accept) return true;
     const name = (file.name || "").toLowerCase(), type = (file.type || "").toLowerCase();
@@ -9109,24 +9177,24 @@ window.Aura = (() => {
     }).join(", ");
   }
   var seq = 0;
-  var FileUpload = React55.forwardRef(function FileUpload2(props, ref) {
+  var FileUpload = React56.forwardRef(function FileUpload2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.value, props.defaultValue || [], props.onChange);
     const items2 = st[0] || [];
-    const dragState = React55.useState(false), over = dragState[0];
-    const inputRef = React55.useRef(null), inputMerged = useMergedRef(ref, inputRef);
-    const urls = React55.useRef({});
+    const dragState = React56.useState(false), over = dragState[0];
+    const inputRef = React56.useRef(null), inputMerged = useMergedRef(ref, inputRef);
+    const urls = React56.useRef({});
     const maxFiles = props.multiple ? props.maxFiles : 1;
     const note = t.accepts(describeAccept(props.accept, t), props.maxSize ? formatBytes(props.maxSize) : "");
-    React55.useEffect(function() {
+    React56.useEffect(function() {
       return function() {
         Object.keys(urls.current).forEach(function(k) {
           URL.revokeObjectURL(urls.current[k]);
         });
       };
     }, []);
-    React55.useEffect(
+    React56.useEffect(
       function() {
         const el = inputRef.current;
         if (!el || !props.name || typeof DataTransfer === "undefined") return;
@@ -9186,7 +9254,7 @@ window.Aura = (() => {
       if (inputRef.current) inputRef.current.focus();
     }
     const error = props.error;
-    return /* @__PURE__ */ React55.createElement(
+    return /* @__PURE__ */ React56.createElement(
       Field,
       {
         id,
@@ -9198,7 +9266,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: props.className
       },
-      /* @__PURE__ */ React55.createElement(
+      /* @__PURE__ */ React56.createElement(
         "div",
         {
           className: cx("aura-upload", over && "is-over", props.disabled && "is-disabled", error && "is-invalid"),
@@ -9219,9 +9287,9 @@ window.Aura = (() => {
             add(e.dataTransfer && e.dataTransfer.files);
           }
         },
-        /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconCloudUpload, null), size: "lg", className: "aura-upload__icon" }),
-        /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__text" }, t.dropFiles, " "),
-        /* @__PURE__ */ React55.createElement(
+        /* @__PURE__ */ React56.createElement(Icon, { name: /* @__PURE__ */ React56.createElement(IconCloudUpload, null), size: "lg", className: "aura-upload__icon" }),
+        /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__text" }, t.dropFiles, " "),
+        /* @__PURE__ */ React56.createElement(
           "input",
           {
             ref: inputMerged,
@@ -9243,12 +9311,12 @@ window.Aura = (() => {
             }
           }
         ),
-        /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__browse", "aria-hidden": true }, props.multiple ? t.browse : t.browseOne),
-        note ? /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__note", id: id + "-note" }, note) : null
+        /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__browse", "aria-hidden": true }, props.multiple ? t.browse : t.browseOne),
+        note ? /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__note", id: id + "-note" }, note) : null
       ),
-      items2.length ? /* @__PURE__ */ React55.createElement("ul", { className: "aura-upload__list", "aria-live": "polite" }, items2.map(function(it) {
+      items2.length ? /* @__PURE__ */ React56.createElement("ul", { className: "aura-upload__list", "aria-live": "polite" }, items2.map(function(it) {
         const src = thumb(it);
-        return /* @__PURE__ */ React55.createElement("li", { key: it.id, className: cx("aura-upload__item", it.error && "is-error") }, src ? /* @__PURE__ */ React55.createElement("img", { className: "aura-upload__thumb", src, alt: "" }) : /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__thumb is-icon", "aria-hidden": true }, /* @__PURE__ */ React55.createElement(Icon, { name: /^image\//.test(it.type || "") ? /* @__PURE__ */ React55.createElement(IconImage, null) : /* @__PURE__ */ React55.createElement(IconFile, null), size: "md" })), /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__meta" }, it.url && !it.error ? /* @__PURE__ */ React55.createElement("a", { className: "aura-upload__name", href: it.url, target: "_blank", rel: "noreferrer" }, it.name) : /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__name" }, it.name), /* @__PURE__ */ React55.createElement("span", { className: "aura-upload__sub" }, it.error ? /* @__PURE__ */ React55.createElement(React55.Fragment, null, /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconCircleAlert, null), size: 12 }), it.error) : it.status === "uploading" ? t.uploading + (it.progress != null ? " " + Math.round(it.progress) + "%" : "") : it.status === "done" ? /* @__PURE__ */ React55.createElement(React55.Fragment, null, /* @__PURE__ */ React55.createElement(Icon, { name: /* @__PURE__ */ React55.createElement(IconCircleCheck, null), size: 12 }), formatBytes(it.size)) : formatBytes(it.size)), it.status === "uploading" ? /* @__PURE__ */ React55.createElement(
+        return /* @__PURE__ */ React56.createElement("li", { key: it.id, className: cx("aura-upload__item", it.error && "is-error") }, src ? /* @__PURE__ */ React56.createElement("img", { className: "aura-upload__thumb", src, alt: "" }) : /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__thumb is-icon", "aria-hidden": true }, /* @__PURE__ */ React56.createElement(Icon, { name: /^image\//.test(it.type || "") ? /* @__PURE__ */ React56.createElement(IconImage, null) : /* @__PURE__ */ React56.createElement(IconFile, null), size: "md" })), /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__meta" }, it.url && !it.error ? /* @__PURE__ */ React56.createElement("a", { className: "aura-upload__name", href: it.url, target: "_blank", rel: "noreferrer" }, it.name) : /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__name" }, it.name), /* @__PURE__ */ React56.createElement("span", { className: "aura-upload__sub" }, it.error ? /* @__PURE__ */ React56.createElement(React56.Fragment, null, /* @__PURE__ */ React56.createElement(Icon, { name: /* @__PURE__ */ React56.createElement(IconCircleAlert, null), size: 12 }), it.error) : it.status === "uploading" ? t.uploading + (it.progress != null ? " " + Math.round(it.progress) + "%" : "") : it.status === "done" ? /* @__PURE__ */ React56.createElement(React56.Fragment, null, /* @__PURE__ */ React56.createElement(Icon, { name: /* @__PURE__ */ React56.createElement(IconCircleCheck, null), size: 12 }), formatBytes(it.size)) : formatBytes(it.size)), it.status === "uploading" ? /* @__PURE__ */ React56.createElement(
           "span",
           {
             className: "aura-upload__bar",
@@ -9258,11 +9326,11 @@ window.Aura = (() => {
             "aria-valuemax": 100,
             "aria-valuenow": it.progress != null ? Math.round(it.progress) : void 0
           },
-          /* @__PURE__ */ React55.createElement("span", { style: { width: (it.progress || 0) + "%" } })
-        ) : null), /* @__PURE__ */ React55.createElement(
+          /* @__PURE__ */ React56.createElement("span", { style: { width: (it.progress || 0) + "%" } })
+        ) : null), /* @__PURE__ */ React56.createElement(
           IconButton,
           {
-            icon: /* @__PURE__ */ React55.createElement(IconX, null),
+            icon: /* @__PURE__ */ React56.createElement(IconX, null),
             label: t.remove(it.name),
             onClick: function() {
               remove(it);
@@ -9578,9 +9646,9 @@ window.Aura = (() => {
   }
 
   // src/ThemeStyle.tsx
-  var React56 = __toESM(require_react(), 1);
+  var React57 = __toESM(require_react(), 1);
   function ThemeStyle(props) {
-    const css = React56.useMemo(
+    const css = React57.useMemo(
       function() {
         try {
           return createTheme({
@@ -9597,11 +9665,11 @@ window.Aura = (() => {
       [props.brand, props.signal, props.primary, props.name, props.selector]
     );
     if (css === null) return null;
-    return /* @__PURE__ */ React56.createElement("style", { "data-aura-theme": props.name || props.brand, dangerouslySetInnerHTML: { __html: css } });
+    return /* @__PURE__ */ React57.createElement("style", { "data-aura-theme": props.name || props.brand, dangerouslySetInnerHTML: { __html: css } });
   }
 
   // src/colorScheme.tsx
-  var React57 = __toESM(require_react(), 1);
+  var React58 = __toESM(require_react(), 1);
 
   // src/colorSchemeScript.ts
   var DEFAULT_KEY = "aura-color-scheme";
@@ -9618,7 +9686,7 @@ window.Aura = (() => {
 
   // src/colorScheme.tsx
   function ColorSchemeScript(props) {
-    return /* @__PURE__ */ React57.createElement(
+    return /* @__PURE__ */ React58.createElement(
       "script",
       {
         "data-aura-color-scheme": "",
@@ -9643,7 +9711,7 @@ window.Aura = (() => {
   function useColorScheme(options) {
     const key = options && options.storageKey || DEFAULT_KEY;
     const fallback = options && options.defaultScheme || "system";
-    const subscribe2 = React57.useCallback(
+    const subscribe2 = React58.useCallback(
       function(cb) {
         const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
         function onSystem() {
@@ -9665,7 +9733,7 @@ window.Aura = (() => {
       },
       [fallback, key]
     );
-    const snapshot = React57.useSyncExternalStore(
+    const snapshot = React58.useSyncExternalStore(
       subscribe2,
       function() {
         const s = readScheme(fallback);
@@ -9676,7 +9744,7 @@ window.Aura = (() => {
       }
     );
     const parts = snapshot.split("|");
-    const setScheme = React57.useCallback(
+    const setScheme = React58.useCallback(
       function(next) {
         if (!valid(next)) return;
         try {
@@ -9695,14 +9763,14 @@ window.Aura = (() => {
     const cs = useColorScheme(props);
     const names = { light: t.schemeLight, dark: t.schemeDark, system: t.schemeSystem };
     const label = props.label || t.colorScheme;
-    return /* @__PURE__ */ React57.createElement(
+    return /* @__PURE__ */ React58.createElement(
       DropdownMenu,
       {
         label,
-        trigger: /* @__PURE__ */ React57.createElement(
+        trigger: /* @__PURE__ */ React58.createElement(
           IconButton,
           {
-            icon: cs.resolved === "dark" ? /* @__PURE__ */ React57.createElement(IconMoon, null) : /* @__PURE__ */ React57.createElement(IconSun, null),
+            icon: cs.resolved === "dark" ? /* @__PURE__ */ React58.createElement(IconMoon, null) : /* @__PURE__ */ React58.createElement(IconSun, null),
             label: label + ": " + names[cs.scheme]
           }
         ),
@@ -9720,14 +9788,14 @@ window.Aura = (() => {
   }
 
   // src/Badge.tsx
-  var React58 = __toESM(require_react(), 1);
-  var Badge = React58.forwardRef(function Badge2(props, ref) {
+  var React59 = __toESM(require_react(), 1);
+  var Badge = React59.forwardRef(function Badge2(props, ref) {
     return badgeElement(props, ref);
   });
 
   // src/Progress.tsx
-  var React59 = __toESM(require_react(), 1);
-  var Progress = React59.forwardRef(function Progress2(props, ref) {
+  var React60 = __toESM(require_react(), 1);
+  var Progress = React60.forwardRef(function Progress2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto;
     const max = props.max || 100, det = props.value != null;
@@ -9736,7 +9804,7 @@ window.Aura = (() => {
     const spct = sec ? Math.max(0, Math.min(100 - pct, sec / max * 100)) : 0;
     const valueText = props.valueText != null ? props.valueText : props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value, sec, max) : void 0;
     const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + "%" : null;
-    return /* @__PURE__ */ React59.createElement(
+    return /* @__PURE__ */ React60.createElement(
       "div",
       {
         ref,
@@ -9747,8 +9815,8 @@ window.Aura = (() => {
           props.className
         )
       },
-      props.label || props.showValue && shown ? /* @__PURE__ */ React59.createElement("div", { className: "aura-progress__head" }, props.label ? /* @__PURE__ */ React59.createElement("span", { className: "aura-progress__label", id: id + "-label" }, props.label) : /* @__PURE__ */ React59.createElement("span", null), props.showValue && shown ? /* @__PURE__ */ React59.createElement("span", { className: "aura-progress__value" }, shown) : null) : null,
-      /* @__PURE__ */ React59.createElement(
+      props.label || props.showValue && shown ? /* @__PURE__ */ React60.createElement("div", { className: "aura-progress__head" }, props.label ? /* @__PURE__ */ React60.createElement("span", { className: "aura-progress__label", id: id + "-label" }, props.label) : /* @__PURE__ */ React60.createElement("span", null), props.showValue && shown ? /* @__PURE__ */ React60.createElement("span", { className: "aura-progress__value" }, shown) : null) : null,
+      /* @__PURE__ */ React60.createElement(
         "div",
         {
           className: cx("aura-progress__track", !det && "is-indeterminate"),
@@ -9760,8 +9828,8 @@ window.Aura = (() => {
           "aria-valuenow": det ? props.value : void 0,
           "aria-valuetext": det ? valueText : void 0
         },
-        /* @__PURE__ */ React59.createElement("span", { className: "aura-progress__bar", style: det ? { width: pct + "%" } : void 0 }),
-        sec ? /* @__PURE__ */ React59.createElement(
+        /* @__PURE__ */ React60.createElement("span", { className: "aura-progress__bar", style: det ? { width: pct + "%" } : void 0 }),
+        sec ? /* @__PURE__ */ React60.createElement(
           "span",
           {
             className: "aura-progress__bar aura-progress__bar--reserved",
@@ -9769,19 +9837,19 @@ window.Aura = (() => {
           }
         ) : null
       ),
-      props.hint ? /* @__PURE__ */ React59.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
+      props.hint ? /* @__PURE__ */ React60.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
     );
   });
 
   // src/Skeleton.tsx
-  var React60 = __toESM(require_react(), 1);
-  var Skeleton = React60.forwardRef(function Skeleton2(props, ref) {
+  var React61 = __toESM(require_react(), 1);
+  var Skeleton = React61.forwardRef(function Skeleton2(props, ref) {
     const v = props.variant || "text";
     if (v === "text" && (props.lines || 1) > 1) {
       const n3 = props.lines, rows = [];
       for (let i = 0; i < n3; i++)
-        rows.push(/* @__PURE__ */ React60.createElement("span", { key: i, className: "aura-skel aura-skel--text", style: { width: i === n3 - 1 ? "60%" : "100%" } }));
-      return /* @__PURE__ */ React60.createElement(
+        rows.push(/* @__PURE__ */ React61.createElement("span", { key: i, className: "aura-skel aura-skel--text", style: { width: i === n3 - 1 ? "60%" : "100%" } }));
+      return /* @__PURE__ */ React61.createElement(
         "span",
         {
           ref,
@@ -9799,17 +9867,17 @@ window.Aura = (() => {
     if (v === "circle") {
       style.width = style.height = props.size || props.width || 40;
     }
-    return /* @__PURE__ */ React60.createElement("span", { ref, "aria-hidden": true, className: cx("aura-skel", "aura-skel--" + v, props.className), style });
+    return /* @__PURE__ */ React61.createElement("span", { ref, "aria-hidden": true, className: cx("aura-skel", "aura-skel--" + v, props.className), style });
   });
 
   // src/EmptyState.tsx
-  var React61 = __toESM(require_react(), 1);
-  var EmptyState = React61.forwardRef(function EmptyState2(props, ref) {
+  var React62 = __toESM(require_react(), 1);
+  var EmptyState = React62.forwardRef(function EmptyState2(props, ref) {
     return emptyStateElement(props, ref);
   });
 
   // src/Pagination.tsx
-  var React62 = __toESM(require_react(), 1);
+  var React63 = __toESM(require_react(), 1);
   function pageList(page, count, sib) {
     let out = [], lo = Math.max(2, page - sib), hi = Math.min(count - 1, page + sib);
     if (page - sib <= 3) {
@@ -9829,7 +9897,7 @@ window.Aura = (() => {
     if (count > 1) out.push(count);
     return out;
   }
-  var Pagination = React62.forwardRef(function Pagination2(props, ref) {
+  var Pagination = React63.forwardRef(function Pagination2(props, ref) {
     const t = useStrings();
     useAutoTip();
     const count = Math.max(1, props.pageCount || 1);
@@ -9849,7 +9917,7 @@ window.Aura = (() => {
         },
         extra
       );
-      return link ? /* @__PURE__ */ React62.createElement(
+      return link ? /* @__PURE__ */ React63.createElement(
         Link,
         {
           href: link(p),
@@ -9862,7 +9930,7 @@ window.Aura = (() => {
           ...common
         },
         label
-      ) : /* @__PURE__ */ React62.createElement(
+      ) : /* @__PURE__ */ React63.createElement(
         "button",
         {
           type: "button",
@@ -9876,7 +9944,7 @@ window.Aura = (() => {
     }
     function arrow(p, icon, label, rel, disabled) {
       if (!link || disabled)
-        return /* @__PURE__ */ React62.createElement(
+        return /* @__PURE__ */ React63.createElement(
           IconButton,
           {
             icon,
@@ -9887,7 +9955,7 @@ window.Aura = (() => {
             }
           }
         );
-      return /* @__PURE__ */ React62.createElement(
+      return /* @__PURE__ */ React63.createElement(
         Link,
         {
           href: link(p),
@@ -9902,17 +9970,17 @@ window.Aura = (() => {
             }
           }
         },
-        /* @__PURE__ */ React62.createElement(Icon, { name: icon, size: "sm" })
+        /* @__PURE__ */ React63.createElement(Icon, { name: icon, size: "sm" })
       );
     }
-    return /* @__PURE__ */ React62.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, arrow(page - 1, /* @__PURE__ */ React62.createElement(IconChevronLeft, null), t.prevPage, "prev", page <= 1), /* @__PURE__ */ React62.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
-      return typeof p === "number" ? /* @__PURE__ */ React62.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React62.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
-    })), /* @__PURE__ */ React62.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), arrow(page + 1, /* @__PURE__ */ React62.createElement(IconChevronRight, null), t.nextPage, "next", page >= count));
+    return /* @__PURE__ */ React63.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, arrow(page - 1, /* @__PURE__ */ React63.createElement(IconChevronLeft, null), t.prevPage, "prev", page <= 1), /* @__PURE__ */ React63.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
+      return typeof p === "number" ? /* @__PURE__ */ React63.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React63.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
+    })), /* @__PURE__ */ React63.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), arrow(page + 1, /* @__PURE__ */ React63.createElement(IconChevronRight, null), t.nextPage, "next", page >= count));
   });
 
   // src/Accordion.tsx
-  var React63 = __toESM(require_react(), 1);
-  var Accordion = React63.forwardRef(function Accordion2(props, ref) {
+  var React64 = __toESM(require_react(), 1);
+  var Accordion = React64.forwardRef(function Accordion2(props, ref) {
     const auto = uid(), base = props.id || auto;
     const multiple = props.type === "multiple";
     const st = useMaybeControlled(
@@ -9950,9 +10018,9 @@ window.Aura = (() => {
         n3.focus();
       }
     }
-    return /* @__PURE__ */ React63.createElement("div", { ref, className: cx("aura-accordion", props.className), onKeyDown: onKey }, items2.map(function(it) {
+    return /* @__PURE__ */ React64.createElement("div", { ref, className: cx("aura-accordion", props.className), onKeyDown: onKey }, items2.map(function(it) {
       const on = open.indexOf(it.id) >= 0, bid = base + "-btn-" + it.id, pid = base + "-panel-" + it.id;
-      return /* @__PURE__ */ React63.createElement("div", { key: it.id, className: cx("aura-accordion__item", on && "is-open") }, /* @__PURE__ */ React63.createElement(HT, { className: "aura-accordion__heading" }, /* @__PURE__ */ React63.createElement(
+      return /* @__PURE__ */ React64.createElement("div", { key: it.id, className: cx("aura-accordion__item", on && "is-open") }, /* @__PURE__ */ React64.createElement(HT, { className: "aura-accordion__heading" }, /* @__PURE__ */ React64.createElement(
         "button",
         {
           type: "button",
@@ -9965,10 +10033,10 @@ window.Aura = (() => {
             toggle(it.id);
           }
         },
-        it.icon ? /* @__PURE__ */ React63.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
-        /* @__PURE__ */ React63.createElement("span", { className: "aura-accordion__title" }, /* @__PURE__ */ React63.createElement("span", { id: it.description ? bid + "-title" : void 0 }, it.title), it.description ? /* @__PURE__ */ React63.createElement("span", { className: "aura-accordion__desc", id: bid + "-desc", "aria-hidden": true }, it.description) : null),
-        /* @__PURE__ */ React63.createElement(Icon, { name: /* @__PURE__ */ React63.createElement(IconChevronDown, null), className: "aura-accordion__chevron" })
-      )), /* @__PURE__ */ React63.createElement(
+        it.icon ? /* @__PURE__ */ React64.createElement(Icon, { name: it.icon, className: "aura-accordion__lead" }) : null,
+        /* @__PURE__ */ React64.createElement("span", { className: "aura-accordion__title" }, /* @__PURE__ */ React64.createElement("span", { id: it.description ? bid + "-title" : void 0 }, it.title), it.description ? /* @__PURE__ */ React64.createElement("span", { className: "aura-accordion__desc", id: bid + "-desc", "aria-hidden": true }, it.description) : null),
+        /* @__PURE__ */ React64.createElement(Icon, { name: /* @__PURE__ */ React64.createElement(IconChevronDown, null), className: "aura-accordion__chevron" })
+      )), /* @__PURE__ */ React64.createElement(
         "div",
         {
           id: pid,
@@ -9983,7 +10051,7 @@ window.Aura = (() => {
   });
 
   // src/Popover.tsx
-  var React64 = __toESM(require_react(), 1);
+  var React65 = __toESM(require_react(), 1);
   var import_react_dom13 = __toESM(require_react_dom(), 1);
   function position(anchor, pop, placement) {
     const r2 = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.scrollHeight, vw = window.innerWidth, vh = window.innerHeight, gap = 6;
@@ -10001,15 +10069,15 @@ window.Aura = (() => {
     const left = align === "end" ? r2.right - pw : align === "center" ? r2.left + r2.width / 2 - pw / 2 : r2.left;
     return { top: Math.max(8, top), left: Math.max(8, Math.min(left, vw - pw - 8)), side, maxHeight };
   }
-  var Popover = React64.forwardRef(function Popover2(props, ref) {
+  var Popover = React65.forwardRef(function Popover2(props, ref) {
     const t = useStrings();
     const density = useDensity();
     const auto = uid(), id = props.id || auto;
     const st = useMaybeControlled(props.open, !!props.defaultOpen, props.onOpenChange);
     const open = !!st[0];
-    const wrap = React64.useRef(null), pop = React64.useRef(null), popMerged = useMergedRef(ref, pop);
-    const pos = React64.useState(null), mounted = useMounted();
-    const inTree = React64.useRef(false);
+    const wrap = React65.useRef(null), pop = React65.useRef(null), popMerged = useMergedRef(ref, pop);
+    const pos = React65.useState(null), mounted = useMounted();
+    const inTree = React65.useRef(false);
     function trigger() {
       return wrap.current && (wrap.current.querySelector('button, [role="button"], a, input') || wrap.current.firstElementChild);
     }
@@ -10036,7 +10104,7 @@ window.Aura = (() => {
       },
       [open, mounted, props.placement]
     );
-    React64.useEffect(
+    React65.useEffect(
       function() {
         if (!open || !mounted) return;
         if (props.autoFocus !== false && pop.current) {
@@ -10061,9 +10129,9 @@ window.Aura = (() => {
       },
       [open, mounted]
     );
-    const child = React64.Children.only(props.trigger);
+    const child = React65.Children.only(props.trigger);
     const panel = open && mounted ? (0, import_react_dom13.createPortal)(
-      /* @__PURE__ */ React64.createElement(
+      /* @__PURE__ */ React65.createElement(
         "div",
         {
           ref: popMerged,
@@ -10093,17 +10161,17 @@ window.Aura = (() => {
             } else trapTab(e, pop.current);
           }
         },
-        props.title ? /* @__PURE__ */ React64.createElement("div", { className: "aura-popover__head" }, /* @__PURE__ */ React64.createElement("p", { className: "aura-popover__title", id: id + "-title" }, props.title), /* @__PURE__ */ React64.createElement(
+        props.title ? /* @__PURE__ */ React65.createElement("div", { className: "aura-popover__head" }, /* @__PURE__ */ React65.createElement("p", { className: "aura-popover__title", id: id + "-title" }, props.title), /* @__PURE__ */ React65.createElement(
           IconButton,
           {
-            icon: /* @__PURE__ */ React64.createElement(IconX, null),
+            icon: /* @__PURE__ */ React65.createElement(IconX, null),
             label: t.close,
             onClick: function() {
               close(true);
             }
           }
         )) : null,
-        /* @__PURE__ */ React64.createElement("div", { className: "aura-popover__body" }, typeof props.children === "function" ? props.children({
+        /* @__PURE__ */ React65.createElement("div", { className: "aura-popover__body" }, typeof props.children === "function" ? props.children({
           close: function() {
             close(true);
           }
@@ -10111,7 +10179,7 @@ window.Aura = (() => {
       ),
       document.body
     ) : null;
-    return /* @__PURE__ */ React64.createElement("span", { ref: wrap, className: "aura-popover-anchor" }, React64.cloneElement(child, {
+    return /* @__PURE__ */ React65.createElement("span", { ref: wrap, className: "aura-popover-anchor" }, React65.cloneElement(child, {
       onClick: function(e) {
         if (child.props.onClick) child.props.onClick(e);
         st[1](!open);
@@ -10123,7 +10191,7 @@ window.Aura = (() => {
   });
 
   // src/NumberField.tsx
-  var React65 = __toESM(require_react(), 1);
+  var React66 = __toESM(require_react(), 1);
   function decimalsOf(n3) {
     const s = String(n3);
     const i = s.indexOf(".");
@@ -10136,7 +10204,7 @@ window.Aura = (() => {
     if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
     return Number(s);
   }
-  var NumberField = React65.forwardRef(function NumberField2(props, ref) {
+  var NumberField = React66.forwardRef(function NumberField2(props, ref) {
     const t = useStrings();
     const auto = uid(), id = props.id || auto;
     const step = props.step || 1;
@@ -10147,7 +10215,7 @@ window.Aura = (() => {
       props.onChange
     );
     const value = st[0], setValue = st[1];
-    const draftState = React65.useState(null), draft = draftState[0], setDraft = draftState[1];
+    const draftState = React66.useState(null), draft = draftState[0], setDraft = draftState[1];
     function fmt2(n3) {
       if (n3 == null || isNaN(n3)) return "";
       return n3.toLocaleString("en", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -10196,7 +10264,7 @@ window.Aura = (() => {
     };
     const valueText = value == null ? void 0 : [affixText(props.prefix), fmt2(value), affixText(props.suffix)].join(" ").trim();
     const stepper = props.stepper !== false && !props.readOnly;
-    return /* @__PURE__ */ React65.createElement(
+    return /* @__PURE__ */ React66.createElement(
       Field,
       {
         id,
@@ -10208,7 +10276,7 @@ window.Aura = (() => {
         disabled: props.disabled,
         className: cx(touchClass(props.touchHeight), props.className)
       },
-      /* @__PURE__ */ React65.createElement("div", { className: cx("aura-input aura-number", stepper && "has-stepper") }, props.prefix != null ? /* @__PURE__ */ React65.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.prefix) : null, /* @__PURE__ */ React65.createElement(
+      /* @__PURE__ */ React66.createElement("div", { className: cx("aura-input aura-number", stepper && "has-stepper") }, props.prefix != null ? /* @__PURE__ */ React66.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.prefix) : null, /* @__PURE__ */ React66.createElement(
         "input",
         {
           ref,
@@ -10255,7 +10323,7 @@ window.Aura = (() => {
           },
           onKeyDown
         }
-      ), props.suffix != null ? /* @__PURE__ */ React65.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.suffix) : null, stepper ? /* @__PURE__ */ React65.createElement("span", { className: "aura-number__steps" }, /* @__PURE__ */ React65.createElement(
+      ), props.suffix != null ? /* @__PURE__ */ React66.createElement("span", { className: "aura-number__affix", "aria-hidden": true }, props.suffix) : null, stepper ? /* @__PURE__ */ React66.createElement("span", { className: "aura-number__steps" }, /* @__PURE__ */ React66.createElement(
         "button",
         {
           type: "button",
@@ -10271,8 +10339,8 @@ window.Aura = (() => {
             nudge(-step);
           }
         },
-        /* @__PURE__ */ React65.createElement(Icon, { name: /* @__PURE__ */ React65.createElement(IconMinus, null) })
-      ), /* @__PURE__ */ React65.createElement(
+        /* @__PURE__ */ React66.createElement(Icon, { name: /* @__PURE__ */ React66.createElement(IconMinus, null) })
+      ), /* @__PURE__ */ React66.createElement(
         "button",
         {
           type: "button",
@@ -10288,14 +10356,14 @@ window.Aura = (() => {
             nudge(step);
           }
         },
-        /* @__PURE__ */ React65.createElement(Icon, { name: /* @__PURE__ */ React65.createElement(IconPlus, null) })
+        /* @__PURE__ */ React66.createElement(Icon, { name: /* @__PURE__ */ React66.createElement(IconPlus, null) })
       )) : null)
     );
   });
 
   // src/Stepper.tsx
-  var React66 = __toESM(require_react(), 1);
-  var Stepper = React66.forwardRef(function Stepper2(props, ref) {
+  var React67 = __toESM(require_react(), 1);
+  var Stepper = React67.forwardRef(function Stepper2(props, ref) {
     const t = useStrings();
     const idBase = uid();
     const steps = props.steps || [];
@@ -10306,22 +10374,22 @@ window.Aura = (() => {
     if (at < 0) at = 0;
     const vertical = props.orientation === "vertical";
     const cur2 = steps[at];
-    return /* @__PURE__ */ React66.createElement(
+    return /* @__PURE__ */ React67.createElement(
       "nav",
       {
         ref,
         "aria-label": props.label,
         className: cx("aura-stepper", vertical ? "aura-stepper--vertical" : "aura-stepper--horizontal", props.className)
       },
-      /* @__PURE__ */ React66.createElement("ol", { className: "aura-stepper__list" }, steps.map(function(s, i) {
+      /* @__PURE__ */ React67.createElement("ol", { className: "aura-stepper__list" }, steps.map(function(s, i) {
         const state = i < at ? "done" : i === at ? "current" : "upcoming";
         const error = s.status === "error";
-        const marker = /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, error ? /* @__PURE__ */ React66.createElement(Icon, { name: /* @__PURE__ */ React66.createElement(IconCircleAlert, null) }) : state === "done" ? /* @__PURE__ */ React66.createElement(Icon, { name: /* @__PURE__ */ React66.createElement(IconCheck, null) }) : i + 1);
+        const marker = /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__marker", "aria-hidden": true }, error ? /* @__PURE__ */ React67.createElement(Icon, { name: /* @__PURE__ */ React67.createElement(IconCircleAlert, null) }) : state === "done" ? /* @__PURE__ */ React67.createElement(Icon, { name: /* @__PURE__ */ React67.createElement(IconCheck, null) }) : i + 1);
         const note = error ? t.stepError : state === "done" ? t.stepDone : "";
         const clickable = state === "done" && !!props.onStepClick;
         const named = clickable && (typeof s.label === "string" || typeof s.label === "number") && String(s.label).trim() !== "";
         const descId = idBase + "-step-" + i;
-        const text2 = /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__text" }, named ? /* @__PURE__ */ React66.createElement("span", { className: "aura-sr-only" }, String(s.label) + (note ? ", " + note : "")) : null, /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__label", "aria-hidden": named ? true : void 0 }, s.label, note && !named ? /* @__PURE__ */ React66.createElement("span", { className: "aura-sr-only" }, ", " + note) : null), s.description ? /* @__PURE__ */ React66.createElement(
+        const text2 = /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__text" }, named ? /* @__PURE__ */ React67.createElement("span", { className: "aura-sr-only" }, String(s.label) + (note ? ", " + note : "")) : null, /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__label", "aria-hidden": named ? true : void 0 }, s.label, note && !named ? /* @__PURE__ */ React67.createElement("span", { className: "aura-sr-only" }, ", " + note) : null), s.description ? /* @__PURE__ */ React67.createElement(
           "span",
           {
             className: "aura-stepper__desc",
@@ -10330,14 +10398,14 @@ window.Aura = (() => {
           },
           s.description
         ) : null);
-        return /* @__PURE__ */ React66.createElement(
+        return /* @__PURE__ */ React67.createElement(
           "li",
           {
             key: s.id,
             className: cx("aura-stepper__item", "is-" + state, error && "is-error"),
             "aria-current": state === "current" ? "step" : void 0
           },
-          clickable ? /* @__PURE__ */ React66.createElement(
+          clickable ? /* @__PURE__ */ React67.createElement(
             "button",
             {
               type: "button",
@@ -10349,19 +10417,19 @@ window.Aura = (() => {
             },
             marker,
             text2
-          ) : /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__step" }, marker, text2)
+          ) : /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__step" }, marker, text2)
         );
       })),
-      !vertical && cur2 ? /* @__PURE__ */ React66.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length), cur2.status === "error" ? /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__count-error" }, " \u2014 " + t.stepError) : null), /* @__PURE__ */ React66.createElement("span", { className: "aura-stepper__compact-label" }, cur2.label)) : null
+      !vertical && cur2 ? /* @__PURE__ */ React67.createElement("p", { className: "aura-stepper__compact", "aria-hidden": true }, /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__count" }, t.stepOf(at + 1, steps.length), cur2.status === "error" ? /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__count-error" }, " \u2014 " + t.stepError) : null), /* @__PURE__ */ React67.createElement("span", { className: "aura-stepper__compact-label" }, cur2.label)) : null
     );
   });
 
   // src/SegmentedControl.tsx
-  var React67 = __toESM(require_react(), 1);
+  var React68 = __toESM(require_react(), 1);
   function toOpt2(o) {
     return typeof o === "object" ? o : { value: o, label: o };
   }
-  var SegmentedControl = React67.forwardRef(
+  var SegmentedControl = React68.forwardRef(
     function SegmentedControl2(props, ref) {
       const options = (props.options || []).map(toOpt2);
       useAutoTip();
@@ -10375,7 +10443,7 @@ window.Aura = (() => {
       );
       const value = st[0], setValue = st[1];
       const auto = uid(), id = props.id || auto;
-      const refs = React67.useRef([]);
+      const refs = React68.useRef([]);
       const selIdx = options.findIndex(function(o) {
         return o.value === value;
       });
@@ -10408,7 +10476,7 @@ window.Aura = (() => {
           move(options.length, -1);
         }
       }
-      return /* @__PURE__ */ React67.createElement(
+      return /* @__PURE__ */ React68.createElement(
         "div",
         {
           ref,
@@ -10428,7 +10496,7 @@ window.Aura = (() => {
         options.map(function(o, i) {
           const on = o.value === value;
           const off = props.disabled || o.disabled;
-          return /* @__PURE__ */ React67.createElement(
+          return /* @__PURE__ */ React68.createElement(
             "button",
             {
               key: o.value,
@@ -10450,8 +10518,8 @@ window.Aura = (() => {
                 onKeyDown(e, i);
               }
             },
-            o.icon ? /* @__PURE__ */ React67.createElement(Icon, { name: o.icon }) : null,
-            o.iconOnly ? null : /* @__PURE__ */ React67.createElement("span", null, o.label)
+            o.icon ? /* @__PURE__ */ React68.createElement(Icon, { name: o.icon }) : null,
+            o.iconOnly ? null : /* @__PURE__ */ React68.createElement("span", null, o.label)
           );
         })
       );

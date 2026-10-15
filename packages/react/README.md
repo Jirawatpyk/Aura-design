@@ -186,6 +186,26 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.45 — Chamber-OS addendum 52 (#150)
+
+- **PageHeader `actionsBarBelow`** (#150): `'sm' | 'md'` — below 640px or 768px the header's `actions` become a bar fixed to the bottom of the screen with ActionBar's look and offset (above a BottomNav, clear of the home indicator), and `actionsStatus` is its status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026", a polite live region shown only in the bar).
+  ```tsx
+  <PageHeader title="Invoice SC-2026-900001" actionsFullWidthBelow="sm" actionsBarBelow="sm"
+    actionsStatus="Total 10,700.00 THB incl. VAT · due 22 Oct 2026"
+    actions={<>
+      <Button variant="secondary" touchHeight>Issue credit note…</Button>
+      <Button variant="secondary" touchHeight>Issue refund…</Button>
+      <DropdownMenu trigger={<IconButton icon="ellipsis" label="More actions" variant="outline" touchHeight />} items={…} />
+    </>} />
+  ```
+  - **Rendered once**: it is the same element moved by CSS, not a copy or a portal — a dialog trigger, its state and its test id exist once at every width, and in the tab order the actions stay after the title.
+  - **The page scrolls clear of it**: AppShell's content (or the body outside AppShell) gains the bar's height at its end, and `scroll-padding-bottom` keeps a focused field above it. The main entry's PageHeader measures the bar (`--aura-page-actions-height` on `<html>`); the `/server` one renders the same markup and the CSS assumes 7rem until a client PageHeader takes over.
+  - **Layout**: the status line takes the first row. With an IconButton among the actions they share the next row as #149 — text buttons wrap their labels inside, the icon keeps 44px at the end, vertically centred. With only icon buttons (a read-only role's ⋯) the status and the icons share one row (62px against 93px stacked). Text actions alone wrap as ActionBar's do, the main one last.
+  - From the breakpoint up nothing changes. One per page: the bar is fixed, so two would overlap (a development notice says so). Not beside an ActionBar either: use one bottom bar. With no `actions` (a role that may do nothing) there is no bar and no space reserved.
+  - The bar is `position: fixed`, so no ancestor of the header may have a `transform`, `filter`, `backdrop-filter`, `will-change: transform`, paint/layout containment or `content-visibility: auto` (some page-transition and frosted-glass wrappers add one); it would be placed against that ancestor, off screen. The main entry's PageHeader warns in development.
+  - Reading and Tab order stay the header's: the actions come after the title and before the page content, as they do from the breakpoint up. Below `lg` AppShell's sidebar is a drawer, so the bar spans the screen with 16px margins.
+- **The ⋯ is centred** (addendum 52): beside two-line buttons the IconButton in `actionsFullWidthBelow` (#149) now sits at the row's vertical centre, not its top.
+
 ## 5.44 — Chamber-OS addendum 51 (#149)
 
 - **PageHeader `actionsFullWidthBelow` with an icon button keeps one row** (#149): when the actions include an IconButton (a ⋯ DropdownMenu trigger, bare or wrapped), below the breakpoint they are one bar. The row no longer wraps; the text buttons share what the icon leaves and wrap their labels inside the button (two or three lines, centred, `overflow-wrap: anywhere` with hyphenation, never an ellipsis), growing taller rather than wider, at least 44px with `touchHeight`; a pill that grows past one line gets 22px corners instead of becoming an oval. Hyphens appear only where the browser has a dictionary for the page's `lang` (Safari, Android); elsewhere a long word breaks where it must, so keep phone labels short. The icon keeps its size at the end of the row. Measured on an invoice page at 393 and 320px in English, Thai and Swedish: nothing clipped, no sideways scroll. Actions without an icon button wrap onto rows as in 5.37 (DxT Monitor's two-plus-one); a header that mixes text and icon buttons (e.g. Mute, Edit, ⋯, Open site) is now one row at 320px where it was two. Needs `:has()`; older browsers keep the 5.37 layout.

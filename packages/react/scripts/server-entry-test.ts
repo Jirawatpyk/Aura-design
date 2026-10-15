@@ -93,6 +93,8 @@ for (const [name, A] of [
       tree(A.PageHeader.render({ eyebrow: 'Monitor', title: 'Overview', meta: '12 sites' }, null)),
       /* 5.37 (DxT Monitor 17): actionsFullWidthBelow is a class, still stateless. */
       tree(A.PageHeader.render({ title: 'Site', actions: 'Mute', actionsFullWidthBelow: 'md' }, null)),
+      /* 5.45 (Chamber-OS 150): actionsBarBelow is a class and a status node, still stateless. */
+      tree(A.PageHeader.render({ title: 'Invoice', actions: 'Issue', actionsBarBelow: 'sm', actionsStatus: 'Total 10,700.00 THB' }, null)),
       /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
       tree(
         A.Container.render(
@@ -134,6 +136,8 @@ for (const [name, A] of [
       'role="img" aria-label="Latency"',
       'd="M52.67 8.67L78 2"',
       '<div class="aura-page-header aura-page-header--actions-full-below-md"><div class="aura-page-header__text">',
+      '<div class="aura-page-header aura-page-header--actions-bar-below-sm">',
+      '<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Total 10,700.00 THB</div>Issue</div>',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')

@@ -1953,6 +1953,19 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	 * readers — and the breadcrumb and eyebrow are hidden, for phone layouts that show the title in the top bar. The
 	 * meta line and actions stay; with no meta, the actions start the header. */
 	titleHideBelow?: "sm" | "md" | "lg" | undefined;
+	/** 5.45 (Chamber-OS 150): below this breakpoint (`sm` 640px, `md` 768px) the same `actions` — rendered once, so a
+	 * dialog trigger or test id is never doubled — become a bar fixed to the bottom of the screen with ActionBar's look:
+	 * above a BottomNav, clear of the home indicator, `actionsStatus` as its status line. The page's end and a focused
+	 * field scroll clear of it (AppShell's content, or the body, gains the bar's height). With an IconButton among them
+	 * the actions share one row, labels wrapping inside the buttons (as `actionsFullWidthBelow`, Chamber-OS 149); with only icon
+	 * buttons the status and the icons share one row. From the breakpoint up nothing changes. Use it for a detail page's
+	 * own actions (Issue credit note…, ⋯) — one per page. The bar is `position: fixed`: no ancestor of the header may
+	 * have a transform, filter, backdrop-filter, will-change, paint/layout containment or `content-visibility: auto`, or it is placed
+	 * against that ancestor instead of the screen — the main entry warns in development. */
+	actionsBarBelow?: "sm" | "md" | undefined;
+	/** 5.45: the bar's status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026"), shown only while the actions are
+	 * a bar, in a polite live region. */
+	actionsStatus?: React$1.ReactNode | undefined;
 	/** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
 	headingLevel?: 1 | 2 | 3 | undefined;
 	/** The heading's id, for `aria-labelledby` on the page's region. */

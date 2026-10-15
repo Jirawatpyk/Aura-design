@@ -8513,7 +8513,8 @@ test.describe('5.44: Chamber-OS 149 — PageHeader actionsFullWidthBelow with an
       for (const id of ['en', 'th', 'sv']) {
         const { head, b } = await row(page, id);
         const [credit, refund, menu] = b;
-        expect(Math.abs(menu.top - credit.top), id).toBeLessThanOrEqual(1);
+        /* 5.45 (Chamber-OS addendum 52): the ⋯ is centred on the (taller) first action. */
+        expect(Math.abs(menu.top + menu.h / 2 - (credit.top + credit.h / 2)), id).toBeLessThanOrEqual(1);
         expect(Math.abs(refund.top - credit.top), id).toBeLessThanOrEqual(1);
         expect(credit.left, id).toBe(head.left);
         expect(menu.right, id).toBe(head.right); // the ⋯ ends the row
@@ -8558,5 +8559,113 @@ test.describe('5.44: Chamber-OS 149 — PageHeader actionsFullWidthBelow with an
       .evaluateAll((els) => els.map((e) => getComputedStyle(e).whiteSpace));
     expect(ws).toEqual(['nowrap', 'nowrap']);
     expect(Math.abs(b[0].h - b[1].h)).toBeLessThanOrEqual(1);
+  });
+});
+
+test.describe('5.45: Chamber-OS 150 — PageHeader actionsBarBelow', () => {
+  const ID = (s: string) => 'aura-new-in-5-45-chamber-os-150--' + s;
+  const geo = (page: Page) =>
+    page.evaluate(() => {
+      const a = document.querySelector('[data-testid=header] .aura-page-header__actions')!;
+      const box = (e: Element) => {
+        const r = e.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, h: r.height, mid: r.top + r.height / 2 };
+      };
+      return {
+        pos: getComputedStyle(a).position,
+        bar: box(a),
+        status: a.querySelector('.aura-page-header__status')
+          ? box(a.querySelector('.aura-page-header__status')!)
+          : null,
+        statusShown:
+          !!a.querySelector('.aura-page-header__status') &&
+          getComputedStyle(a.querySelector('.aura-page-header__status')!).display !== 'none',
+        btns: [...a.querySelectorAll<HTMLElement>('button')].map((b) => ({
+          ...box(b),
+          clip: b.scrollWidth > b.clientWidth,
+        })),
+        over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+
+  for (const w of [393, 320]) {
+    test(`150: at ${w}px the actions are a bar at the bottom — status above, ⋯ centred at the row's end, nothing clipped (en, th, sv)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 727 });
+      for (const lang of ['en', 'th', 'sv']) {
+        await story(page, ID('invoice-' + lang));
+        const g = await geo(page);
+        expect(g.pos, lang).toBe('fixed');
+        expect(Math.round(page.viewportSize()!.height - g.bar.bottom), lang).toBeGreaterThanOrEqual(12); // above the edge
+        expect(g.statusShown, lang).toBe(true);
+        const [credit, refund, menu] = g.btns;
+        expect(g.status!.bottom, lang).toBeLessThanOrEqual(credit.top);
+        expect(Math.abs(credit.top - refund.top), lang).toBeLessThanOrEqual(1);
+        expect(Math.abs(menu.mid - credit.mid), lang).toBeLessThanOrEqual(1);
+        expect(Math.round(menu.right), lang).toBe(Math.round(Math.max(...g.btns.map((b) => b.right))));
+        expect(Math.round(menu.h), lang).toBe(44);
+        expect(
+          g.btns.some((b) => b.clip),
+          lang,
+        ).toBe(false);
+        expect(g.over, lang).toBeLessThanOrEqual(0);
+        /* Rendered once: each test id is one element. */
+        for (const tid of ['credit', 'refund', 'more'])
+          await expect(page.getByTestId(tid), lang + ' ' + tid).toHaveCount(1);
+        /* The page's end scrolls clear of the bar. */
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        const last = await page.getByTestId('last').boundingBox();
+        const bar = (await geo(page)).bar;
+        expect(last!.y + last!.height, lang).toBeLessThanOrEqual(bar.top);
+      }
+    });
+  }
+
+  test("150: a focused field scrolls clear of the bar; the bar's trigger opens its dialog once", async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 727 });
+    await story(page, ID('invoice-en'));
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.getByLabel('Internal note').focus();
+    await page.waitForTimeout(100);
+    const field = (await page.getByLabel('Internal note').boundingBox())!;
+    const bar = (await geo(page)).bar;
+    expect(field.y + field.height).toBeLessThanOrEqual(bar.top);
+    await page.getByTestId('credit').click();
+    await expect(page.getByRole('dialog', { name: 'Issue credit note' })).toHaveCount(1);
+  });
+
+  test('150: only a ⋯ — status and ⋯ share one row; three text actions wrap with the main one last', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 393, height: 727 });
+    await story(page, ID('manager'));
+    const m = await geo(page);
+    expect(Math.abs(m.status!.mid - m.btns[0].mid)).toBeLessThanOrEqual(2);
+    expect(m.status!.right).toBeLessThanOrEqual(m.btns[0].left);
+    expect(m.bar.h).toBeLessThan(80);
+    await story(page, ID('draft'));
+    const d = await geo(page);
+    const issue = d.btns[2];
+    expect(issue.right).toBe(Math.max(...d.btns.map((b) => b.right)));
+    expect(issue.bottom).toBe(Math.max(...d.btns.map((b) => b.bottom)));
+    expect(d.btns.every((b) => b.h >= 44 && !b.clip)).toBe(true);
+  });
+
+  test('150: from 640px the actions sit in the header as before, the status line hidden', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await story(page, ID('invoice-en'));
+    const g = await geo(page);
+    expect(g.pos).toBe('static');
+    expect(g.statusShown).toBe(false);
+    const head = (await page.getByTestId('header').boundingBox())!;
+    expect(g.bar.top).toBeLessThan(head.y + head.height);
+    expect(Math.abs(g.btns[0].top - g.btns[1].top)).toBeLessThanOrEqual(1);
+    for (const tid of ['credit', 'refund', 'more']) await expect(page.getByTestId(tid)).toHaveCount(1);
+    expect(
+      await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--aura-page-actions-height'),
+      ),
+    ).toBe('');
   });
 });

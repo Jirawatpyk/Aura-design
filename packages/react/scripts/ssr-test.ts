@@ -296,6 +296,16 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.45 (Chamber-OS 150): PageHeader actionsBarBelow — a class and, with a status, a role="status" node first in the
+     * actions (rendered once); no attributes leak; a bad value or no actions adds nothing; main and server entries agree. */
+    {
+      const p = { title: 'Invoice', actions: e(A.Button, { 'data-testid': 'credit' }, 'Issue credit note'), actionsBarBelow: 'sm', actionsStatus: 'Total 10,700.00 THB' };
+      const ph = m(e(A.PageHeader, p));
+      const ph0 = m(e(A.PageHeader, { title: 'Invoice', actions: 'x', actionsBarBelow: 'xl', actionsStatus: 'T' }));
+      const phNoStatus = m(e(A.PageHeader, { title: 'Invoice', actions: 'x', actionsBarBelow: 'md' }));
+      const phNoActions = m(e(A.PageHeader, { title: 'Invoice', actions: false, actionsBarBelow: 'sm', actionsStatus: 'T' }));
+      if (!/^<div class="aura-page-header aura-page-header--actions-bar-below-sm">/.test(ph) || !/<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Total 10,700.00 THB<\/div><button/.test(ph) || (ph.match(/data-testid="credit"/g) || []).length !== 1 || /actionsbar|actionsstatus/i.test(ph + ph0) || /bar-below|__status/.test(ph0) || /__status/.test(phNoStatus) || !/actions-bar-below-md/.test(phNoStatus) || /bar-below|__status/.test(phNoActions)) bad('Chamber-OS 150:', ph, ph0, phNoStatus, phNoActions);
+    }
     /* 5.44 (Chamber-OS 149): IconButton variant="outline" is a class, never a DOM attribute. */
     {
       const ob = m(e(A.IconButton, { icon: 'ellipsis', label: 'More', variant: 'outline' }));

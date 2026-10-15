@@ -35,7 +35,7 @@ export { Avatar } from './Avatar.js';
 export { Stack } from './Stack.js';
 export { Grid } from './Grid.js';
 export { Container } from './Container.js';
-export { PageHeader } from './PageHeader.js';
+export { PageHeader } from './PageHeaderClient.js';
 export { StatusTile } from './StatusTile.js';
 export { TileGrid, Sparkline } from './tiles.js';
 export { AppShell } from './AppShell.js';

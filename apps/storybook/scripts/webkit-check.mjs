@@ -180,9 +180,19 @@ try {
   x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
   check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
 
+  /* 5.45 (#150): PageHeader actionsBarBelow — a fixed bar at a phone width, status above, ⋯ centred on the row; the
+   * page's end scrolls clear of it. */
+  await go('aura-new-in-5-45-chamber-os-150--invoice-en');
+  await new Promise((r) => setTimeout(r, 300));
+  x = await ex(`window.scrollTo(0, document.documentElement.scrollHeight);
+    const a = document.querySelector('[data-testid=header] .aura-page-header__actions'), b = [...a.querySelectorAll('button')].map((e) => e.getBoundingClientRect());
+    const s = a.querySelector('.aura-page-header__status').getBoundingClientRect(), last = document.querySelector('[data-testid=last]').getBoundingClientRect();
+    return [getComputedStyle(a).position, s.bottom <= b[0].top, Math.abs((b[2].top + b[2].height / 2) - (b[0].top + b[0].height / 2)) <= 1, last.bottom <= a.getBoundingClientRect().top]`);
+  check(JSON.stringify(x) === '["fixed",true,true,true]', 'PageHeader actionsBarBelow: fixed bar, status above, ⋯ centred, page end clear', x);
+
   /* 5.44 (#149): two outlined actions and a ⋯ share one row at a phone width (:has in WebKit), labels wrapping. */
   await go('aura-new-in-5-44-chamber-os-149--invoice-actions');
-  x = await ex(`return ['en', 'sv'].map((id) => { const t = [...document.querySelectorAll('[data-testid=' + id + '] .aura-page-header__actions button')].map((b) => Math.round(b.getBoundingClientRect().top)); return Math.max(...t) - Math.min(...t) <= 1; })`);
+  x = await ex(`return ['en', 'sv'].map((id) => { const t = [...document.querySelectorAll('[data-testid=' + id + '] .aura-page-header__actions button')].map((b) => { const r = b.getBoundingClientRect(); return Math.round(r.top + r.height / 2); }); return Math.max(...t) - Math.min(...t) <= 1; })`);
   check(JSON.stringify(x) === '[true,true]', 'PageHeader actionsFullWidthBelow: actions and the ⋯ on one row (en, sv)', x);
 
   /* 5.43 (#148): a collapsing bar with no search — the Filters button fills its row at a phone width. */

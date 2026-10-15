@@ -35,6 +35,19 @@ export interface PageHeaderProps
    * readers — and the breadcrumb and eyebrow are hidden, for phone layouts that show the title in the top bar. The
    * meta line and actions stay; with no meta, the actions start the header. */
   titleHideBelow?: 'sm' | 'md' | 'lg' | undefined;
+  /** 5.45 (Chamber-OS 150): below this breakpoint (`sm` 640px, `md` 768px) the same `actions` — rendered once, so a
+   * dialog trigger or test id is never doubled — become a bar fixed to the bottom of the screen with ActionBar's look:
+   * above a BottomNav, clear of the home indicator, `actionsStatus` as its status line. The page's end and a focused
+   * field scroll clear of it (AppShell's content, or the body, gains the bar's height). With an IconButton among them
+   * the actions share one row, labels wrapping inside the buttons (as `actionsFullWidthBelow`, Chamber-OS 149); with only icon
+   * buttons the status and the icons share one row. From the breakpoint up nothing changes. Use it for a detail page's
+   * own actions (Issue credit note…, ⋯) — one per page. The bar is `position: fixed`: no ancestor of the header may
+   * have a transform, filter, backdrop-filter, will-change, paint/layout containment or `content-visibility: auto`, or it is placed
+   * against that ancestor instead of the screen — the main entry warns in development. */
+  actionsBarBelow?: 'sm' | 'md' | undefined;
+  /** 5.45: the bar's status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026"), shown only while the actions are
+   * a bar, in a polite live region. */
+  actionsStatus?: React.ReactNode | undefined;
   /** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
   headingLevel?: 1 | 2 | 3 | undefined;
   /** The heading's id, for `aria-labelledby` on the page's region. */
@@ -53,6 +66,10 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
   const below = props.actionsFullWidthBelow;
   const hide = props.titleHideBelow;
   const hasMeta = props.meta != null && props.meta !== false;
+  const hasActions = props.actions != null && props.actions !== false;
+  /* No actions, no bar — and no space reserved for one at the page's end. */
+  const bar =
+    hasActions && (props.actionsBarBelow === 'sm' || props.actionsBarBelow === 'md') ? props.actionsBarBelow : null;
   return h(
     'div',
     Object.assign(attrs, {
@@ -62,6 +79,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
         (below === 'sm' || below === 'md' || below === 'lg') && 'aura-page-header--actions-full-below-' + below,
         (hide === 'sm' || hide === 'md' || hide === 'lg') && 'aura-page-header--title-hide-below-' + hide,
         (hide === 'sm' || hide === 'md' || hide === 'lg') && !hasMeta && 'has-no-meta',
+        bar && 'aura-page-header--actions-bar-below-' + bar,
         props.className,
       ),
       style: props.style,
@@ -79,7 +97,14 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
       props.meta != null && props.meta !== false ? h('div', { className: 'aura-page-header__meta' }, props.meta) : null,
     ),
     props.actions != null && props.actions !== false
-      ? h('div', { className: 'aura-page-header__actions' }, props.actions)
+      ? h(
+          'div',
+          { className: 'aura-page-header__actions' },
+          bar && props.actionsStatus != null && props.actionsStatus !== false
+            ? h('div', { className: 'aura-page-header__status', role: 'status' }, props.actionsStatus)
+            : null,
+          props.actions,
+        )
       : null,
   );
 });

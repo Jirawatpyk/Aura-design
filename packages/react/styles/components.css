@@ -1184,6 +1184,7 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 @media (max-width: 767.98px) {
   .aura-page-header--actions-full-below-md > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
@@ -1194,6 +1195,7 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 @media (max-width: 1023.98px) {
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
@@ -1204,7 +1206,44 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
+/* 5.45 (Chamber-OS 150): actionsBarBelow — the same actions become a fixed bar with a status line; the page gains its
+ * height (--aura-page-actions-height, measured on the client) so its end and a focused field scroll clear. */
+.aura-page-header__status { display: none; }
+@media (max-width: 639.98px) {
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions { position: fixed; z-index: var(--aura-z-bar); left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) var(--aura-space-2) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); transition: bottom var(--aura-duration-base) var(--aura-ease); }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :not(.aura-page-header__status) { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-icon-btn { flex: none; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: wrap; align-items: stretch; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :not(.aura-page-header__status) { min-width: 0; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions:not(:has(> .aura-btn, > * > .aura-btn)) > .aura-page-header__status { flex: 1 1 0; align-self: center; }
+  :root:has(.aura-page-header--actions-bar-below-sm) { --aura-page-actions-space: calc(var(--aura-page-actions-height, 7rem) + var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px)) + var(--aura-space-3)); scroll-padding-bottom: var(--aura-page-actions-space); }
+  :root:has(.aura-page-header--actions-bar-below-sm) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-page-actions-space)); }
+  :root:has(.aura-page-header--actions-bar-below-sm):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-page-actions-space); }
+}
+@media (max-width: 767.98px) {
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions { position: fixed; z-index: var(--aura-z-bar); left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) var(--aura-space-2) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); transition: bottom var(--aura-duration-base) var(--aura-ease); }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :not(.aura-page-header__status) { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-icon-btn { flex: none; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: wrap; align-items: stretch; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :not(.aura-page-header__status) { min-width: 0; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions:not(:has(> .aura-btn, > * > .aura-btn)) > .aura-page-header__status { flex: 1 1 0; align-self: center; }
+  :root:has(.aura-page-header--actions-bar-below-md) { --aura-page-actions-space: calc(var(--aura-page-actions-height, 7rem) + var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px)) + var(--aura-space-3)); scroll-padding-bottom: var(--aura-page-actions-space); }
+  :root:has(.aura-page-header--actions-bar-below-md) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-page-actions-space)); }
+  :root:has(.aura-page-header--actions-bar-below-md):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-page-actions-space); }
+}
+@media (prefers-reduced-motion: reduce) { .aura-page-header__actions { transition: none; } }
 @media (min-width: 640px) { .aura-page-header__title { font-size: max(36px, 2.25rem); } }
 /* Thai marks need the room a 1.15 line takes away. */
 .aura-page-header__title:lang(th) { line-height: 1.4; letter-spacing: 0; }
