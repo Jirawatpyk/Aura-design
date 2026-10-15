@@ -180,6 +180,16 @@ try {
   x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
   check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
 
+  /* 5.46 (#151): PageHeader subtitle and title addon on one line, chip eyebrow row, focusTitleOnMount. */
+  await go('aura-new-in-5-46-chamber-os-151--subtitle-and-addon');
+  x = await ex(`const p = document.querySelector('[data-testid=en]'), t = p.querySelector('.aura-page-header__title').getBoundingClientRect(), a = p.querySelector('.aura-page-header__title-addon').getBoundingClientRect(), s = p.querySelector('.aura-page-header__subtitle');
+    return [a.left > t.right, Math.abs((a.top + a.bottom) / 2 - (t.top + t.bottom) / 2) <= 2, parseFloat(getComputedStyle(s).fontSize), s.getBoundingClientRect().top >= t.bottom - 1]`);
+  check(JSON.stringify(x) === '[true,true,14,true]', 'PageHeader titleAddon beside the title, 14px subtitle under it', x);
+  await go('aura-new-in-5-46-chamber-os-151--renewal-success');
+  await new Promise((r) => setTimeout(r, 200));
+  x = await ex(`return [document.activeElement.className, getComputedStyle(document.activeElement).outlineStyle]`);
+  check(JSON.stringify(x) === '["aura-page-header__title","none"]', 'PageHeader focusTitleOnMount: the heading focused, no ring', x);
+
   /* 5.45 (#150): PageHeader actionsBarBelow — a fixed bar at a phone width, status above, ⋯ centred on the row; the
    * page's end scrolls clear of it. */
   await go('aura-new-in-5-45-chamber-os-150--invoice-en');

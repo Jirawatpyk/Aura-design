@@ -73,5 +73,13 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
     },
     [bar, hasActions],
   );
+  /* 5.46 (Chamber-OS 151): focusTitleOnMount — the heading takes focus once, when the header mounts, without scrolling. */
+  const focusTitle = !!props.focusTitleOnMount;
+  React.useEffect(function () {
+    if (!focusTitle || !own.current) return;
+    const t = own.current.querySelector<HTMLElement>('.aura-page-header__title');
+    if (t) t.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return <StaticPageHeader {...props} ref={merged} />;
 });

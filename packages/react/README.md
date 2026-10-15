@@ -186,6 +186,19 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.46 — Chamber-OS addendum 53 (#151)
+
+What Chamber-OS's own page header did that PageHeader didn't, so it can be rebuilt on PageHeader with its props kept:
+
+- **`subtitle`**: a sentence under the title at body size (14px/1.7, the secondary colour) — "Members, plans and renewals for SweCham" — before `meta`, in a `div` (a loading skeleton's blocks are valid inside).
+- **`titleAddon`**: a chip or badge on the title's line (a role, an invoice's status, "Archived"). Title and addon share a wrapping row, 12px apart (8px between lines); on a narrow screen the addon wraps under the title. It sits beside the heading, not in it, so the heading's name stays the title. Where `titleHideBelow` hides the title, the addon goes with it.
+- **A chip eyebrow**: `eyebrow` that is not text (a StatusPill, a member number, badges) renders as a wrapping row in a `div`, 8px apart, 4px above the title as before. Text stays the mono `p`.
+- **`size`**: `default` (28px, 36px from 640px), `hero` (30px on a 36px line) and `hero-lg` (26px, 36px from 1024px), the hero sizes with 16px more room above. Per page, `--aura-page-header-title-size` and `--aura-page-header-title-line-height` override any of them (staff pages at 26/32: set both). Under `lang="th"` the title keeps its 1.4 line, whatever the size or variable. The hero's 16px adds to the padding around it (AppShell's content, a Card), by design.
+- **`focusTitleOnMount`**: the heading takes focus when the header mounts (`tabIndex={-1}`, `preventScroll`, no visible ring) — a page reached by a redirect, so a screen reader starts at its heading (WCAG 2.4.3). The main entry's PageHeader does it once, when it mounts; from `/server` the heading is focusable but not focused. Use it on pages reached by client-side navigation or a redirect, not on every page: on a first load it moves focus past a skip link, and a header that stays mounted while its title changes doesn't refocus — key it by the page (`key={pathname}`) if it must.
+- **`actionsAlign`**: `end` (default) lines the actions up with the bottom of the text, as before; `start` with its top — the title, when there is no breadcrumb or eyebrow.
+- Confirmed, no change: the text column's `flex: 1 1 320px` keeps a long title at least 320px wide; wide actions drop under it (checked at 700px). On a phone `actionsFullWidthBelow="sm"` shares the row between actions.
+- Checked at 390 and 1280px in English, Thai and Swedish, and at a 32px default font size: nothing scrolls sideways.
+
 ## 5.45 — Chamber-OS addendum 52 (#150)
 
 - **PageHeader `actionsBarBelow`** (#150): `'sm' | 'md'` — below 640px or 768px the header's `actions` become a bar fixed to the bottom of the screen with ActionBar's look and offset (above a BottomNav, clear of the home indicator), and `actionsStatus` is its status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026", a polite live region shown only in the bar).

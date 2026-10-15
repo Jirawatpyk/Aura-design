@@ -93,6 +93,8 @@ for (const [name, A] of [
       tree(A.PageHeader.render({ eyebrow: 'Monitor', title: 'Overview', meta: '12 sites' }, null)),
       /* 5.37 (DxT Monitor 17): actionsFullWidthBelow is a class, still stateless. */
       tree(A.PageHeader.render({ title: 'Site', actions: 'Mute', actionsFullWidthBelow: 'md' }, null)),
+      /* 5.46 (Chamber-OS 151): subtitle, titleAddon and size, still stateless. */
+      tree(A.PageHeader.render({ title: 'Benefits', subtitle: 'What your plan includes', titleAddon: 'New', size: 'hero-lg' }, null)),
       /* 5.45 (Chamber-OS 150): actionsBarBelow is a class and a status node, still stateless. */
       tree(A.PageHeader.render({ title: 'Invoice', actions: 'Issue', actionsBarBelow: 'sm', actionsStatus: 'Total 10,700.00 THB' }, null)),
       /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
@@ -137,6 +139,7 @@ for (const [name, A] of [
       'd="M52.67 8.67L78 2"',
       '<div class="aura-page-header aura-page-header--actions-full-below-md"><div class="aura-page-header__text">',
       '<div class="aura-page-header aura-page-header--actions-bar-below-sm">',
+      '<div class="aura-page-header aura-page-header--hero-lg"><div class="aura-page-header__text"><div class="aura-page-header__title-row"><h1 class="aura-page-header__title">Benefits</h1><div class="aura-page-header__title-addon">New</div></div><div class="aura-page-header__subtitle">What your plan includes</div>',
       '<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Total 10,700.00 THB</div>Issue</div>',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);

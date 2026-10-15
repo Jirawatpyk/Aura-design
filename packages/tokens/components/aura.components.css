@@ -1152,7 +1152,7 @@ a.aura-tab { text-decoration: none; }
 .aura-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--aura-space-4) var(--aura-space-6); min-width: 0; font-family: var(--font-sans); }
 .aura-page-header__text { display: flex; flex-direction: column; gap: var(--aura-space-1); flex: 1 1 320px; min-width: 0; }
 .aura-page-header__eyebrow { margin: 0; font-family: var(--font-mono); font-size: max(12px, .75rem); line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
-.aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: max(28px, 1.75rem); line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
+.aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: var(--aura-page-header-title-size, max(28px, 1.75rem)); line-height: var(--aura-page-header-title-line-height, 1.15); font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
 .aura-page-header__breadcrumb { min-width: 0; } /* 5.33 (DxT Monitor #7): Breadcrumb keeps its own type */
 .aura-page-header__meta { min-width: 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
 .aura-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
@@ -1160,15 +1160,15 @@ a.aura-tab { text-decoration: none; }
  * are gone; with no meta line the text block takes no room, so the actions start the header. */
 @media (max-width: 639.98px) {
   .aura-page-header--title-hide-below-sm .aura-page-header__title, .aura-page-header--title-hide-below-sm.has-no-meta > .aura-page-header__text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .aura-page-header--title-hide-below-sm :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow) { display: none; }
+  .aura-page-header--title-hide-below-sm :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow, .aura-page-header__title-addon) { display: none; }
 }
 @media (max-width: 767.98px) {
   .aura-page-header--title-hide-below-md .aura-page-header__title, .aura-page-header--title-hide-below-md.has-no-meta > .aura-page-header__text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .aura-page-header--title-hide-below-md :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow) { display: none; }
+  .aura-page-header--title-hide-below-md :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow, .aura-page-header__title-addon) { display: none; }
 }
 @media (max-width: 1023.98px) {
   .aura-page-header--title-hide-below-lg .aura-page-header__title, .aura-page-header--title-hide-below-lg.has-no-meta > .aura-page-header__text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .aura-page-header--title-hide-below-lg :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow) { display: none; }
+  .aura-page-header--title-hide-below-lg :is(.aura-page-header__breadcrumb, .aura-page-header__eyebrow, .aura-page-header__title-addon) { display: none; }
 }
 /* 5.37 (DxT Monitor #17): actionsFullWidthBelow — the actions take the row under the text; their children share
  * each line equally (wrapping when a label won't fit), a trigger inside a DropdownMenu, Tooltip or Popover wrapper
@@ -1244,7 +1244,19 @@ a.aura-tab { text-decoration: none; }
   :root:has(.aura-page-header--actions-bar-below-md):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-page-actions-space); }
 }
 @media (prefers-reduced-motion: reduce) { .aura-page-header__actions { transition: none; } }
-@media (min-width: 640px) { .aura-page-header__title { font-size: max(36px, 2.25rem); } }
+@media (min-width: 640px) { .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(36px, 2.25rem)); } }
+/* 5.46 (Chamber-OS 151): subtitle, a title addon, a chip eyebrow, hero sizes, a focusable heading, top-aligned actions. */
+.aura-page-header__subtitle { min-width: 0; font-size: max(14px, .875rem); line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
+.aura-page-header__title-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2) var(--aura-space-3); min-width: 0; }
+.aura-page-header__title-row > .aura-page-header__title { min-width: 0; }
+.aura-page-header__title-addon { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); min-width: 0; }
+.aura-page-header__eyebrow--rich { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); font-family: var(--font-sans); line-height: 1.5; }
+.aura-page-header--hero, .aura-page-header--hero-lg { padding-top: var(--aura-space-4); }
+.aura-page-header--hero .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(30px, 1.875rem)); line-height: var(--aura-page-header-title-line-height, 1.2); }
+.aura-page-header--hero-lg .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(26px, 1.625rem)); line-height: var(--aura-page-header-title-line-height, 1.25); }
+@media (min-width: 1024px) { .aura-page-header--hero-lg .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(36px, 2.25rem)); line-height: var(--aura-page-header-title-line-height, 1.2); } }
+.aura-page-header__title[tabindex="-1"]:focus { outline: none; }
+.aura-page-header--actions-start { align-items: flex-start; }
 /* Thai marks need the room a 1.15 line takes away. */
 .aura-page-header__title:lang(th) { line-height: 1.4; letter-spacing: 0; }
 .aura-page-header__meta:lang(th) { line-height: 1.6; }

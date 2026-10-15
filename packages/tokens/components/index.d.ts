@@ -1932,7 +1932,8 @@ export declare const Container: React$1.ForwardRefExoticComponent<ContainerProps
  * `/server`. It renders a plain `div`: to name a region by its title, put `aria-labelledby={titleId}` on your own
  * `<section>`, or pass `role="region"` with it. */
 export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement>, "id" | "lang" | "dir" | "role">, React$1.AriaAttributes, DataAttributes {
-	/** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). */
+	/** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). 5.46 (Chamber-OS
+	 * 151): anything but text (chips: a status, a member number, badges) is a wrapping row in a `div`, 8px apart. */
 	eyebrow?: React$1.ReactNode | undefined;
 	/** 5.33 (DxT Monitor #7): a `<Breadcrumb>` above the title, 4px from it like the eyebrow, in its own `div` (a `nav`
 	 * can't sit in the eyebrow's `p`) and its own 13px sans. Detail pages show a breadcrumb or an eyebrow; with both,
@@ -1940,6 +1941,23 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	breadcrumb?: React$1.ReactNode | undefined;
 	/** The page's heading. */
 	title: React$1.ReactNode;
+	/** 5.46 (Chamber-OS 151): a sentence under the title at body size (14px/1.7, secondary colour) — "Members, plans
+	 * and renewals for SweCham" — before `meta`. A `div`, so a loading skeleton's blocks are valid inside. */
+	subtitle?: React$1.ReactNode | undefined;
+	/** 5.46: a chip or badge on the title's line (a role, an invoice's status, "Archived"). Title and addon share a
+	 * wrapping row, 8px apart vertically and 12px across; on a narrow screen the addon wraps under the title. */
+	titleAddon?: React$1.ReactNode | undefined;
+	/** 5.46: the title's size. `default` 28px below 640px, 36px from 640px; `hero` 30px on a 36px line with 16px more
+	 * room above; `hero-lg` 26px below 1024px and 36px from 1024px, with the same room. Per page, the custom
+	 * properties `--aura-page-header-title-size` and `--aura-page-header-title-line-height` override any of them. */
+	size?: "default" | "hero" | "hero-lg" | undefined;
+	/** 5.46: focus the heading when the header mounts (`tabIndex={-1}`, `preventScroll`, no visible ring) — a page
+	 * reached by a server redirect (renewal done, back from a payment page), so a screen reader starts there (WCAG
+	 * 2.4.3). The main entry's PageHeader does it; from `/server` the heading is focusable but not focused. */
+	focusTitleOnMount?: boolean | undefined;
+	/** 5.46: `end` (default) lines the actions up with the bottom of the text; `start` with its top (the title, when
+	 * there is no breadcrumb or eyebrow). */
+	actionsAlign?: "end" | "start" | undefined;
 	/** A line under the title — counts, last update, owner. */
 	meta?: React$1.ReactNode | undefined;
 	/** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */

@@ -296,6 +296,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.46 (Chamber-OS 151): subtitle, titleAddon, a chip eyebrow in a div (text stays a p), size and actionsAlign
+     * classes, focusTitleOnMount's tabindex — no props leak as attributes. */
+    {
+      const ph = m(e(A.PageHeader, { title: 'Members', subtitle: 'Members and plans', titleAddon: e(A.Badge, null, 'Admin'), size: 'hero', actionsAlign: 'start', focusTitleOnMount: true, eyebrow: e(A.Tag, null, 'No. 1') }));
+      const ph0 = m(e(A.PageHeader, { title: 'Members', eyebrow: 'Monitor', size: 'big' }));
+      if (!/^<div class="aura-page-header aura-page-header--hero aura-page-header--actions-start">/.test(ph) || !/<div class="aura-page-header__eyebrow aura-page-header__eyebrow--rich">/.test(ph) || !/<div class="aura-page-header__title-row"><h1 class="aura-page-header__title" tabindex="-1" data-aura-focus-on-mount="">Members<\/h1><div class="aura-page-header__title-addon">/.test(ph) || !/<div class="aura-page-header__subtitle">Members and plans<\/div>/.test(ph) || /titleaddon|focustitleonmount|actionsalign|subtitle="/i.test(ph) || !/<p class="aura-page-header__eyebrow">Monitor<\/p><h1 class="aura-page-header__title">Members<\/h1>/.test(ph0) || /--big|--hero|tabindex/.test(ph0)) bad('Chamber-OS 151:', ph, ph0);
+    }
     /* 5.45 (Chamber-OS 150): PageHeader actionsBarBelow — a class and, with a status, a role="status" node first in the
      * actions (rendered once); no attributes leak; a bad value or no actions adds nothing; main and server entries agree. */
     {

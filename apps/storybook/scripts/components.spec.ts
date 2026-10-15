@@ -8669,3 +8669,150 @@ test.describe('5.45: Chamber-OS 150 — PageHeader actionsBarBelow', () => {
     ).toBe('');
   });
 });
+
+test.describe('5.46: Chamber-OS 151 — PageHeader subtitle, titleAddon, chip eyebrow, size, focusTitleOnMount, actionsAlign', () => {
+  const ID = (s: string) => 'aura-new-in-5-46-chamber-os-151--' + s;
+  const r = (page: Page, sel: string) =>
+    page
+      .locator(sel)
+      .first()
+      .evaluate((e) => {
+        const b = e.getBoundingClientRect();
+        const s = getComputedStyle(e);
+        return {
+          top: b.top,
+          bottom: b.bottom,
+          left: b.left,
+          right: b.right,
+          w: b.width,
+          fs: parseFloat(s.fontSize),
+          lh: s.lineHeight,
+          color: s.color,
+          tag: e.tagName,
+        };
+      });
+
+  for (const w of [390, 1280]) {
+    test(`151: at ${w}px a body-size subtitle under the title and before meta, a chip on the title's line (en, th, sv)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 1100 });
+      await story(page, ID('subtitle-and-addon'));
+      for (const l of ['en', 'th', 'sv']) {
+        const p = `[data-testid=${l}] `;
+        const title = await r(page, p + '.aura-page-header__title');
+        const sub = await r(page, p + '.aura-page-header__subtitle');
+        const meta = await r(page, p + '.aura-page-header__meta');
+        const addon = await r(page, p + '.aura-page-header__title-addon');
+        expect(sub.tag, l).toBe('DIV');
+        expect(sub.fs, l).toBe(14);
+        expect(sub.color, l).toBe(meta.color);
+        expect(sub.top, l).toBeGreaterThanOrEqual(title.bottom - 1);
+        expect(meta.top, l).toBeGreaterThanOrEqual(sub.bottom - 1);
+        /* The chip shares the title's line, after it, centred on it. */
+        expect(addon.left, l).toBeGreaterThan(title.right);
+        expect(Math.abs((addon.top + addon.bottom) / 2 - (title.top + title.bottom) / 2), l).toBeLessThanOrEqual(2);
+        /* The heading's name is the title alone. */
+        await expect(page.getByTestId(l).getByRole('heading', { level: 1 })).toHaveCount(1);
+      }
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      ).toBeLessThanOrEqual(0);
+    });
+  }
+
+  test('151: with titleHideBelow the addon leaves with the title; the subtitle stays', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 1100 });
+    await story(page, ID('subtitle-and-addon'));
+    await expect(page.getByTestId('hide').locator('.aura-page-header__title-addon')).toBeHidden();
+    await expect(page.getByTestId('hide').locator('.aura-page-header__subtitle')).toBeVisible();
+    await expect(
+      page.getByTestId('hide').getByRole('heading', { level: 1, name: 'Invoice SC-2026-900001' }),
+    ).toHaveCount(1);
+    await page.setViewportSize({ width: 1280, height: 1100 });
+    await expect(page.getByTestId('hide').locator('.aura-page-header__title-addon')).toBeVisible();
+  });
+
+  test('151: a long title keeps its room at 700px — the actions drop under it', async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 900 });
+    await story(page, ID('subtitle-and-addon'));
+    const text = await r(page, '[data-testid=squeeze] .aura-page-header__text');
+    const act = await r(page, '[data-testid=squeeze] .aura-page-header__actions');
+    expect(text.w).toBeGreaterThanOrEqual(320);
+    expect(act.top).toBeGreaterThanOrEqual(text.bottom);
+  });
+
+  test('151: chips above the title — a wrapping row in a div, 4px from the title', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID('member-detail'));
+    const eb = await r(page, '[data-testid=member] .aura-page-header__eyebrow');
+    const title = await r(page, '[data-testid=member] .aura-page-header__title');
+    expect(eb.tag).toBe('DIV');
+    expect(Math.round(title.top - eb.bottom)).toBe(4);
+    const tops = await page.locator('[data-testid=member] .aura-page-header__eyebrow > *').evaluateAll((els) =>
+      els.map((e) => {
+        const b = e.getBoundingClientRect();
+        return b.top + b.height / 2;
+      }),
+    );
+    expect(Math.max(...tops) - Math.min(...tops)).toBeLessThanOrEqual(2);
+    expect(await page.locator('[data-testid=member] p .aura-tag, [data-testid=member] p div').count()).toBe(0);
+  });
+
+  test('151: hero sizes and the title custom properties; actionsAlign="start" lines the action up with the title', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID('portal-hero'));
+    const hero = await r(page, '[data-testid=hero] .aura-page-header__title');
+    expect([hero.fs, hero.lh]).toEqual([30, '36px']);
+    expect((await r(page, '[data-testid=hero-lg] .aura-page-header__title')).fs).toBe(36);
+    const custom = await r(page, '[data-testid=custom] .aura-page-header__title');
+    expect([custom.fs, custom.lh]).toEqual([26, '32px']);
+    expect((await r(page, '[data-testid=plain] .aura-page-header__title')).fs).toBe(36);
+    const heroHead = await r(page, '[data-testid=hero] .aura-page-header');
+    const plainHead = await r(page, '[data-testid=plain] .aura-page-header');
+    expect(Math.round(hero.top - heroHead.top)).toBe(16); // room above
+    const act = await r(page, '[data-testid=hero] .aura-page-header__actions');
+    expect(Math.abs(act.top - hero.top)).toBeLessThanOrEqual(4);
+    const pAct = await r(page, '[data-testid=plain] .aura-page-header__actions');
+    const pText = await r(page, '[data-testid=plain] .aura-page-header__text');
+    expect(Math.abs(pAct.bottom - pText.bottom)).toBeLessThanOrEqual(1); // default: the bottom, as before
+    expect(Math.round(plainHead.top)).toBe(
+      Math.round((await r(page, '[data-testid=plain] .aura-page-header__title')).top),
+    );
+    await page.setViewportSize({ width: 390, height: 900 });
+    expect((await r(page, '[data-testid=hero-lg] .aura-page-header__title')).fs).toBe(26);
+  });
+
+  test('151: focusTitleOnMount — the heading has focus on load, no ring, no scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID('renewal-success'));
+    const h = page.getByRole('heading', { level: 1, name: 'Renewal complete' });
+    await expect(h).toBeFocused();
+    await expect(h).toHaveAttribute('tabindex', '-1');
+    expect(await h.evaluate((e) => getComputedStyle(e).outlineStyle)).toBe('none');
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Back to the portal' })).toBeFocused();
+  });
+
+  test('151: nothing scrolls sideways at a 32px default font size', async ({ browser }) => {
+    const ctx = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      viewport: { width: 390, height: 900 },
+    });
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Page.enable');
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32, fixed: 26 } });
+    for (const s of ['subtitle-and-addon', 'member-detail', 'portal-hero', 'renewal-success']) {
+      await story(page, ID(s));
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        s,
+      ).toBeLessThanOrEqual(0);
+    }
+    await ctx.close();
+  });
+});

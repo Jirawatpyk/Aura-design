@@ -7835,7 +7835,23 @@ window.Aura = (() => {
     const level = props.headingLevel || 1;
     const below2 = props.actionsFullWidthBelow;
     const hide2 = props.titleHideBelow;
-    const hasMeta = props.meta != null && props.meta !== false;
+    const shown = function(n3) {
+      return n3 != null && n3 !== false && n3 !== "";
+    };
+    const hasMeta = shown(props.meta) || shown(props.subtitle) || shown(props.titleAddon);
+    const size = props.size === "hero" || props.size === "hero-lg" ? props.size : null;
+    const eyebrow = props.eyebrow;
+    const plainEyebrow = typeof eyebrow === "string" || typeof eyebrow === "number";
+    const heading = h8(
+      "h" + level,
+      {
+        className: "aura-page-header__title",
+        id: props.titleId,
+        tabIndex: props.focusTitleOnMount ? -1 : void 0,
+        "data-aura-focus-on-mount": props.focusTitleOnMount ? "" : void 0
+      },
+      props.title
+    );
     const hasActions = props.actions != null && props.actions !== false;
     const bar = hasActions && (props.actionsBarBelow === "sm" || props.actionsBarBelow === "md") ? props.actionsBarBelow : null;
     return h8(
@@ -7848,6 +7864,8 @@ window.Aura = (() => {
           (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && "aura-page-header--title-hide-below-" + hide2,
           (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && !hasMeta && "has-no-meta",
           bar && "aura-page-header--actions-bar-below-" + bar,
+          size && "aura-page-header--" + size,
+          props.actionsAlign === "start" && "aura-page-header--actions-start",
           props.className
         ),
         style: props.style
@@ -7856,8 +7874,14 @@ window.Aura = (() => {
         "div",
         { className: "aura-page-header__text" },
         props.breadcrumb != null && props.breadcrumb !== false ? h8("div", { className: "aura-page-header__breadcrumb" }, props.breadcrumb) : null,
-        props.eyebrow != null && props.eyebrow !== false ? h8("p", { className: "aura-page-header__eyebrow" }, props.eyebrow) : null,
-        h8("h" + level, { className: "aura-page-header__title", id: props.titleId }, props.title),
+        shown(eyebrow) ? plainEyebrow ? h8("p", { className: "aura-page-header__eyebrow" }, eyebrow) : h8("div", { className: "aura-page-header__eyebrow aura-page-header__eyebrow--rich" }, eyebrow) : null,
+        shown(props.titleAddon) ? h8(
+          "div",
+          { className: "aura-page-header__title-row" },
+          heading,
+          h8("div", { className: "aura-page-header__title-addon" }, props.titleAddon)
+        ) : heading,
+        shown(props.subtitle) ? h8("div", { className: "aura-page-header__subtitle" }, props.subtitle) : null,
         props.meta != null && props.meta !== false ? h8("div", { className: "aura-page-header__meta" }, props.meta) : null
       ),
       props.actions != null && props.actions !== false ? h8(
@@ -7923,6 +7947,12 @@ window.Aura = (() => {
       },
       [bar, hasActions]
     );
+    const focusTitle = !!props.focusTitleOnMount;
+    React44.useEffect(function() {
+      if (!focusTitle || !own.current) return;
+      const t = own.current.querySelector(".aura-page-header__title");
+      if (t) t.focus({ preventScroll: true });
+    }, []);
     return /* @__PURE__ */ React44.createElement(PageHeader, { ...props, ref: merged });
   });
 

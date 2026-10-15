@@ -14,7 +14,8 @@ export interface PageHeaderProps
     Pick<React.HTMLAttributes<HTMLElement>, 'id' | 'lang' | 'dir' | 'role'>,
     React.AriaAttributes,
     DataAttributes {
-  /** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). */
+  /** Small mono line above the title — a section or breadcrumb-like context ("Monitor / Sites"). 5.46 (Chamber-OS
+   * 151): anything but text (chips: a status, a member number, badges) is a wrapping row in a `div`, 8px apart. */
   eyebrow?: React.ReactNode | undefined;
   /** 5.33 (DxT Monitor #7): a `<Breadcrumb>` above the title, 4px from it like the eyebrow, in its own `div` (a `nav`
    * can't sit in the eyebrow's `p`) and its own 13px sans. Detail pages show a breadcrumb or an eyebrow; with both,
@@ -22,6 +23,23 @@ export interface PageHeaderProps
   breadcrumb?: React.ReactNode | undefined;
   /** The page's heading. */
   title: React.ReactNode;
+  /** 5.46 (Chamber-OS 151): a sentence under the title at body size (14px/1.7, secondary colour) — "Members, plans
+   * and renewals for SweCham" — before `meta`. A `div`, so a loading skeleton's blocks are valid inside. */
+  subtitle?: React.ReactNode | undefined;
+  /** 5.46: a chip or badge on the title's line (a role, an invoice's status, "Archived"). Title and addon share a
+   * wrapping row, 8px apart vertically and 12px across; on a narrow screen the addon wraps under the title. */
+  titleAddon?: React.ReactNode | undefined;
+  /** 5.46: the title's size. `default` 28px below 640px, 36px from 640px; `hero` 30px on a 36px line with 16px more
+   * room above; `hero-lg` 26px below 1024px and 36px from 1024px, with the same room. Per page, the custom
+   * properties `--aura-page-header-title-size` and `--aura-page-header-title-line-height` override any of them. */
+  size?: 'default' | 'hero' | 'hero-lg' | undefined;
+  /** 5.46: focus the heading when the header mounts (`tabIndex={-1}`, `preventScroll`, no visible ring) — a page
+   * reached by a server redirect (renewal done, back from a payment page), so a screen reader starts there (WCAG
+   * 2.4.3). The main entry's PageHeader does it; from `/server` the heading is focusable but not focused. */
+  focusTitleOnMount?: boolean | undefined;
+  /** 5.46: `end` (default) lines the actions up with the bottom of the text; `start` with its top (the title, when
+   * there is no breadcrumb or eyebrow). */
+  actionsAlign?: 'end' | 'start' | undefined;
   /** A line under the title — counts, last update, owner. */
   meta?: React.ReactNode | undefined;
   /** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
@@ -65,7 +83,24 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
   const level = props.headingLevel || 1;
   const below = props.actionsFullWidthBelow;
   const hide = props.titleHideBelow;
-  const hasMeta = props.meta != null && props.meta !== false;
+  const shown = function (n: React.ReactNode) {
+    return n != null && n !== false && n !== '';
+  };
+  /* Nothing but the title in the text column: below titleHideBelow the column takes no room. */
+  const hasMeta = shown(props.meta) || shown(props.subtitle) || shown(props.titleAddon);
+  const size = props.size === 'hero' || props.size === 'hero-lg' ? props.size : null;
+  const eyebrow = props.eyebrow;
+  const plainEyebrow = typeof eyebrow === 'string' || typeof eyebrow === 'number';
+  const heading = h(
+    'h' + level,
+    {
+      className: 'aura-page-header__title',
+      id: props.titleId,
+      tabIndex: props.focusTitleOnMount ? -1 : undefined,
+      'data-aura-focus-on-mount': props.focusTitleOnMount ? '' : undefined,
+    },
+    props.title,
+  );
   const hasActions = props.actions != null && props.actions !== false;
   /* No actions, no bar — and no space reserved for one at the page's end. */
   const bar =
@@ -80,6 +115,8 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
         (hide === 'sm' || hide === 'md' || hide === 'lg') && 'aura-page-header--title-hide-below-' + hide,
         (hide === 'sm' || hide === 'md' || hide === 'lg') && !hasMeta && 'has-no-meta',
         bar && 'aura-page-header--actions-bar-below-' + bar,
+        size && 'aura-page-header--' + size,
+        props.actionsAlign === 'start' && 'aura-page-header--actions-start',
         props.className,
       ),
       style: props.style,
@@ -90,10 +127,20 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
       props.breadcrumb != null && props.breadcrumb !== false
         ? h('div', { className: 'aura-page-header__breadcrumb' }, props.breadcrumb)
         : null,
-      props.eyebrow != null && props.eyebrow !== false
-        ? h('p', { className: 'aura-page-header__eyebrow' }, props.eyebrow)
+      shown(eyebrow)
+        ? plainEyebrow
+          ? h('p', { className: 'aura-page-header__eyebrow' }, eyebrow)
+          : h('div', { className: 'aura-page-header__eyebrow aura-page-header__eyebrow--rich' }, eyebrow)
         : null,
-      h('h' + level, { className: 'aura-page-header__title', id: props.titleId }, props.title),
+      shown(props.titleAddon)
+        ? h(
+            'div',
+            { className: 'aura-page-header__title-row' },
+            heading,
+            h('div', { className: 'aura-page-header__title-addon' }, props.titleAddon),
+          )
+        : heading,
+      shown(props.subtitle) ? h('div', { className: 'aura-page-header__subtitle' }, props.subtitle) : null,
       props.meta != null && props.meta !== false ? h('div', { className: 'aura-page-header__meta' }, props.meta) : null,
     ),
     props.actions != null && props.actions !== false
