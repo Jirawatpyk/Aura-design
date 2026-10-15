@@ -1583,7 +1583,7 @@ window.Aura = (() => {
 
   // src/IconButton.tsx
   var IconButton = React8.forwardRef(function IconButton2(props, ref) {
-    const rest = omit(props, ["icon", "label", "className", "size", "tone", "touchHeight"]);
+    const rest = omit(props, ["icon", "label", "className", "size", "tone", "touchHeight", "variant"]);
     useAutoTip();
     const own = props.title !== void 0;
     return /* @__PURE__ */ React8.createElement(
@@ -1597,6 +1597,7 @@ window.Aura = (() => {
         className: cx(
           "aura-icon-btn",
           props.tone === "danger" && "aura-icon-btn--danger",
+          props.variant === "outline" && "aura-icon-btn--outline",
           props.touchHeight && "aura-icon-btn--touch",
           props.className
         )

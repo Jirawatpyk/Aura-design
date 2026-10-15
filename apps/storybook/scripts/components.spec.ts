@@ -8480,3 +8480,83 @@ test.describe('5.43: Chamber-OS 148 — FilterBar collapseBelow without a search
     await expect(page.getByTestId('timeline').locator('.aura-filterbar__controls')).toBeVisible();
   });
 });
+
+test.describe('5.44: Chamber-OS 149 — PageHeader actionsFullWidthBelow with an icon button', () => {
+  const ID = 'aura-new-in-5-44-chamber-os-149--invoice-actions';
+  const row = (page: Page, id: string) =>
+    page.getByTestId(id).evaluate((el) => {
+      const head = el.querySelector('.aura-page-header')!.getBoundingClientRect();
+      const btns = [...el.querySelectorAll<HTMLElement>('.aura-page-header__actions button')];
+      return {
+        head: { left: Math.round(head.left), right: Math.round(head.right) },
+        b: btns.map((x) => {
+          const r = x.getBoundingClientRect();
+          return {
+            top: Math.round(r.top),
+            left: Math.round(r.left),
+            right: Math.round(r.right),
+            w: Math.round(r.width),
+            h: Math.round(r.height),
+            clip: x.scrollWidth > x.clientWidth,
+            ellipsis: getComputedStyle(x).textOverflow === 'ellipsis',
+          };
+        }),
+      };
+    });
+
+  for (const w of [393, 320]) {
+    test(`149: at ${w}px two outlined actions and the ⋯ share one row (en, th, sv); labels wrap inside, none clipped`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 1000 });
+      await story(page, ID);
+      for (const id of ['en', 'th', 'sv']) {
+        const { head, b } = await row(page, id);
+        const [credit, refund, menu] = b;
+        expect(Math.abs(menu.top - credit.top), id).toBeLessThanOrEqual(1);
+        expect(Math.abs(refund.top - credit.top), id).toBeLessThanOrEqual(1);
+        expect(credit.left, id).toBe(head.left);
+        expect(menu.right, id).toBe(head.right); // the ⋯ ends the row
+        expect([menu.w, menu.h], id).toEqual([44, 44]);
+        expect(Math.abs(credit.w - refund.w), id).toBeLessThanOrEqual(1);
+        expect(credit.h, id).toBeGreaterThanOrEqual(44);
+        expect(
+          b.some((x) => x.clip || x.ellipsis),
+          id,
+        ).toBe(false);
+      }
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      ).toBeLessThanOrEqual(0);
+      /* A grown pill has 22px corners, not an oval. */
+      const radius = await page
+        .getByTestId('sv')
+        .getByRole('button', { name: /kreditnota/ })
+        .evaluate((e) => parseFloat(getComputedStyle(e).borderTopLeftRadius));
+      expect(radius).toBeLessThanOrEqual(22);
+      /* The outline variant: a 1px border, still 44×44. */
+      const menu = page.getByTestId('en').getByRole('button', { name: 'More actions' });
+      expect(await menu.evaluate((e) => getComputedStyle(e).borderTopWidth)).toBe('1px');
+      /* A lone ⋯ keeps its size; three text actions and no icon still wrap 2 + 1 (5.37). */
+      const lone = await row(page, 'lone');
+      expect([lone.b[0].w, lone.b[0].h]).toEqual([44, 44]);
+      const three = await row(page, 'three');
+      expect(three.b[0].top).toBe(three.b[1].top);
+      expect(three.b[2].top).toBeGreaterThan(three.b[0].top + 40);
+      expect(three.b.map((x) => x.h)).toEqual([...three.b.map(() => three.b[0].h)]);
+    });
+  }
+
+  test('149: from 640px the actions are as before (their own widths, one line each)', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await story(page, ID);
+    const { head, b } = await row(page, 'en');
+    expect(b[0].w).toBeLessThan((head.right - head.left) / 3);
+    const ws = await page
+      .getByTestId('en')
+      .locator('.aura-page-header__actions .aura-btn')
+      .evaluateAll((els) => els.map((e) => getComputedStyle(e).whiteSpace));
+    expect(ws).toEqual(['nowrap', 'nowrap']);
+    expect(Math.abs(b[0].h - b[1].h)).toBeLessThanOrEqual(1);
+  });
+});

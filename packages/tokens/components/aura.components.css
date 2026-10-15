@@ -346,6 +346,7 @@ a.aura-icon-btn { text-decoration: none; }
 }
 .aura-icon-btn:hover, .aura-icon-btn[aria-haspopup][aria-expanded="true"] { background: var(--aura-hover, var(--aura-bg-surface-hover)); } /* 5.41 (DxT #22): looks open while its menu shows */
 .aura-icon-btn--danger { color: var(--aura-fg-danger); }
+.aura-icon-btn--outline { box-sizing: border-box; border: 1px solid var(--aura-button-secondary-border); } /* 5.44 (Chamber-OS 149): reads as a button beside outlined ones */
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 .aura-icon-btn:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
@@ -358,6 +359,9 @@ a.aura-icon-btn { text-decoration: none; }
   .aura-icon-btn.aura-icon-btn--touch { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-tag.aura-tag--touch { min-height: var(--aura-touch-target); }
   .aura-filterbar__clear { min-height: var(--aura-touch-target); } /* 5.28 (Chamber-OS 133) */
+}
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn).aura-btn--touch { min-height: var(--aura-touch-target); } /* 5.44: a wrapped label keeps 44px */
 }
 /* Touch: same 32px look, a 44px hit area around it (WCAG 2.5.5). */
 @media (pointer: coarse) {
@@ -1168,13 +1172,18 @@ a.aura-tab { text-decoration: none; }
 }
 /* 5.37 (DxT Monitor #17): actionsFullWidthBelow — the actions take the row under the text; their children share
  * each line equally (wrapping when a label won't fit), a trigger inside a DropdownMenu, Tooltip or Popover wrapper
- * fills it, and icon buttons keep their size. The :has rule is alone so older browsers drop only it. */
+ * fills it, and icon buttons keep their size. The :has rule is alone so older browsers drop only it.
+ * 5.44 (Chamber-OS 149): with an icon button among them (a ⋯ menu) the actions are one bar: the row never wraps,
+ * the buttons share what the icon leaves and wrap their labels inside (never an ellipsis). */
 @media (max-width: 639.98px) {
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > * { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
+  .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
+  .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > * { min-width: 0; }
+  .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
 }
 @media (max-width: 767.98px) {
   .aura-page-header--actions-full-below-md > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
@@ -1182,6 +1191,9 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
+  .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
+  .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > * { min-width: 0; }
+  .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
 }
 @media (max-width: 1023.98px) {
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
@@ -1189,6 +1201,9 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
+  .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
+  .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > * { min-width: 0; }
+  .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
 }
 @media (min-width: 640px) { .aura-page-header__title { font-size: max(36px, 2.25rem); } }
 /* Thai marks need the room a 1.15 line takes away. */

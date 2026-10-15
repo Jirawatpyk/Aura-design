@@ -296,6 +296,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.44 (Chamber-OS 149): IconButton variant="outline" is a class, never a DOM attribute. */
+    {
+      const ob = m(e(A.IconButton, { icon: 'ellipsis', label: 'More', variant: 'outline' }));
+      const gb = m(e(A.IconButton, { icon: 'ellipsis', label: 'More' }));
+      if (!/class="aura-icon-btn aura-icon-btn--outline"/.test(ob) || /variant=/.test(ob) || /--outline/.test(gb)) bad('Chamber-OS 149:', ob, gb);
+    }
     /* 5.43 (Chamber-OS 148): a collapsing bar with no search marks its lead row is-alone (the button fills it). */
     {
       const ctrl = e(A.FilterSelect, { label: 'Role', options: ['All', 'A'], value: 'A', onChange: () => {} });

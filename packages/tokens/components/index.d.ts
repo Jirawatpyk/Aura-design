@@ -353,6 +353,9 @@ export interface IconButtonProps extends React$1.ButtonHTMLAttributes<HTMLButton
 	label: string;
 	/** Icon size. Default `sm` (16). */
 	size?: "sm" | "md" | undefined;
+	/** 5.44 (Chamber-OS 149): `outline` adds a secondary Button's 1px border, so a lone ⋯ reads as a button beside
+	 * outlined actions. Default `ghost`: no border. */
+	variant?: "ghost" | "outline" | undefined;
 	/** 44×44 instead of 32×32 below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24) —
 	 * a phone sheet's close button, a card's ⋯ trigger (5.15, Chamber-OS 100). */
 	touchHeight?: boolean | undefined;

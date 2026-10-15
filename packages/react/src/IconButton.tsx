@@ -5,7 +5,7 @@ import { useAutoTip } from './autoTip.js';
 import type { IconButtonProps } from './types.js';
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(props, ref) {
-  const rest = omit(props, ['icon', 'label', 'className', 'size', 'tone', 'touchHeight']);
+  const rest = omit(props, ['icon', 'label', 'className', 'size', 'tone', 'touchHeight', 'variant']);
   /* 5.32: the name shows in AURA's shared tip (hover and keyboard focus), not a native title. A `title` you pass
    * yourself is kept as is, without the AURA tip. */
   useAutoTip();
@@ -20,6 +20,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
       className={cx(
         'aura-icon-btn',
         props.tone === 'danger' && 'aura-icon-btn--danger',
+        props.variant === 'outline' && 'aura-icon-btn--outline',
         props.touchHeight && 'aura-icon-btn--touch',
         props.className,
       )}

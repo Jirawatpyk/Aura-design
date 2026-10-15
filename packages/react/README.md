@@ -186,6 +186,11 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.44 — Chamber-OS addendum 51 (#149)
+
+- **PageHeader `actionsFullWidthBelow` with an icon button keeps one row** (#149): when the actions include an IconButton (a ⋯ DropdownMenu trigger, bare or wrapped), below the breakpoint they are one bar. The row no longer wraps; the text buttons share what the icon leaves and wrap their labels inside the button (two or three lines, centred, `overflow-wrap: anywhere` with hyphenation, never an ellipsis), growing taller rather than wider, at least 44px with `touchHeight`; a pill that grows past one line gets 22px corners instead of becoming an oval. Hyphens appear only where the browser has a dictionary for the page's `lang` (Safari, Android); elsewhere a long word breaks where it must, so keep phone labels short. The icon keeps its size at the end of the row. Measured on an invoice page at 393 and 320px in English, Thai and Swedish: nothing clipped, no sideways scroll. Actions without an icon button wrap onto rows as in 5.37 (DxT Monitor's two-plus-one); a header that mixes text and icon buttons (e.g. Mute, Edit, ⋯, Open site) is now one row at 320px where it was two. Needs `:has()`; older browsers keep the 5.37 layout.
+- **IconButton `variant="outline"`**: a secondary Button's 1px border, so a lone ⋯ reads as a button beside outlined actions. Default `ghost` (no border).
+
 ## 5.43 — Chamber-OS addendum 50 (#148)
 
 - **FilterBar `collapseBelow` with no search** (#148): below the breakpoint the Filters button fills the row it would otherwise sit at the end of, its label centred (an activity timeline with filters and no search). With a search it stays beside it, as in 5.42. From the breakpoint up nothing changes. Remove a stand-in such as `[&_.aura-filterbar__more]:flex-1`.

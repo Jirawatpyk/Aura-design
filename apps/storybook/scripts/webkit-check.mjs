@@ -180,6 +180,11 @@ try {
   x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
   check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
 
+  /* 5.44 (#149): two outlined actions and a ⋯ share one row at a phone width (:has in WebKit), labels wrapping. */
+  await go('aura-new-in-5-44-chamber-os-149--invoice-actions');
+  x = await ex(`return ['en', 'sv'].map((id) => { const t = [...document.querySelectorAll('[data-testid=' + id + '] .aura-page-header__actions button')].map((b) => Math.round(b.getBoundingClientRect().top)); return Math.max(...t) - Math.min(...t) <= 1; })`);
+  check(JSON.stringify(x) === '[true,true]', 'PageHeader actionsFullWidthBelow: actions and the ⋯ on one row (en, sv)', x);
+
   /* 5.43 (#148): a collapsing bar with no search — the Filters button fills its row at a phone width. */
   await go('aura-new-in-5-43-chamber-os-148--no-search');
   x = await ex(`const w = (t, s) => Math.round(document.querySelector('[data-testid=' + t + '] ' + s).getBoundingClientRect().width);
