@@ -25,6 +25,11 @@ type NavElementProps = {
 /** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it.
  * Which one shows is decided in CSS (4.16), so the server's HTML is already right on a phone and nothing shifts on
  * hydration; JavaScript only opens and closes the drawer. */
+/* 5.48 (Chamber-OS 154): on a short screen the bar scrolls with the page (CSS), so nothing sticks under it. */
+function pinned(bar: HTMLElement): boolean {
+  return getComputedStyle(bar).position !== 'static';
+}
+
 export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function AppShell(props, ref) {
   const t = useStrings();
   const bp = useBreakpoint();
@@ -71,7 +76,10 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       const root = rootRef.current,
         bar = barRef.current;
       if (!root || !bar) return;
-      root.style.setProperty('--aura-shell-bar-height', away ? '0px' : bar.getBoundingClientRect().height + 'px');
+      root.style.setProperty(
+        '--aura-shell-bar-height',
+        away || !pinned(bar) ? '0px' : bar.getBoundingClientRect().height + 'px',
+      );
     },
     [away],
   );
@@ -82,14 +90,17 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       if (!root || !bar) return;
       function sync() {
         const h = bar!.getBoundingClientRect().height;
-        root!.style.setProperty('--aura-shell-bar-height', awayRef.current ? '0px' : h + 'px');
+        root!.style.setProperty('--aura-shell-bar-height', awayRef.current || !pinned(bar!) ? '0px' : h + 'px');
         if (h > 0) barH[1](Math.round(h));
       }
       sync();
       const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
       if (ro) ro.observe(bar);
+      /* Crossing 480px tall changes whether the bar sticks without changing its size. */
+      window.addEventListener('resize', sync);
       return function () {
         if (ro) ro.disconnect();
+        window.removeEventListener('resize', sync);
         root.style.removeProperty('--aura-shell-bar-height');
       };
     },

@@ -8597,7 +8597,7 @@ test.describe('5.45: Chamber-OS 150 — PageHeader actionsBarBelow', () => {
         await story(page, ID('invoice-' + lang));
         const g = await geo(page);
         expect(g.pos, lang).toBe('fixed');
-        expect(Math.round(page.viewportSize()!.height - g.bar.bottom), lang).toBeGreaterThanOrEqual(12); // above the edge
+        expect(Math.round(page.viewportSize()!.height - g.bar.bottom), lang).toBe(0); // 5.48: on the bottom edge
         expect(g.statusShown, lang).toBe(true);
         const [credit, refund, menu] = g.btns;
         expect(g.status!.bottom, lang).toBeLessThanOrEqual(credit.top);
@@ -8874,5 +8874,176 @@ test.describe('5.47: Chamber-OS 152 — PageHeader size="compact", hero to 36px,
       await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
     ).toBeLessThanOrEqual(0);
     await ctx.close();
+  });
+});
+
+test.describe("5.48: Chamber-OS 153 — the actionsBarBelow bar is ActionBar's edge strip", () => {
+  const ID = (s: string, lang = 'en') => 'aura-new-in-5-48-chamber-os-153--' + s + '&args=lang:' + lang;
+  const bar = (page: Page) =>
+    page.evaluate(() => {
+      const a = document.querySelector('[data-testid=header] .aura-page-header__actions')!;
+      const r = a.getBoundingClientRect();
+      const s = getComputedStyle(a);
+      return {
+        left: Math.round(r.left),
+        right: Math.round(r.right),
+        fromBottom: Math.round(innerHeight - r.bottom),
+        top: r.top,
+        borders: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth],
+        radius: s.borderTopLeftRadius,
+        shadow: s.boxShadow,
+        btns: [...a.querySelectorAll<HTMLElement>('button')].map((b) => {
+          const q = b.getBoundingClientRect();
+          return { mid: q.top + q.height / 2, right: q.right, clip: b.scrollWidth > b.clientWidth };
+        }),
+      };
+    });
+
+  for (const w of [320, 393]) {
+    test(`153: at ${w}px — edge to edge, on the bottom edge, top border only; the page's end clears it (en, th, sv × 4 sets)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 727 });
+      for (const lang of ['en', 'th', 'sv'])
+        for (const s of ['primary-and-menu', 'two-actions-and-menu', 'menu-only', 'three-actions']) {
+          const k = `${lang} ${s}`;
+          await story(page, ID(s, lang));
+          const g = await bar(page);
+          expect([g.left, g.right, g.fromBottom], k).toEqual([0, w, 0]);
+          expect(g.borders, k).toEqual(['1px', '0px', '0px', '0px']);
+          expect([g.radius, g.shadow], k).toEqual(['0px', 'none']);
+          expect(
+            g.btns.some((b) => b.clip),
+            k,
+          ).toBe(false);
+          if (s !== 'three-actions') {
+            const menu = g.btns[g.btns.length - 1]!;
+            expect(Math.abs(menu.mid - g.btns[0]!.mid), k).toBeLessThanOrEqual(1);
+            expect(Math.round(menu.right), k).toBe(Math.round(Math.max(...g.btns.map((b) => b.right))));
+          }
+          expect(
+            await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+            k,
+          ).toBeLessThanOrEqual(0);
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          const last = (await page.getByTestId('last').boundingBox())!;
+          expect(last.y + last.height, k).toBeLessThanOrEqual((await bar(page)).top);
+        }
+    });
+  }
+
+  test('153: above a BottomNav it sits on the nav; a focused field scrolls clear; floating keeps the 5.45 card', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 393, height: 727 });
+    await story(page, ID('above-bottom-nav'));
+    const nav = (await page.locator('nav.aura-bottomnav').boundingBox())!;
+    const g = await bar(page);
+    expect(Math.abs(727 - g.fromBottom - nav.y)).toBeLessThanOrEqual(1); // on the nav's top edge (its 1px border)
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.getByLabel('Internal note').focus();
+    await page.waitForTimeout(100);
+    const f = (await page.getByLabel('Internal note').boundingBox())!;
+    expect(f.y + f.height).toBeLessThanOrEqual((await bar(page)).top);
+    await story(page, ID('floating'));
+    const fl = await bar(page);
+    expect([fl.left, fl.right, fl.fromBottom]).toEqual([16, 377, 12]);
+    expect(fl.borders).toEqual(['1px', '1px', '1px', '1px']);
+    expect(fl.radius).not.toBe('0px');
+  });
+
+  test('153: nothing scrolls sideways at a 32px default font size', async ({ browser }) => {
+    const ctx = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      viewport: { width: 393, height: 727 },
+    });
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Page.enable');
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32, fixed: 26 } });
+    for (const s of ['primary-and-menu', 'two-actions-and-menu', 'menu-only', 'three-actions']) {
+      await story(page, ID(s, 'sv'));
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        s,
+      ).toBeLessThanOrEqual(0);
+    }
+    await ctx.close();
+  });
+});
+
+test.describe('5.48: Chamber-OS 154 — bottom bars on a short screen', () => {
+  const ID = (lang: string) => 'aura-new-in-5-48-chamber-os-153--short-screen&args=lang:' + lang;
+  const pos = (page: Page) =>
+    page.evaluate(() => ({
+      header: getComputedStyle(document.querySelector('[data-testid=header] .aura-page-header__actions')!).position,
+      bar: getComputedStyle(document.querySelector('.aura-actionbar')!).position,
+      status: getComputedStyle(document.querySelector('.aura-page-header__status')!).display,
+      pad: parseFloat(getComputedStyle(document.querySelector('.aura-shell__content')!).paddingBottom),
+      spb: getComputedStyle(document.documentElement).scrollPaddingBottom,
+    }));
+
+  test('154: at 320×256 the header actions stay in the header, the ActionBar sits in the flow, and every focused control is in view (en, th, sv)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 256 });
+    for (const lang of ['en', 'th', 'sv']) {
+      await story(page, ID(lang));
+      const p = await pos(page);
+      expect(p, lang).toEqual({ header: 'static', bar: 'static', status: 'none', pad: 24, spb: '0px' });
+      expect(
+        await page.evaluate(() => getComputedStyle(document.querySelector('.aura-shell__bar')!).position),
+        lang,
+      ).toBe('static');
+      /* Nothing pins itself under a bar that scrolls away: the bar-height token is 0. */
+      expect(
+        await page.evaluate(() =>
+          getComputedStyle(document.querySelector('.aura-shell')!).getPropertyValue('--aura-shell-bar-height').trim(),
+        ),
+        lang,
+      ).toBe('0px');
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        lang,
+      ).toBeLessThanOrEqual(0);
+      /* Tab through everything: each focused control is fully inside the viewport, and nothing fixed or sticky covers it. */
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.locator('body').focus();
+      /* Forward, then back (Shift+Tab scrolls a field to the top edge, where AppShell's bar was). */
+      for (let i = 0; i < 30; i++) {
+        await page.keyboard.press(i < 15 ? 'Tab' : 'Shift+Tab');
+        const v = await page.evaluate(() => {
+          const el = document.activeElement as HTMLElement | null;
+          if (!el || el === document.body) return null;
+          const r = el.getBoundingClientRect();
+          const x = Math.min(Math.max(r.left + r.width / 2, 0), innerWidth - 1),
+            y = Math.min(Math.max(r.top + r.height / 2, 0), innerHeight - 1);
+          const hit = document.elementFromPoint(x, y);
+          return {
+            inView: r.top >= -1 && r.bottom <= innerHeight + 1,
+            onTop: !!hit && (el === hit || el.contains(hit) || hit.contains(el)),
+            what: el.outerHTML.slice(0, 60),
+          };
+        });
+        if (!v) continue;
+        expect(v.inView && v.onTop, lang + ' ' + v.what).toBe(true);
+      }
+    }
+  });
+
+  test('154: at 390×844 the bars behave as before — fixed header bar with its status and page space, sticky ActionBar', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID('en'));
+    const p = await pos(page);
+    expect([p.header, p.bar, p.status]).toEqual(['fixed', 'sticky', 'block']);
+    expect(
+      await page.evaluate(() =>
+        getComputedStyle(document.querySelector('.aura-shell')!).getPropertyValue('--aura-shell-bar-height').trim(),
+      ),
+    ).not.toBe('0px');
+    expect(p.pad).toBeGreaterThan(24);
+    expect(p.spb).not.toBe('auto');
   });
 });

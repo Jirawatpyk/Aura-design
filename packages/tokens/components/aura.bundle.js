@@ -7864,6 +7864,7 @@ window.Aura = (() => {
           (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && "aura-page-header--title-hide-below-" + hide2,
           (hide2 === "sm" || hide2 === "md" || hide2 === "lg") && !hasMeta && "has-no-meta",
           bar && "aura-page-header--actions-bar-below-" + bar,
+          bar && props.actionsBarLook === "floating" && "aura-page-header--actions-bar-floating",
           size && "aura-page-header--" + size,
           props.actionsAlign === "start" && "aura-page-header--actions-start",
           props.className
@@ -8309,6 +8310,9 @@ window.Aura = (() => {
   }
 
   // src/AppShell.tsx
+  function pinned(bar) {
+    return getComputedStyle(bar).position !== "static";
+  }
   var AppShell = React48.forwardRef(function AppShell2(props, ref) {
     const t = useStrings();
     const bp = useBreakpoint();
@@ -8339,7 +8343,10 @@ window.Aura = (() => {
       function() {
         const root = rootRef.current, bar = barRef.current;
         if (!root || !bar) return;
-        root.style.setProperty("--aura-shell-bar-height", away ? "0px" : bar.getBoundingClientRect().height + "px");
+        root.style.setProperty(
+          "--aura-shell-bar-height",
+          away || !pinned(bar) ? "0px" : bar.getBoundingClientRect().height + "px"
+        );
       },
       [away]
     );
@@ -8349,14 +8356,16 @@ window.Aura = (() => {
         if (!root || !bar) return;
         function sync() {
           const h11 = bar.getBoundingClientRect().height;
-          root.style.setProperty("--aura-shell-bar-height", awayRef.current ? "0px" : h11 + "px");
+          root.style.setProperty("--aura-shell-bar-height", awayRef.current || !pinned(bar) ? "0px" : h11 + "px");
           if (h11 > 0) barH[1](Math.round(h11));
         }
         sync();
         const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
         if (ro) ro.observe(bar);
+        window.addEventListener("resize", sync);
         return function() {
           if (ro) ro.disconnect();
+          window.removeEventListener("resize", sync);
           root.style.removeProperty("--aura-shell-bar-height");
         };
       },

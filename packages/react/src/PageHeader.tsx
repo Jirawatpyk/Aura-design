@@ -56,8 +56,8 @@ export interface PageHeaderProps
    * meta line and actions stay; with no meta, the actions start the header. */
   titleHideBelow?: 'sm' | 'md' | 'lg' | undefined;
   /** 5.45 (Chamber-OS 150): below this breakpoint (`sm` 640px, `md` 768px) the same `actions` — rendered once, so a
-   * dialog trigger or test id is never doubled — become a bar fixed to the bottom of the screen with ActionBar's look:
-   * above a BottomNav, clear of the home indicator, `actionsStatus` as its status line. The page's end and a focused
+   * dialog trigger or test id is never doubled — become a bar fixed to the bottom of the screen, ActionBar's edge
+   * strip (5.48; `actionsBarLook`): above a BottomNav, clear of the home indicator, `actionsStatus` as its status line. The page's end and a focused
    * field scroll clear of it (AppShell's content, or the body, gains the bar's height). With an IconButton among them
    * the actions share one row, labels wrapping inside the buttons (as `actionsFullWidthBelow`, Chamber-OS 149); with only icon
    * buttons the status and the icons share one row. From the breakpoint up nothing changes. Use it for a detail page's
@@ -65,6 +65,10 @@ export interface PageHeaderProps
    * have a transform, filter, backdrop-filter, will-change, paint/layout containment or `content-visibility: auto`, or it is placed
    * against that ancestor instead of the screen — the main entry warns in development. */
   actionsBarBelow?: 'sm' | 'md' | undefined;
+  /** 5.48 (Chamber-OS 153): the bar's look. `edge` (default) is ActionBar's strip — the full width of the screen, on
+   * its bottom edge (or above a BottomNav), a top border only, the home-indicator inset inside it. `floating` is 5.45's
+   * card: inset 16px, lifted 12px, bordered all round with rounded corners and a shadow. */
+  actionsBarLook?: 'edge' | 'floating' | undefined;
   /** 5.45: the bar's status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026"), shown only while the actions are
    * a bar, in a polite live region. */
   actionsStatus?: React.ReactNode | undefined;
@@ -117,6 +121,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
         (hide === 'sm' || hide === 'md' || hide === 'lg') && 'aura-page-header--title-hide-below-' + hide,
         (hide === 'sm' || hide === 'md' || hide === 'lg') && !hasMeta && 'has-no-meta',
         bar && 'aura-page-header--actions-bar-below-' + bar,
+        bar && props.actionsBarLook === 'floating' && 'aura-page-header--actions-bar-floating',
         size && 'aura-page-header--' + size,
         props.actionsAlign === 'start' && 'aura-page-header--actions-start',
         props.className,

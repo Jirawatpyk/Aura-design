@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.48 — Chamber-OS addendum 55 (#153–154)
+
+- **The `actionsBarBelow` bar is now ActionBar's edge strip** (#153): the full width of the screen, on its bottom edge (or on a BottomNav's top edge), a top border only — no radius, no shadow — with ActionBar's inner padding (8px block, 16px start, 12px end) and the home-indicator inset inside it, as the save and bulk bars of an app built on `ActionBar position="container"` look. The page's end padding and `scroll-padding-bottom` follow the new height. The layout inside is unchanged.
+- **Bottom bars on a short screen** (#154): on a screen 480px tall or less — 400% zoom on a desktop (320×256 CSS px), a phone held sideways — `actionsBarBelow` no longer fixes the actions to the bottom: they stay in the header's own row (laid out by `actionsFullWidthBelow` if set), with no status line, page-end space or scroll padding; and an `ActionBar` (either `position`) stops sticking and sits at the end of its container, in the flow. AppShell's top bar scrolls away with the page there too, so a field reached backwards (Shift+Tab) isn't left under it, and `--aura-shell-bar-height` is 0 meanwhile, so nothing sticky (a DataTable `stickyHeader`) leaves a gap for it. A focused control is never under a bar there (WCAG 2.4.11, 1.4.10); from 481px tall everything is as before. An ActionBar with `hidesBottomNav` still hides the BottomNav on a short screen while it sits at the end of its container. Wherever a BottomNav shows (any height), the page's `scroll-padding-bottom` now reserves its height, so a field tabbed into view stops above it.
+- **`actionsBarLook="floating"`** keeps 5.45's card (inset 16px, lifted 12px, bordered all round, rounded, with the overlay shadow) — the look of `ActionBar position="viewport"`. Only the bar's look changed; nothing else about `actionsBarBelow`.
+
 ## 5.47 — Chamber-OS addendum 54 (#152)
 
 - **PageHeader `size="compact"`**: 26px below 640px and 32px from 640px, on a 1.2 line — the staff and list boards' title, so a company name such as "Siam Nordic Trading Co., Ltd." takes two lines on a 390px phone instead of three. The **default stays 28px / 36px** (1.15), so DxT Monitor and other apps don't change; pass `size="compact"` (Chamber-OS: in its header wrapper) where the boards draw 26 / 32.
@@ -208,7 +214,7 @@ What Chamber-OS's own page header did that PageHeader didn't, so it can be rebui
 
 ## 5.45 — Chamber-OS addendum 52 (#150)
 
-- **PageHeader `actionsBarBelow`** (#150): `'sm' | 'md'` — below 640px or 768px the header's `actions` become a bar fixed to the bottom of the screen with ActionBar's look and offset (above a BottomNav, clear of the home indicator), and `actionsStatus` is its status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026", a polite live region shown only in the bar).
+- **PageHeader `actionsBarBelow`** (#150): `'sm' | 'md'` — below 640px or 768px the header's `actions` become a bar fixed to the bottom of the screen (from 5.48 ActionBar's edge strip, `actionsBarLook="floating"` for this card; above a BottomNav, clear of the home indicator), and `actionsStatus` is its status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026", a polite live region shown only in the bar).
   ```tsx
   <PageHeader title="Invoice SC-2026-900001" actionsFullWidthBelow="sm" actionsBarBelow="sm"
     actionsStatus="Total 10,700.00 THB incl. VAT · due 22 Oct 2026"

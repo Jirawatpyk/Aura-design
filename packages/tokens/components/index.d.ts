@@ -1974,8 +1974,8 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	 * meta line and actions stay; with no meta, the actions start the header. */
 	titleHideBelow?: "sm" | "md" | "lg" | undefined;
 	/** 5.45 (Chamber-OS 150): below this breakpoint (`sm` 640px, `md` 768px) the same `actions` — rendered once, so a
-	 * dialog trigger or test id is never doubled — become a bar fixed to the bottom of the screen with ActionBar's look:
-	 * above a BottomNav, clear of the home indicator, `actionsStatus` as its status line. The page's end and a focused
+	 * dialog trigger or test id is never doubled — become a bar fixed to the bottom of the screen, ActionBar's edge
+	 * strip (5.48; `actionsBarLook`): above a BottomNav, clear of the home indicator, `actionsStatus` as its status line. The page's end and a focused
 	 * field scroll clear of it (AppShell's content, or the body, gains the bar's height). With an IconButton among them
 	 * the actions share one row, labels wrapping inside the buttons (as `actionsFullWidthBelow`, Chamber-OS 149); with only icon
 	 * buttons the status and the icons share one row. From the breakpoint up nothing changes. Use it for a detail page's
@@ -1983,6 +1983,10 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	 * have a transform, filter, backdrop-filter, will-change, paint/layout containment or `content-visibility: auto`, or it is placed
 	 * against that ancestor instead of the screen — the main entry warns in development. */
 	actionsBarBelow?: "sm" | "md" | undefined;
+	/** 5.48 (Chamber-OS 153): the bar's look. `edge` (default) is ActionBar's strip — the full width of the screen, on
+	 * its bottom edge (or above a BottomNav), a top border only, the home-indicator inset inside it. `floating` is 5.45's
+	 * card: inset 16px, lifted 12px, bordered all round with rounded corners and a shadow. */
+	actionsBarLook?: "edge" | "floating" | undefined;
 	/** 5.45: the bar's status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026"), shown only while the actions are
 	 * a bar, in a polite live region. */
 	actionsStatus?: React$1.ReactNode | undefined;
@@ -2114,9 +2118,6 @@ export declare const STRINGS: {
 };
 export declare const TileGrid: React$1.ForwardRefExoticComponent<TileGridProps & React$1.RefAttributes<HTMLUListElement>>;
 export declare const Sparkline: React$1.ForwardRefExoticComponent<SparklineProps & React$1.RefAttributes<SVGSVGElement>>;
-/** AppShell — side navigation + top bar + content. The nav is fixed from lg (1024px) up and a Drawer below it.
- * Which one shows is decided in CSS (4.16), so the server's HTML is already right on a phone and nothing shifts on
- * hydration; JavaScript only opens and closes the drawer. */
 export declare const AppShell: React$1.ForwardRefExoticComponent<AppShellProps & React$1.RefAttributes<HTMLDivElement>>;
 /** ActionBar — a bar stuck to the bottom of the screen or of a card: a status line and the form's or selection's
  * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field. */

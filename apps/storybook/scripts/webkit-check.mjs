@@ -180,6 +180,19 @@ try {
   x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
   check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
 
+  /* 5.48 (#153): the actionsBarBelow bar is an edge strip — full width, on the bottom edge, top border only. */
+  await go('aura-new-in-5-48-chamber-os-153--two-actions-and-menu');
+  x = await ex(`const a = document.querySelector('[data-testid=header] .aura-page-header__actions'), r = a.getBoundingClientRect(), s = getComputedStyle(a);
+    return [Math.round(r.left), Math.round(r.right) === innerWidth, Math.round(innerHeight - r.bottom), s.borderTopWidth, s.borderLeftWidth, s.borderTopLeftRadius]`);
+  check(JSON.stringify(x) === '[0,true,0,"1px","0px","0px"]', 'PageHeader actionsBarBelow: edge strip at the bottom', x);
+
+  /* 5.48 (#154): on a short screen the header bar and the ActionBar leave the bottom edge. */
+  await call('POST', S('/window/rect'), { width: 390, height: 400 });
+  await go('aura-new-in-5-48-chamber-os-153--short-screen');
+  x = await ex(`return [innerHeight <= 480, getComputedStyle(document.querySelector('[data-testid=header] .aura-page-header__actions')).position, getComputedStyle(document.querySelector('.aura-actionbar')).position]`);
+  check(JSON.stringify(x) === '[true,"static","static"]', 'short screen: header actions and ActionBar in the flow', x);
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+
   /* 5.47 (#152): compact 26px and hero 30px at a phone width, Thai keeps 1.4. */
   await go('aura-new-in-5-47-chamber-os-152--title-sizes');
   x = await ex(`const f = (id) => { const s = getComputedStyle(document.querySelector('[data-testid=' + id + '] .aura-page-header__title')); return [parseFloat(s.fontSize), Math.round(parseFloat(s.lineHeight) / parseFloat(s.fontSize) * 100) / 100]; };

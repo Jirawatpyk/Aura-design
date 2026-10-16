@@ -296,6 +296,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.48 (Chamber-OS 153): actionsBarLook="floating" is a class beside the bar class; edge (default) adds none. */
+    {
+      const pf = m(e(A.PageHeader, { title: 'Invoice', actions: 'x', actionsBarBelow: 'sm', actionsBarLook: 'floating' }));
+      const pe = m(e(A.PageHeader, { title: 'Invoice', actions: 'x', actionsBarBelow: 'sm' }));
+      const pn = m(e(A.PageHeader, { title: 'Invoice', actions: 'x', actionsBarLook: 'floating' }));
+      if (!/^<div class="aura-page-header aura-page-header--actions-bar-below-sm aura-page-header--actions-bar-floating">/.test(pf) || /floating/.test(pe + pn) || /actionsbarlook/i.test(pf)) bad('Chamber-OS 153:', pf, pe, pn);
+    }
     /* 5.47 (Chamber-OS 152): size="compact" is a class; an unknown size adds none. */
     {
       const pc = m(e(A.PageHeader, { title: 'Members', size: 'compact' }));
