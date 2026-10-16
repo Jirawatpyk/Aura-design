@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.46.0
+
+### Minor Changes
+
+- 5d05efb: Chamber-OS #151: PageHeader `subtitle`, `titleAddon`, `size` (`default` | `hero` | `hero-lg`, plus `--aura-page-header-title-size` / `-line-height`), `focusTitleOnMount` and `actionsAlign` (`end` | `start`); a non-text `eyebrow` renders as a wrapping chip row in a `div`.
+
 ## 5.45.0
 
 ### Minor Changes
