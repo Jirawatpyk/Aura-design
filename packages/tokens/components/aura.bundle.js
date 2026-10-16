@@ -8333,6 +8333,7 @@ window.Aura = (() => {
     }
     const rootRef = React48.useRef(null);
     const barRef = React48.useRef(null);
+    const probeRef = React48.useRef(null);
     const mergedRef = useMergedRef(ref, rootRef);
     const hasBar = !!(props.header || props.nav);
     const barH = React48.useState(null);
@@ -8362,6 +8363,7 @@ window.Aura = (() => {
         sync();
         const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
         if (ro) ro.observe(bar);
+        if (ro && probeRef.current) ro.observe(probeRef.current);
         window.addEventListener("resize", sync);
         return function() {
           if (ro) ro.disconnect();
@@ -8445,7 +8447,8 @@ window.Aura = (() => {
             "aria-expanded": open
           }
         ) : null,
-        /* @__PURE__ */ React48.createElement("div", { className: "aura-shell__bar-content" }, props.header)
+        /* @__PURE__ */ React48.createElement("div", { className: "aura-shell__bar-content" }, props.header),
+        /* @__PURE__ */ React48.createElement("span", { className: "aura-shell__probe", "aria-hidden": "true", ref: probeRef })
       ) : null, /* @__PURE__ */ React48.createElement(
         "main",
         {

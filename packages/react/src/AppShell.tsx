@@ -61,6 +61,9 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
    * taller than 56px; one hidden from lg up is 0). The stylesheet's value is what the server's HTML uses until then. */
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const barRef = React.useRef<HTMLElement | null>(null);
+  /* 5.49 (Chamber-OS 155): 1em of the browser's text size (font-size: medium), so it resizes exactly when the
+   * short-screen query (30rem) moves — a change that fires no resize or media-query event. */
+  const probeRef = React.useRef<HTMLSpanElement | null>(null);
   const mergedRef = useMergedRef(ref, rootRef);
   const hasBar = !!(props.header || props.nav);
   /* 5.33 (DxT Monitor #8): the phone drawer's divided nav header matches the bar, also when the header wraps; the
@@ -96,7 +99,10 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
       sync();
       const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
       if (ro) ro.observe(bar);
-      /* Crossing 480px tall changes whether the bar sticks without changing its size. */
+      /* Crossing 30rem tall changes whether the bar sticks without changing its size: by a resize, or (5.49, Chamber-OS
+       * 155) by a change of the browser's text size, which fires neither a resize nor a media-query change in Chromium
+       * but does resize the probe. */
+      if (ro && probeRef.current) ro.observe(probeRef.current);
       window.addEventListener('resize', sync);
       return function () {
         if (ro) ro.disconnect();
@@ -184,6 +190,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
               />
             ) : null}
             <div className="aura-shell__bar-content">{props.header}</div>
+            <span className="aura-shell__probe" aria-hidden="true" ref={probeRef} />
           </header>
         ) : null}
         <main

@@ -1109,6 +1109,8 @@ a.aura-tab { text-decoration: none; }
   --aura-shell-bar-height: 56px; /* 5.14 (Chamber-OS 104): the top bar's height, for sticky offsets under it */
 }
 .aura-shell--no-bar { --aura-shell-bar-height: 0px; }
+/* 5.49 (Chamber-OS 155): AppShell watches this for changes of the browser's text size (see the 30rem queries). */
+.aura-shell__probe { position: absolute; top: 0; inset-inline-start: 0; font-size: medium; width: 1em; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
 /* 5.35 (DxT Monitor 13): headerHideOnScroll — below lg the bar slides up out of view while the page scrolls down (its
  * shadow too); AppShell sets the bar-height token to 0 meanwhile. */
 .aura-shell__bar--hides { transition: transform var(--aura-duration-base) var(--aura-ease); }
@@ -1208,14 +1210,14 @@ a.aura-tab { text-decoration: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > * > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
-/* 5.48 (Chamber-OS 154): only on a screen taller than 480px — on a short one (400% zoom, a phone held sideways) the
+/* 5.48 (Chamber-OS 154): only on a screen taller than 30rem (5.49: 480px at the default text size) — on a short one (400% zoom, a phone held sideways) the
  * actions stay in the header's own row and the page keeps its full height.
  * 5.48 (Chamber-OS 153): the bar is ActionBar's edge strip (full width, on the bottom edge, top border, the safe area
  * inside); actionsBarLook="floating" keeps 5.45's inset card.
  * 5.45 (Chamber-OS 150): actionsBarBelow — the same actions become a fixed bar with a status line; the page gains its
  * height (--aura-page-actions-height, measured on the client) so its end and a focused field scroll clear. */
 .aura-page-header__status { display: none; }
-@media (max-width: 639.98px) and (min-height: 480.02px) {
+@media (max-width: 639.98px) and (min-height: 30.00125rem) {
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
   .aura-page-header--actions-bar-below-sm.aura-page-header--actions-bar-floating > .aura-page-header__actions { left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); padding-bottom: var(--aura-space-2); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -1233,7 +1235,7 @@ a.aura-tab { text-decoration: none; }
   :root:has(.aura-page-header--actions-bar-below-sm) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-page-actions-space)); }
   :root:has(.aura-page-header--actions-bar-below-sm):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-page-actions-space); }
 }
-@media (max-width: 767.98px) and (min-height: 480.02px) {
+@media (max-width: 767.98px) and (min-height: 30.00125rem) {
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
   .aura-page-header--actions-bar-below-md.aura-page-header--actions-bar-floating > .aura-page-header__actions { left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); padding-bottom: var(--aura-space-2); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -2093,11 +2095,13 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay);
 }
 .aura-actionbar--container { bottom: 0; border-top: 1px solid var(--aura-border-default); }
-/* 5.48 (Chamber-OS 154): on a short screen (480px or less: 400% zoom, a phone held sideways) the bar stops sticking —
+/* 5.48 (Chamber-OS 154): on a short screen (30rem or less: 400% zoom, a phone held sideways) the bar stops sticking —
  * it stays at the end of its container, in the flow, so it never covers a focused field (WCAG 2.4.11, 1.4.10). */
-@media (max-height: 480px) { .aura-actionbar:not(.is-idle) { position: static; } }
+/* 5.49 (Chamber-OS 155): the threshold is 30rem, which in a media query is the browser's text size, not the page's:
+ * 480px at the default 16px, 960px at 32px, so large text counts lines of text, not pixels. */
+@media (max-height: 30rem) { .aura-actionbar:not(.is-idle) { position: static; } }
 /* …and AppShell's top bar scrolls away with the page, so Shift+Tab never lands a field under it. */
-@media (max-height: 480px) { .aura-shell__bar { position: static; } }
+@media (max-height: 30rem) { .aura-shell__bar { position: static; } }
 /* 5.48: wherever a BottomNav shows, a field scrolled into view (Tab) stops above it, not under it. */
 :root { scroll-padding-bottom: var(--aura-bottomnav-offset, 0px); }
 .aura-actionbar__inner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2) var(--aura-space-3); min-height: 60px; box-sizing: border-box; padding-block: var(--aura-space-2); padding-inline: var(--aura-space-4) var(--aura-space-3); }

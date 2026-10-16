@@ -9047,3 +9047,145 @@ test.describe('5.48: Chamber-OS 154 — bottom bars on a short screen', () => {
     expect(p.spb).not.toBe('auto');
   });
 });
+
+test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the browser text size', () => {
+  const ID = (lang: string) => 'aura-new-in-5-49-chamber-os-155--large-text&args=lang:' + lang;
+  const open = async (browser: import('@playwright/test').Browser, w: number, h: number, size: number) => {
+    const ctx = await browser.newContext({ baseURL: test.info().project.use.baseURL, viewport: { width: w, height: h } });
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Page.enable');
+    const font = (s: number) =>
+      cdp.send('Page.setFontSizes', { fontSizes: { standard: s, fixed: Math.round((s * 13) / 16) } });
+    await font(size);
+    return { ctx, page, font };
+  };
+  const state = (page: Page) =>
+    page.evaluate(() => {
+      const cs = (s: string) => getComputedStyle(document.querySelector(s)!);
+      const actions = document.querySelector('[data-testid=header] .aura-page-header__actions')!;
+      return {
+        header: cs('[data-testid=header] .aura-page-header__actions').position,
+        inHeader: actions.parentElement!.classList.contains('aura-page-header'),
+        bar: cs('.aura-actionbar').position,
+        shell: cs('.aura-shell__bar').position,
+        token: cs('.aura-shell').getPropertyValue('--aura-shell-bar-height').trim(),
+        status: cs('.aura-page-header__status').display,
+        actionsHeight: document.documentElement.style.getPropertyValue('--aura-page-actions-height'),
+      };
+    });
+  const SHORT = { header: 'static', inHeader: true, bar: 'static', shell: 'static', token: '0px', status: 'none', actionsHeight: '' };
+
+  test('155: 390×844 at a 32px default counts as short — actions in the header, ActionBar and top bar in the flow, every focused control in view (en, th, sv)', async ({
+    browser,
+  }) => {
+    const { ctx, page } = await open(browser, 390, 844, 32);
+    for (const lang of ['en', 'th', 'sv']) {
+      await story(page, ID(lang));
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize), lang).toBe('32px');
+      expect(await state(page), lang).toEqual(SHORT);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        lang,
+      ).toBeLessThanOrEqual(0);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.locator('body').focus();
+      for (let i = 0; i < 24; i++) {
+        await page.keyboard.press(i < 12 ? 'Tab' : 'Shift+Tab');
+        const v = await page.evaluate(() => {
+          const el = document.activeElement as HTMLElement | null;
+          if (!el || el === document.body) return null;
+          const r = el.getBoundingClientRect();
+          const x = Math.min(Math.max(r.left + r.width / 2, 0), innerWidth - 1),
+            y = Math.min(Math.max(r.top + r.height / 2, 0), innerHeight - 1);
+          const hit = document.elementFromPoint(x, y);
+          return {
+            ok: r.top >= -1 && r.bottom <= innerHeight + 1 && !!hit && (el === hit || el.contains(hit) || hit.contains(el)),
+            what: el.outerHTML.slice(0, 60),
+          };
+        });
+        if (v) expect(v.ok, lang + ' ' + v.what).toBe(true);
+      }
+    }
+    await ctx.close();
+  });
+
+  test('155: at 16px nothing changes — 390×844 keeps the fixed edge strip with its status, 320×256 is short as in 5.48', async ({
+    browser,
+  }) => {
+    const { ctx, page } = await open(browser, 390, 844, 16);
+    await story(page, ID('en'));
+    const s = await state(page);
+    expect([s.header, s.bar, s.shell, s.status]).toEqual(['fixed', 'sticky', 'sticky', 'block']);
+    expect(s.token).not.toBe('0px');
+    expect(parseFloat(s.actionsHeight)).toBeGreaterThan(0);
+    const r = await page.evaluate(() => {
+      const b = document.querySelector('[data-testid=header] .aura-page-header__actions')!.getBoundingClientRect();
+      return [Math.round(b.left), Math.round(innerWidth - b.right), Math.round(innerHeight - b.bottom)];
+    });
+    expect(r).toEqual([0, 0, 0]);
+    await page.setViewportSize({ width: 320, height: 256 });
+    await expect.poll(() => state(page)).toEqual(SHORT);
+    await ctx.close();
+  });
+
+  test('155: at 24px the line is 720px — a 375×667 phone is short, a 390×844 one keeps the bar', async ({ browser }) => {
+    const a = await open(browser, 375, 667, 24);
+    await story(a.page, ID('th'));
+    expect(await state(a.page)).toEqual(SHORT);
+    await a.ctx.close();
+    const b = await open(browser, 390, 844, 24);
+    await story(b.page, ID('th'));
+    const s = await state(b.page);
+    expect([s.header, s.bar, s.shell, s.status]).toEqual(['fixed', 'sticky', 'sticky', 'block']);
+    expect(s.token).not.toBe('0px');
+    await b.ctx.close();
+  });
+
+  test('155: changing the browser text size on an open page pins and releases the bars and keeps both height tokens right', async ({
+    browser,
+  }) => {
+    const { ctx, page, font } = await open(browser, 390, 844, 16);
+    await story(page, ID('en'));
+    const tall = await state(page);
+    expect([tall.header, tall.shell]).toEqual(['fixed', 'sticky']);
+    await font(32);
+    await expect.poll(() => state(page)).toEqual(SHORT);
+    await font(16);
+    await expect.poll(async () => {
+      const s = await state(page);
+      return [s.header, s.shell, s.token !== '0px', parseFloat(s.actionsHeight) > 0];
+    }).toEqual(['fixed', 'sticky', true, true]);
+    await ctx.close();
+  });
+
+  test('155: the top-bar token follows a text-size change even when nothing on the page changes size (a short page)', async ({
+    browser,
+  }) => {
+    const { ctx, page, font } = await open(browser, 390, 844, 16);
+    await story(page, 'aura-new-in-5-33-dxt-monitor--monitor-frame');
+    const bar = () =>
+      page.evaluate(() => [
+        getComputedStyle(document.querySelector('.aura-shell__bar')!).position,
+        getComputedStyle(document.querySelector('.aura-shell')!).getPropertyValue('--aura-shell-bar-height').trim(),
+      ]);
+    expect((await bar())[0]).toBe('sticky');
+    expect((await bar())[1]).not.toBe('0px');
+    await font(32);
+    await expect.poll(bar).toEqual(['static', '0px']);
+    await font(16);
+    await expect.poll(async () => {
+      const b = await bar();
+      return [b[0], b[1] !== '0px'];
+    }).toEqual(['sticky', true]);
+    /* The probe adds no box anyone sees or reaches, and no sideways scroll. */
+    expect(
+      await page.evaluate(() => [
+        getComputedStyle(document.querySelector('.aura-shell__probe')!).visibility,
+        document.querySelector('.aura-shell__probe')!.getAttribute('aria-hidden'),
+        document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ]),
+    ).toEqual(['hidden', 'true', 0]);
+    await ctx.close();
+  });
+});

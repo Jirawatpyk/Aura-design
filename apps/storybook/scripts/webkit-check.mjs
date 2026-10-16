@@ -191,6 +191,9 @@ try {
   await go('aura-new-in-5-48-chamber-os-153--short-screen');
   x = await ex(`return [innerHeight <= 480, getComputedStyle(document.querySelector('[data-testid=header] .aura-page-header__actions')).position, getComputedStyle(document.querySelector('.aura-actionbar')).position]`);
   check(JSON.stringify(x) === '[true,"static","static"]', 'short screen: header actions and ActionBar in the flow', x);
+  /* 5.49 (#155): the threshold is 30rem, which WebKit resolves against the default 16px: 480px here too. */
+  x = await ex(`return [matchMedia('(max-height: 30rem)').matches, getComputedStyle(document.querySelector('.aura-shell__bar')).position]`);
+  check(JSON.stringify(x) === '[true,"static"]', 'short screen: 30rem threshold, top bar in the flow', x);
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
 
   /* 5.47 (#152): compact 26px and hero 30px at a phone width, Thai keeps 1.4. */

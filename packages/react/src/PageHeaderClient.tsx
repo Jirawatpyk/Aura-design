@@ -62,6 +62,8 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
       const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
       if (ro) ro.observe(el);
       window.addEventListener('resize', sync);
+      /* 5.49 (Chamber-OS 155): a change of the browser's text size can pin or release the bar with no resize event;
+       * the bar's own size changes then, so the observer above catches it. */
       sync();
       return function () {
         if (ro) ro.disconnect();

@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import { fixtures } from './fixtures.ts';
 const require = createRequire(import.meta.url);
 let fail = 0;
@@ -295,6 +296,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const pg = m(e(A.Pagination, { pageCount: 5, page: 2, onChange: () => {} })), pgL = m(e(A.Pagination, { pageCount: 5, page: 2, getHref: (p: number) => '/p/' + p }));
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
+    }
+    /* 5.49 (Chamber-OS 155): every short-screen height threshold in the shipped CSS is in rem (follows the browser's
+     * text size); none is left in px. */
+    {
+      const css = readFileSync(new URL('../dist/styles.css', import.meta.url), 'utf8');
+      const rem = css.match(/(?:max|min)-height:\s*30(?:\.00125)?rem/g) || [];
+      if (rem.length !== 4 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
     }
     /* 5.48 (Chamber-OS 153): actionsBarLook="floating" is a class beside the bar class; edge (default) adds none. */
     {
