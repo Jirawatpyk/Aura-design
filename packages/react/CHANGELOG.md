@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.49.0
+
+### Minor Changes
+
+- d6f1f12: The short-screen threshold for bottom bars (5.48) is now 30rem, so it follows the browser's text size: 480px at the default 16px (no change), 960px at 32px, 720px at 24px. Large-text users on a phone get the actions in the header, an ActionBar in the flow and a top bar that scrolls away, instead of a bar covering a quarter of the screen (Chamber-OS 155).
+
 ## 5.48.0
 
 ### Minor Changes
