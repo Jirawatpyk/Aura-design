@@ -1947,10 +1947,12 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	/** 5.46: a chip or badge on the title's line (a role, an invoice's status, "Archived"). Title and addon share a
 	 * wrapping row, 8px apart vertically and 12px across; on a narrow screen the addon wraps under the title. */
 	titleAddon?: React$1.ReactNode | undefined;
-	/** 5.46: the title's size. `default` 28px below 640px, 36px from 640px; `hero` 30px on a 36px line with 16px more
-	 * room above; `hero-lg` 26px below 1024px and 36px from 1024px, with the same room. Per page, the custom
-	 * properties `--aura-page-header-title-size` and `--aura-page-header-title-line-height` override any of them. */
-	size?: "default" | "hero" | "hero-lg" | undefined;
+	/** 5.46: the title's size. `default` 28px below 640px, 36px from 640px; `compact` (5.47, Chamber-OS 152) 26px below
+	 * 640px, 32px from 640px, on a 1.2 line — staff and list pages; `hero` 30px below 1024px and 36px from 1024px (5.47)
+	 * on a 1.2 line, with more room above (`--aura-page-header-hero-space`, default 16px); `hero-lg` 26px below 1024px
+	 * and 36px from 1024px, with the same room. Per page, the custom properties `--aura-page-header-title-size` and
+	 * `--aura-page-header-title-line-height` override any of them. */
+	size?: "default" | "compact" | "hero" | "hero-lg" | undefined;
 	/** 5.46: focus the heading when the header mounts (`tabIndex={-1}`, `preventScroll`, no visible ring) — a page
 	 * reached by a server redirect (renewal done, back from a payment page), so a screen reader starts there (WCAG
 	 * 2.4.3). The main entry's PageHeader does it; from `/server` the heading is focusable but not focused. */

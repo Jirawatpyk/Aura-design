@@ -7839,7 +7839,7 @@ window.Aura = (() => {
       return n3 != null && n3 !== false && n3 !== "";
     };
     const hasMeta = shown(props.meta) || shown(props.subtitle) || shown(props.titleAddon);
-    const size = props.size === "hero" || props.size === "hero-lg" ? props.size : null;
+    const size = props.size === "compact" || props.size === "hero" || props.size === "hero-lg" ? props.size : null;
     const eyebrow = props.eyebrow;
     const plainEyebrow = typeof eyebrow === "string" || typeof eyebrow === "number";
     const heading = h8(

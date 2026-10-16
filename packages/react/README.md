@@ -186,6 +186,13 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.47 — Chamber-OS addendum 54 (#152)
+
+- **PageHeader `size="compact"`**: 26px below 640px and 32px from 640px, on a 1.2 line — the staff and list boards' title, so a company name such as "Siam Nordic Trading Co., Ltd." takes two lines on a 390px phone instead of three. The **default stays 28px / 36px** (1.15), so DxT Monitor and other apps don't change; pass `size="compact"` (Chamber-OS: in its header wrapper) where the boards draw 26 / 32.
+- **`hero` steps to 36px from 1024px** (30px below), on a 1.2 line, as `hero-lg` does — the portal Main and Edit boards. `hero-lg` is unchanged (26px, then 36px).
+- **`--aura-page-header-hero-space`**: the room above a `hero` or `hero-lg` title, default 16px, on top of the page's own padding (which belongs to the app). For the boards' 24px on a phone and 40px from 1024px inside AppShell's 24px / 32px content padding, set it to `0` below 1024px and `8px` from 1024px — or whatever your page padding needs.
+- Under `lang="th"` titles keep their 1.4 line at every size. Checked at 390 and 1280px in English, Thai and Swedish and at a 32px default font size: nothing scrolls sideways.
+
 ## 5.46 — Chamber-OS addendum 53 (#151)
 
 What Chamber-OS's own page header did that PageHeader didn't, so it can be rebuilt on PageHeader with its props kept:

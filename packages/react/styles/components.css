@@ -1251,8 +1251,12 @@ a.aura-tab { text-decoration: none; }
 .aura-page-header__title-row > .aura-page-header__title { min-width: 0; }
 .aura-page-header__title-addon { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); min-width: 0; }
 .aura-page-header__eyebrow--rich { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); font-family: var(--font-sans); line-height: 1.5; }
-.aura-page-header--hero, .aura-page-header--hero-lg { padding-top: var(--aura-space-4); }
+.aura-page-header--hero, .aura-page-header--hero-lg { padding-top: var(--aura-page-header-hero-space, var(--aura-space-4)); }
 .aura-page-header--hero .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(30px, 1.875rem)); line-height: var(--aura-page-header-title-line-height, 1.2); }
+/* 5.47 (Chamber-OS 152): compact — the staff boards' 26 / 32; hero steps to 36px from 1024px like hero-lg. */
+.aura-page-header--compact .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(26px, 1.625rem)); line-height: var(--aura-page-header-title-line-height, 1.2); }
+@media (min-width: 640px) { .aura-page-header--compact .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(32px, 2rem)); } }
+@media (min-width: 1024px) { .aura-page-header--hero .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(36px, 2.25rem)); } }
 .aura-page-header--hero-lg .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(26px, 1.625rem)); line-height: var(--aura-page-header-title-line-height, 1.25); }
 @media (min-width: 1024px) { .aura-page-header--hero-lg .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(36px, 2.25rem)); line-height: var(--aura-page-header-title-line-height, 1.2); } }
 .aura-page-header__title[tabindex="-1"]:focus { outline: none; }

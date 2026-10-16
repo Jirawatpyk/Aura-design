@@ -8765,7 +8765,7 @@ test.describe('5.46: Chamber-OS 151 — PageHeader subtitle, titleAddon, chip ey
     await page.setViewportSize({ width: 1280, height: 900 });
     await story(page, ID('portal-hero'));
     const hero = await r(page, '[data-testid=hero] .aura-page-header__title');
-    expect([hero.fs, hero.lh]).toEqual([30, '36px']);
+    expect([hero.fs, hero.lh]).toEqual([36, '43.2px']); // 5.47 (Chamber-OS 152): hero is 36px from 1024px
     expect((await r(page, '[data-testid=hero-lg] .aura-page-header__title')).fs).toBe(36);
     const custom = await r(page, '[data-testid=custom] .aura-page-header__title');
     expect([custom.fs, custom.lh]).toEqual([26, '32px']);
@@ -8813,6 +8813,66 @@ test.describe('5.46: Chamber-OS 151 — PageHeader subtitle, titleAddon, chip ey
         s,
       ).toBeLessThanOrEqual(0);
     }
+    await ctx.close();
+  });
+});
+
+test.describe('5.47: Chamber-OS 152 — PageHeader size="compact", hero to 36px, hero space', () => {
+  const ID = 'aura-new-in-5-47-chamber-os-152--title-sizes';
+  const t = (page: Page, id: string) =>
+    page
+      .getByTestId(id)
+      .locator('.aura-page-header__title')
+      .evaluate((e) => {
+        const s = getComputedStyle(e);
+        return {
+          fs: parseFloat(s.fontSize),
+          lh: Math.round((parseFloat(s.lineHeight) / parseFloat(s.fontSize)) * 100) / 100,
+        };
+      });
+  const pad = (page: Page, id: string) =>
+    page
+      .getByTestId(id)
+      .locator('.aura-page-header')
+      .evaluate((e) => parseFloat(getComputedStyle(e).paddingTop));
+
+  for (const [w, compact, hero, heroLg, dflt] of [
+    [390, 26, 30, 26, 28],
+    [1280, 32, 36, 36, 36],
+  ] as const) {
+    test(`152: at ${w}px compact ${compact}, hero ${hero}, hero-lg ${heroLg}, default ${dflt} (en, th, sv)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 1100 });
+      await story(page, ID);
+      for (const l of ['en', 'sv']) expect(await t(page, 'compact-' + l), l).toEqual({ fs: compact, lh: 1.2 });
+      expect(await t(page, 'compact-th')).toEqual({ fs: compact, lh: 1.4 }); // Thai keeps its 1.4 line
+      expect(await t(page, 'hero')).toEqual({ fs: hero, lh: 1.2 });
+      expect((await t(page, 'hero-th')).lh).toBe(1.4);
+      expect((await t(page, 'hero-lg')).fs).toBe(heroLg);
+      expect((await t(page, 'default')).fs).toBe(dflt); // the default is unchanged
+      expect(await pad(page, 'hero')).toBe(16);
+      expect(await pad(page, 'hero-space')).toBe(24);
+      expect(await pad(page, 'default')).toBe(0);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      ).toBeLessThanOrEqual(0);
+    });
+  }
+
+  test('152: nothing scrolls sideways at a 32px default font size', async ({ browser }) => {
+    const ctx = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      viewport: { width: 390, height: 900 },
+    });
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Page.enable');
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32, fixed: 26 } });
+    await story(page, ID);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    ).toBeLessThanOrEqual(0);
     await ctx.close();
   });
 });

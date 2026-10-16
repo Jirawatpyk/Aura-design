@@ -180,6 +180,12 @@ try {
   x = await ex(`return [document.querySelectorAll('.aura-dialog').length, document.activeElement.classList.contains('aura-filterbar__more')]`);
   check(JSON.stringify(x) === '[0,true]', 'FilterBar sheet: Done closes, focus back on the button', x);
 
+  /* 5.47 (#152): compact 26px and hero 30px at a phone width, Thai keeps 1.4. */
+  await go('aura-new-in-5-47-chamber-os-152--title-sizes');
+  x = await ex(`const f = (id) => { const s = getComputedStyle(document.querySelector('[data-testid=' + id + '] .aura-page-header__title')); return [parseFloat(s.fontSize), Math.round(parseFloat(s.lineHeight) / parseFloat(s.fontSize) * 100) / 100]; };
+    return [f('compact-en'), f('compact-th'), f('hero')]`);
+  check(JSON.stringify(x) === '[[26,1.2],[26,1.4],[30,1.2]]', 'PageHeader compact and hero sizes at a phone width', x);
+
   /* 5.46 (#151): PageHeader subtitle and title addon on one line, chip eyebrow row, focusTitleOnMount. */
   await go('aura-new-in-5-46-chamber-os-151--subtitle-and-addon');
   x = await ex(`const p = document.querySelector('[data-testid=en]'), t = p.querySelector('.aura-page-header__title').getBoundingClientRect(), a = p.querySelector('.aura-page-header__title-addon').getBoundingClientRect(), s = p.querySelector('.aura-page-header__subtitle');
