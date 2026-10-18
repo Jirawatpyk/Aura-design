@@ -1992,7 +1992,12 @@ window.Aura = (() => {
       "div",
       {
         ref,
-        className: cx("aura-field", (props.error || props.invalid) && "is-invalid", props.disabled && "is-disabled", props.className)
+        className: cx(
+          "aura-field",
+          (props.error || props.invalid) && "is-invalid",
+          props.disabled && "is-disabled",
+          props.className
+        )
       },
       props.label ? h3(
         props.labelAs || "label",

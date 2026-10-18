@@ -32,7 +32,12 @@ export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(funct
   return (
     <div
       ref={ref}
-      className={cx('aura-field', (props.error || props.invalid) && 'is-invalid', props.disabled && 'is-disabled', props.className)}
+      className={cx(
+        'aura-field',
+        (props.error || props.invalid) && 'is-invalid',
+        props.disabled && 'is-disabled',
+        props.className,
+      )}
     >
       {props.label
         ? h(
