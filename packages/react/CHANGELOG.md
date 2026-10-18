@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.50.0
+
+### Minor Changes
+
+- 2f217a8: TextField and Textarea take `invalid`: the danger edge and `aria-invalid="true"` without AURA's error message, leaving the hint and `aria-describedby` as they are, for pages that explain the problem themselves. A field whose control the page marks `aria-invalid="true"` gets the same edge (Chamber-OS 156).
+
 ## 5.49.0
 
 ### Minor Changes
