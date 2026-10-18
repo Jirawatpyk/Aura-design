@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.50.0 — 2026-10-18
+
+### Minor changes
+
+- 2f217a8: TextField and Textarea take `invalid`: the danger edge and `aria-invalid="true"` without AURA's error message, leaving the hint and `aria-describedby` as they are, for pages that explain the problem themselves. A field whose control the page marks `aria-invalid="true"` gets the same edge (Chamber-OS 156).
+
 ## 5.49.0 — 2026-10-16
 
 ### Minor changes
