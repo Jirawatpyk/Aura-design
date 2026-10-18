@@ -13,6 +13,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
       label={props.label}
       hint={props.hint}
       error={props.error}
+      invalid={props.invalid}
       required={props.required}
       optional={props.optional}
       labelAddon={props.labelAddon}
@@ -27,7 +28,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
         className="aura-input aura-textarea"
         placeholder={props.placeholder}
         required={props.required}
-        aria-invalid={props.error ? true : (rest as Record<string, any>)['aria-invalid']}
+        aria-invalid={props.error || props.invalid ? true : (rest as Record<string, any>)['aria-invalid']}
         aria-describedby={joinDescribedBy(id, props, (rest as Record<string, any>)['aria-describedby'])}
       />
     </Field>

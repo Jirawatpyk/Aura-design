@@ -21,6 +21,9 @@ export interface FieldComponentProps extends Omit<FieldPropsPublic, 'label'> {
   labelAs?: string | undefined;
   labelId?: string | undefined;
   disabled?: boolean | undefined;
+  /** 5.50 (Chamber-OS 156): the danger look without a message (`is-invalid`, no error line). Set `aria-invalid` on
+   * your control yourself; `error` still renders its message. */
+  invalid?: boolean | undefined;
   className?: string | undefined;
 }
 
@@ -29,7 +32,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(funct
   return (
     <div
       ref={ref}
-      className={cx('aura-field', props.error && 'is-invalid', props.disabled && 'is-disabled', props.className)}
+      className={cx('aura-field', (props.error || props.invalid) && 'is-invalid', props.disabled && 'is-disabled', props.className)}
     >
       {props.label
         ? h(
@@ -113,4 +116,5 @@ export const FIELD_KEYS: string[] = [
   'touchHeight',
   'labelAddon',
   'labelAddonDescribes',
+  'invalid',
 ];

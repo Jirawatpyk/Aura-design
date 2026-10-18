@@ -9189,3 +9189,98 @@ test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the b
     await ctx.close();
   });
 });
+
+test.describe('5.50: Chamber-OS 156 — invalid without AURA’s message', () => {
+  const ID = 'aura-new-in-5-50-chamber-os-156--invalid-without-message';
+  const look = (page: Page, tid: string) =>
+    page.evaluate((tid) => {
+      const root = document.querySelector(`[data-testid=${tid}]`)!;
+      const field = root.querySelector('.aura-field')!;
+      const box = (root.querySelector('.aura-textarea') || root.querySelector('.aura-input'))!;
+      const ctl = (root.querySelector('textarea') || root.querySelector('input'))!;
+      const probe = document.createElement('div');
+      probe.style.color = 'var(--aura-border-danger)';
+      root.appendChild(probe);
+      const danger = getComputedStyle(probe).color;
+      probe.remove();
+      return {
+        danger: getComputedStyle(box).borderTopColor === danger,
+        invalidClass: field.classList.contains('is-invalid'),
+        ariaInvalid: ctl.getAttribute('aria-invalid'),
+        describedBy: ctl.getAttribute('aria-describedby'),
+        error: !!field.querySelector('.aura-field__error'),
+        hint: field.querySelector('.aura-field__hint')?.textContent ?? null,
+        leaked: ctl.hasAttribute('invalid'),
+      };
+    }, tid);
+
+  for (const theme of ['light', 'dark']) {
+    test(`156: invalid gives the danger edge and aria-invalid, no message, the same describedby (${theme})`, async ({ page }) => {
+      await story(page, ID, theme);
+      expect(await look(page, 'brand')).toEqual({
+        danger: true,
+        invalidClass: true,
+        ariaInvalid: 'true',
+        describedBy: 'primary-hint primary-readout',
+        error: false,
+        hint: 'A hex value, e.g. #1F4E8C.',
+        leaked: false,
+      });
+      const ta = await look(page, 'textarea');
+      expect([ta.danger, ta.invalidClass, ta.ariaInvalid, ta.error, ta.hint, ta.leaked]).toEqual([
+        true,
+        true,
+        'true',
+        false,
+        'Up to 140 characters.',
+        false,
+      ]);
+      expect(ta.describedBy).toMatch(/-hint$/);
+      /* A caller's own aria-invalid draws the edge too, and stays the caller's. */
+      const own = await look(page, 'own-aria');
+      expect([own.danger, own.ariaInvalid, own.error, own.hint]).toEqual([true, 'true', false, 'Optional.']);
+      /* error still wins: its message, its id. */
+      const err = await look(page, 'error');
+      expect([err.danger, err.error, err.hint, err.ariaInvalid]).toEqual([true, true, null, 'true']);
+      expect(err.describedBy).toMatch(/-error$/);
+      /* Negative controls: a valid field has no danger edge; a disabled one keeps its disabled edge. */
+      const ok = await look(page, 'valid');
+      expect([ok.danger, ok.invalidClass, ok.ariaInvalid]).toEqual([false, false, null]);
+      expect((await look(page, 'disabled')).danger).toBe(false);
+      /* Only the box holding the invalid control: its sibling in the same custom Field stays as it was. */
+      const nested = await page.evaluate(() => {
+        const p = document.createElement('div');
+        p.style.color = 'var(--aura-border-danger)';
+        document.body.appendChild(p);
+        const d = getComputedStyle(p).color;
+        p.remove();
+        return [...document.querySelectorAll('[data-testid=nested] .aura-input')].map((b) => getComputedStyle(b).borderTopColor === d);
+      });
+      expect(nested).toEqual([false, true]);
+    });
+  }
+
+  test('156: the edge follows the value — hover and focus keep it, a valid value clears it, Save points at the reason', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    const input = page.locator('#primary');
+    await input.hover();
+    expect((await look(page, 'brand')).danger).toBe(true);
+    await input.focus();
+    expect((await look(page, 'brand')).danger).toBe(true);
+    await input.fill('#1F4E8C');
+    /* (the edge eases between colours, so wait for it to settle) */
+    await expect
+      .poll(async () => {
+        const s = await look(page, 'brand');
+        return [s.danger, s.invalidClass, s.ariaInvalid, s.describedBy];
+      })
+      .toEqual([false, false, null, 'primary-hint primary-readout']);
+    await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled();
+    await input.fill('#EEEEEE');
+    await expect.poll(async () => (await look(page, 'brand')).danger).toBe(true);
+    await expect(page.getByRole('button', { name: 'Save' })).toHaveAttribute('aria-describedby', 'save-reason');
+    expect(await axeScan(page, '[data-testid=brand]')).toEqual([]);
+  });
+});

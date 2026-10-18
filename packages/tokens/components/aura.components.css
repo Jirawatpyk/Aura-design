@@ -528,6 +528,10 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-input__icon { position: absolute; left: var(--aura-space-3); color: var(--aura-fg-secondary); pointer-events: none; }
 .aura-input__suffix { padding: 0 var(--aura-space-3) 0 0; color: var(--aura-fg-secondary); font-size: max(13px, .8125rem); white-space: nowrap; }
 .aura-field.is-invalid .aura-input, .aura-field.is-invalid .aura-textarea { border-color: var(--aura-border-danger); }
+/* 5.50 (Chamber-OS 156): a control the page marks aria-invalid="true" itself gets the same edge, message or not (a
+ * disabled field keeps its disabled edge, as with is-invalid). */
+.aura-field:not(.is-disabled) .aura-input:has(> .aura-input__control[aria-invalid="true"]),
+.aura-field:not(.is-disabled) .aura-textarea[aria-invalid="true"] { border-color: var(--aura-border-danger); }
 .aura-field.is-disabled .aura-input { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); }
 .aura-field.is-disabled .aura-input__control { cursor: not-allowed; }
 /* A read-only text field. Only an input: `:read-only` also matches any element that isn't editable — a

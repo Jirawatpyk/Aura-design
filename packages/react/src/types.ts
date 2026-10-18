@@ -501,6 +501,10 @@ interface FieldProps {
   optional?: boolean | undefined;
 }
 export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttributes<HTMLInputElement>, 'required'> {
+  /** 5.50 (Chamber-OS 156): marks the value invalid — the danger border and `aria-invalid="true"` — without AURA's
+   * message: no error line, and `aria-describedby` stays as it is (the hint, the addon, your own ids). For a page that
+   * explains the problem itself (a live readout, a reason a button points at). `error` still wins when set. */
+  invalid?: boolean | undefined;
   /** Leading icon inside the field. */
   icon?: IconInput | undefined;
   /** Trailing unit, e.g. "THB". */
@@ -650,6 +654,10 @@ export interface CommandProps {
   className?: string | undefined;
 }
 export interface TextareaProps extends FieldProps, Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'required'> {
+  /** 5.50 (Chamber-OS 156): marks the value invalid — the danger border and `aria-invalid="true"` — without AURA's
+   * message: no error line, and `aria-describedby` stays as it is (the hint, the addon, your own ids). For a page that
+   * explains the problem itself (a live readout, a reason a button points at). `error` still wins when set. */
+  invalid?: boolean | undefined;
   /** 5.31 (Chamber-OS addendum 41): a node between the label and the box — e.g. the phrase to type, with a copy
    * button, on a typed confirmation. The hint and error stay below. Its box's id (`{id}-addon`) comes first in the
    * input's `aria-describedby`, so its text is read after the label; keep any button names in it short. */

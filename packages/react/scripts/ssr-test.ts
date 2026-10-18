@@ -297,6 +297,17 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.50 (Chamber-OS 156): invalid = is-invalid + aria-invalid, no error line, describedby unchanged; error still wins. */
+    {
+      const ti = m(e(A.TextField, { label: 'Colour', id: 'c', hint: 'Hex.', invalid: true, 'aria-describedby': 'r' }));
+      const ta = m(e(A.Textarea, { label: 'Text', id: 't', hint: 'Short.', invalid: true }));
+      const te = m(e(A.TextField, { label: 'Colour', id: 'c', hint: 'Hex.', error: 'Bad.', invalid: true }));
+      const tn = m(e(A.TextField, { label: 'Colour', id: 'c', hint: 'Hex.' }));
+      if (
+        !/class="aura-field is-invalid"/.test(ti + ta) || !/aria-invalid="true"/.test(ti) || !/aria-describedby="c-hint r"/.test(ti) || !/aria-invalid="true" aria-describedby="t-hint"/.test(ta) ||
+        /aura-field__error|invalid=""|\sinvalid=/.test(ti + ta) || !/aura-field__error/.test(te) || !/aria-describedby="c-error"/.test(te) || /is-invalid|aria-invalid/.test(tn)
+      ) bad('Chamber-OS 156:', ti, ta, te, tn);
+    }
     /* 5.49 (Chamber-OS 155): every short-screen height threshold in the shipped CSS is in rem (follows the browser's
      * text size); none is left in px. */
     {

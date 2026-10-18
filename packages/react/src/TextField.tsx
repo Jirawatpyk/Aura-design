@@ -14,6 +14,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
       label={props.label}
       hint={props.hint}
       error={props.error}
+      invalid={props.invalid}
       required={props.required}
       optional={props.optional}
       labelAddon={props.labelAddon}
@@ -30,7 +31,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
           className="aura-input__control"
           placeholder={props.placeholder}
           required={props.required}
-          aria-invalid={props.error ? true : (rest as Record<string, any>)['aria-invalid']}
+          aria-invalid={props.error || props.invalid ? true : (rest as Record<string, any>)['aria-invalid']}
           aria-describedby={joinDescribedBy(id, props, (rest as Record<string, any>)['aria-describedby'])}
         />
         {props.suffix ? <span className="aura-input__suffix">{props.suffix}</span> : null}

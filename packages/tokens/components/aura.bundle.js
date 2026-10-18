@@ -1992,7 +1992,7 @@ window.Aura = (() => {
       "div",
       {
         ref,
-        className: cx("aura-field", props.error && "is-invalid", props.disabled && "is-disabled", props.className)
+        className: cx("aura-field", (props.error || props.invalid) && "is-invalid", props.disabled && "is-disabled", props.className)
       },
       props.label ? h3(
         props.labelAs || "label",
@@ -2037,7 +2037,8 @@ window.Aura = (() => {
     "placeholder",
     "touchHeight",
     "labelAddon",
-    "labelAddonDescribes"
+    "labelAddonDescribes",
+    "invalid"
   ];
 
   // src/TextField.tsx
@@ -2052,6 +2053,7 @@ window.Aura = (() => {
         label: props.label,
         hint: props.hint,
         error: props.error,
+        invalid: props.invalid,
         required: props.required,
         optional: props.optional,
         labelAddon: props.labelAddon,
@@ -2068,7 +2070,7 @@ window.Aura = (() => {
           className: "aura-input__control",
           placeholder: props.placeholder,
           required: props.required,
-          "aria-invalid": props.error ? true : rest["aria-invalid"],
+          "aria-invalid": props.error || props.invalid ? true : rest["aria-invalid"],
           "aria-describedby": joinDescribedBy(id, props, rest["aria-describedby"])
         }
       ), props.suffix ? /* @__PURE__ */ React14.createElement("span", { className: "aura-input__suffix" }, props.suffix) : null)
@@ -2087,6 +2089,7 @@ window.Aura = (() => {
         label: props.label,
         hint: props.hint,
         error: props.error,
+        invalid: props.invalid,
         required: props.required,
         optional: props.optional,
         labelAddon: props.labelAddon,
@@ -2103,7 +2106,7 @@ window.Aura = (() => {
           className: "aura-input aura-textarea",
           placeholder: props.placeholder,
           required: props.required,
-          "aria-invalid": props.error ? true : rest["aria-invalid"],
+          "aria-invalid": props.error || props.invalid ? true : rest["aria-invalid"],
           "aria-describedby": joinDescribedBy(id, props, rest["aria-describedby"])
         }
       )

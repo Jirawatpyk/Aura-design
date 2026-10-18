@@ -129,7 +129,10 @@ try {
   /* 5.37: PageHeader actions span the row below md (two, then one, 12px apart); SegmentedControl touchHeight 44px. */
   await go('aura-new-in-5-37-dxt-monitor-17-18--header-actions');
   x = JSON.parse(
-    await ex(`const h = document.querySelector('[data-testid=md]').getBoundingClientRect();
+    /* WebKitGTK 2.52 won't make the window narrower than ~447px, where all three fit on one row; hold the header at
+     * the width it has on a 390px phone (342px inside the page padding) so the check measures the wrap it means to. */
+    await ex(`document.querySelector('[data-testid=md]').style.maxWidth = Math.min(innerWidth - 48, 342) + 'px';
+      const h = document.querySelector('[data-testid=md]').getBoundingClientRect();
       const b = [...document.querySelectorAll('[data-testid=md] .aura-page-header__actions > *')].map((e) => e.getBoundingClientRect());
       return JSON.stringify({ row1: Math.round(b[0].top) === Math.round(b[1].top), gap: Math.round(b[1].left - b[0].right),
         ends: Math.round(b[1].right) === Math.round(h.right), third: Math.round(b[2].width) === Math.round(h.width), vgap: Math.round(b[2].top - b[0].bottom) })`),
@@ -195,6 +198,12 @@ try {
   x = await ex(`return [matchMedia('(max-height: 30rem)').matches, getComputedStyle(document.querySelector('.aura-shell__bar')).position]`);
   check(JSON.stringify(x) === '[true,"static"]', 'short screen: 30rem threshold, top bar in the flow', x);
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
+
+  /* 5.50 (#156): invalid (and a caller's own aria-invalid) draw the danger edge with no error line; a valid field none. */
+  await go('aura-new-in-5-50-chamber-os-156--invalid-without-message');
+  x = await ex(`const c = (t) => getComputedStyle(document.querySelector('[data-testid=' + t + '] .aura-input')).borderTopColor;
+    return [c('brand') === c('error'), c('own-aria') === c('error'), c('valid') !== c('error'), !!document.querySelector('[data-testid=brand] .aura-field__error')]`);
+  check(JSON.stringify(x) === '[true,true,true,false]', 'TextField invalid: danger edge, no message', x);
 
   /* 5.47 (#152): compact 26px and hero 30px at a phone width, Thai keeps 1.4. */
   await go('aura-new-in-5-47-chamber-os-152--title-sizes');

@@ -186,6 +186,15 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.50 — Chamber-OS addendum 57 (#156)
+
+- **`invalid` on TextField and Textarea** (and PasswordField, which is a TextField; `Field` for a custom control): marks the value invalid without AURA's message — the danger edge (`--aura-border-danger`, light and dark, also on hover and focus) and `aria-invalid="true"` on the control, no error line, and `aria-describedby` as it would be without it (the addon, the hint, then your own ids). For a page that explains the problem itself — a live contrast readout, a reason line a disabled Save points at. Point `aria-describedby` at that explanation, or a screen reader hears "invalid" with no reason. `error` still wins: its message replaces the hint and its id the hint's. A disabled field keeps its disabled edge.
+- **Your own `aria-invalid="true"` is enough too**: a field whose input or textarea carries it gets the same edge, so a custom control inside `Field` (with `invalid` on the Field for the class) or a form library that sets it needs nothing else.
+
+```jsx
+<TextField label="Primary colour" hint="A hex value." value={colour} onChange={…} invalid={!meetsAa} aria-describedby="contrast-readout" />
+```
+
 ## 5.49 — Chamber-OS addendum 56 (#155)
 
 - **The short-screen threshold follows the browser's text size**: the height at which bottom bars stop pinning (5.48, #154) is `30rem`, not `480px`. In a media query `rem` is the browser's default font size (Chrome, Edge, Firefox; not iOS Dynamic Type or Safari's text size), not the page's `html` font size: 480px at the default 16px (nothing changes), 720px at 24px (an iPhone SE counts as short, an 844px phone keeps the bar), 960px at 32px (an 844px phone counts as short — it holds what a 422px screen holds at 16px). There the `actionsBarBelow` actions stay in the header, an ActionBar sits at the end of its container and AppShell's top bar scrolls away, as at 400% zoom. Changing the text size on an open page re-checks it (the bar-height tokens follow). The width breakpoints stay in px.
