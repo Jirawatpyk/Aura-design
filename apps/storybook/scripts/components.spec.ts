@@ -9707,3 +9707,101 @@ test.describe('5.51: Chamber-OS 157–160 — sort shown by the page, row minimu
     expect(r).toEqual([false, true, false]);
   });
 });
+
+test.describe('5.52: Chamber-OS 164 — a loading state for the static Table', () => {
+  const ID = (lang: string) => 'aura-new-in-5-52-chamber-os-164--loading-table&args=lang:' + lang;
+  const rowOf = (page: Page, t: string) =>
+    page.evaluate((t) => {
+      const r = document.querySelector(`[data-testid=${t}] .aura-tbl__body .aura-tbl__row`)!;
+      const top = r.getBoundingClientRect().top;
+      return {
+        cells: [...r.children].map((c) => ({
+          left: c.getBoundingClientRect().left,
+          top: c.getBoundingClientRect().top - top,
+          card: c.getAttribute('data-card'),
+        })),
+        height: r.getBoundingClientRect().height,
+        rows: document.querySelectorAll(`[data-testid=${t}] .aura-tbl__body .aura-tbl__row`).length,
+      };
+    }, t);
+
+  for (const [w, lang] of [
+    [1280, 'en'],
+    [1440, 'th'],
+    [1280, 'sv'],
+  ] as const) {
+    test(`164: loading and the server TableSkeleton put every column's left edge within 2px of the loaded table (${w}px, ${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 900 });
+      await story(page, ID(lang));
+      const loaded = await rowOf(page, 'loaded');
+      for (const t of ['loading', 'server']) {
+        const r = await rowOf(page, t);
+        expect(r.rows, t).toBe(8);
+        expect(r.cells.length, t).toBe(loaded.cells.length);
+        r.cells.forEach((c, i) =>
+          expect(Math.abs(c.left - loaded.cells[i]!.left), t + ' col ' + i).toBeLessThanOrEqual(2),
+        );
+        /* a two-line title column: the placeholder row is as tall as the loaded one */
+        expect(Math.abs(r.height - loaded.height), t).toBeLessThanOrEqual(2);
+      }
+      /* The page's rows never show while loading. */
+      await expect(page.locator('[data-testid=loading]')).not.toContainText('never shown');
+    });
+  }
+
+  test('164: below 640px the placeholders stack into the same cards — title first, action at the end of its line', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID('sv'));
+    const loaded = await rowOf(page, 'loaded');
+    for (const t of ['loading', 'server']) {
+      const r = await rowOf(page, t);
+      expect(
+        r.cells.map((c) => c.card),
+        t,
+      ).toEqual(loaded.cells.map((c) => c.card));
+      /* same card shape: each cell on the same line as in the loaded card */
+      r.cells.forEach((c, i) =>
+        expect(Math.abs(c.top - loaded.cells[i]!.top), t + ' cell ' + i).toBeLessThanOrEqual(4),
+      );
+      expect(r.cells[0]!.card).toBe('title');
+      expect(r.cells[r.cells.length - 1]!.card).toBe('action');
+      expect(r.cells[r.cells.length - 1]!.top).toBe(r.cells[0]!.top);
+    }
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    ).toBeLessThanOrEqual(0);
+  });
+
+  test('164: a loading table is aria-hidden and inert with nothing focusable; the loaded one is untouched', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID('en'));
+    const a = await page.evaluate(() =>
+      Object.fromEntries(
+        ['loaded', 'loading', 'server'].map((t) => {
+          const w = document.querySelector(`[data-testid=${t}] .aura-tbl-wrap`) as HTMLElement & { inert?: boolean };
+          return [
+            t,
+            {
+              hidden: w.getAttribute('aria-hidden'),
+              inert: !!w.inert,
+              focusable: [...w.querySelectorAll<HTMLElement>('a, button, input, [tabindex]')].filter(
+                (e) => e.tabIndex >= 0,
+              ).length,
+            },
+          ];
+        }),
+      ),
+    );
+    expect(a.loading).toEqual({ hidden: 'true', inert: true, focusable: 0 });
+    expect(a.server).toEqual({ hidden: 'true', inert: true, focusable: 0 });
+    expect(a.loaded!.hidden).toBeNull();
+    expect(a.loaded!.inert).toBe(false);
+    expect(await axeScan(page, '[data-testid=loaded]')).toEqual([]);
+  });
+});

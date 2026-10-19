@@ -42,6 +42,7 @@ export { AppShell } from './AppShell.js';
 export { ActionBar } from './ActionBar.js';
 export { Separator } from './Separator.js';
 export { Table, THead, TBody, TFoot, Tr, Th, Td } from './Table.js';
+export { TableSkeleton } from './TableSkeleton.js';
 export { BottomNav } from './BottomNav.js';
 export { useBreakpoint, useResponsive, breakpoints } from './responsive.js';
 export { Surface } from './Surface.js';

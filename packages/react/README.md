@@ -186,6 +186,22 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.52 — Chamber-OS addendum 65 (#164)
+
+- **`Table loading`** (with `loadingRows`, default 5): the head as given, then placeholder rows in its columns — and below `stackBelow`, the same cards (title and action slots kept). Each column follows its head cell: `skeleton={{ lines: 1 | 2, kind: 'text' | 'pill' | 'action', touch }}` (two lines for a value over its caption, a status pill, or a block as tall as a small Button — 44px on a phone card with `touch`), its width from `skeletonWidth`, else the cell's `width` or `style.width`, else an even share of what is left. The THead must be a direct child (call your head as a function, not your own component) — a dev notice says so — and its first row must be the column row (with grouped headers, columns come from that first row). A head cell whose content isn't plain text (an icon, a sort button) needs `label` for the cards' field labels. TBody and TFoot aren't rendered while loading, so a totals row appears with the data.
+- **`TableSkeleton`** — the same thing for Server Components (a route's `loading.tsx`), from the root and `/server`: `columns` (`{ label, width, align, numeric, card, skeleton }`), `rows`, and Table's `density`, `stackBelow`, `stackStyle`, `bordered`, `bleed`, `bleedEnd`, `rowHeight`, `align`. Build both from one column list and they can't drift.
+- Both are `aria-hidden` and `inert`, with nothing focusable: announce the load in the page's own status line. A loading table has no content to size from, so its columns are fixed to those widths; give the loaded table the same shares (adding up to 100%) and every column's left edge matches.
+
+```jsx
+<Table stackBelow="sm" loading={isPending} loadingRows={8}>
+  {head()}   {/* <THead><Tr><Th style={{ width: '26%' }} card="title" skeleton={{ lines: 2 }}>Member</Th>… */}
+  <TBody>…</TBody>
+</Table>
+// app/members/loading.tsx (a Server Component)
+import { TableSkeleton } from '@jirawatpyk/aura-react/server';
+export default () => <TableSkeleton stackBelow="sm" rows={8} columns={MEMBER_COLUMNS} />;
+```
+
 ## 5.51 — Chamber-OS addenda 58–64 (#157–163)
 
 - **DataTable column `sortDirection`** (#157): `'ascending' | 'descending'` — for a list the page orders (from the URL, a line under the table), puts `aria-sort` on that column's header with no sort button, icon or click, in the server's HTML too. Give it to one column (two warn in development); move it when the order changes. Once the table has its own sort (a sortable header was used, or `sort` is set) that wins and `sortDirection` is ignored, so one header at most claims the order.

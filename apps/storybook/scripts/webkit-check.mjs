@@ -224,6 +224,14 @@ try {
   await go('aura-new-in-5-51-chamber-os-157-160--grow-actions');
   x = await ex(`const w = (t) => [...document.querySelectorAll('[data-testid=' + t + '] [role=columnheader]')].pop().getBoundingClientRect().width; return [innerWidth >= 1200, w('grow') > w('even') + 100]`);
   check(JSON.stringify(x) === '[true,true]', 'DataTable grow: Actions takes three shares', x);
+  /* 5.52 (#164): a loading Table and the server TableSkeleton line up with the loaded table at a desktop width. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await go('aura-new-in-5-52-chamber-os-164--loading-table');
+  x = await ex(`const L = (t) => [...document.querySelector('[data-testid=' + t + '] .aura-tbl__body .aura-tbl__row').children].map((c) => Math.round(c.getBoundingClientRect().left));
+    const a = L('loaded'), b = L('loading'), c = L('server'); return [innerWidth >= 1200, a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) <= 2 && Math.abs(v - c[i]) <= 2), document.querySelector('[data-testid=loading] .aura-tbl-wrap').getAttribute('aria-hidden')]`);
+  check(JSON.stringify(x) === '[true,true,"true"]', 'Table loading / TableSkeleton: columns line up, aria-hidden', x);
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-51-chamber-os-157-160--grow-actions');
   /* 5.51 (#163): only the sideways axis is contained. */
   x = await ex(`const s = getComputedStyle(document.querySelector('.aura-table__scroll')); return [s.overscrollBehaviorX || 'n/a', s.overscrollBehaviorY || 'n/a']`);
   check(JSON.stringify(x) === '["contain","auto"]' || JSON.stringify(x) === '["n/a","n/a"]', 'DataTable scroller: overscroll contained sideways only', x);

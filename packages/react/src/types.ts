@@ -1467,8 +1467,53 @@ export interface TableProps extends Omit<React.TableHTMLAttributes<HTMLTableElem
    * `rowHeight="auto"`. Content is centred on the row unless `align="top"`. Rows whose text wraps still grow (with the
    * smaller padding). Header and footer rows, and stacked rows (`stackBelow`), are unchanged. */
   rowHeight?: 'density' | undefined;
+  /** 5.52 (Chamber-OS 164): draw the table while its rows load — the head as given, then `loadingRows` placeholder
+   * rows in the same columns (and, below `stackBelow`, the same cards). Each column's placeholder follows its header
+   * cell's `skeleton` hint, width (`skeletonWidth`, else its `width`, else an even share) and `card` role. The whole
+   * table is `aria-hidden` and `inert` meanwhile: announce the load in your own status line. TBody and TFoot children
+   * are not rendered. For a Server Component (a route's loading.tsx) use `TableSkeleton` from `/server`. */
+  loading?: boolean | undefined;
+  /** Placeholder rows while `loading` (default 5). */
+  loadingRows?: number | undefined;
   className?: string | undefined;
   children?: React.ReactNode | undefined;
+}
+/** 5.52 (Chamber-OS 164): what a loading column's placeholder cell looks like. */
+export interface TableSkeletonHint {
+  /** Text lines: 2 for a value over its caption. Default 1. */
+  lines?: 1 | 2 | undefined;
+  /** `text` (default) bars, a status `pill`, or an `action` block as tall as a small Button (44px on a phone card or a
+   * touch screen with `touch`). */
+  kind?: 'text' | 'pill' | 'action' | undefined;
+  /** An `action` block 44px below 640px and on a coarse pointer, as `touchHeight` buttons are. */
+  touch?: boolean | undefined;
+}
+/** 5.52 (Chamber-OS 164): one column of a `TableSkeleton` — the same facts a header cell gives a loading Table. */
+export interface TableSkeletonColumn {
+  /** Header text (and the stacked card's field label). */
+  label?: string | undefined;
+  /** Column width: a share such as `'22%'`, or px. Columns without one split what is left evenly. */
+  width?: string | number | undefined;
+  align?: 'start' | 'center' | 'end' | undefined;
+  numeric?: boolean | undefined;
+  /** Its place in a stacked row: `title`, `action` or `field` (default), as on a Td. */
+  card?: 'title' | 'action' | 'field' | undefined;
+  skeleton?: TableSkeletonHint | undefined;
+}
+/** 5.52 (Chamber-OS 164): a loading Table for Server Components. Same frame, density, stacking and cards as Table. */
+export interface TableSkeletonProps {
+  columns: TableSkeletonColumn[];
+  /** Placeholder rows (default 5). */
+  rows?: number | undefined;
+  density?: 'comfortable' | 'compact' | undefined;
+  stackBelow?: 'sm' | 'md' | undefined;
+  stackStyle?: 'list' | 'cards' | undefined;
+  bordered?: boolean | undefined;
+  bleed?: boolean | undefined;
+  bleedEnd?: boolean | undefined;
+  rowHeight?: 'density' | undefined;
+  align?: 'top' | 'middle' | undefined;
+  className?: string | undefined;
 }
 export interface TableSectionProps extends React.HTMLAttributes<HTMLTableSectionElement> {
   className?: string | undefined;
@@ -1491,6 +1536,12 @@ export interface TableCellProps extends Omit<React.TdHTMLAttributes<HTMLTableCel
    * without a label; `action` sits at the end of that line at its natural size; `field` (default) is a labelled field,
    * two to a line under them. */
   card?: 'title' | 'action' | 'field' | undefined;
+  /** Th in the head only (5.52, Chamber-OS 164): what this column's placeholder cells look like while the Table is
+   * `loading`. On a head cell, `card` also gives the placeholder cells their place in a stacked row. */
+  skeleton?: TableSkeletonHint | undefined;
+  /** Th in the head only (5.52): this column's width while loading — a share such as `'22%'` — when the loaded table
+   * sizes it from its content. Default: the cell's `width`, else an even share. */
+  skeletonWidth?: string | number | undefined;
   className?: string | undefined;
 }
 

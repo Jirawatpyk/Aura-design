@@ -461,6 +461,16 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       ),
       h(A.TFoot, null, h(A.Tr, null, h(A.Th, { scope: 'row' }, 'Total'), h(A.Td, { numeric: true }, '107,000.00'))),
     ),
+    /* 5.52 (Chamber-OS 164) */
+    TableSkeleton: h(A.TableSkeleton, {
+      columns: [
+        { label: 'Member', width: '40%', card: 'title' },
+        { label: 'Stage', skeleton: { kind: 'pill' } },
+        { label: '', card: 'action', skeleton: { kind: 'action' }, width: 96 },
+      ],
+      rows: 3,
+      stackBelow: 'sm',
+    }),
     Tr: h(
       A.Table,
       { caption: 'Tr', captionHidden: true },

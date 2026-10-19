@@ -2168,6 +2168,12 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     var(--aura-tbl-bg, var(--aura-bg-surface));
 }
 .aura-tbl { width: 100%; border-collapse: collapse; border-spacing: 0; font-size: max(13px, .8125rem); line-height: max(20px, 1.25rem); }
+/* 5.52 (Chamber-OS 164): a loading Table has no content to size its columns from, so they take the head's widths
+ * (or even shares); each placeholder bar sits on the row's 20px line, so a skeleton row is as tall as a text row. */
+.aura-tbl--skeleton { table-layout: fixed; }
+.aura-tbl__row--skeleton .aura-skel--text { display: block; margin: 5px 0; margin: calc((1lh - 10px) / 2) 0; }
+.aura-tbl__row--skeleton .aura-tbl__td.is-end > .aura-skel--text { margin-inline-start: auto; }
+.aura-tbl__row--skeleton .aura-tbl__td.is-end > .aura-skel-lines { align-items: flex-end; }
 .aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) var(--aura-space-3); text-align: left; font-size: max(14px, .875rem); font-weight: 600; }
 /* 5.30: from 640px a cell is at least 10ch wide, so the table never squeezes a column to one letter; a longer word (an
  * email, a URL) still breaks to fit instead of widening the table. Phones keep fitting the box: use stackBelow there. */

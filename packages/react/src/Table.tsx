@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { cx, devWarnOnce, uid, useIsoLayoutEffect } from './internal.js';
 import { useDensity } from './locale.js';
-import type { TableCellProps, TableProps, TableSectionProps, TableRowProps } from './types.js';
+import type { TableCellProps, TableProps, TableSectionProps, TableRowProps, TableSkeletonColumn } from './types.js';
+import { inertProps, skeletonBody, skeletonColgroup } from './TableSkeleton.js';
 
 /* Table family (4.20): plain <table> markup with AURA's type and spacing, for small fixed tables (invoice line items,
  * a VAT breakdown). Text wraps; there is no sorting, paging or virtualisation — use DataTable for data grids. */
@@ -58,6 +59,43 @@ function headerLabels(children: React.ReactNode): Array<string | undefined> {
   return out;
 }
 
+/* 5.52 (Chamber-OS 164): a loading table's columns, read from the head's first row: each Th's label, width
+ * (skeletonWidth, else width, else none = an even share), alignment, card role and skeleton hint. */
+function headerColumns(children: React.ReactNode): TableSkeletonColumn[] {
+  const out: TableSkeletonColumn[] = [];
+  flat(children).forEach(function (c) {
+    if (out.length || !React.isValidElement(c) || c.type !== THead) return;
+    const row = flat((c.props as TableSectionProps).children).find(function (r) {
+      return React.isValidElement(r);
+    }) as React.ReactElement<TableRowProps> | undefined;
+    if (!row) return;
+    flat(row.props.children).forEach(function (cell) {
+      if (!React.isValidElement(cell)) return;
+      const p = cell.props as TableCellProps & { children?: React.ReactNode; style?: React.CSSProperties };
+      const t = text(p.children);
+      const style = p.style as { width?: string | number } | undefined;
+      const span = Math.max(1, Number(p.colSpan) || 1);
+      for (let i = 0; i < span; i++)
+        out.push({
+          label: p.label != null ? p.label : t != null ? t.replace(/\s+/g, ' ').trim() || undefined : undefined,
+          width:
+            span > 1
+              ? undefined
+              : p.skeletonWidth != null
+                ? p.skeletonWidth
+                : p.width != null
+                  ? p.width
+                  : style && style.width,
+          align: p.align,
+          numeric: p.numeric,
+          card: p.card,
+          skeleton: p.skeleton,
+        });
+    });
+  });
+  return out;
+}
+
 /** A static table. Scrolls sideways inside its own box when it is wider than its container. */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Table(props, ref) {
   const {
@@ -73,10 +111,27 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     maxHeight,
     stackStyle,
     rowHeight,
+    loading,
+    loadingRows,
     className,
     children,
     ...rest
   } = props;
+  /* 5.52 (Chamber-OS 164): while loading, the head as given and placeholder rows in its columns. */
+  const skeletonCols = loading ? headerColumns(children) : null;
+  if (skeletonCols && !skeletonCols.length)
+    devWarnOnce(
+      'tbl-loading-cols',
+      'Table loading: no THead > Tr > Th found among its children, so there are no columns to draw. Put the THead directly inside Table (a function call, not your own component).',
+    );
+  const shownChildren = skeletonCols
+    ? [
+        flat(children).filter(function (c) {
+          return React.isValidElement(c) && c.type === THead;
+        }),
+        skeletonBody(skeletonCols, loadingRows != null ? Math.max(0, loadingRows) : 5, !!stackBelow),
+      ]
+    : children;
   /* 5.15: stacked rows as separate cards. The frame around them has to go while stacked, and a container query
    * can't style its own container, so the width is measured one level up. */
   const cards = !!stackBelow && stackStyle === 'cards';
@@ -140,12 +195,15 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
         maxHeight != null ? { maxHeight: typeof maxHeight === 'number' ? maxHeight + 'px' : maxHeight } : undefined
       }
       data-density={density || pageDensity}
-      tabIndex={scrolls ? 0 : undefined}
+      {...(loading ? inertProps() : null)}
+      tabIndex={scrolls && !loading ? 0 : undefined}
       /* A region needs a name: the caption, else the table's aria-label (5.1.1: an unnamed region before). */
-      role={scrolls && (caption != null || rest['aria-label'] || rest['aria-labelledby']) ? 'region' : undefined}
+      role={
+        scrolls && !loading && (caption != null || rest['aria-label'] || rest['aria-labelledby']) ? 'region' : undefined
+      }
       /* 5.26: the table's own aria-labelledby names the box too. */
-      aria-labelledby={scrolls ? (caption != null ? capId : rest['aria-labelledby']) : undefined}
-      aria-label={scrolls && caption == null ? rest['aria-label'] : undefined}
+      aria-labelledby={scrolls && !loading ? (caption != null ? capId : rest['aria-labelledby']) : undefined}
+      aria-label={scrolls && !loading && caption == null ? rest['aria-label'] : undefined}
     >
       <table
         ref={ref}
@@ -156,6 +214,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
           (align === 'middle' || (rowHeight === 'density' && align !== 'top')) && 'aura-tbl--middle',
           rowHeight === 'density' && 'aura-tbl--row-density',
           cards && 'aura-tbl--cards',
+          loading && 'aura-tbl--skeleton',
           className,
         )}
         /* Stacked rows are display: block; explicit roles keep the table for screen readers (Safari drops it). */
@@ -167,12 +226,13 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
             {caption}
           </caption>
         ) : null}
+        {skeletonCols ? skeletonColgroup(skeletonCols) : null}
         {labels ? (
-          <StackLabels.Provider value={labels}>{children}</StackLabels.Provider>
+          <StackLabels.Provider value={labels}>{shownChildren}</StackLabels.Provider>
         ) : outer ? (
-          <StackLabels.Provider value={null}>{children}</StackLabels.Provider>
+          <StackLabels.Provider value={null}>{shownChildren}</StackLabels.Provider>
         ) : (
-          children
+          shownChildren
         )}
       </table>
     </div>
@@ -245,7 +305,7 @@ function cellClass(base: string, p: TableCellProps) {
 
 /** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
 export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Th(props, ref) {
-  const { align, numeric, mono, className, scope, label, card, ...rest } = props;
+  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, ...rest } = props;
   const stacked = React.useContext(StackLabels) != null;
   return (
     <th
@@ -262,7 +322,7 @@ export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(functio
 
 /** Data cell. `numeric` right-aligns with tabular figures (money, counts). */
 export const Td = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Td(props, ref) {
-  const { align, numeric, mono, className, scope, label, card, ...rest } = props;
+  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, ...rest } = props;
   const labels = React.useContext(StackLabels),
     col = React.useContext(ColumnIndex);
   /* 5.13 (Chamber-OS 84): a title or action cell in a stacked row shows no label. */

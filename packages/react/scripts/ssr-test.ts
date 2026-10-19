@@ -319,6 +319,27 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
         !/class="aura-pill aura-pill--\w+ is-wrap"/.test(pw) || !/<span class="aura-pill__text">Awaiting marketing review<\/span>/.test(pw) || / wrap=/.test(pw) || /is-wrap|aura-pill__text/.test(pn)
       ) bad('Chamber-OS 157–159:', sorted, dt.match(/--aura-row-min:[^;"]*/), pw, pn);
     }
+    /* 5.52 (Chamber-OS 164): Table loading and TableSkeleton — aria-hidden + inert box, a fixed colgroup from the head
+     * (skeletonWidth over width over style.width), n placeholder rows, stacked roles/labels/card slots, no body rows of
+     * the page and no leaked props. */
+    {
+      const th = (p: Record<string, unknown>, t: string) => e(A.Th, p, t);
+      const tl = m(
+        e(A.Table, { caption: 'M', stackBelow: 'sm', loading: true, loadingRows: 3 },
+          e(A.THead, null, e(A.Tr, null, th({ card: 'title', skeleton: { lines: 2 }, style: { width: '30%' } }, 'Member'), th({ skeletonWidth: '20%', skeleton: { kind: 'pill' } }, 'Stage'), th({ card: 'action', skeleton: { kind: 'action' } }, ''))),
+          e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'ROW-SHOULD-NOT-RENDER')))),
+      );
+      const ts = m(e(A.TableSkeleton, { rows: 2, stackBelow: 'sm', columns: [{ label: 'Member', width: '30%', card: 'title' }, { label: 'Fee', numeric: true, width: 120 }] }));
+      const plain = m(e(A.Table, { caption: 'M' }, e(A.THead, null, e(A.Tr, null, th({ skeleton: { kind: 'pill' }, skeletonWidth: '10%' }, 'A'))), e(A.TBody, null, e(A.Tr, null, e(A.Td, null, 'x')))));
+      const n = (h: string) => (h.match(/aura-tbl__row--skeleton/g) || []).length;
+      if (
+        n(tl) !== 3 || n(ts) !== 2 || /ROW-SHOULD-NOT-RENDER/.test(tl) || !/aria-hidden="true"/.test(tl + ts) || !/ inert=""/.test(tl) || !/ inert=""/.test(ts) ||
+        !/<colgroup><col style="width:30%"\/><col style="width:20%"\/><col\/><\/colgroup>/.test(tl) || !/<col style="width:120px"\/>/.test(ts) ||
+        !/aura-tbl--skeleton/.test(tl + ts) || !/data-card="title"/.test(tl) || !/data-card="action"/.test(tl) || !/data-label="Stage"/.test(tl) || !/role="cell"/.test(ts) ||
+        !/aura-skel--pill/.test(tl) || !/aura-skel--action/.test(tl) || !/aura-skel-lines/.test(tl) || !/is-numeric/.test(ts) ||
+        /skeleton|skeletonwidth/i.test(plain.replace(/aura-skel[\w-]*/g, '')) || /aria-hidden|inert|colgroup/.test(plain)
+      ) bad('Chamber-OS 164:', tl, ts, plain);
+    }
     /* 5.51 (Chamber-OS 162): grow is the flexible cell's flex-grow in the server HTML; default 1; a fixed column ignores it. */
     {
       const gc = [{ key: 'a', label: 'A', grow: 3, minWidth: 128 }, { key: 'b', label: 'B' }, { key: 'c', label: 'C', width: 96, grow: 5 }];
