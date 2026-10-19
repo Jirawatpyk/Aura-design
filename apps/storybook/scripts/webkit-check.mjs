@@ -205,6 +205,30 @@ try {
     return [c('brand') === c('error'), c('own-aria') === c('error'), c('valid') !== c('error'), !!document.querySelector('[data-testid=brand] .aura-field__error')]`);
   check(JSON.stringify(x) === '[true,true,true,false]', 'TextField invalid: danger edge, no message', x);
 
+  /* 5.51 (#157–159): aria-sort from sortDirection, no horizontal scroll in a 959px box; StatusPill wrap stays inside a narrow box. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await go('aura-new-in-5-51-chamber-os-157-160--review-queue');
+  x = await ex(`const sc = document.querySelector('[data-testid=box] .aura-table__scroll');
+    return [[...document.querySelectorAll('[aria-sort]')].map((h) => h.getAttribute('aria-sort')).join(), innerWidth >= 1000, sc.scrollWidth <= sc.clientWidth]`);
+  check(JSON.stringify(x) === '["descending",true,true]', 'DataTable sortDirection and row minimum (959px box)', x);
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-51-chamber-os-157-160--pill-wrap');
+  x = await ex(`const p = document.querySelector('[data-testid=narrow] .aura-pill'); return [p.scrollWidth <= p.clientWidth, p.getBoundingClientRect().height > 30]`);
+  check(JSON.stringify(x) === '[true,true]', 'StatusPill wrap: two lines inside a narrow box', x);
+  /* 5.51 (#161): keyboard="tab" leaves the row controls tabbable (WebDriver can't press Tab reliably, so count them). */
+  await go('aura-new-in-5-51-chamber-os-157-160--tab-keys');
+  x = await ex(`const n = (t) => [...document.querySelector('[data-testid=' + t + '] [role=grid]').querySelectorAll('button, a[href], input, [tabindex]')].filter((e) => e.tabIndex >= 0 && e.getClientRects().length).length; return [n('tab'), n('grid')]`);
+  check(JSON.stringify(x) === '[14,1]', 'DataTable keyboard="tab": 14 Tab stops vs 1 in the grid', x);
+  /* 5.51 (#162): grow 3 makes the Actions column wider than the even table's at a desktop width. */
+  await call('POST', S('/window/rect'), { width: 1440, height: 900 });
+  await go('aura-new-in-5-51-chamber-os-157-160--grow-actions');
+  x = await ex(`const w = (t) => [...document.querySelectorAll('[data-testid=' + t + '] [role=columnheader]')].pop().getBoundingClientRect().width; return [innerWidth >= 1200, w('grow') > w('even') + 100]`);
+  check(JSON.stringify(x) === '[true,true]', 'DataTable grow: Actions takes three shares', x);
+  /* 5.51 (#163): only the sideways axis is contained. */
+  x = await ex(`const s = getComputedStyle(document.querySelector('.aura-table__scroll')); return [s.overscrollBehaviorX || 'n/a', s.overscrollBehaviorY || 'n/a']`);
+  check(JSON.stringify(x) === '["contain","auto"]' || JSON.stringify(x) === '["n/a","n/a"]', 'DataTable scroller: overscroll contained sideways only', x);
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+
   /* 5.47 (#152): compact 26px and hero 30px at a phone width, Thai keeps 1.4. */
   await go('aura-new-in-5-47-chamber-os-152--title-sizes');
   x = await ex(`const f = (id) => { const s = getComputedStyle(document.querySelector('[data-testid=' + id + '] .aura-page-header__title')); return [parseFloat(s.fontSize), Math.round(parseFloat(s.lineHeight) / parseFloat(s.fontSize) * 100) / 100]; };

@@ -89,12 +89,22 @@ export interface DataTableColumn<Row extends Record<string, any> = Record<string
 	tones?: Record<string, StatusTone> | undefined;
 	/** Header becomes a button cycling asc → desc → unsorted. */
 	sortable?: boolean | undefined;
+	/** 5.51 (Chamber-OS 157): the order this column is in when the page sets it (from the URL, say), not a header
+	 * button — puts `aria-sort` on the header, with no button, icon or click. Give it to one column. Once the table has
+	 * its own sort (someone used a sortable header, or `sort` is set) that wins and this is ignored, so only one header
+	 * claims the order. */
+	sortDirection?: "ascending" | "descending" | undefined;
 	/** Value to sort by, when not the cell value (dates, amounts). */
 	sortValue?: RowCallback<string | number | null, Row> | undefined;
 	/** Custom cell content. */
 	render?: RowCallback<React$1.ReactNode, Row> | undefined;
 	/** Set false to keep a sized column fixed when the table is `resizable`. */
 	resizable?: boolean | undefined;
+	/** 5.51 (Chamber-OS 162): a flexible column's share of the spare width (its cells' flex-grow; default 1) — e.g.
+	 * `grow: 3` lets row actions sit side by side once the table is wide. At the minimum width nothing changes; the row
+	 * minimum ignores it; a fixed `width` column and stacked cards ignore it. `0` keeps the column at its minimum; leave
+	 * at least one flexible column above 0, or the rows won't fill a wide table. */
+	grow?: number | undefined;
 	/** Resize limits in px. Defaults 64 / 480. For the flexible column, minWidth defaults to 160. */
 	minWidth?: number | undefined;
 	maxWidth?: number | undefined;
@@ -160,6 +170,15 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	onSortChange?: ((sort: DataTableSort | null) => void) | undefined;
 	/** Adds a checkbox column. */
 	selectable?: boolean | undefined;
+	/** 5.51 (Chamber-OS 161): how the keyboard moves through the table. `'grid'` (default): the table is one Tab stop,
+	 * the arrows move between cells and Enter or F2 enters a cell's controls (APG grid). `'tab'`: every checkbox, sort
+	 * and column button, row link and row action is an ordinary Tab stop in reading order (Shift+Tab walks back), for a
+	 * list whose rows carry actions people expect to Tab to; the cells are not Tab stops, the arrows still move between
+	 * them once focus is in one (click a cell, or Escape from a control), and the grid's row and column semantics stay. */
+	keyboard?: "grid" | "tab" | undefined;
+	/** 5.51 (Chamber-OS 157): a ref to the select-all checkbox (an `<input>`), e.g. to return focus to it after a bulk
+	 * bar's Clear. Null while the page has no selectable rows. */
+	selectAllRef?: React$1.Ref<HTMLInputElement> | undefined;
 	/** Which rows can be selected (5.6). A row it rejects shows no checkbox (the cell stays, so columns line up), is
 	 * skipped by select-all, Space and the count, and never appears in `onSelectionChange` — even if passed in. */
 	isRowSelectable?: RowCallback<boolean, Row> | undefined;
@@ -307,6 +326,9 @@ export type StatusTone = "neutral" | "progress" | "ready" | "warning" | "blocked
 export interface StatusPillProps extends Omit<React$1.HTMLAttributes<HTMLSpanElement>, "children"> {
 	/** The status word shown, e.g. "In Progress". Other attributes (`id`, `data-*`, `aria-*`) go on the pill (5.8). */
 	children: React$1.ReactNode;
+	/** 5.51 (Chamber-OS 158): in a box narrower than the words, the text wraps inside the pill (still rounded, the icon
+	 * on the first line) instead of running out of it. Without it a pill stays on one line. */
+	wrap?: boolean | undefined;
 	/** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
 	tone?: StatusTone | undefined;
 	className?: string | undefined;

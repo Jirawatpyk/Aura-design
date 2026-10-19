@@ -684,8 +684,17 @@ window.Aura = (() => {
   };
   function statusPillElement(props, ref) {
     const tone2 = props.tone || toneFor(props.children);
-    const rest = omit(props, ["tone", "className", "children"]);
-    return /* @__PURE__ */ React4.createElement("span", { ...rest, ref, className: cx("aura-pill", "aura-pill--" + tone2, props.className) }, /* @__PURE__ */ React4.createElement(Icon, { name: h2(PILL_ICON[tone2] || IconCircle), size: 12 }), props.children);
+    const rest = omit(props, ["tone", "className", "children", "wrap"]);
+    return /* @__PURE__ */ React4.createElement(
+      "span",
+      {
+        ...rest,
+        ref,
+        className: cx("aura-pill", "aura-pill--" + tone2, props.wrap && "is-wrap", props.className)
+      },
+      /* @__PURE__ */ React4.createElement(Icon, { name: h2(PILL_ICON[tone2] || IconCircle), size: 12 }),
+      props.wrap ? /* @__PURE__ */ React4.createElement("span", { className: "aura-pill__text" }, props.children) : props.children
+    );
   }
   function badgeElement(props, ref) {
     const rest = omit(props, ["tone", "variant", "icon", "className", "children"]);
@@ -5759,6 +5768,8 @@ window.Aura = (() => {
     const refreshing = busy && manual && rows.length > 0;
     const loading = busy && !refreshing;
     const selectable = !!props.selectable;
+    const tabMode = props.keyboard === "tab";
+    const tabIdx = tabMode ? void 0 : -1;
     const reorderable = props.reorderable !== false && !!props.columnControls;
     const controls = !!props.columnControls;
     const oneCallback = !!props.onStateChange;
@@ -5951,7 +5962,7 @@ window.Aura = (() => {
     const pending = React33.useRef(null);
     const resizing = React33.useRef(false);
     useIsoLayoutEffect(function() {
-      if (!gridRef.current) return;
+      if (!gridRef.current || tabMode) return;
       const els = gridRef.current.querySelectorAll(
         '.aura-table__td button, .aura-table__td a[href], .aura-table__td input, .aura-table__td select, .aura-table__td textarea, .aura-table__td [tabindex="0"]'
       );
@@ -6035,7 +6046,7 @@ window.Aura = (() => {
     });
     let fixedSum = 0, hideTerms = "";
     vis.forEach(function(c) {
-      const w = widthOf(c) != null ? widthOf(c) : FLEX_MIN, lv = hideLevel(c);
+      const w = widthOf(c) != null ? widthOf(c) : c.minWidth || FLEX_MIN, lv = hideLevel(c);
       if (lv && boxWidth[0] == null) hideTerms += " + " + w + "px * var(--aura-h" + lv + "-on, 1)";
       else fixedSum += w;
     });
@@ -6047,13 +6058,21 @@ window.Aura = (() => {
         acc += " + " + widthOf(c) + "px" + (lv && boxWidth[0] == null ? " * var(--aura-h" + lv + "-on, 1)" : "");
       }
     });
+    if (vis.filter(function(c) {
+      return !!c.sortDirection;
+    }).length > 1)
+      devWarnOnce(
+        "datatable-sortdirection-twice",
+        "DataTable: more than one column has sortDirection. The order follows one column; give it to that one."
+      );
     const selW = selectable ? " + var(--aura-table-select-width)" : "";
     const gutterR = controls ? "var(--aura-space-12)" : "var(--aura-space-6)";
     const rowMinWidth = "calc(" + fixedSum + "px" + hideTerms + " + var(--aura-space-6) + " + gutterR + selW + ")";
     function cellStyle(c, i) {
       const w = widthOf(c), s = {};
       if (w == null) {
-        s["--aura-cell-flex"] = "1 1 0";
+        const g = typeof c.grow === "number" && c.grow >= 0 && isFinite(c.grow) ? c.grow : 1;
+        s["--aura-cell-flex"] = g + " 1 0";
         s["--aura-cell-min"] = (c.minWidth || FLEX_MIN) + "px";
       } else {
         s["--aura-cell-flex"] = !hasFlex && i === vis.length - 1 ? "1 0 auto" : "none";
@@ -6230,6 +6249,7 @@ window.Aura = (() => {
       [stacked]
     );
     function tabFor(r2, c) {
+      if (tabMode) return -1;
       if (!activeRendered) return r2 === 0 && c === ac ? 0 : -1;
       return r2 === ar && c === acShown ? 0 : -1;
     }
@@ -6252,7 +6272,7 @@ window.Aura = (() => {
       const el = gridRef.current.querySelector('[data-rc="' + p.r + ":" + c + '"]');
       if (el) {
         pending.current = null;
-        el.focus();
+        (p.menuBtn && el.querySelector(".aura-table__menu-btn") || el).focus();
       }
     });
     function focusCell(r2, c, dir) {
@@ -6528,7 +6548,7 @@ window.Aura = (() => {
       const m = menu;
       setMenu(null);
       if (restore && m) {
-        if (m.kind === "col") pending.current = { r: 0, key: m.key, c: m.rc ? m.rc.c : 0 };
+        if (m.kind === "col") pending.current = { r: 0, key: m.key, c: m.rc ? m.rc.c : 0, menuBtn: tabMode };
         else if (m.anchor) m.anchor.focus();
       }
     }
@@ -6616,10 +6636,11 @@ window.Aura = (() => {
           pageKeys.length ? /* @__PURE__ */ React33.createElement(
             Checkbox,
             {
+              ref: props.selectAllRef,
               hideLabel: true,
               checked: all,
               indeterminate: nSel > 0 && !all,
-              tabIndex: -1,
+              tabIndex: tabIdx,
               label: all ? t.deselectAllRows : t.selectAllRows,
               onChange: toggleAll
             }
@@ -6631,7 +6652,8 @@ window.Aura = (() => {
       const ci = i + (selectable ? 1 : 0);
       const isSorted = sort && sort.key === c.key;
       const canSort = c.sortable && canSortAny;
-      const ariaSort = isSorted && canSort ? sort.dir === "desc" ? "descending" : "ascending" : canSort ? "none" : void 0;
+      const own = c.sortDirection === "ascending" || c.sortDirection === "descending" ? c.sortDirection : void 0;
+      const ariaSort = sort && canSortAny ? isSorted && canSort ? sort.dir === "desc" ? "descending" : "ascending" : canSort ? "none" : void 0 : own || (canSort ? "none" : void 0);
       const pin = isPinned(c), edge = pin && i === nPinned - 1;
       head.push(
         /* @__PURE__ */ React33.createElement(
@@ -6689,7 +6711,7 @@ window.Aura = (() => {
             "button",
             {
               type: "button",
-              tabIndex: -1,
+              tabIndex: tabIdx,
               className: cx("aura-table__sort", isSorted && "is-active"),
               onClick: function() {
                 sortBy(c.key);
@@ -6708,7 +6730,7 @@ window.Aura = (() => {
             "button",
             {
               type: "button",
-              tabIndex: -1,
+              tabIndex: tabIdx,
               className: "aura-table__menu-btn",
               "aria-label": t.columnOptions(c.label),
               "aria-haspopup": "menu",
@@ -6783,7 +6805,7 @@ window.Aura = (() => {
               {
                 hideLabel: true,
                 checked: isSel,
-                tabIndex: -1,
+                tabIndex: tabIdx,
                 label: selLabel,
                 onChange: function(on) {
                   const shift = shiftClick.current;

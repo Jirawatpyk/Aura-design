@@ -17,7 +17,7 @@ async function scan(page: Page, root: string) {
 }
 
 test('AURA stories have no WCAG AA violations', async ({ page, request }) => {
-  test.setTimeout(15 * 60 * 1000);   // every story × 2 themes, pilot pages included
+  test.setTimeout(20 * 60 * 1000);   // every story × 2 themes, pilot pages included (20 min from 5.51: ~14 min alone on a slow runner)
   const index = await (await request.get('/index.json')).json();
   const stories = Object.values(index.entries as Record<string, { id: string; type: string }>).filter((e) => e.type === 'story');
   expect(stories.length).toBeGreaterThan(0);

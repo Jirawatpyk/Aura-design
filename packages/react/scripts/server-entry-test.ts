@@ -78,6 +78,8 @@ for (const [name, A] of [
     const html = [
       tree(A.Card({ id: 'renewal-prefs', 'data-testid': 'card', title: 'Renewal', titleId: 't1', children: 'Body' })),
       tree(A.StatusPill({ 'data-state': 'decided', children: 'Ready' })),
+      /* 5.51 (Chamber-OS 158): wrap renders the words in their own box, with no leaked attribute. */
+      tree(A.StatusPill({ wrap: true, children: 'Awaiting marketing review' })),
       tree(A.Alert({ tone: 'danger', role: 'status', icon: 'clock', title: 'Paused', children: 'Benefits paused' })),
       tree(A.Badge({ tone: 'success', children: '3' })),
       tree(A.EmptyState({ title: 'Nothing yet' })),

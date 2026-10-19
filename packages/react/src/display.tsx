@@ -129,11 +129,16 @@ export function statusPillElement(
   ref: React.Ref<HTMLSpanElement> | undefined,
 ): React.ReactElement {
   const tone = props.tone || toneFor(props.children);
-  const rest = omit(props, ['tone', 'className', 'children']);
+  const rest = omit(props, ['tone', 'className', 'children', 'wrap']);
   return (
-    <span {...rest} ref={ref} className={cx('aura-pill', 'aura-pill--' + tone, props.className)}>
+    <span
+      {...rest}
+      ref={ref}
+      className={cx('aura-pill', 'aura-pill--' + tone, props.wrap && 'is-wrap', props.className)}
+    >
       <Icon name={h(PILL_ICON[tone] || IconCircle)} size={12} />
-      {props.children}
+      {/* 5.51 (Chamber-OS 158): a wrapping pill's words in their own box, so they can break. */}
+      {props.wrap ? <span className="aura-pill__text">{props.children}</span> : props.children}
     </span>
   );
 }

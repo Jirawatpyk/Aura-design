@@ -9051,7 +9051,10 @@ test.describe('5.48: Chamber-OS 154 — bottom bars on a short screen', () => {
 test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the browser text size', () => {
   const ID = (lang: string) => 'aura-new-in-5-49-chamber-os-155--large-text&args=lang:' + lang;
   const open = async (browser: import('@playwright/test').Browser, w: number, h: number, size: number) => {
-    const ctx = await browser.newContext({ baseURL: test.info().project.use.baseURL, viewport: { width: w, height: h } });
+    const ctx = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      viewport: { width: w, height: h },
+    });
     const page = await ctx.newPage();
     const cdp = await ctx.newCDPSession(page);
     await cdp.send('Page.enable');
@@ -9074,7 +9077,15 @@ test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the b
         actionsHeight: document.documentElement.style.getPropertyValue('--aura-page-actions-height'),
       };
     });
-  const SHORT = { header: 'static', inHeader: true, bar: 'static', shell: 'static', token: '0px', status: 'none', actionsHeight: '' };
+  const SHORT = {
+    header: 'static',
+    inHeader: true,
+    bar: 'static',
+    shell: 'static',
+    token: '0px',
+    status: 'none',
+    actionsHeight: '',
+  };
 
   test('155: 390×844 at a 32px default counts as short — actions in the header, ActionBar and top bar in the flow, every focused control in view (en, th, sv)', async ({
     browser,
@@ -9100,7 +9111,11 @@ test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the b
             y = Math.min(Math.max(r.top + r.height / 2, 0), innerHeight - 1);
           const hit = document.elementFromPoint(x, y);
           return {
-            ok: r.top >= -1 && r.bottom <= innerHeight + 1 && !!hit && (el === hit || el.contains(hit) || hit.contains(el)),
+            ok:
+              r.top >= -1 &&
+              r.bottom <= innerHeight + 1 &&
+              !!hit &&
+              (el === hit || el.contains(hit) || hit.contains(el)),
             what: el.outerHTML.slice(0, 60),
           };
         });
@@ -9129,7 +9144,9 @@ test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the b
     await ctx.close();
   });
 
-  test('155: at 24px the line is 720px — a 375×667 phone is short, a 390×844 one keeps the bar', async ({ browser }) => {
+  test('155: at 24px the line is 720px — a 375×667 phone is short, a 390×844 one keeps the bar', async ({
+    browser,
+  }) => {
     const a = await open(browser, 375, 667, 24);
     await story(a.page, ID('th'));
     expect(await state(a.page)).toEqual(SHORT);
@@ -9152,10 +9169,12 @@ test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the b
     await font(32);
     await expect.poll(() => state(page)).toEqual(SHORT);
     await font(16);
-    await expect.poll(async () => {
-      const s = await state(page);
-      return [s.header, s.shell, s.token !== '0px', parseFloat(s.actionsHeight) > 0];
-    }).toEqual(['fixed', 'sticky', true, true]);
+    await expect
+      .poll(async () => {
+        const s = await state(page);
+        return [s.header, s.shell, s.token !== '0px', parseFloat(s.actionsHeight) > 0];
+      })
+      .toEqual(['fixed', 'sticky', true, true]);
     await ctx.close();
   });
 
@@ -9174,10 +9193,12 @@ test.describe('5.49: Chamber-OS 155 — the short-screen threshold follows the b
     await font(32);
     await expect.poll(bar).toEqual(['static', '0px']);
     await font(16);
-    await expect.poll(async () => {
-      const b = await bar();
-      return [b[0], b[1] !== '0px'];
-    }).toEqual(['sticky', true]);
+    await expect
+      .poll(async () => {
+        const b = await bar();
+        return [b[0], b[1] !== '0px'];
+      })
+      .toEqual(['sticky', true]);
     /* The probe adds no box anyone sees or reaches, and no sideways scroll. */
     expect(
       await page.evaluate(() => [
@@ -9215,7 +9236,9 @@ test.describe('5.50: Chamber-OS 156 — invalid without AURA’s message', () =>
     }, tid);
 
   for (const theme of ['light', 'dark']) {
-    test(`156: invalid gives the danger edge and aria-invalid, no message, the same describedby (${theme})`, async ({ page }) => {
+    test(`156: invalid gives the danger edge and aria-invalid, no message, the same describedby (${theme})`, async ({
+      page,
+    }) => {
       await story(page, ID, theme);
       expect(await look(page, 'brand')).toEqual({
         danger: true,
@@ -9254,7 +9277,9 @@ test.describe('5.50: Chamber-OS 156 — invalid without AURA’s message', () =>
         document.body.appendChild(p);
         const d = getComputedStyle(p).color;
         p.remove();
-        return [...document.querySelectorAll('[data-testid=nested] .aura-input')].map((b) => getComputedStyle(b).borderTopColor === d);
+        return [...document.querySelectorAll('[data-testid=nested] .aura-input')].map(
+          (b) => getComputedStyle(b).borderTopColor === d,
+        );
       });
       expect(nested).toEqual([false, true]);
     });
@@ -9282,5 +9307,403 @@ test.describe('5.50: Chamber-OS 156 — invalid without AURA’s message', () =>
     await expect.poll(async () => (await look(page, 'brand')).danger).toBe(true);
     await expect(page.getByRole('button', { name: 'Save' })).toHaveAttribute('aria-describedby', 'save-reason');
     expect(await axeScan(page, '[data-testid=brand]')).toEqual([]);
+  });
+});
+
+test.describe('5.51: Chamber-OS 157–160 — sort shown by the page, row minimum, pill wrap, filter toggles', () => {
+  const S = (name: string, lang = 'en') => 'aura-new-in-5-51-chamber-os-157-160--' + name + '&args=lang:' + lang;
+
+  test('157: sortDirection puts aria-sort on one header — no button, icon or description; it moves with the order', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const sorts = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll('[role=columnheader][aria-sort]')].map((h) => ({
+          text: h.textContent,
+          sort: h.getAttribute('aria-sort'),
+          control: !!h.querySelector('button, svg, .aura-table__sort'),
+          described: h.hasAttribute('aria-describedby'),
+        })),
+      );
+    await story(page, S('review-queue'));
+    expect(await sorts()).toEqual([{ text: 'Time in stage', sort: 'descending', control: false, described: false }]);
+    await page.getByRole('button', { name: 'By send time' }).click();
+    expect(await sorts()).toEqual([{ text: 'Send time', sort: 'ascending', control: false, described: false }]);
+    /* An order no column shows: no header claims it. */
+    await page.getByRole('button', { name: 'Most recent first' }).click();
+    expect(await sorts()).toEqual([]);
+    /* The header takes no click and isn't a button. */
+    await page.getByRole('button', { name: 'Longest in stage first' }).click();
+    await page.getByRole('columnheader', { name: 'Time in stage' }).click();
+    expect(await sorts()).toEqual([{ text: 'Time in stage', sort: 'descending', control: false, described: false }]);
+    expect(await page.getByRole('button', { name: /Time in stage/ }).count()).toBe(0);
+  });
+
+  test('157: with a sortable column, the page order shows until the table sorts — then only that sort is announced', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-51-chamber-os-157-160--page-order-and-sortable');
+    const sorts = () =>
+      page.evaluate(() =>
+        Object.fromEntries(
+          [...document.querySelectorAll('[role=columnheader][aria-sort]')].map((h) => [
+            h.textContent!.trim(),
+            h.getAttribute('aria-sort'),
+          ]),
+        ),
+      );
+    expect(await sorts()).toEqual({ Name: 'none', Received: 'descending', Amount: 'none' });
+    await page.getByRole('button', { name: 'Name' }).click();
+    const after = await sorts();
+    expect(after.Name).toBe('ascending');
+    expect(after.Received).toBeUndefined();
+    expect(Object.values(after).filter((v) => v !== 'none')).toEqual(['ascending']);
+  });
+
+  test('157: selectAllRef reaches the select-all box — Clear returns focus to it', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, S('review-queue'));
+    await page.getByRole('checkbox', { name: /Select all/i }).check();
+    await page.getByRole('button', { name: 'Clear selection' }).click();
+    expect(await page.evaluate(() => (document.activeElement as HTMLInputElement).type)).toBe('checkbox');
+    await expect(page.getByRole('checkbox', { name: /Select all/i })).toBeFocused();
+    await expect(page.getByRole('checkbox', { name: /Select all/i })).not.toBeChecked();
+  });
+
+  for (const lang of ['en', 'th', 'sv']) {
+    test(`159: flexible columns count their own minWidth — the 8-column queue fits a 959px box with no sideways scroll (${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await story(page, S('review-queue', lang));
+      const g = await page.evaluate(() => {
+        const sc = document.querySelector('[data-testid=box] .aura-table__scroll')!;
+        const row = document.querySelector('[data-testid=box] .aura-table__head')!;
+        return { scroll: sc.scrollWidth - sc.clientWidth, rowMin: getComputedStyle(row).minWidth, box: sc.clientWidth };
+      });
+      expect(g.scroll).toBeLessThanOrEqual(0);
+      /* 868px of column minimums + two 24px gutters + the 40px select column. */
+      expect(parseFloat(g.rowMin)).toBe(868 + 24 + 24 + 40);
+      /* Approve is on screen. */
+      const ab = await page.getByRole('button', { name: 'Approve' }).first().boundingBox();
+      expect(ab!.x + ab!.width).toBeLessThanOrEqual(1280);
+    });
+  }
+
+  for (const lang of ['en', 'th', 'sv']) {
+    test(`158: StatusPill wrap breaks inside its own box in a narrow cell; wide or without it, one line as before (${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await story(page, S('pill-wrap', lang));
+      const m = await page.evaluate(() =>
+        Object.fromEntries(
+          ['narrow', 'wide', 'plain', 'cards'].map((t) => [
+            t,
+            [...document.querySelectorAll(`[data-testid=${t}] .aura-pill`)].map((x) => {
+              const box = x.closest('[data-testid]')!;
+              const icon = x.querySelector('.aura-icon')!.getBoundingClientRect();
+              const text = (x.querySelector('.aura-pill__text') || x).getBoundingClientRect();
+              const lh = parseFloat(getComputedStyle(x).lineHeight);
+              return {
+                fits: x.scrollWidth <= x.clientWidth,
+                boxOver: box.scrollWidth > box.clientWidth,
+                lines: Math.round(text.height / lh),
+                iconOnFirstLine: Math.abs(icon.top + icon.height / 2 - (text.top + lh / 2)) <= 1,
+                wrap: x.classList.contains('is-wrap'),
+              };
+            }),
+          ]),
+        ),
+      );
+      expect(m.narrow![0]).toMatchObject({ fits: true, boxOver: false, iconOnFirstLine: true });
+      expect(m.narrow![0]!.lines).toBeGreaterThan(1);
+      /* In a wide box a wrapping pill is a one-line pill, as tall as one without wrap. */
+      expect(m.wide!.map((w) => w.lines)).toEqual([1, 1]);
+      const hs = await page.evaluate(() =>
+        [...document.querySelectorAll('[data-testid=wide] .aura-pill')].map((x) => x.getBoundingClientRect().height),
+      );
+      expect(hs[0]).toBe(hs[1]);
+      for (const c of m.cards!) expect(c).toMatchObject({ fits: true, boxOver: false });
+      /* Addendum 61: a wrapped pill has 16px (aura-radius-lg) corners, not half its height; the Swedish example is two
+       * lines in 200px. */
+      const sv = await page.evaluate(() => {
+        const x = document.querySelector('[data-testid=sv200] .aura-pill')!;
+        const lh = parseFloat(getComputedStyle(x).lineHeight);
+        return {
+          radius: getComputedStyle(x).borderTopLeftRadius,
+          lines: Math.round(x.querySelector('.aura-pill__text')!.getBoundingClientRect().height / lh),
+          fits: x.scrollWidth <= x.clientWidth,
+        };
+      });
+      expect(sv).toEqual({ radius: '16px', lines: 2, fits: true });
+      /* …and on one line it draws exactly as a pill without wrap: same size, same pixels. */
+      const [w1, w0] = await page.locator('[data-testid=oneline] .aura-pill').all();
+      const [b1, b0] = [await w1!.boundingBox(), await w0!.boundingBox()];
+      expect([b1!.width, b1!.height]).toEqual([b0!.width, b0!.height]);
+      expect((await w1!.screenshot()).equals(await w0!.screenshot())).toBe(true);
+      /* Negative control: without wrap the words still run out of a narrow box (unchanged behaviour). */
+      expect(m.plain![0]).toMatchObject({ fits: false, wrap: false });
+    });
+  }
+
+  for (const lang of ['en', 'th', 'sv']) {
+    test(`160: from 640px a toggle Tag in FilterBar shows its whole label; outside FilterBar and below 640px outside the sheet the 24ch cap stays (${lang})`, async ({
+      page,
+    }) => {
+      const cut = () =>
+        page.evaluate(() =>
+          Object.fromEntries(
+            ['bar', 'outside'].map((t) => [
+              t,
+              [...document.querySelectorAll(`[data-testid=${t}] .aura-tag__text`)].map(
+                (x) => x.scrollWidth > x.clientWidth + 1,
+              ),
+            ]),
+          ),
+        );
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await story(page, S('filter-toggles', lang));
+      const wide = await cut();
+      expect(wide.bar).toEqual([false, false, false]);
+      expect(wide.outside).toEqual([true]);
+      /* Below 640px the toggles fold into the sheet's button; open it and the cap applies inside the sheet too. */
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.getByRole('button', { name: /Filters/ }).click();
+      const sheet = await page.evaluate(() =>
+        [...document.querySelectorAll('.aura-filterbar--sheet .aura-tag__text')].map(
+          (x) => getComputedStyle(x).maxWidth,
+        ),
+      );
+      /* In the full-width sheet nothing is cut, at any width. */
+      expect(sheet).toEqual(['none', 'none', 'none']);
+      /* The bar's own outside Tag is still capped at a phone width. */
+      expect(
+        await page.evaluate(
+          () => getComputedStyle(document.querySelector('[data-testid=outside] .aura-tag__text')!).maxWidth,
+        ),
+      ).not.toBe('none');
+    });
+  }
+
+  /* #161: keyboard="tab". */
+  const tabbables = (page: Page, tid: string) =>
+    page.evaluate((tid) => {
+      const g = document.querySelector(`[data-testid=${tid}] [role=grid]`)!;
+      return [...g.querySelectorAll<HTMLElement>('button, a[href], input, [tabindex]')]
+        .filter((e) => e.tabIndex >= 0 && !(e as HTMLButtonElement).disabled && e.getClientRects().length > 0)
+        .map((e) => e.outerHTML.slice(0, 50));
+    }, tid);
+  const here = (page: Page) =>
+    page.evaluate(() => {
+      const el = document.activeElement as HTMLElement;
+      const ring = (e: Element) => {
+        const s = getComputedStyle(e);
+        return (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none';
+      };
+      const box = el.matches('input[type=checkbox]') ? el.parentElement!.querySelector('.aura-check__box') : el;
+      return { html: el.outerHTML.slice(0, 50), ring: !!box && ring(box), inGrid: !!el.closest('[role=grid]') };
+    });
+
+  for (const [w, lang] of [
+    [1280, 'en'],
+    [1280, 'th'],
+    [390, 'sv'],
+  ] as const) {
+    test(`161: keyboard="tab" — Tab and Shift+Tab walk every control in the rows in DOM order, each with a focus ring (${w}px, ${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: 900 });
+      await story(page, S('tab-keys', lang));
+      const want = await tabbables(page, 'tab');
+      /* select-all, Member's sort button, then per row: checkbox, subject link, Approve, Reject. */
+      expect(want.length).toBe(2 + 3 * 4);
+      await page.getByTestId('before').focus();
+      const got: string[] = [];
+      for (let i = 0; i < want.length; i++) {
+        await page.keyboard.press('Tab');
+        const h = await here(page);
+        expect(h.ring, h.html).toBe(true);
+        got.push(h.html);
+      }
+      expect(got).toEqual(want);
+      await page.keyboard.press('Tab');
+      await expect(page.getByTestId('after')).toBeFocused();
+      const back: string[] = [];
+      for (let i = 0; i < want.length; i++) {
+        await page.keyboard.press('Shift+Tab');
+        back.push((await here(page)).html);
+      }
+      expect(back).toEqual([...want].reverse());
+      /* Headers are still announced as headers. */
+      expect(await page.locator('[data-testid=tab] [role=columnheader]').count()).toBeGreaterThan(0);
+    });
+  }
+
+  test('161: keyboard="tab" keeps the arrows — Escape from a row action lands on its cell, ArrowDown moves down; Enter on a control still works', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, S('tab-keys'));
+    const approve = page.locator('[data-testid=tab]').getByRole('button', { name: 'Approve' }).first();
+    await approve.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('tab-done')).toHaveText('Approved EB-1201');
+    await page.keyboard.press('Escape');
+    const rc1 = await page.evaluate(() => document.activeElement!.getAttribute('data-rc'));
+    expect(rc1).toMatch(/^1:\d+$/);
+    await page.keyboard.press('ArrowDown');
+    const rc2 = await page.evaluate(() => document.activeElement!.getAttribute('data-rc'));
+    expect(rc2).toBe('2:' + rc1!.split(':')[1]);
+    /* Sorting with the keyboard keeps focus on the sort button. */
+    const sortBtn = page.locator('[data-testid=tab] .aura-table__sort').first();
+    await sortBtn.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-testid=tab] [role=columnheader][aria-sort=ascending]')).toHaveCount(1);
+    expect(await page.evaluate(() => document.activeElement!.classList.contains('aura-table__sort'))).toBe(true);
+  });
+
+  test('161: keyboard="tab" with column controls — the ⋯ buttons are Tab stops and closing a column menu returns to its button', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, S('tab-keys'));
+    const btn = page.locator('[data-testid=tab-controls] .aura-table__menu-btn').first();
+    expect(await btn.evaluate((b) => (b as HTMLElement).tabIndex)).toBe(0);
+    await btn.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('menu')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(btn).toBeFocused();
+  });
+
+  test('161: without it the grid is one Tab stop as before (negative control)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, S('tab-keys'));
+    expect(await tabbables(page, 'grid')).toHaveLength(1);
+    await page.getByTestId('after').focus();
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement!.getAttribute('data-rc'))).not.toBeNull();
+    await page.keyboard.press('Tab');
+    /* The next Tab leaves that grid (for the next table on the page). */
+    expect(await page.evaluate(() => !!document.activeElement!.closest('[data-testid=grid]'))).toBe(false);
+  });
+
+  /* #162 */
+  const growM = (page: Page) =>
+    page.evaluate(() =>
+      Object.fromEntries(
+        ['grow', 'even'].map((t) => {
+          const root = document.querySelector(`[data-testid=${t}]`)!;
+          const th = [...root.querySelectorAll<HTMLElement>('[role=columnheader]')].pop()!;
+          const td = root.querySelector('.aura-btn')!.closest<HTMLElement>('[role=gridcell]')!;
+          const btns = [...root.querySelectorAll('.aura-table__row')][0]!.querySelectorAll('.aura-btn');
+          const head = root.querySelector('.aura-table__head')!;
+          return [
+            t,
+            {
+              th: Math.round(th.getBoundingClientRect().width),
+              grow: getComputedStyle(td).flexGrow,
+              oneLine:
+                btns.length === 2 &&
+                Math.round(btns[0]!.getBoundingClientRect().top) === Math.round(btns[1]!.getBoundingClientRect().top),
+              rowMin: getComputedStyle(head).minWidth,
+            },
+          ];
+        }),
+      ),
+    );
+  for (const lang of ['en', 'th', 'sv']) {
+    test(`162: grow weights a column's share of the spare width — row actions side by side at 1440, as before at the minimum, row minimum unchanged (${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await story(page, S('grow-actions', lang));
+      let m = await growM(page);
+      expect(m.grow!.grow).toBe('3');
+      expect(m.even!.grow).toBe('1');
+      expect(m.grow!.th).toBeGreaterThan(m.even!.th + 100);
+      expect(m.grow!.oneLine).toBe(true);
+      expect(m.grow!.rowMin).toBe(m.even!.rowMin);
+      /* At the row minimum there is no spare width to share: both tables lay out the same. */
+      const min = parseFloat(m.even!.rowMin);
+      await page.setViewportSize({ width: Math.ceil(min) + 32, height: 900 });
+      m = await growM(page);
+      expect(Math.abs(m.grow!.th - m.even!.th)).toBeLessThanOrEqual(2);
+      /* Stacked cards ignore it: the Actions cell is laid out as in the even table. */
+      await page.setViewportSize({ width: 390, height: 900 });
+      const cards = await page.evaluate(() =>
+        ['grow', 'even'].map((t) => {
+          const r = document.querySelector(`[data-testid=${t}] .aura-table__row`)!;
+          const b = r.querySelector('.aura-btn')!.closest('[role=gridcell]')!.getBoundingClientRect();
+          return [Math.round(b.width), Math.round(b.left)];
+        }),
+      );
+      expect(cards[0]).toEqual(cards[1]);
+    });
+  }
+
+  test('163: the wheel over a grid that scrolls sideways scrolls the page; sideways stays contained; a fixed-height grid scrolls first', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await story(page, S('wheel-over-wide-grid'));
+    const wide = page.locator('[data-testid=wide] .aura-table__scroll');
+    await wide.scrollIntoViewIfNeeded();
+    const g = await wide.evaluate((e) => ({
+      over: e.scrollWidth > e.clientWidth,
+      x: getComputedStyle(e).overscrollBehaviorX,
+      y: getComputedStyle(e).overscrollBehaviorY,
+    }));
+    expect(g).toEqual({ over: true, x: 'contain', y: 'auto' });
+    /* Nudge it sideways first (Chamber's repro: once it has scrolled at all). */
+    await wide.evaluate((e) => (e.scrollLeft = 1));
+    const box = (await wide.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const y0 = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(y0);
+    /* A sideways wheel scrolls the grid, not the page. */
+    const sx0 = await wide.evaluate((e) => e.scrollLeft);
+    const b2 = (await wide.boundingBox())!;
+    await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
+    await page.mouse.wheel(120, 0);
+    await expect.poll(() => wide.evaluate((e) => e.scrollLeft)).toBeGreaterThan(sx0);
+    expect(await page.evaluate(() => scrollX)).toBe(0);
+    /* Fixed height: the grid scrolls first; at its end the page takes over. */
+    const fixed = page.locator('[data-testid=fixed] .aura-table__scroll');
+    await fixed.scrollIntoViewIfNeeded();
+    const fb = (await fixed.boundingBox())!;
+    await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
+    const py = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => fixed.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => scrollY)).toBe(py);
+    await fixed.evaluate((e) => (e.scrollTop = e.scrollHeight));
+    const fb2 = (await fixed.boundingBox())!;
+    await page.mouse.move(fb2.x + fb2.width / 2, fb2.y + fb2.height / 2);
+    const py2 = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(py2);
+  });
+
+  test('5.50 follow-up: a disabled box with aria-invalid inside an enabled custom Field keeps its disabled edge', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-51-chamber-os-157-160--disabled-invalid-in-field');
+    const r = await page.evaluate(() => {
+      const p = document.createElement('div');
+      p.style.color = 'var(--aura-border-danger)';
+      document.body.appendChild(p);
+      const d = getComputedStyle(p).color;
+      p.remove();
+      return [...document.querySelectorAll('[data-testid=nested-disabled] .aura-input')].map(
+        (b) => getComputedStyle(b).borderTopColor === d,
+      );
+    });
+    /* country code (disabled), number (invalid), note textarea (disabled) */
+    expect(r).toEqual([false, true, false]);
   });
 });

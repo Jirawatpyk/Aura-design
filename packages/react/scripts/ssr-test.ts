@@ -297,6 +297,49 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const sc = m(e(A.SegmentedControl, { label: 'V', options: [{ value: 'a', label: 'Table view', icon: 'columns-3', iconOnly: true }, 'Cards'] }));
       if (!/aria-label="Edit"/.test(ib) || !/data-aura-tip="Edit"/.test(ib) || / title=/.test(ib + pg + pgL + sc) || !/title="Own"/.test(ibT) || /data-aura-tip/.test(ibT) || (pg.match(/data-aura-tip="/g) || []).length !== 2 || (pgL.match(/data-aura-tip="/g) || []).length !== 2 || (sc.match(/data-aura-tip="Table view"/g) || []).length !== 1 || (sc.match(/data-aura-tip/g) || []).length !== 1) bad('icon tips:', ib, ibT, pg, pgL, sc);
     }
+    /* 5.51 (Chamber-OS 157–159): sortDirection is aria-sort on that header in the server HTML (no button); the
+     * select-all ref doesn't leak; flexible columns count their minWidth in the row minimum; StatusPill wrap. */
+    {
+      const cols = [
+        { key: 'a', label: 'A', minWidth: 112 },
+        { key: 'b', label: 'B', sortDirection: 'descending' },
+        { key: 'c', label: 'C', width: 128 },
+      ];
+      const dt = m(e(A.DataTable, { label: 'Q', rowKey: 'a', columns: cols, rows: [{ a: 1, b: 2, c: 3 }], selectable: true, selectAllRef: { current: null } }));
+      const heads = dt.match(/role="columnheader"[^>]*>/g) || [];
+      const sorted = heads.filter((x: string) => /aria-sort=/.test(x));
+      /* A sortable column with sortDirection and no table sort yet says the page's order, not "none". */
+      const ds = m(e(A.DataTable, { label: 'S', rowKey: 'a', columns: [{ key: 'a', label: 'A', sortable: true, sortDirection: 'ascending' }, { key: 'b', label: 'B', sortable: true }], rows: [{ a: 1, b: 2 }, { a: 2, b: 1 }] }));
+      if ((ds.match(/aria-sort="ascending"/g) || []).length !== 1 || (ds.match(/aria-sort="none"/g) || []).length !== 1) bad('Chamber-OS 157 sortable + sortDirection:', ds.match(/aria-sort="[^"]*"/g));
+      const pw = m(e(A.StatusPill, { wrap: true, children: 'Awaiting marketing review' }));
+      const pn = m(e(A.StatusPill, { children: 'Ready' }));
+      if (
+        sorted.length !== 1 || !/aria-sort="descending"/.test(sorted[0] || '') || /selectallref|sortdirection/i.test(dt) ||
+        !/--aura-row-min:calc\(400px\+/.test(dt.replace(/\s/g, '')) ||
+        !/class="aura-pill aura-pill--\w+ is-wrap"/.test(pw) || !/<span class="aura-pill__text">Awaiting marketing review<\/span>/.test(pw) || / wrap=/.test(pw) || /is-wrap|aura-pill__text/.test(pn)
+      ) bad('Chamber-OS 157–159:', sorted, dt.match(/--aura-row-min:[^;"]*/), pw, pn);
+    }
+    /* 5.51 (Chamber-OS 162): grow is the flexible cell's flex-grow in the server HTML; default 1; a fixed column ignores it. */
+    {
+      const gc = [{ key: 'a', label: 'A', grow: 3, minWidth: 128 }, { key: 'b', label: 'B' }, { key: 'c', label: 'C', width: 96, grow: 5 }];
+      const gh = m(e(A.DataTable, { label: 'G', rowKey: 'a', columns: gc, rows: [{ a: 1, b: 2, c: 3 }] }));
+      if ((gh.match(/--aura-cell-flex:3 1 0/g) || []).length !== 2 || (gh.match(/--aura-cell-flex:1 1 0/g) || []).length !== 2 || /--aura-cell-flex:5/.test(gh) || /grow=/.test(gh) || !/--aura-row-min:calc\(384px/.test(gh))
+        bad('Chamber-OS 162:', gh.match(/--aura-cell-flex:[^;"]*/g), gh.match(/--aura-row-min:[^;"]*/));
+    }
+    /* 5.51 (Chamber-OS 161): keyboard="tab" — no cell is a Tab stop and the checkboxes and sort buttons are; the
+     * default grid is one Tab stop with its controls at -1; the prop never reaches the DOM. */
+    {
+      const kc = [{ key: 'a', label: 'A', sortable: true }, { key: 'b', label: 'B' }];
+      const kr = [{ a: 1, b: 2 }, { a: 2, b: 1 }];
+      const tab = m(e(A.DataTable, { label: 'K', rowKey: 'a', columns: kc, rows: kr, selectable: true, keyboard: 'tab' }));
+      const grid = m(e(A.DataTable, { label: 'K', rowKey: 'a', columns: kc, rows: kr, selectable: true }));
+      const cellStops = (h: string) => (h.match(/data-rc="[^"]*"[^>]*|tabindex="0"[^>]*data-rc=/g) || []).filter((x: string) => /tabindex="0"/.test(x)).length;
+      const boxes = (h: string) => h.match(/<input[^>]*type="checkbox"[^>]*>/g) || [];
+      if (
+        /tabindex="0"[^>]*data-rc|data-rc="[^"]*"[^>]*tabindex="0"/.test(tab) || boxes(tab).some((x: string) => /tabindex="-1"/.test(x)) || /class="aura-table__sort" tabindex="-1"|tabindex="-1" class="aura-table__sort"/.test(tab) ||
+        !boxes(grid).every((x: string) => /tabindex="-1"/.test(x)) || !/tabindex="0"/.test(grid) || /keyboard=/.test(tab)
+      ) bad('Chamber-OS 161:', cellStops(tab), boxes(tab), boxes(grid));
+    }
     /* 5.50 (Chamber-OS 156): invalid = is-invalid + aria-invalid, no error line, describedby unchanged; error still wins. */
     {
       const ti = m(e(A.TextField, { label: 'Colour', id: 'c', hint: 'Hex.', invalid: true, 'aria-describedby': 'r' }));

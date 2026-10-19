@@ -53,7 +53,12 @@ type Col = DataTableColumn;
 type Row = Record<string, any>;
 type RowKey = string | number;
 /* A cell to focus after the next render: row, column index, or a column key (after reordering). */
-type PendingFocus = { r: number; c?: number | undefined; key?: string | null | undefined };
+type PendingFocus = {
+  r: number;
+  c?: number | undefined;
+  key?: string | null | undefined;
+  menuBtn?: boolean | undefined;
+};
 type MenuState = {
   kind: 'col' | 'picker';
   key: string | null;
@@ -108,6 +113,11 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   const refreshing = busy && manual && rows.length > 0;
   const loading = busy && !refreshing;
   const selectable = !!props.selectable;
+  /* 5.51 (Chamber-OS 161): keyboard="tab" — the controls in the cells (checkboxes, sort and column buttons, row links,
+   * row actions) are ordinary Tab stops in reading order; the cells are no Tab stops, and the arrows still move between
+   * them once focus is in one (a click, or Escape from a control). The grid role and its headers stay. */
+  const tabMode = props.keyboard === 'tab';
+  const tabIdx = tabMode ? undefined : -1;
   const reorderable = props.reorderable !== false && !!props.columnControls;
   const controls = !!props.columnControls;
 
@@ -347,7 +357,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
 
   /* Buttons and links inside cells are reached with Enter (APG grid), not Tab: the grid stays one tab stop. */
   useIsoLayoutEffect(function () {
-    if (!gridRef.current) return;
+    if (!gridRef.current || tabMode) return;
     const els = gridRef.current.querySelectorAll<HTMLElement>(
       '.aura-table__td button, .aura-table__td a[href], .aura-table__td input, .aura-table__td select, .aura-table__td textarea, .aura-table__td [tabindex="0"]',
     );
@@ -454,7 +464,8 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   let fixedSum = 0,
     hideTerms = '';
   vis.forEach(function (c: Col) {
-    const w = widthOf(c) != null ? widthOf(c)! : FLEX_MIN,
+    /* 5.51 (Chamber-OS 159): a flexible column counts its own minimum, the same value its cells use. */
+    const w = widthOf(c) != null ? widthOf(c)! : c.minWidth || FLEX_MIN,
       lv = hideLevel(c);
     if (lv && boxWidth[0] == null) hideTerms += ' + ' + w + 'px * var(--aura-h' + lv + '-on, 1)';
     else fixedSum += w;
@@ -470,6 +481,15 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       acc += ' + ' + widthOf(c)! + 'px' + (lv && boxWidth[0] == null ? ' * var(--aura-h' + lv + '-on, 1)' : '');
     }
   });
+  if (
+    vis.filter(function (c: Col) {
+      return !!c.sortDirection;
+    }).length > 1
+  )
+    devWarnOnce(
+      'datatable-sortdirection-twice',
+      'DataTable: more than one column has sortDirection. The order follows one column; give it to that one.',
+    );
   const selW = selectable ? ' + var(--aura-table-select-width)' : '';
   const gutterR = controls ? 'var(--aura-space-12)' : 'var(--aura-space-6)';
   const rowMinWidth = 'calc(' + fixedSum + 'px' + hideTerms + ' + var(--aura-space-6) + ' + gutterR + selW + ')';
@@ -479,7 +499,9 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     const w = widthOf(c),
       s: Record<string, string> = {};
     if (w == null) {
-      s['--aura-cell-flex'] = '1 1 0';
+      /* 5.51 (Chamber-OS 162): grow weights this column's share of the spare width (default 1). */
+      const g = typeof c.grow === 'number' && c.grow >= 0 && isFinite(c.grow) ? c.grow : 1;
+      s['--aura-cell-flex'] = g + ' 1 0';
       s['--aura-cell-min'] = (c.minWidth || FLEX_MIN) + 'px';
     } else {
       s['--aura-cell-flex'] = !hasFlex && i === vis.length - 1 ? '1 0 auto' : 'none';
@@ -709,6 +731,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     [stacked],
   );
   function tabFor(r: number, c: number): number {
+    if (tabMode) return -1;
     if (!activeRendered) return r === 0 && c === ac ? 0 : -1;
     return r === ar && c === acShown ? 0 : -1;
   }
@@ -733,7 +756,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     const el = gridRef.current.querySelector<HTMLElement>('[data-rc="' + p.r + ':' + c + '"]');
     if (el) {
       pending.current = null;
-      el.focus();
+      ((p.menuBtn && el.querySelector<HTMLElement>('.aura-table__menu-btn')) || el).focus();
     }
   });
   function focusCell(r: number, c: number, dir?: number) {
@@ -1046,7 +1069,8 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     const m = menu;
     setMenu(null);
     if (restore && m) {
-      if (m.kind === 'col') pending.current = { r: 0, key: m.key, c: m.rc ? m.rc.c : 0 };
+      /* 5.51 (Chamber-OS 161): with keyboard="tab" the header's ⋯ button, not its cell, is where the person was. */
+      if (m.kind === 'col') pending.current = { r: 0, key: m.key, c: m.rc ? m.rc.c : 0, menuBtn: tabMode };
       else if (m.anchor) m.anchor.focus();
     }
   }
@@ -1153,10 +1177,11 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       >
         {pageKeys.length ? (
           <Checkbox
+            ref={props.selectAllRef}
             hideLabel
             checked={all}
             indeterminate={nSel > 0 && !all}
-            tabIndex={-1}
+            tabIndex={tabIdx}
             label={all ? t.deselectAllRows : t.selectAllRows}
             onChange={toggleAll}
           />
@@ -1173,8 +1198,19 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     const ci = i + (selectable ? 1 : 0);
     const isSorted = sort && sort.key === c.key;
     const canSort = c.sortable && canSortAny;
+    /* 5.51 (Chamber-OS 157): a column the page orders (sortDirection) says so without becoming a button — until the
+     * table's own sort takes over, so only one header ever claims the order. */
+    const own = c.sortDirection === 'ascending' || c.sortDirection === 'descending' ? c.sortDirection : undefined;
     const ariaSort: React.AriaAttributes['aria-sort'] =
-      isSorted && canSort ? (sort!.dir === 'desc' ? 'descending' : 'ascending') : canSort ? 'none' : undefined;
+      sort && canSortAny
+        ? isSorted && canSort
+          ? sort.dir === 'desc'
+            ? 'descending'
+            : 'ascending'
+          : canSort
+            ? 'none'
+            : undefined
+        : own || (canSort ? 'none' : undefined);
     const pin = isPinned(c),
       edge = pin && i === nPinned - 1;
     head.push(
@@ -1231,7 +1267,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           {canSort ? (
             <button
               type="button"
-              tabIndex={-1}
+              tabIndex={tabIdx}
               className={cx('aura-table__sort', isSorted && 'is-active')}
               onClick={function () {
                 sortBy(c.key);
@@ -1253,7 +1289,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           {controls ? (
             <button
               type="button"
-              tabIndex={-1}
+              tabIndex={tabIdx}
               className="aura-table__menu-btn"
               aria-label={t.columnOptions(c.label)}
               aria-haspopup="menu"
@@ -1335,7 +1371,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             <Checkbox
               hideLabel
               checked={isSel}
-              tabIndex={-1}
+              tabIndex={tabIdx}
               label={selLabel}
               onChange={function (on: boolean) {
                 const shift = shiftClick.current;

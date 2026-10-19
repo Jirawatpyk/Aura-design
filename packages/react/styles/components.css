@@ -105,7 +105,10 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   background: var(--aura-bg-surface);
   color: var(--aura-fg-primary);
 }
-.aura-table__scroll { position: relative; overflow: auto; overscroll-behavior: contain; height: var(--aura-table-h, auto); }
+/* 5.51 (Chamber-OS 163): only the sideways axis is contained (a trackpad swipe in a wide grid never goes back a page);
+ * a vertical wheel over a grid that scrolls sideways still scrolls the page, and a fixed-height grid scrolls inside
+ * first, then chains to the page at its end. */
+.aura-table__scroll { position: relative; overflow: auto; overscroll-behavior-x: contain; overscroll-behavior-y: auto; height: var(--aura-table-h, auto); }
 /* 5.30: more columns past the end edge — a soft shadow over the grid's end edge (not over its scrollbars, its footer
  * or the column button), so it reads as scrolling sideways. JavaScript places it (top, height, scrollbar inset). */
 .aura-table__edge {
@@ -440,6 +443,13 @@ a.aura-icon-btn { text-decoration: none; }
   background: var(--aura-status-neutral-bg);
   color: var(--aura-status-neutral-fg);
 }
+/* 5.51 (Chamber-OS 158, addendum 61): wrap — the words break inside the pill when its box is narrower; the icon stays
+ * beside the first line. Corners are aura-radius-lg (16px), not full: on one line (20px tall) that still clamps to fully
+ * round ends, and a wrapped pill is a rounded rectangle, not a tall lozenge. */
+.aura-pill.is-wrap { align-items: flex-start; white-space: normal; border-radius: var(--aura-radius-lg); }
+.aura-pill.is-wrap > .aura-icon { margin-top: calc((max(16px, 1rem) - 12px) / 2); }
+.aura-pill.is-wrap:lang(th) > .aura-icon { margin-top: calc((max(18px, 1.125rem) - 12px) / 2); }
+.aura-pill__text { min-width: 0; overflow-wrap: anywhere; }
 .aura-pill--progress { background: var(--aura-status-progress-bg); color: var(--aura-status-progress-fg); }
 .aura-pill--ready { background: var(--aura-status-ready-bg); color: var(--aura-status-ready-fg); }
 .aura-pill--warning { background: var(--aura-status-warning-bg); color: var(--aura-status-warning-fg); }
@@ -529,9 +539,10 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-input__suffix { padding: 0 var(--aura-space-3) 0 0; color: var(--aura-fg-secondary); font-size: max(13px, .8125rem); white-space: nowrap; }
 .aura-field.is-invalid .aura-input, .aura-field.is-invalid .aura-textarea { border-color: var(--aura-border-danger); }
 /* 5.50 (Chamber-OS 156): a control the page marks aria-invalid="true" itself gets the same edge, message or not (a
- * disabled field keeps its disabled edge, as with is-invalid). */
-.aura-field:not(.is-disabled) .aura-input:has(> .aura-input__control[aria-invalid="true"]),
-.aura-field:not(.is-disabled) .aura-textarea[aria-invalid="true"] { border-color: var(--aura-border-danger); }
+ * disabled field keeps its disabled edge, as with is-invalid; 5.51: so does a disabled control inside an enabled custom
+ * Field). */
+.aura-field:not(.is-disabled) .aura-input:has(> .aura-input__control[aria-invalid="true"]:not(:disabled)),
+.aura-field:not(.is-disabled) .aura-textarea[aria-invalid="true"]:not(:disabled) { border-color: var(--aura-border-danger); }
 .aura-field.is-disabled .aura-input { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); }
 .aura-field.is-disabled .aura-input__control { cursor: not-allowed; }
 /* A read-only text field. Only an input: `:read-only` also matches any element that isn't editable — a
@@ -1864,6 +1875,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
  * (So a FilterBar with only chips needs a width from its parent — it is full width in a block.) */
 .aura-filterbar__chips { contain: inline-size; }
 .aura-filterbar__chips > .aura-tag .aura-tag__text { max-width: none; min-width: 0; }
+/* 5.51 (Chamber-OS 160): a toggle Tag among FilterBar's controls (or in its sheet) is a filter, not a label to cut:
+ * from 640px it shows its whole text, cut only when wider than the bar. Below 640px (outside the sheet) the 24ch cap
+ * and its tip stay. */
+@media (min-width: 640px) {
+  .aura-filterbar .aura-tag.is-selectable { max-width: 100%; min-width: 0; }
+  .aura-filterbar .aura-tag.is-selectable .aura-tag__text { max-width: none; min-width: 0; }
+}
+/* …and in the Filters sheet at any width: it is full width, with every control labelled. */
+.aura-filterbar--sheet .aura-tag.is-selectable { max-width: 100%; min-width: 0; }
+.aura-filterbar--sheet .aura-tag.is-selectable .aura-tag__text { max-width: none; min-width: 0; }
 .aura-filterbar__clear {
   border: 0; background: transparent; padding: 4px var(--aura-space-2); border-radius: var(--aura-radius-sm);
   font: inherit; font-size: max(13px, .8125rem); font-weight: 500; color: var(--aura-fg-accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
