@@ -8617,7 +8617,11 @@ window.Aura = (() => {
           })
         )
       );
-    return h10("tbody", { className: "aura-tbl__body", role: stacked ? "rowgroup" : void 0 }, rows);
+    return h10(
+      "tbody",
+      { key: "aura-skeleton", className: "aura-tbl__body", role: stacked ? "rowgroup" : void 0 },
+      rows
+    );
   }
   function tableWrapClass(p) {
     return cx(
