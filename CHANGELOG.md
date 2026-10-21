@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.54.0 — 2026-10-21
+
+### Minor changes
+
+- 531e494: Below 640px every Button in an ActionBar (children and `start`) is at least 44px tall whatever the density or pointer; from 640px they keep the density's height (Chamber-OS 166).
+
 ## 5.53.0 — 2026-10-21
 
 ### Minor changes
