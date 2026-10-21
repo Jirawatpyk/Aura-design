@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.53.0 — 2026-10-21
+
+### Minor changes
+
+- e4f0cc6: Below 640px a Dialog's stretched footer buttons wrap a long label and are at least 44px tall whatever the density; Button, a link Button and `buttonClass` take `fullWidth="below-sm" | "below-md"` for full width only below 640px / 768px (Chamber-OS 165).
+
 ## 5.52.0 — 2026-10-19
 
 ### Minor changes
