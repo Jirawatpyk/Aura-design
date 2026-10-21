@@ -19,8 +19,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   iconRight?: IconInput | undefined;
   /** Shows a spinner in place of the leading icon, sets aria-busy and swallows clicks. Keeps the label and width. */
   loading?: boolean | undefined;
-  /** Fills its container and lets a long label wrap onto more lines (at least 44px tall) — phones, Thai and Swedish labels. */
-  fullWidth?: boolean | undefined;
+  /** Fills its container and lets a long label wrap onto more lines (at least 44px tall) — phones, Thai and Swedish labels.
+   * `'below-sm'` / `'below-md'` (5.53, Chamber-OS 165): only below 640px / 768px (the viewport's), at least 44px tall
+   * there whatever the density, its natural width above — for action rows that stack on phones and sit inline above. */
+  fullWidth?: boolean | 'below-sm' | 'below-md' | undefined;
   /** `sm` is 32px with tighter padding, for toolbars, table rows and card footers. Default `md` (44px). */
   size?: ButtonSize | undefined;
   /** 44px tall below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24), whatever
@@ -42,8 +44,9 @@ export interface ButtonLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnc
   iconRight?: IconInput | undefined;
   /** Looks unavailable and can't be followed: no href, `aria-disabled`, out of the Tab order. */
   disabled?: boolean | undefined;
-  /** Fills its container and lets a long label wrap (at least 44px tall). */
-  fullWidth?: boolean | undefined;
+  /** Fills its container and lets a long label wrap (at least 44px tall). `'below-sm'` / `'below-md'` (5.53): only
+   * below 640px / 768px. */
+  fullWidth?: boolean | 'below-sm' | 'below-md' | undefined;
   /** `sm` is 32px with tighter padding. Default `md` (44px). */
   size?: ButtonSize | undefined;
   /** 44px tall below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24), whatever

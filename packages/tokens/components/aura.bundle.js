@@ -831,7 +831,9 @@ window.Aura = (() => {
       "aura-btn",
       "aura-btn--" + (opts.variant || "primary"),
       opts.size === "sm" && "aura-btn--sm",
-      opts.fullWidth && "aura-btn--full",
+      opts.fullWidth && opts.fullWidth !== "below-sm" && opts.fullWidth !== "below-md" && "aura-btn--full",
+      /* 5.53 (Chamber-OS 165): full width on phones only. */
+      (opts.fullWidth === "below-sm" || opts.fullWidth === "below-md") && "aura-btn--full-" + opts.fullWidth,
       opts.touchHeight && "aura-btn--touch",
       opts.loading && "is-loading",
       opts.className

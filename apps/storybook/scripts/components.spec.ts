@@ -9805,3 +9805,141 @@ test.describe('5.52: Chamber-OS 164 — a loading state for the static Table', (
     expect(await axeScan(page, '[data-testid=loaded]')).toEqual([]);
   });
 });
+
+test.describe('5.53: Chamber-OS 165 — the sheet footer and fullWidth below a width', () => {
+  const S = (name: string, lang: string) => 'aura-new-in-5-53-chamber-os-165--' + name + '&args=lang:' + lang;
+  const btns = (page: Page, sel: string) =>
+    page.evaluate((sel) => {
+      const lh = (e: Element) => parseFloat(getComputedStyle(e).lineHeight);
+      return [...document.querySelectorAll<HTMLElement>(sel)].map((b) => {
+        const r = b.getBoundingClientRect();
+        const p = b.parentElement!.getBoundingClientRect();
+        return {
+          w: Math.round(r.width),
+          pw: Math.round(p.width),
+          h: Math.round(r.height),
+          over: b.scrollWidth > b.clientWidth + 1,
+          lines: Math.round(
+            (b.clientHeight -
+              parseFloat(getComputedStyle(b).paddingTop) -
+              parseFloat(getComputedStyle(b).paddingBottom)) /
+              lh(b),
+          ),
+          ws: getComputedStyle(b).whiteSpace,
+          right: Math.round(window.innerWidth - r.right),
+        };
+      });
+    }, sel);
+
+  for (const lang of ['sv', 'th', 'en']) {
+    test(`165: at 390px in compact density with a mouse, the sheet's footer buttons are full width, ≥44px, and a long label wraps (${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await story(page, S('sheet-footer', lang));
+      const b = await btns(page, '.aura-dialog__foot > .aura-btn, .aura-dialog__foot > * > .aura-btn');
+      expect(b).toHaveLength(4);
+      for (const x of b) {
+        expect(x.w, JSON.stringify(x)).toBe(x.pw);
+        expect(x.h, JSON.stringify(x)).toBeGreaterThanOrEqual(44);
+        expect(x.over, JSON.stringify(x)).toBe(false);
+      }
+      /* No touchHeight anywhere in the story. */
+      expect(await page.locator('.aura-btn--touch').count()).toBe(0);
+      if (lang === 'sv') {
+        /* "Skicka för godkännande igen" in a 390px sheet fits on one line; squeeze the sheet to force the wrap. */
+        await page.setViewportSize({ width: 280, height: 844 });
+        const n = await btns(page, '.aura-dialog__foot > .aura-btn');
+        expect(n[2]!.lines).toBeGreaterThanOrEqual(2);
+        expect(n[2]!.over).toBe(false);
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        ).toBeLessThanOrEqual(0);
+      }
+    });
+  }
+
+  test('165: at 1440px the footer is unchanged — right-aligned, density height, one line', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await story(page, S('sheet-footer', 'sv'));
+    const b = await btns(page, '.aura-dialog__foot > .aura-btn');
+    const foot = await page.evaluate(() => {
+      const f = document.querySelector('.aura-dialog__foot')!.getBoundingClientRect();
+      const last = document.querySelector('.aura-dialog__foot > :last-child')!.getBoundingClientRect();
+      return Math.round(f.right - last.right);
+    });
+    expect(foot).toBe(0);
+    expect(b.map((x) => x.ws)).toEqual(['nowrap', 'nowrap', 'nowrap']);
+    /* compact density: the md buttons are the density's height (36px), the sm one 32px */
+    expect([b[0]!.h, b[1]!.h, b[2]!.h]).toEqual([36, 32, 36]);
+    for (const x of b) expect(x.w).toBeLessThan(x.pw);
+  });
+
+  test('165: a Drawer footer on a phone — buttons in their row, wrapping, ≥44px, nothing past the edge (sv)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, S('drawer-footer', 'sv'));
+    const d = await page.evaluate(() => {
+      const f = document.querySelector('.aura-drawer__foot')!.getBoundingClientRect();
+      return [...document.querySelectorAll<HTMLElement>('.aura-drawer__foot > .aura-btn')].map((b) => {
+        const r = b.getBoundingClientRect();
+        return {
+          h: r.height,
+          over: b.scrollWidth > b.clientWidth + 1,
+          inside: r.right <= f.right + 0.5 && r.left >= f.left - 0.5,
+        };
+      });
+    });
+    expect(d).toHaveLength(2);
+    for (const x of d) expect(x).toMatchObject({ over: false, inside: true });
+    for (const x of d) expect(x.h).toBeGreaterThanOrEqual(44);
+    /* 280px: the long Swedish label wraps inside its button, still in the footer. */
+    await page.setViewportSize({ width: 280, height: 844 });
+    const n = await btns(page, '.aura-drawer__foot > .aura-btn');
+    expect(n[1]!.lines).toBeGreaterThanOrEqual(2);
+    expect(n[1]!.over).toBe(false);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    ).toBeLessThanOrEqual(0);
+    /* 1440px: as before — density height, one line, narrower than the footer. */
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const w = await btns(page, '.aura-drawer__foot > .aura-btn');
+    expect(w.map((x) => [x.h, x.ws])).toEqual([
+      [36, 'nowrap'],
+      [36, 'nowrap'],
+    ]);
+    for (const x of w) expect(x.w).toBeLessThan(x.pw);
+  });
+
+  for (const lang of ['sv', 'th']) {
+    test(`165: fullWidth="below-sm" stretches and wraps below 640px (≥44px, touchHeight or not) and keeps its natural width above (${lang})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await story(page, S('full-width-below', lang));
+      const small = await btns(
+        page,
+        '[data-testid=row] > .aura-btn, [data-testid=narrow] > .aura-btn, [data-testid=link] > .aura-btn',
+      );
+      for (const x of small) {
+        expect(x.w, JSON.stringify(x)).toBe(x.pw);
+        expect(x.h, JSON.stringify(x)).toBeGreaterThanOrEqual(44);
+        expect(x.over, JSON.stringify(x)).toBe(false);
+      }
+      /* In the 200px box the long label wraps. */
+      expect(small[3]!.lines).toBeGreaterThanOrEqual(2);
+      /* 700px: below-sm buttons back to their natural width and height; below-md still stretched. */
+      await page.setViewportSize({ width: 700, height: 844 });
+      const mid = await btns(page, '[data-testid=row] > .aura-btn');
+      expect(mid[0]!.w).toBeLessThan(mid[0]!.pw);
+      expect(mid[0]!.h).toBe(36);
+      expect(mid[0]!.ws).toBe('nowrap');
+      expect(mid[2]!.w).toBe(mid[2]!.pw);
+      await page.setViewportSize({ width: 1280, height: 844 });
+      const wide = await btns(page, '[data-testid=row] > .aura-btn, [data-testid=link] > .aura-btn');
+      for (const x of wide) expect(x.w, JSON.stringify(x)).toBeLessThan(x.pw);
+      expect(wide[2]!.h).toBe(32);
+    });
+  }
+});

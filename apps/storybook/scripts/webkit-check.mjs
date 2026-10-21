@@ -224,6 +224,15 @@ try {
   await go('aura-new-in-5-51-chamber-os-157-160--grow-actions');
   x = await ex(`const w = (t) => [...document.querySelectorAll('[data-testid=' + t + '] [role=columnheader]')].pop().getBoundingClientRect().width; return [innerWidth >= 1200, w('grow') > w('even') + 100]`);
   check(JSON.stringify(x) === '[true,true]', 'DataTable grow: Actions takes three shares', x);
+  /* 5.53 (#165): below 640px (the window is ~447px here) the sheet footer's buttons are ≥44px and fullWidth="below-sm" stretches. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-53-chamber-os-165--sheet-footer');
+  x = await ex(`return [innerWidth < 640, [...document.querySelectorAll('.aura-dialog__foot > .aura-btn')].every((b) => b.getBoundingClientRect().height >= 44 && b.scrollWidth <= b.clientWidth + 1)]`);
+  check(JSON.stringify(x) === '[true,true]', 'Dialog sheet footer: buttons ≥44px, nothing overflows', x);
+  await go('aura-new-in-5-53-chamber-os-165--full-width-below');
+  x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
+  check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
+
   /* 5.52 (#164): a loading Table and the server TableSkeleton line up with the loaded table at a desktop width. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });
   await go('aura-new-in-5-52-chamber-os-164--loading-table');

@@ -319,6 +319,17 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
         !/class="aura-pill aura-pill--\w+ is-wrap"/.test(pw) || !/<span class="aura-pill__text">Awaiting marketing review<\/span>/.test(pw) || / wrap=/.test(pw) || /is-wrap|aura-pill__text/.test(pn)
       ) bad('Chamber-OS 157–159:', sorted, dt.match(/--aura-row-min:[^;"]*/), pw, pn);
     }
+    /* 5.53 (Chamber-OS 165): fullWidth="below-sm" | "below-md" is a class (Button, ButtonLink, buttonClass); true is
+     * still aura-btn--full; nothing leaks as an attribute. */
+    {
+      const b1 = m(e(A.Button, { fullWidth: 'below-sm' }, 'Send'));
+      const b2 = m(e(A.Button, { href: '#x', fullWidth: 'below-md' }, 'Go'));
+      const b3 = m(e(A.Button, { fullWidth: true }, 'All'));
+      const c1 = A.buttonClass({ fullWidth: 'below-sm', variant: 'secondary' });
+      if (!/class="aura-btn aura-btn--primary aura-btn--full-below-sm"/.test(b1) || !/aura-btn--full-below-md/.test(b2) || /aura-btn--full(?!-)/.test(b1 + b2) ||
+        !/aura-btn--full"/.test(b3) || /fullwidth/i.test(b1 + b2 + b3) || c1 !== 'aura-btn aura-btn--secondary aura-btn--full-below-sm')
+        bad('Chamber-OS 165:', b1, b2, b3, c1);
+    }
     /* 5.52 (Chamber-OS 164): Table loading and TableSkeleton — aria-hidden + inert box, a fixed colgroup from the head
      * (skeletonWidth over width over style.width), n placeholder rows, stacked roles/labels/card slots, no body rows of
      * the page and no leaked props. */

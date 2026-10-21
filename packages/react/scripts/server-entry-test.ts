@@ -147,6 +147,9 @@ for (const [name, A] of [
       '<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Total 10,700.00 THB</div>Issue</div>',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
+    /* 5.53 (Chamber-OS 165): full width on phones only. */
+    if (A.buttonClass({ fullWidth: 'below-sm' }) !== 'aura-btn aura-btn--primary aura-btn--full-below-sm')
+      fails.push(`${name}: buttonClass below-sm gave "${A.buttonClass({ fullWidth: 'below-sm' })}"`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')
       fails.push(`${name}: buttonClass gave "${A.buttonClass({ variant: 'secondary', size: 'sm' })}"`);
   } catch (e) {

@@ -359,7 +359,7 @@ export function buttonClass(
   opts: {
     variant?: ButtonProps['variant'];
     size?: ButtonProps['size'];
-    fullWidth?: boolean | undefined;
+    fullWidth?: boolean | 'below-sm' | 'below-md' | undefined;
     loading?: boolean | undefined;
     touchHeight?: boolean | undefined;
     className?: string | undefined;
@@ -369,7 +369,9 @@ export function buttonClass(
     'aura-btn',
     'aura-btn--' + (opts.variant || 'primary'),
     opts.size === 'sm' && 'aura-btn--sm',
-    opts.fullWidth && 'aura-btn--full',
+    opts.fullWidth && opts.fullWidth !== 'below-sm' && opts.fullWidth !== 'below-md' && 'aura-btn--full',
+    /* 5.53 (Chamber-OS 165): full width on phones only. */
+    (opts.fullWidth === 'below-sm' || opts.fullWidth === 'below-md') && 'aura-btn--full-' + opts.fullWidth,
     opts.touchHeight && 'aura-btn--touch',
     opts.loading && 'is-loading',
     opts.className,

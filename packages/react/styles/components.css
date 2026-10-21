@@ -33,6 +33,12 @@ a.aura-btn { text-decoration: none; }
   width: 100%; height: auto; min-height: var(--aura-button-height); white-space: normal; flex-shrink: 1;
   padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere;
 }
+/* 5.53 (Chamber-OS 165): fullWidth="below-md" — the same, only below 768px, and at least 44px tall there, touchHeight
+ * or not (hence the doubled class); its natural width above. "below-sm" is with the phone rules (max-width 639.98px). */
+@media (max-width: 767.98px) {
+  .aura-btn.aura-btn.aura-btn--full-below-md { width: 100%; height: auto; min-height: var(--aura-touch-target); white-space: normal; flex-shrink: 1;
+    padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+}
 .aura-btn.is-loading { cursor: progress; }
 /* 5.14: a button gated with aria-disabled looks unavailable but stays focusable (no pointer-events: none, so the
  * not-allowed cursor and a tooltip still work). */
@@ -1756,6 +1762,15 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     padding-bottom: calc(var(--aura-space-6) + env(safe-area-inset-bottom)); animation-name: aura-sheet-in; }
   .aura-dialog__foot { flex-direction: column-reverse; }
   .aura-dialog__foot > * { width: 100%; }
+  /* 5.53 (Chamber-OS 165): a phone sheet's or drawer's footer button (or one a Tooltip or menu wraps) behaves as
+   * fullWidth — a long label wraps instead of running out, at least 44px tall whatever the density or pointer; so does
+   * fullWidth="below-sm" (the doubled class beats touchHeight's height). Drawer footers stay in their row. */
+  .aura-dialog__foot > .aura-btn, .aura-dialog__foot > * > .aura-btn:only-child,
+  .aura-drawer__foot > .aura-btn, .aura-drawer__foot > * > .aura-btn:only-child, .aura-btn.aura-btn.aura-btn--full-below-sm {
+    height: auto; min-height: var(--aura-touch-target); white-space: normal; flex-shrink: 1;
+    padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+  .aura-dialog__foot > * > .aura-btn:only-child, .aura-btn.aura-btn.aura-btn--full-below-sm { width: 100%; }
+  .aura-drawer__foot > * { max-width: 100%; }
   .aura-drawer:not(.aura-drawer--nav) { max-width: none; }
   .aura-toaster { left: var(--aura-space-4); right: var(--aura-space-4); bottom: var(--aura-space-4); width: auto; }
   .aura-toaster.is-center { left: var(--aura-space-4); right: var(--aura-space-4); transform: none; }

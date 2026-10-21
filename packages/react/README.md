@@ -186,6 +186,16 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.53 — Chamber-OS addendum 66 (#165)
+
+- **A phone sheet's footer buttons wrap and are 44px:** below 640px a Dialog's footer stacks its buttons full width, and now they behave as `fullWidth` there (a Button directly in `footer`, or the only Button in a wrapper such as a Tooltip or a menu trigger); a Drawer's footer buttons stay in their row but wrap and are 44px too — a long label (Swedish, Thai) wraps instead of running out, and each is at least 44px tall whatever the density or pointer, with no `touchHeight` needed. From 640px the footer is unchanged: right-aligned, the density's height, one line. Drop any `touchHeight` you added to footer buttons only for this.
+- **`fullWidth="below-sm"` / `"below-md"`** on Button, a link Button and `buttonClass` (so in Server Components too): full width and wrapping, at least 44px tall, only below 640px / 768px (the viewport's); its natural width above — for action rows that stack on phones and sit inline on a desktop. `fullWidth` (`true`) is unchanged. Inside a PageHeader's `actionsFullWidthBelow` row with an IconButton, that row's own sizing wins.
+
+```jsx
+<Button fullWidth="below-sm">Skicka för godkännande igen</Button>
+<Link href="/renew" className={buttonClass({ variant: 'secondary', fullWidth: 'below-sm' })}>Renew</Link>
+```
+
 ## 5.52 — Chamber-OS addendum 65 (#164)
 
 - **`Table loading`** (with `loadingRows`, default 5): the head as given, then placeholder rows in its columns — and below `stackBelow`, the same cards (title and action slots kept). Each column follows its head cell: `skeleton={{ lines: 1 | 2, kind: 'text' | 'pill' | 'action', touch }}` (two lines for a value over its caption, a status pill, or a block as tall as a small Button — 44px on a phone card with `touch`), its width from `skeletonWidth`, else the cell's `width` or `style.width`, else an even share of what is left. The THead must be a direct child (call your head as a function, not your own component) — a dev notice says so — and its first row must be the column row (with grouped headers, columns come from that first row). A head cell whose content isn't plain text (an icon, a sort button) needs `label` for the cards' field labels. TBody and TFoot aren't rendered while loading, so a totals row appears with the data.
