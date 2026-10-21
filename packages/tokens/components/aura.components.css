@@ -1240,6 +1240,9 @@ a.aura-tab { text-decoration: none; }
 .aura-page-header__status { display: none; }
 @media (max-width: 639.98px) and (min-height: 30.00125rem) {
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
+  /* 5.54 (Chamber-OS 166): the bar's buttons are 44px whatever the density, as ActionBar's on a phone. */
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions { --aura-button-height: var(--aura-touch-target); --aura-button-height-sm: var(--aura-touch-target); }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-icon-btn, .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-page-header--actions-bar-below-sm.aura-page-header--actions-bar-floating > .aura-page-header__actions { left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); padding-bottom: var(--aura-space-2); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :not(.aura-page-header__status) { flex: 1 1 0; min-width: max-content; }
@@ -1258,6 +1261,9 @@ a.aura-tab { text-decoration: none; }
 }
 @media (max-width: 767.98px) and (min-height: 30.00125rem) {
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
+  /* 5.54 (Chamber-OS 166): the bar's buttons are 44px whatever the density, as ActionBar's on a phone. */
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions { --aura-button-height: var(--aura-touch-target); --aura-button-height-sm: var(--aura-touch-target); }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-icon-btn, .aura-page-header--actions-bar-below-md > .aura-page-header__actions > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-page-header--actions-bar-below-md.aura-page-header--actions-bar-floating > .aura-page-header__actions { left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); padding-bottom: var(--aura-space-2); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :not(.aura-page-header__status) { flex: 1 1 0; min-width: max-content; }
@@ -1771,6 +1777,12 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
   .aura-dialog__foot > * > .aura-btn:only-child, .aura-btn.aura-btn.aura-btn--full-below-sm { width: 100%; }
   .aura-drawer__foot > * { max-width: 100%; }
+  /* 5.54 (Chamber-OS 166): the Buttons in an ActionBar (its actions and start) are at least 44px on a phone whatever
+   * the density or pointer, like a sheet's footer; from 640px they keep the density's height. */
+  .aura-actionbar__actions .aura-btn, .aura-actionbar__start .aura-btn { min-height: var(--aura-touch-target); }
+  /* (an IconButton in the bar or one wrapper deep — not a field's own suffix button) */
+  .aura-actionbar__actions > .aura-icon-btn, .aura-actionbar__actions > * > .aura-icon-btn:only-child,
+  .aura-actionbar__start > .aura-icon-btn, .aura-actionbar__start > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-drawer:not(.aura-drawer--nav) { max-width: none; }
   .aura-toaster { left: var(--aura-space-4); right: var(--aura-space-4); bottom: var(--aura-space-4); width: auto; }
   .aura-toaster.is-center { left: var(--aura-space-4); right: var(--aura-space-4); transform: none; }

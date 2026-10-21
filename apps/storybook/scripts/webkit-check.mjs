@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.54 (#166): below 640px the Buttons in an ActionBar are ≥44px with no touchHeight. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-54-chamber-os-166--bar-buttons');
+  x = await ex(`return [innerWidth < 640, [...document.querySelectorAll('[data-testid=wizard] .aura-actionbar .aura-btn')].every((b) => b.getBoundingClientRect().height >= 44)]`);
+  check(JSON.stringify(x) === '[true,true]', 'ActionBar buttons ≥44px below 640px', x);
+
   /* 5.52 (#164): a loading Table and the server TableSkeleton line up with the loaded table at a desktop width. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });
   await go('aura-new-in-5-52-chamber-os-164--loading-table');

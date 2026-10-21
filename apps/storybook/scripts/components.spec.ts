@@ -9875,7 +9875,7 @@ test.describe('5.53: Chamber-OS 165 — the sheet footer and fullWidth below a w
     for (const x of b) expect(x.w).toBeLessThan(x.pw);
   });
 
-  test('165: a Drawer footer on a phone — buttons in their row, wrapping, ≥44px, nothing past the edge (sv)', async ({
+  test('165: a Drawer footer on a phone — buttons in their row and ≥44px; a long label wraps at 280px; 1440px as before (sv)', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -9942,4 +9942,96 @@ test.describe('5.53: Chamber-OS 165 — the sheet footer and fullWidth below a w
       expect(wide[2]!.h).toBe(32);
     });
   }
+});
+
+test.describe('5.54: Chamber-OS 166 — ActionBar buttons on a phone', () => {
+  const ID = 'aura-new-in-5-54-chamber-os-166--bar-buttons';
+  const hs = (page: Page, tid: string) =>
+    page.evaluate(
+      (tid) =>
+        [...document.querySelectorAll(`[data-testid=${tid}] .aura-actionbar .aura-btn`)].map((b) => ({
+          text: b.textContent!.trim(),
+          h: Math.round(b.getBoundingClientRect().height),
+          touch: b.classList.contains('aura-btn--touch'),
+        })),
+      tid,
+    );
+
+  test('166: at 390px in compact density with a mouse every Button in the bar (actions and start) is ≥44px with no touchHeight', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const w = await hs(page, 'wizard');
+    expect(w.map((b) => b.text)).toEqual(['Cancel', 'Back', 'Save draft', 'Next']);
+    /* the bar's IconButton too */
+    const ib = await page.evaluate(() => {
+      const r = document.querySelector('[data-testid=wizard] .aura-icon-btn')!.getBoundingClientRect();
+      return [Math.round(r.width), Math.round(r.height)];
+    });
+    expect(ib[0]).toBeGreaterThanOrEqual(44);
+    expect(ib[1]).toBeGreaterThanOrEqual(44);
+    for (const b of w) {
+      expect(b.touch, b.text).toBe(false);
+      expect(b.h, b.text).toBeGreaterThanOrEqual(44);
+    }
+    /* a field in a bar keeps its own height: its suffix IconButton isn't grown */
+    const fld = await page.evaluate(() => {
+      const r = document.querySelector('[data-testid=field-bar] .aura-input')!.getBoundingClientRect();
+      const s = document.querySelector('[data-testid=field-bar] .aura-input .aura-icon-btn')!.getBoundingClientRect();
+      return [Math.round(r.height), Math.round(s.height)];
+    });
+    expect(fld[1]).toBeLessThan(44);
+    expect(fld[0]).toBeLessThanOrEqual(44);
+    /* the bulk bar that already passes touchHeight: 44px, as before */
+    for (const b of await hs(page, 'bulk')) expect(b.h, b.text).toBe(44);
+  });
+
+  test('166: the PageHeader actionsBarBelow bar — its Buttons and IconButton are ≥44px below 640px; at 1440px as before', async ({
+    page,
+  }) => {
+    const sizes = () =>
+      page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            '[data-testid=header] .aura-page-header__actions :is(.aura-btn, .aura-icon-btn)',
+          ),
+        ].map((b) => {
+          const r = b.getBoundingClientRect();
+          return [Math.round(r.width), Math.round(r.height)];
+        }),
+      );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-54-chamber-os-166--header-bar');
+    expect(
+      await page.evaluate(
+        () => getComputedStyle(document.querySelector('[data-testid=header] .aura-page-header__actions')!).position,
+      ),
+    ).toBe('fixed');
+    for (const [w, h] of await sizes()) {
+      expect(h).toBeGreaterThanOrEqual(44);
+      expect(w).toBeGreaterThanOrEqual(44);
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    expect((await sizes()).map((s) => s[1])).toEqual([36, 32, 32]);
+    /* Buttons only (no ⋯ stretching the row): still ≥44px on a phone. */
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-54-chamber-os-166--header-bar&args=withMenu:!false');
+    const only = await sizes();
+    expect(only).toHaveLength(2);
+    for (const [, h] of only) expect(h).toBeGreaterThanOrEqual(44);
+  });
+
+  test('166: at 1440px the bars are unchanged — density heights (36px, 32px for sm)', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await story(page, ID);
+    expect((await hs(page, 'wizard')).map((b) => b.h)).toEqual([36, 36, 32, 36]);
+    expect(
+      await page.evaluate(() =>
+        Math.round(document.querySelector('[data-testid=wizard] .aura-icon-btn')!.getBoundingClientRect().height),
+      ),
+    ).toBe(32);
+    /* the bulk bar's touchHeight buttons are 32px with a mouse from 640px, as before */
+    for (const b of await hs(page, 'bulk')) expect(b.h, b.text).toBe(32);
+  });
 });

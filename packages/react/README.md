@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.54 — Chamber-OS addendum 67 (#166)
+
+- **ActionBar's buttons are 44px on a phone:** below 640px (the viewport's) every Button in an ActionBar — its `children` and `start` — is at least 44px tall, and an IconButton there 44px square, whatever the density or pointer, as a sheet's footer is since 5.53, so a compact page's save bar needs no `touchHeight` on each button. PageHeader's `actionsBarBelow` bar (ActionBar's edge strip) does the same while it is a bar. From 640px they keep the density's height — on a tablet with a compact page use `touchHeight` as before; buttons that already pass it look the same. Drop any `touchHeight` you added to bar buttons only for this.
+
 ## 5.53 — Chamber-OS addendum 66 (#165)
 
 - **A phone sheet's footer buttons wrap and are 44px:** below 640px a Dialog's footer stacks its buttons full width, and now they behave as `fullWidth` there (a Button directly in `footer`, or the only Button in a wrapper such as a Tooltip or a menu trigger); a Drawer's footer buttons stay in their row but wrap and are 44px too — a long label (Swedish, Thai) wraps instead of running out, and each is at least 44px tall whatever the density or pointer, with no `touchHeight` needed. From 640px the footer is unchanged: right-aligned, the density's height, one line. Drop any `touchHeight` you added to footer buttons only for this.
