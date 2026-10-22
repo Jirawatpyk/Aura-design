@@ -2,6 +2,18 @@ import { test, expect, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /* Behaviour tests for AURA components, run against the static Storybook (npm run build-storybook). */
+/* Wait for entrance animations (a Dialog scales in from 0.98) so a measured box is its settled size; looping ones
+ * (spinners, skeleton shimmer) are left running. */
+const settle = (page: Page) =>
+  page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => undefined)),
+    ).then(() => undefined),
+  );
+
 const story = async (page: Page, id: string, theme = 'light') => {
   await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:${theme}`);
   await page.waitForSelector('#storybook-root > *');
@@ -9808,8 +9820,9 @@ test.describe('5.52: Chamber-OS 164 — a loading state for the static Table', (
 
 test.describe('5.53: Chamber-OS 165 — the sheet footer and fullWidth below a width', () => {
   const S = (name: string, lang: string) => 'aura-new-in-5-53-chamber-os-165--' + name + '&args=lang:' + lang;
-  const btns = (page: Page, sel: string) =>
-    page.evaluate((sel) => {
+  const btns = async (page: Page, sel: string) => {
+    await settle(page); /* the Dialog scales in from 0.98: measure its settled size */
+    return page.evaluate((sel) => {
       const lh = (e: Element) => parseFloat(getComputedStyle(e).lineHeight);
       return [...document.querySelectorAll<HTMLElement>(sel)].map((b) => {
         const r = b.getBoundingClientRect();
@@ -9830,6 +9843,7 @@ test.describe('5.53: Chamber-OS 165 — the sheet footer and fullWidth below a w
         };
       });
     }, sel);
+  };
 
   for (const lang of ['sv', 'th', 'en']) {
     test(`165: at 390px in compact density with a mouse, the sheet's footer buttons are full width, ≥44px, and a long label wraps (${lang})`, async ({
@@ -10038,11 +10052,12 @@ test.describe('5.54: Chamber-OS 166 — ActionBar buttons on a phone', () => {
 
 test.describe('5.55: Chamber-OS 167 — bar and footer buttons follow the coarse pointer', () => {
   const S = (n: string) => 'aura-new-in-5-55-chamber-os-167--' + n;
-  const heights = (page: Page, sel: string) =>
-    page.evaluate(
-      (sel) => [...document.querySelectorAll(sel)].map((b) => Math.round(b.getBoundingClientRect().height)),
-      sel,
-    );
+  /* Settled, and offsetHeight (the layout box): measured mid-way through the Dialog's entrance animation (scale 0.98)
+   * a 44px button's drawn rect reads 43 — CI caught it. */
+  const heights = async (page: Page, sel: string) => {
+    await settle(page);
+    return page.evaluate((sel) => [...document.querySelectorAll<HTMLElement>(sel)].map((b) => b.offsetHeight), sel);
+  };
   const BAR = '[data-testid=bar] .aura-actionbar .aura-btn';
 
   test.describe('touch screen at 1024px', () => {
