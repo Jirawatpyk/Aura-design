@@ -1085,6 +1085,18 @@ a.aura-tab { text-decoration: none; }
 .aura-drawer__foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--aura-space-3); padding: var(--aura-space-4) var(--aura-space-6); border-top: 1px solid var(--aura-border-default); }
 @media (prefers-reduced-motion: reduce) { .aura-drawer { animation: none; } }
 
+/* 5.54-5.55 (Chamber-OS 166, 167): on a phone or a touch screen (touchHeight's query) the Buttons in an ActionBar (its
+ * actions and start) and in a Dialog or Drawer footer are at least 44px, and an IconButton in a bar 44px square
+ * (directly or one wrapper deep, so a field's own suffix button isn't grown), whatever the density. With a mouse from
+ * 640px they keep the density's height. Wrapping a footer's long label stays phone-only (below). */
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-actionbar__actions .aura-btn, .aura-actionbar__start .aura-btn,
+  .aura-dialog__foot > .aura-btn, .aura-dialog__foot > * > .aura-btn:only-child,
+  .aura-drawer__foot > .aura-btn, .aura-drawer__foot > * > .aura-btn:only-child { min-height: var(--aura-touch-target); }
+  .aura-actionbar__actions > .aura-icon-btn, .aura-actionbar__actions > * > .aura-icon-btn:only-child,
+  .aura-actionbar__start > .aura-icon-btn, .aura-actionbar__start > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
+}
+
 /* ---------- Dropdown ---------- */
 .aura-dropdown { display: inline-flex; }
 
@@ -1777,12 +1789,6 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
   .aura-dialog__foot > * > .aura-btn:only-child, .aura-btn.aura-btn.aura-btn--full-below-sm { width: 100%; }
   .aura-drawer__foot > * { max-width: 100%; }
-  /* 5.54 (Chamber-OS 166): the Buttons in an ActionBar (its actions and start) are at least 44px on a phone whatever
-   * the density or pointer, like a sheet's footer; from 640px they keep the density's height. */
-  .aura-actionbar__actions .aura-btn, .aura-actionbar__start .aura-btn { min-height: var(--aura-touch-target); }
-  /* (an IconButton in the bar or one wrapper deep — not a field's own suffix button) */
-  .aura-actionbar__actions > .aura-icon-btn, .aura-actionbar__actions > * > .aura-icon-btn:only-child,
-  .aura-actionbar__start > .aura-icon-btn, .aura-actionbar__start > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-drawer:not(.aura-drawer--nav) { max-width: none; }
   .aura-toaster { left: var(--aura-space-4); right: var(--aura-space-4); bottom: var(--aura-space-4); width: auto; }
   .aura-toaster.is-center { left: var(--aura-space-4); right: var(--aura-space-4); transform: none; }

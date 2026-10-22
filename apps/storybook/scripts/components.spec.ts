@@ -10035,3 +10035,59 @@ test.describe('5.54: Chamber-OS 166 — ActionBar buttons on a phone', () => {
     for (const b of await hs(page, 'bulk')) expect(b.h, b.text).toBe(32);
   });
 });
+
+test.describe('5.55: Chamber-OS 167 — bar and footer buttons follow the coarse pointer', () => {
+  const S = (n: string) => 'aura-new-in-5-55-chamber-os-167--' + n;
+  const heights = (page: Page, sel: string) =>
+    page.evaluate(
+      (sel) => [...document.querySelectorAll(sel)].map((b) => Math.round(b.getBoundingClientRect().height)),
+      sel,
+    );
+  const BAR = '[data-testid=bar] .aura-actionbar .aura-btn';
+
+  test.describe('touch screen at 1024px', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 1024, height: 768 } });
+    test('167: size="sm" Buttons in an ActionBar (children, start) and in Dialog and Drawer footers are ≥44px with no touchHeight', async ({
+      page,
+    }) => {
+      for (const [id, sel] of [
+        ['bulk-bar', BAR],
+        ['dialog-footer', '.aura-dialog__foot .aura-btn'],
+        ['drawer-footer', '.aura-drawer__foot .aura-btn'],
+      ] as const) {
+        await story(page, S(id));
+        expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches && innerWidth >= 640)).toBe(true);
+        expect(await page.locator('.aura-btn--touch').count()).toBe(0);
+        const h = await heights(page, sel);
+        expect(h.length, id).toBeGreaterThanOrEqual(2);
+        for (const x of h) expect(x, id).toBeGreaterThanOrEqual(44);
+        /* one line still: wrapping is phone-only */
+        expect(
+          await page.evaluate(
+            (sel) => [...document.querySelectorAll(sel)].every((b) => getComputedStyle(b).whiteSpace === 'nowrap'),
+            sel,
+          ),
+          id,
+        ).toBe(true);
+      }
+    });
+  });
+
+  test('167: with a mouse at 1440px the bar and footers are unchanged — size="sm" stays 32px', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const [id, sel] of [
+      ['bulk-bar', BAR],
+      ['dialog-footer', '.aura-dialog__foot .aura-btn'],
+      ['drawer-footer', '.aura-drawer__foot .aura-btn'],
+    ] as const) {
+      await story(page, S(id));
+      for (const x of await heights(page, sel)) expect(x, id).toBe(32);
+    }
+  });
+
+  test('167: below 640px with a mouse, as in 5.54 — ≥44px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, S('bulk-bar'));
+    for (const x of await heights(page, BAR)) expect(x).toBeGreaterThanOrEqual(44);
+  });
+});
