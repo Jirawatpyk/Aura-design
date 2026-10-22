@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.55.0 — 2026-10-22
+
+### Minor changes
+
+- 0cd899e: The 44px minimum for Buttons in an ActionBar and in Dialog and Drawer footers (and IconButtons in a bar) now applies on a touch screen at any width, as `touchHeight` does — `(max-width: 639.98px), (pointer: coarse)`; with a mouse from 640px nothing changes (Chamber-OS 167).
+
 ## 5.54.0 — 2026-10-21
 
 ### Minor changes
