@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.56.0
+
+### Minor Changes
+
+- 7be6e89: AppShell's menu button ("Open navigation") is 44×44 below 640px or on a coarse pointer, as an IconButton with `touchHeight`; with a mouse from 640px it keeps its size (Chamber-OS 168).
+
 ## 5.55.0
 
 ### Minor Changes
