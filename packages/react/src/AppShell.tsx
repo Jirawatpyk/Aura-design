@@ -183,6 +183,7 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(function
                 icon={<IconMenu />}
                 label={props.menuLabel || t.openNav}
                 size="md"
+                touchHeight
                 onClick={function () {
                   setOpen(true);
                 }}

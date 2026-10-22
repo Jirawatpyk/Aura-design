@@ -8474,6 +8474,7 @@ window.Aura = (() => {
             icon: /* @__PURE__ */ React48.createElement(IconMenu, null),
             label: props.menuLabel || t.openNav,
             size: "md",
+            touchHeight: true,
             onClick: function() {
               setOpen(true);
             },

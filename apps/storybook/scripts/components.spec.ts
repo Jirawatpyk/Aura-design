@@ -10091,3 +10091,45 @@ test.describe('5.55: Chamber-OS 167 — bar and footer buttons follow the coarse
     for (const x of await heights(page, BAR)) expect(x).toBeGreaterThanOrEqual(44);
   });
 });
+
+test.describe('5.56: Chamber-OS 168 — AppShell menu button is a 44px touch target', () => {
+  const ID = 'aura-new-in-5-56-chamber-os-168--menu-button';
+  const box = (page: Page, sel: string) =>
+    page.evaluate((sel) => {
+      const el = document.querySelector(sel) as HTMLElement;
+      const r = el.getBoundingClientRect();
+      return [Math.round(r.width), Math.round(r.height), getComputedStyle(el).display !== 'none'];
+    }, sel);
+
+  test('168: at 390px in compact density with a fine pointer the menu button is 44×44, as the touchHeight buttons beside it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    expect(await page.evaluate(() => matchMedia('(pointer: fine)').matches)).toBe(true);
+    expect(await page.locator('[data-density=compact]').count()).toBeGreaterThan(0);
+    expect(await box(page, '.aura-shell__menu')).toEqual([44, 44, true]);
+    expect(await box(page, '[data-testid=search]')).toEqual([44, 44, true]);
+    /* the bar keeps its height */
+    expect(Math.round(await page.locator('.aura-shell__bar').evaluate((b) => b.getBoundingClientRect().height))).toBe(
+      56,
+    );
+  });
+
+  test.describe('touch screen at 768px', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 768, height: 1024 } });
+    test('168: the menu button is 44×44', async ({ page }) => {
+      await story(page, ID);
+      expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches && innerWidth >= 640)).toBe(true);
+      expect(await box(page, '.aura-shell__menu')).toEqual([44, 44, true]);
+    });
+  });
+
+  test('168: with a mouse at 768px it keeps its 32px size; from 1024px it is hidden', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await story(page, ID);
+    expect(await box(page, '.aura-shell__menu')).toEqual([32, 32, true]);
+    await page.setViewportSize({ width: 1024, height: 900 });
+    expect((await box(page, '.aura-shell__menu'))[2]).toBe(false);
+  });
+});

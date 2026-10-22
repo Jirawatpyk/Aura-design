@@ -47,6 +47,9 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (/<button/.test(crumbs) || !/aura-crumbs__text">Renewals</.test(crumbs)) { console.log(label, 'Breadcrumb text item:', crumbs); fail++; }
     const shell = renderToString(React.createElement(A.AppShell, { mainId: 'main-content' }, 'x'));
     if (!/<main[^>]*tabindex="-1"/.test(shell)) { console.log(label, 'AppShell main tabindex:', shell); fail++; }
+    /* 5.56 (Chamber-OS 168): the menu button carries IconButton's touch class in the server HTML. */
+    const navShell = renderToString(React.createElement(A.AppShell, { header: 'Brand', nav: React.createElement(A.SideNav, { items: [{ id: 'a', label: 'A' }] }) }, 'x'));
+    if (!/class="[^"]*aura-shell__menu[^"]*"/.test(navShell) || !/class="[^"]*aura-icon-btn--touch[^"]*aura-shell__menu|class="[^"]*aura-shell__menu[^"]*aura-icon-btn--touch/.test(navShell)) { console.log(label, 'AppShell menu touch class:', navShell); fail++; }
   }
   /* 5.10.1: a Tag's remove button is named from rich children. */
   {

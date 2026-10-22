@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.56 (#168): AppShell's menu button is 44×44 at a phone width, in compact density. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-56-chamber-os-168--menu-button');
+  x = await ex(`const r = document.querySelector('.aura-shell__menu').getBoundingClientRect(); return [innerWidth < 640, Math.round(r.width), Math.round(r.height)]`);
+  check(JSON.stringify(x) === '[true,44,44]', 'AppShell menu button 44×44 below 640px', x);
+
   /* 5.54 (#166): below 640px the Buttons in an ActionBar are ≥44px with no touchHeight. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-54-chamber-os-166--bar-buttons');

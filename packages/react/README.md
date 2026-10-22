@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.56 — Chamber-OS addendum 69 (#168)
+
+- **AppShell's menu button is a 44px touch target:** the "Open navigation" button AppShell draws below 1024px is now 44×44 below 640px or on a touch screen (`(pointer: coarse)`), whatever the density — the same box as an IconButton with `touchHeight` — so it matches the 44px search and account buttons beside it. From 640px with a mouse it keeps its 32px size; from 1024px it is hidden, as before. The bar keeps its 56px height; on a phone the `header` content is 12px narrower, so a long title truncates a little sooner. No new prop.
+
 ## 5.55 — Chamber-OS addendum 68 (#167)
 
 - **Bar and footer buttons follow `touchHeight`'s query:** the 44px minimum for Buttons in an ActionBar (`children`, `start`) and in a Dialog or Drawer footer, and the 44px IconButton in a bar (not one in a footer), now apply below 640px **or on a touch screen** (`(pointer: coarse)`) at any width — the query `touchHeight` and the compact density use — so a `size="sm"` bulk-bar button on a tablet is 44px too. With a mouse from 640px nothing changes (36/32px in compact). Wrapping a footer's long label stays phone-only. Drop the `touchHeight` you kept on `size="sm"` bar and footer buttons for tablets.
