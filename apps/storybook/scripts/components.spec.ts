@@ -10270,3 +10270,34 @@ test.describe('5.57: Chamber-OS 169 — a modal opens with focus inside when its
     expect((await where(page)).id).toBe('trigger');
   });
 });
+
+test.describe('5.57: Chamber-OS 170 — a titled Alert is named by its title', () => {
+  test('170: note, alert and status Alerts are named by their title; aria-label wins; no title or role="none" has no name', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-57-chamber-os-170--named-alerts');
+    await expect(page.getByRole('note', { name: 'Personal data erased on 22 Oct 2026', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('alert', { name: 'Renewal overdue', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('status', { name: 'Saved', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('note', { name: 'Staff note', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('note', { name: 'Shown to staff' })).toHaveCount(0);
+    /* labelled by the visible title element */
+    const ref = await page.evaluate(() =>
+      [...document.querySelectorAll('.aura-alert[aria-labelledby]')].every(
+        (a) => document.getElementById(a.getAttribute('aria-labelledby')!) === a.querySelector('.aura-alert__title'),
+      ),
+    );
+    expect(ref).toBe(true);
+    for (const id of ['untitled', 'none']) {
+      const a = page.getByTestId(id);
+      expect(await a.getAttribute('aria-labelledby'), id).toBeNull();
+      expect(await a.getAttribute('aria-label'), id).toBeNull();
+    }
+    /* the focused banner is announced with its name */
+    await page.getByTestId('focus').click();
+    const focused = await page.evaluate(() => document.activeElement!.getAttribute('role'));
+    expect(focused).toBe('note');
+    const snap = await page.locator('body').ariaSnapshot();
+    expect(snap).toContain('note "Personal data erased on 22 Oct 2026"');
+  });
+});

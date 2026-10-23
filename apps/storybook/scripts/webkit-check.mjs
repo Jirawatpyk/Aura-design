@@ -233,6 +233,11 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.57 (#170): a titled Alert is labelled by its title element. */
+  await go('aura-new-in-5-57-chamber-os-170--named-alerts');
+  x = await ex(`const a = [...document.querySelectorAll('.aura-alert[aria-labelledby]')]; return [a.length, a.every((n) => document.getElementById(n.getAttribute('aria-labelledby')) === n.querySelector('.aura-alert__title'))]`);
+  check(JSON.stringify(x) === '[3,true]', 'titled Alerts labelled by their title', x);
+
   /* 5.57 (#169): a Drawer / Dialog whose only body control is in a closed <details> opens with focus inside (on the
    * summary or the panel), and Escape closes it back to the trigger. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });

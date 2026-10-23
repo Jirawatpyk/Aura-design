@@ -707,7 +707,12 @@ export interface AlertProps extends Omit<React$1.HTMLAttributes<HTMLDivElement>,
 	role?: "alert" | "status" | "note" | "none" | undefined;
 	/** Replaces the tone's icon (5.8): a name or your own element; always hidden from screen readers. */
 	icon?: IconInput | undefined;
+	/** With a `role` other than `none`, the Alert is named by its title (5.57, Chamber-OS 170: `aria-labelledby`), unless
+	 * you pass `aria-label` or `aria-labelledby`. */
 	title?: React$1.ReactNode | undefined;
+	/** id for the title element (default: generated, or `id` + `-title`). The server entry has no generated ids: pass
+	 * `id` or `titleId` there for a title that isn't plain text. */
+	titleId?: string | undefined;
 	children?: React$1.ReactNode | undefined;
 	/** Usually a secondary Button. */
 	action?: React$1.ReactNode | undefined;

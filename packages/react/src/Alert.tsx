@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { IconButton } from './IconButton.js';
 import { alertElement } from './display.js';
+import { uid } from './internal.js';
 import { useStrings } from './locale.js';
 import type { AlertProps } from './types.js';
 import { IconX } from './icons.js';
@@ -10,11 +11,13 @@ export { ALERT_ICON } from './display.js';
 /* The markup lives in display.tsx (5.8), shared with the server entry's Alert; this adds the dismiss button. */
 export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   const t = useStrings();
+  const autoId = uid(); /* 5.57: names a titled Alert (aria-labelledby) */
   return alertElement(
     props,
     ref,
     props.onDismiss ? (
       <IconButton icon={<IconX />} label={t.dismiss} className="aura-alert__close" onClick={props.onDismiss} />
     ) : null,
+    autoId,
   );
 });

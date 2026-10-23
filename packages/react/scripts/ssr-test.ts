@@ -754,13 +754,35 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (!/aria-labelledby="outer"/.test(m(e(A.Card, cases[1]![1])))) { console.log(label, 'Card keeps a caller aria-labelledby without a title'); fail++; }
     if (!/data-state="decided"/.test(pill) || !/data-outcome="approved"/.test(pill)) { console.log(label, 'StatusPill attributes:', pill); fail++; }
     if (!/role="status"/.test(alert) || !/data-testid="a"/.test(alert) || !/id="n1"/.test(alert)) { console.log(label, 'Alert role/attributes:', alert); fail++; }
+    /* 5.57 (Chamber-OS 170): a titled Alert with a role is named by its title; the app's aria-label wins; no title or
+     * role "none", no name. Client: a generated id when there is no id; server: id + '-title', else aria-label. */
+    for (const [who, C] of [['root', A], ['server', S]] as const) {
+      const r = (p: Record<string, unknown>) => m(e(C.Alert as React.ComponentType<any>, p));
+      const byId = r({ role: 'note', title: 'T', id: 'n2', children: 'b' });
+      if (!/aria-labelledby="n2-title"/.test(byId) || !/<p class="aura-alert__title" id="n2-title">T<\/p>/.test(byId)) { console.log(label, who, 'Alert named by its title (id):', byId); fail++; }
+      for (const role of ['alert', 'status', 'note']) {
+        const x = r({ role, title: 'T', children: 'b' });
+        const lb = /aria-labelledby="([^"]+)"/.exec(x), tid = /class="aura-alert__title" id="([^"]+)"/.exec(x);
+        const ok = who === 'root' ? !!lb && !!tid && lb[1] === tid[1] && !/aria-label=/.test(x) : /aria-label="T"/.test(x) && !lb;
+        if (!ok) { console.log(label, who, 'Alert role=' + role + ' name:', x); fail++; }
+      }
+      const none = [r({ role: 'note', children: 'b' }), r({ role: 'none', title: 'T' })].concat(who === 'server' ? [r({ title: e('strong', null, 'Rich') })] : []);
+      for (const x of none) if (/aria-labelledby|aria-label=/.test(x)) { console.log(label, who, 'Alert should have no name:', x); fail++; }
+      const own = r({ role: 'note', title: 'T', 'aria-label': 'Mine', id: 'n3' });
+      if (!/aria-label="Mine"/.test(own) || /aria-labelledby/.test(own)) { console.log(label, who, 'Alert aria-label wins:', own); fail++; }
+      const tid = r({ role: 'note', title: 'T', id: 'n4', titleId: 'my-t' });
+      if (!/aria-labelledby="my-t"/.test(tid) || !/class="aura-alert__title" id="my-t"/.test(tid)) { console.log(label, who, 'Alert titleId wins over id:', tid); fail++; }
+      if (/aura-alert__title" id=/.test(r({ role: 'none', title: 'T', id: 'n5' })) || /aura-alert__title" id=/.test(r({ title: 'T', id: 'n6', 'aria-label': 'X' }))) { console.log(label, who, 'Alert title gets an id only when it names the Alert'); fail++; }
+      const ownBy = r({ role: 'note', title: 'T', 'aria-labelledby': 'h1' });
+      if (!/aria-labelledby="h1"/.test(ownBy)) { console.log(label, who, 'Alert aria-labelledby wins:', ownBy); fail++; }
+    }
     const clock = m(e(A.Icon, { name: 'clock' })), withIcon = m(e(A.Alert, { tone: 'danger', icon: 'clock' }));
     if (withIcon.indexOf(clock.replace('<svg ', '<svg ').slice(0, 20)) < 0 || !/aria-hidden="true"/.test(withIcon)) { console.log(label, 'Alert icon:', withIcon); fail++; }
     const custom = m(e(A.Alert, { icon: e('svg', { 'data-mine': '1' }) }));
     if (!/data-mine="1"/.test(custom) || !/aura-icon--custom[^>]*aria-hidden="true"/.test(custom)) { console.log(label, 'Alert custom icon element:', custom); fail++; }
-    /* With none of the new props, the output is what 5.7.3 gave. */
+    /* With none of the new props, the output is what 5.7.3 gave — plus (5.57) the title naming the Alert. */
     const plain = m(e(A.Alert, { tone: 'danger', title: 'T', children: 'x' }));
-    if (!/^<div class="aura-alert aura-alert--danger" role="alert"><svg/.test(plain)) { console.log(label, 'Alert default markup:', plain); fail++; }
+    if (!/^<div class="aura-alert aura-alert--danger" role="alert" aria-labelledby="[^"]+"><svg/.test(plain)) { console.log(label, 'Alert default markup:', plain); fail++; }
     /* 67: labels from THead (fragments opened, aria-hidden parts skipped, colSpan counted); Td label wins; a nested
      * plain table takes no labels or roles. */
     const tbl = m(

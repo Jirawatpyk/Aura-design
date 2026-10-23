@@ -19,7 +19,8 @@ export type { ISODate, StatusTone, Theme, ThemeCheck, ThemeOptions } from './typ
 
 /* 5.8 (Chamber-OS 68): stateless display components a Server Component can render without turning into a client
  * reference — the same HTML as the root components for the same props. Alert has no `onDismiss` here (a close button
- * needs the client); Button is `buttonClass()` on your own link. They import React (as any component does) but no
+ * needs the client), and (5.57) a titled Alert with no `id` or `titleId` is named by `aria-label` rather than a
+ * generated id; Button is `buttonClass()` on your own link. They import React (as any component does) but no
  * hooks or context. */
 export {
   ServerAlert as Alert,

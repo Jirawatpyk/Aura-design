@@ -651,19 +651,35 @@ window.Aura = (() => {
     warning: IconTriangleAlert,
     danger: IconCircleAlert
   };
-  function alertElement(props, ref, close) {
+  function alertElement(props, ref, close, autoId) {
     const tone2 = props.tone || "info";
-    const rest = omit(props, ["tone", "title", "children", "action", "onDismiss", "className", "role", "icon"]);
+    const rest = omit(props, [
+      "tone",
+      "title",
+      "titleId",
+      "children",
+      "action",
+      "onDismiss",
+      "className",
+      "role",
+      "icon"
+    ]);
+    const role = props.role || (tone2 === "danger" || tone2 === "warning" ? "alert" : "status");
+    const titled = !!props.title && role !== "none" && !props["aria-label"] && !props["aria-labelledby"];
+    const titleId = props.titleId || (props.id ? props.id + "-title" : autoId);
+    const text2 = typeof props.title === "string" || typeof props.title === "number" ? String(props.title) : void 0;
     return /* @__PURE__ */ React4.createElement(
       "div",
       {
         ...rest,
         ref,
         className: cx("aura-alert", "aura-alert--" + tone2, props.className),
-        role: props.role || (tone2 === "danger" || tone2 === "warning" ? "alert" : "status")
+        role,
+        "aria-labelledby": titled && titleId ? titleId : props["aria-labelledby"],
+        "aria-label": titled && !titleId && text2 ? text2 : props["aria-label"]
       },
       /* @__PURE__ */ React4.createElement(Icon, { name: props.icon || h2(ALERT_ICON[tone2]), className: "aura-alert__icon" }),
-      /* @__PURE__ */ React4.createElement("div", { className: "aura-alert__body" }, props.title ? /* @__PURE__ */ React4.createElement("p", { className: "aura-alert__title" }, props.title) : null, props.children ? /* @__PURE__ */ React4.createElement("div", { className: "aura-alert__text" }, props.children) : null, props.action ? /* @__PURE__ */ React4.createElement("div", { className: "aura-alert__action" }, props.action) : null),
+      /* @__PURE__ */ React4.createElement("div", { className: "aura-alert__body" }, props.title ? /* @__PURE__ */ React4.createElement("p", { className: "aura-alert__title", id: titled ? titleId : void 0 }, props.title) : null, props.children ? /* @__PURE__ */ React4.createElement("div", { className: "aura-alert__text" }, props.children) : null, props.action ? /* @__PURE__ */ React4.createElement("div", { className: "aura-alert__action" }, props.action) : null),
       close
     );
   }
@@ -4335,10 +4351,12 @@ window.Aura = (() => {
   var React23 = __toESM(require_react(), 1);
   var Alert = React23.forwardRef(function Alert2(props, ref) {
     const t = useStrings();
+    const autoId = uid();
     return alertElement(
       props,
       ref,
-      props.onDismiss ? /* @__PURE__ */ React23.createElement(IconButton, { icon: /* @__PURE__ */ React23.createElement(IconX, null), label: t.dismiss, className: "aura-alert__close", onClick: props.onDismiss }) : null
+      props.onDismiss ? /* @__PURE__ */ React23.createElement(IconButton, { icon: /* @__PURE__ */ React23.createElement(IconX, null), label: t.dismiss, className: "aura-alert__close", onClick: props.onDismiss }) : null,
+      autoId
     );
   });
 

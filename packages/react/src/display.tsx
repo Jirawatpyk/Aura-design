@@ -46,19 +46,44 @@ export function alertElement(
   props: AlertProps,
   ref: React.Ref<HTMLDivElement> | undefined,
   close: React.ReactNode,
+  autoId?: string,
 ): React.ReactElement {
   const tone = props.tone || 'info';
-  const rest = omit(props, ['tone', 'title', 'children', 'action', 'onDismiss', 'className', 'role', 'icon']);
+  const rest = omit(props, [
+    'tone',
+    'title',
+    'titleId',
+    'children',
+    'action',
+    'onDismiss',
+    'className',
+    'role',
+    'icon',
+  ]);
+  const role = props.role || (tone === 'danger' || tone === 'warning' ? 'alert' : 'status');
+  /* 5.57 (Chamber-OS 170): a titled Alert with a role is named by its title, so a screen reader can say which notice
+   * it is (a focused banner, a list of landmarks and notes). The app's own aria-label / aria-labelledby wins. The
+   * client Alert passes a generated id; the server one uses titleId or id + '-title', and for a plain-text title with
+   * neither, aria-label. */
+  const titled = !!props.title && role !== 'none' && !props['aria-label'] && !props['aria-labelledby'];
+  const titleId = props.titleId || (props.id ? props.id + '-title' : autoId);
+  const text = typeof props.title === 'string' || typeof props.title === 'number' ? String(props.title) : undefined;
   return (
     <div
       {...rest}
       ref={ref}
       className={cx('aura-alert', 'aura-alert--' + tone, props.className)}
-      role={props.role || (tone === 'danger' || tone === 'warning' ? 'alert' : 'status')}
+      role={role}
+      aria-labelledby={titled && titleId ? titleId : props['aria-labelledby']}
+      aria-label={titled && !titleId && text ? text : props['aria-label']}
     >
       <Icon name={props.icon || h(ALERT_ICON[tone])} className="aura-alert__icon" />
       <div className="aura-alert__body">
-        {props.title ? <p className="aura-alert__title">{props.title}</p> : null}
+        {props.title ? (
+          <p className="aura-alert__title" id={titled ? titleId : undefined}>
+            {props.title}
+          </p>
+        ) : null}
         {props.children ? <div className="aura-alert__text">{props.children}</div> : null}
         {props.action ? <div className="aura-alert__action">{props.action}</div> : null}
       </div>
