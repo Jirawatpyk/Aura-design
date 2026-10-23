@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.57.0 — 2026-10-23
+
+### Minor changes
+
+- 2a02e92: A titled Alert with a role is named by its title (`aria-labelledby`, new `titleId`); a passed `aria-label` or `aria-labelledby` wins, and the `/server` Alert uses `id` + `-title` or `aria-label` (Chamber-OS 170).
+- aacd28c: Dialog, Drawer and Command always open with focus inside: a control in a closed `<details>` is skipped (its `<summary>` counts), focus is checked after each try with the panel as the last resort, and the Tab trap never wraps to a hidden control (Chamber-OS 169).
+
 ## 5.56.0 — 2026-10-22
 
 ### Minor changes
