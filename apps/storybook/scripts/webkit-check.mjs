@@ -233,6 +233,15 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.60 (#173): with a mouse, an icon link truncates inside its parent with a 4px gap; a stretched link starts at its box. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await go('aura-new-in-5-60-chamber-os-173--layouts');
+  x = await ex(`const box = document.querySelector('[data-testid=site]'), a = box.querySelector('a'), s = a.querySelector('span'), i = a.querySelector('svg');
+    const c = document.querySelector('[data-testid=column] a'), r = document.createRange(); r.selectNodeContents(c);
+    const d = document.querySelector('[data-testid=details]'), sm = d.querySelector('summary');
+    return [s.scrollWidth > s.clientWidth, a.getBoundingClientRect().right <= box.getBoundingClientRect().right + 0.5, Math.round(i.getBoundingClientRect().left - s.getBoundingClientRect().right), Math.round(r.getBoundingClientRect().left - c.getBoundingClientRect().left), document.documentElement.scrollWidth <= document.documentElement.clientWidth, sm.getBoundingClientRect().width < d.getBoundingClientRect().width]`);
+  check(JSON.stringify(x) === '[true,true,4,0,true,true]', 'linkClass layout with a mouse: truncates, 4px icon gap, label at the start, no sideways scroll', x);
+
   /* 5.59 (#172): linkClass touchHeight — a short text link is ≥44×44 at a phone width, still underlined. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-59-chamber-os-172--text-links');

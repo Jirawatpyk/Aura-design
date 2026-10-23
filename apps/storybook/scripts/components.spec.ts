@@ -10412,11 +10412,26 @@ test.describe('5.59: Chamber-OS 172 — linkClass, a text link with the touch ru
     expect(short.look).toContain('rgba(0, 0, 0, 0)|0px|0px|0px');
   });
 
-  test('172: with a mouse at 1440px the touch links are the plain links’ size', async ({ page }) => {
+  test('172: with a mouse at 1440px the touch links are the plain links’ width and look, and their row keeps its height', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await story(page, ID);
-    expect(await box(page, 'long')).toEqual(await box(page, 'long-plain'));
-    expect(await box(page, 'short')).toEqual(await box(page, 'short-plain'));
+    for (const [t, p] of [
+      ['long', 'long-plain'],
+      ['short', 'short-plain'],
+    ]) {
+      const a = await box(page, t),
+        b = await box(page, p);
+      expect(a.w, t).toBe(b.w);
+      expect(a.look, t).toBe(b.look);
+    }
+    const rows = await page.evaluate(() =>
+      ['touch', 'plain'].map((id) =>
+        Math.round(document.querySelector(`[data-testid=${id}]`)!.getBoundingClientRect().height),
+      ),
+    );
+    expect(rows[0]).toBe(rows[1]);
   });
 
   test('172: a <button> with linkClass looks like the <a> — at rest, on hover and on keyboard focus; no button chrome', async ({
@@ -10524,10 +10539,14 @@ test.describe('5.59: Chamber-OS 172 — linkClass, a text link with the touch ru
     const k = (id: string) =>
       page.getByTestId(id).evaluate((el) => {
         const s = getComputedStyle(el),
-          r = el.getBoundingClientRect();
+          r = el.getBoundingClientRect(),
+          range = document.createRange();
+        range.selectNodeContents(el);
+        /* the drawn text (5.60: the <button> form is inline-flex, so its box is the line height tall) */
+        const t = range.getBoundingClientRect();
         return [
           Math.round(r.width),
-          Math.round(r.height),
+          Math.round(t.height),
           s.textTransform,
           s.wordSpacing,
           s.textIndent,
@@ -10570,5 +10589,156 @@ test.describe('5.59: Chamber-OS 172 — linkClass, a text link with the touch ru
       expect(short.h).toBeGreaterThanOrEqual(44);
       expect(long.h).toBeGreaterThanOrEqual(44);
     });
+  });
+});
+
+test.describe('5.60: Chamber-OS 173 — linkClass lays a link out at every width', () => {
+  const ID = 'aura-new-in-5-60-chamber-os-173--layouts';
+
+  test('173: with a mouse at 1280px an icon link truncates inside its parent with a gap before the icon; the page does not scroll sideways', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    for (const id of ['site', 'site-row']) {
+      const m = await page.getByTestId(id).evaluate((box) => {
+        const a = box.querySelector('a')!,
+          span = a.querySelector('span')!,
+          icon = a.querySelector('svg')!;
+        const b = box.getBoundingClientRect(),
+          ar = a.getBoundingClientRect(),
+          sr = span.getBoundingClientRect(),
+          ir = icon.getBoundingClientRect();
+        return {
+          flex: /flex/.test(getComputedStyle(a).display),
+          truncates: span.scrollWidth > span.clientWidth,
+          inside: ar.right <= b.right + 0.5,
+          gap: Math.round(ir.left - sr.right),
+          middle: Math.abs(ir.top + ir.height / 2 - (sr.top + sr.height / 2)) <= 1,
+        };
+      });
+      expect(m, id).toEqual({ flex: true, truncates: true, inside: true, gap: 4, middle: true });
+    }
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+    ).toBe(true);
+  });
+
+  test('173: with a mouse, a <button> with an icon has the gap and the icon on the text’s centre line', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const m = await page.getByTestId('create').evaluate((b) => {
+      const icon = b.querySelector('svg')!.getBoundingClientRect(),
+        range = document.createRange();
+      range.setStartAfter(b.querySelector('svg')!);
+      range.setEnd(b, b.childNodes.length);
+      const t = range.getBoundingClientRect();
+      return [
+        getComputedStyle(b).display,
+        Math.round(t.left - icon.right),
+        Math.abs(icon.top + icon.height / 2 - (t.top + t.height / 2)) <= 1,
+      ];
+    });
+    expect(m).toEqual(['inline-flex', 4, true]);
+  });
+
+  for (const [label, use] of [
+    ['390px with a mouse', { viewport: { width: 390, height: 844 } }],
+    ['1024px touch', { hasTouch: true, isMobile: true, viewport: { width: 1024, height: 768 } }],
+  ] as const) {
+    test.describe(label, () => {
+      test.use(use);
+      test(`173 (${label}): a link stretched by a flex column starts its label at the box’s start; the summary hugs its content`, async ({
+        page,
+      }) => {
+        await story(page, ID);
+        const col = await page.getByTestId('column').evaluate((c) => {
+          const a = c.querySelector('a')!,
+            r = a.getBoundingClientRect(),
+            range = document.createRange();
+          range.selectNodeContents(a);
+          return [
+            Math.round(r.width) === Math.round(c.getBoundingClientRect().width),
+            Math.round(range.getBoundingClientRect().left - r.left),
+            Math.round(r.height) >= 44,
+          ];
+        });
+        expect(col).toEqual([true, 0, true]);
+        const sum = await page.getByTestId('details').evaluate((d) => {
+          const s = d.querySelector('summary')!;
+          return [
+            Math.round(s.getBoundingClientRect().width) < Math.round(d.getBoundingClientRect().width),
+            Math.round(s.getBoundingClientRect().height) >= 44,
+          ];
+        });
+        expect(sum).toEqual([true, true]);
+      });
+    });
+  }
+
+  test('173: with a mouse the summary is as wide as its content, its focus ring hugs it; a type class on the link applies; a plain link stays inline', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const sum = await page.getByTestId('details').evaluate((d) => {
+      const s = d.querySelector('summary')!;
+      return [getComputedStyle(s).display, Math.round(s.getBoundingClientRect().width) < 200];
+    });
+    expect(sum).toEqual(['inline-flex', true]);
+    await page.keyboard.press('Tab');
+    await page.locator('[data-testid=details] summary').focus();
+    expect(await page.locator('[data-testid=details] summary').evaluate((s) => getComputedStyle(s).outlineStyle)).toBe(
+      'solid',
+    );
+    expect(
+      await page.getByTestId('typed').evaluate((a) => [getComputedStyle(a).fontSize, getComputedStyle(a).fontWeight]),
+    ).toEqual(['13px', '500']);
+    expect(await page.getByTestId('plain').evaluate((a) => getComputedStyle(a).display)).toBe('inline');
+    /* an app's own spacing and weight classes on the <button> form win over the reset */
+    expect(
+      await page.getByTestId('spaced').evaluate((b) => {
+        const st = getComputedStyle(b);
+        return [st.marginTop, st.paddingLeft, st.fontWeight];
+      }),
+    ).toEqual(['24px', '8px', '700']);
+    /* an app's own display class wins over the layout */
+    expect(await page.getByTestId('hidden').evaluate((b) => getComputedStyle(b).display)).toBe('none');
+    /* a leading icon: the button's text sits on the line's text */
+    const shift = await page.getByTestId('row').evaluate((p) => {
+      const b = p.querySelector('button')!,
+        r1 = document.createRange(),
+        r2 = document.createRange();
+      r1.setStartAfter(b.querySelector('svg')!);
+      r1.setEnd(b, b.childNodes.length);
+      r2.setStart(p.firstChild!, 0);
+      r2.setEnd(p.firstChild!, 6);
+      return Math.abs(Math.round(r1.getBoundingClientRect().bottom - r2.getBoundingClientRect().bottom));
+    });
+    expect(shift).toBeLessThanOrEqual(2); /* 2–4px off with the icon as the baseline */
+    /* the same at a body line height, for a leading icon on a <button> and a trailing one on a touch <a> */
+    const tall = await page.getByTestId('row-tall').evaluate((p) => {
+      const ref = document.createRange();
+      ref.setStart(p.firstChild!, 0);
+      ref.setEnd(p.firstChild!, 6);
+      const base = ref.getBoundingClientRect().bottom;
+      return [...p.querySelectorAll('button, a')].map((el) => {
+        const r = document.createRange();
+        const t = [...el.childNodes].find((n) => n.nodeType === 3 && n.textContent!.trim())!;
+        r.selectNodeContents(t);
+        return Math.abs(Math.round(r.getBoundingClientRect().bottom - base));
+      });
+    });
+    for (const x of tall) expect(x).toBeLessThanOrEqual(2);
+    /* an element reset (summary { display: list-item }) doesn't undo the layout */
+    expect(await page.locator('[data-testid=details-reset] summary').evaluate((x) => getComputedStyle(x).display)).toBe(
+      'inline-flex',
+    );
+    /* a link in a sentence still wraps across lines */
+    expect(await page.locator('[data-testid=sentence] a').evaluate((a) => a.getClientRects().length)).toBeGreaterThan(
+      1,
+    );
   });
 });

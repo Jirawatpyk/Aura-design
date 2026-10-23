@@ -1950,8 +1950,10 @@ export declare function buttonClass(opts?: {
  * `<a>` or `<Link>`, also in a Server Component: `<Link href={url} className={linkClass({ touchHeight: true })}>`.
  * `tone`: `accent` (default) or `inherit` (the surrounding colour). `underline`: `always` (default) or `hover`.
  * `touchHeight`: at least 44×44 below 640px or on a coarse pointer (`true`) or at every width (`'always'`), the label
- * centred and its look unchanged — for a link on its own line, not mid-sentence. On a `<button>` (an action that
- * opens something) the button's chrome is reset, so it looks like the link; hover and Button's focus ring included. */
+ * at the start and its look unchanged — for a link on its own line, not mid-sentence. 5.60: with `touchHeight` (and
+ * on a `<button>` or `<summary>`) it is `inline-flex` at every width — a 4px gap before an icon, `min-width: 0` so a
+ * truncating child ends in an ellipsis. On a `<button>` (an action that opens something) the button's chrome is
+ * reset, so it looks like the link; put a type class on a child there. Hover and Button's focus ring included. */
 export declare function linkClass(opts?: {
 	tone?: "accent" | "inherit" | undefined;
 	underline?: "always" | "hover" | undefined;

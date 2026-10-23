@@ -1101,19 +1101,37 @@ a.aura-tab { text-decoration: none; }
   .aura-actionbar__start > .aura-icon-btn, .aura-actionbar__start > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
 }
 
-/* ---------- Text link (5.59, Chamber-OS 172) ---------- */
-/* linkClass(): a link that reads as text — on an <a> or a <button> alike (a button's chrome is reset: no fill, border
- * or padding, the surrounding font and line height, a pointer). accent (default) or inherit colour; underlined, or
- * only on hover; hover thickens an underline that is always there. Focus is Button's ring. With touchHeight it is at
- * least 44×44 below 640px or on a coarse pointer (or always), the text unchanged — the box grows around the label,
- * centred. For a link on its own line (a row title, "+ Create new event"), not mid-sentence. */
+/* ---------- Text link (5.59, Chamber-OS 172; 5.60, 173) ---------- */
+/* linkClass(): a link that reads as text. accent (default) or inherit colour; underlined, or only on hover; hover
+ * thickens an underline that is always there. Focus is Button's ring.
+ * 5.60 (Chamber-OS 173): a link with touchHeight — and any <button> or <summary> with the class — is laid out at every
+ * width, not only under the touch query: inline-flex, centred vertically, a 4px gap before an icon, label at the start,
+ * and min-width 0 / max-width 100% so a truncating child ends in an ellipsis inside its parent. Under the touch query
+ * (or always) it is at least 44×44; a box stretched by its parent keeps its label at the start. A plain <a> without
+ * touchHeight stays inline, so it can wrap in a sentence. The type of an <a> is its own (a type class such as
+ * aura-text-label on it applies); a <button> takes the surrounding font — put a type class on a child there. */
 .aura-link {
+  color: var(--aura-fg-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;
+  border-radius: var(--aura-radius-xs); cursor: pointer;
+}
+/* the <button> form: its chrome reset so it looks like the <a>. One class strong (0,1,0), so an app's own margin,
+ * padding or font class on the button wins when it comes later. */
+.aura-link:where(button) {
   -webkit-appearance: none; appearance: none; margin: 0; padding: 0; border: 0; background: none;
   font: inherit; line-height: inherit; letter-spacing: inherit; word-spacing: inherit; text-align: inherit;
-  text-transform: inherit; text-indent: inherit; text-shadow: inherit; cursor: pointer;
-  color: var(--aura-fg-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;
-  border-radius: var(--aura-radius-xs);
+  text-transform: inherit; text-indent: inherit; text-shadow: inherit;
 }
+/* One class's worth of specificity (0,1,0): it beats an element reset (summary { display: list-item }) and ties with
+ * an app's own class (hidden, block), which wins when it comes later or in a later layer. */
+.aura-link:where(.aura-link--touch, .aura-link--touch-always, button, summary) {
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: var(--aura-space-1);
+  min-width: 0; max-width: 100%;
+}
+/* A leading icon would give the box its baseline (the icon's bottom); centre the box on the line instead (about 1px
+ * either way at any line height). */
+.aura-link:where(.aura-link--touch, .aura-link--touch-always, button, summary):has(> svg:first-child) { vertical-align: middle; }
+summary.aura-link { list-style: none; }
+summary.aura-link::-webkit-details-marker { display: none; }
 .aura-link:hover { text-decoration-thickness: 2px; }
 .aura-link--inherit { color: inherit; }
 .aura-link--hover-underline { text-decoration: none; }
@@ -1126,9 +1144,9 @@ a.aura-tab { text-decoration: none; }
   .aura-link { color: LinkText; }
   .aura-link:is(:disabled, [aria-disabled="true"]) { color: GrayText; }
 }
-.aura-link.aura-link--touch-always { display: inline-flex; align-items: center; justify-content: center; min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
+.aura-link.aura-link--touch-always { min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
 @media (max-width: 639.98px), (pointer: coarse) {
-  .aura-link.aura-link--touch { display: inline-flex; align-items: center; justify-content: center; min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
+  .aura-link.aura-link--touch { min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
 }
 /* In a DataTable grid cell the row is the target and the cell clips with an ellipsis: the link stays inline there.
  * In DataTable's stacked cards nothing clips, so the 44px target comes back (container query: right before hydration). */
