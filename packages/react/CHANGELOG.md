@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.58.0
+
+### Minor Changes
+
+- a704e16: With `touchHeight`, tabs are at least 44px wide (label centred) below 640px or on a coarse pointer, so a short label is a 44×44 target; longer tabs and the gap are unchanged (Chamber-OS 171).
+
 ## 5.57.0
 
 ### Minor Changes
