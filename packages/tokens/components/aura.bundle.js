@@ -134,6 +134,7 @@ window.Aura = (() => {
     formatBytes: () => formatBytes,
     formatDate: () => formatDate,
     iconNames: () => iconNames,
+    linkClass: () => linkClass,
     parseDate: () => parseDate,
     parseTime: () => parseTime,
     registerIcons: () => registerIcons,
@@ -880,6 +881,15 @@ window.Aura = (() => {
       (opts.fullWidth === "below-sm" || opts.fullWidth === "below-md") && "aura-btn--full-" + opts.fullWidth,
       opts.touchHeight && "aura-btn--touch",
       opts.loading && "is-loading",
+      opts.className
+    );
+  }
+  function linkClass(opts = {}) {
+    return cx(
+      "aura-link",
+      opts.tone === "inherit" && "aura-link--inherit",
+      opts.underline === "hover" && "aura-link--hover-underline",
+      opts.touchHeight === "always" ? "aura-link--touch-always" : opts.touchHeight && "aura-link--touch",
       opts.className
     );
   }

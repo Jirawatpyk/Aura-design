@@ -10368,3 +10368,207 @@ test.describe('5.58: Chamber-OS 171 — a short touchHeight tab is a 44×44 targ
     });
   });
 });
+
+test.describe('5.59: Chamber-OS 172 — linkClass, a text link with the touch rule', () => {
+  const ID = 'aura-new-in-5-59-chamber-os-172--text-links';
+  const box = (page: Page, id: string) =>
+    page.getByTestId(id).evaluate((a) => {
+      const r = a.getBoundingClientRect(),
+        s = getComputedStyle(a);
+      return {
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+        look: [
+          s.color,
+          s.fontSize,
+          s.fontWeight,
+          s.lineHeight,
+          s.textDecorationLine,
+          s.backgroundColor,
+          s.borderTopWidth,
+          s.paddingLeft,
+          s.paddingTop,
+        ].join('|'),
+      };
+    });
+
+  test('172: at 390px with a mouse, the touch links are ≥44px tall (short one 44×44) and look like the plain ones', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const long = await box(page, 'long'),
+      short = await box(page, 'short');
+    const longP = await box(page, 'long-plain'),
+      shortP = await box(page, 'short-plain');
+    expect(long.h).toBeGreaterThanOrEqual(44);
+    expect(long.w).toBe(longP.w);
+    expect(short.w).toBeGreaterThanOrEqual(44);
+    expect(short.h).toBeGreaterThanOrEqual(44);
+    expect(shortP.w).toBeLessThan(44);
+    expect(long.look).toBe(longP.look);
+    expect(short.look).toBe(shortP.look);
+    expect(short.look).toContain('underline');
+    expect(short.look).toContain('rgba(0, 0, 0, 0)|0px|0px|0px');
+  });
+
+  test('172: with a mouse at 1440px the touch links are the plain links’ size', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await story(page, ID);
+    expect(await box(page, 'long')).toEqual(await box(page, 'long-plain'));
+    expect(await box(page, 'short')).toEqual(await box(page, 'short-plain'));
+  });
+
+  test('172: a <button> with linkClass looks like the <a> — at rest, on hover and on keyboard focus; no button chrome', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const look = (id: string) =>
+      page.getByTestId(id).evaluate((el) => {
+        const s = getComputedStyle(el),
+          r = el.getBoundingClientRect();
+        return [
+          Math.round(r.width),
+          Math.round(r.height),
+          s.color,
+          s.font,
+          s.lineHeight,
+          s.letterSpacing,
+          s.textDecorationLine,
+          s.textDecorationThickness,
+          s.backgroundColor,
+          s.backgroundImage,
+          s.borderTopWidth,
+          s.borderTopStyle,
+          s.padding,
+          s.cursor,
+          s.outlineStyle,
+          s.outlineWidth,
+          s.outlineColor,
+          s.outlineOffset,
+          s.boxShadow,
+        ].join('|');
+      });
+    const rest = await look('btn');
+    expect(rest).toBe(await look('btn-a'));
+    /* no chrome: transparent, no border, no padding, the accent colour */
+    const accent = await page.evaluate(() => {
+      const p = document.createElement('span');
+      p.style.color = 'var(--aura-fg-accent)';
+      document.body.appendChild(p);
+      const c = getComputedStyle(p).color;
+      p.remove();
+      return c;
+    });
+    expect(rest).toContain('|' + accent + '|');
+    expect(rest).toContain('rgba(0, 0, 0, 0)|none|0px|none|0px');
+    /* hover */
+    await page.getByTestId('btn').hover();
+    const hoverBtn = await look('btn');
+    await page.getByTestId('btn-a').hover();
+    const hoverA = await look('btn-a');
+    expect(hoverBtn).toBe(hoverA);
+    expect(hoverBtn).not.toBe(rest);
+    /* keyboard focus: Button's ring */
+    await page.mouse.move(0, 0);
+    await page.keyboard.press('Tab');
+    await page.getByTestId('btn').focus();
+    const focusBtn = await look('btn');
+    await page.getByTestId('btn-a').focus();
+    const focusA = await look('btn-a');
+    expect(focusBtn).toBe(focusA);
+    expect(focusBtn).toMatch(/\|solid\|2px\|/);
+  });
+
+  test('172: the button form in dark mode is --aura-fg-accent too', async ({ page }) => {
+    await story(page, ID, 'dark');
+    const [btn, a] = await Promise.all(
+      ['btn', 'btn-a'].map((id) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).color)),
+    );
+    const accent = await page.getByTestId('btn').evaluate((el) => {
+      const p = document.createElement('span');
+      p.style.color = 'var(--aura-fg-accent)';
+      el.parentElement!.appendChild(p);
+      const c = getComputedStyle(p).color;
+      p.remove();
+      return c;
+    });
+    expect(btn).toBe(a);
+    expect(btn).toBe(accent);
+  });
+
+  test('172: forced colours — the button and the <a> both read as a link (LinkText)', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await story(page, ID);
+    const linkText = await page.evaluate(() => {
+      const p = document.createElement('span');
+      p.style.color = 'LinkText';
+      document.body.appendChild(p);
+      const c = getComputedStyle(p).color;
+      p.remove();
+      return c;
+    });
+    expect(await page.getByTestId('btn').evaluate((el) => getComputedStyle(el).color)).toBe(linkText);
+    const [btn, a] = await Promise.all(
+      ['btn', 'btn-a'].map((id) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).color)),
+    );
+    expect(btn).toBe(a);
+  });
+
+  test('172: without touchHeight, under an uppercase parent, a <button> and an <a> still match; in a DataTable cell the link stays inline with its ellipsis', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const k = (id: string) =>
+      page.getByTestId(id).evaluate((el) => {
+        const s = getComputedStyle(el),
+          r = el.getBoundingClientRect();
+        return [
+          Math.round(r.width),
+          Math.round(r.height),
+          s.textTransform,
+          s.wordSpacing,
+          s.textIndent,
+          s.color,
+          s.font,
+        ].join('|');
+      });
+    expect(await k('btn-plain')).toBe(await k('btn-a-plain'));
+    const cell = await page.getByTestId('cell').evaluate((td) => {
+      const a = td.querySelector('a')!;
+      return [
+        getComputedStyle(a).display,
+        Math.round(a.getBoundingClientRect().height) <= 40,
+        td.scrollWidth > td.clientWidth,
+      ];
+    });
+    expect(cell).toEqual(['inline', true, true]);
+  });
+
+  test('172: in a stacked DataTable (cards) the title link keeps its 44×44 target', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const links = await page.locator('[data-testid=cards] .aura-link').evaluateAll((as) =>
+      as.map((a) => {
+        const r = a.getBoundingClientRect();
+        return [getComputedStyle(a).display, Math.round(r.width) >= 44, Math.round(r.height) >= 44];
+      }),
+    );
+    expect(links.length).toBe(2);
+    for (const l of links) expect(l).toEqual(['inline-flex', true, true]);
+  });
+
+  test.describe('touch screen at 1024px', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 1024, height: 768 } });
+    test('172: the same 44px target on a coarse pointer', async ({ page }) => {
+      await story(page, ID);
+      const short = await box(page, 'short'),
+        long = await box(page, 'long');
+      expect(short.w).toBeGreaterThanOrEqual(44);
+      expect(short.h).toBeGreaterThanOrEqual(44);
+      expect(long.h).toBeGreaterThanOrEqual(44);
+    });
+  });
+});

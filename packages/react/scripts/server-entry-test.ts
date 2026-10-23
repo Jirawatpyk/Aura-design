@@ -150,6 +150,10 @@ for (const [name, A] of [
     /* 5.53 (Chamber-OS 165): full width on phones only. */
     if (A.buttonClass({ fullWidth: 'below-sm' }) !== 'aura-btn aura-btn--primary aura-btn--full-below-sm')
       fails.push(`${name}: buttonClass below-sm gave "${A.buttonClass({ fullWidth: 'below-sm' })}"`);
+    /* 5.59 (Chamber-OS 172): linkClass, a text link with the touch rule, from the server entry too. */
+    const lk = [A.linkClass(), A.linkClass({ touchHeight: true, tone: 'inherit', underline: 'hover', className: 'x' }), A.linkClass({ touchHeight: 'always' })];
+    if (JSON.stringify(lk) !== JSON.stringify(['aura-link', 'aura-link aura-link--inherit aura-link--hover-underline aura-link--touch x', 'aura-link aura-link--touch-always']))
+      fails.push(`${name}: linkClass gave ${JSON.stringify(lk)}`);
     if (A.buttonClass({ variant: 'secondary', size: 'sm' }) !== 'aura-btn aura-btn--secondary aura-btn--sm')
       fails.push(`${name}: buttonClass gave "${A.buttonClass({ variant: 'secondary', size: 'sm' })}"`);
   } catch (e) {

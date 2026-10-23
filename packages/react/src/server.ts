@@ -31,6 +31,7 @@ export {
   ServerStat as Stat,
   ServerAvatar as Avatar,
   buttonClass,
+  linkClass,
 } from './display.js';
 export { Icon, registerIcons } from './Icon.js';
 /* 5.27 (Chamber-OS 131): Container is stateless too — the page column for Server Components. */

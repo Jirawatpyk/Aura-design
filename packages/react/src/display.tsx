@@ -403,6 +403,29 @@ export function buttonClass(
   );
 }
 
+/** The class list of a text link (5.59, Chamber-OS 172) — a link that reads as text, not a button. Put it on your own
+ * `<a>` or `<Link>`, also in a Server Component: `<Link href={url} className={linkClass({ touchHeight: true })}>`.
+ * `tone`: `accent` (default) or `inherit` (the surrounding colour). `underline`: `always` (default) or `hover`.
+ * `touchHeight`: at least 44×44 below 640px or on a coarse pointer (`true`) or at every width (`'always'`), the label
+ * centred and its look unchanged — for a link on its own line, not mid-sentence. On a `<button>` (an action that
+ * opens something) the button's chrome is reset, so it looks like the link; hover and Button's focus ring included. */
+export function linkClass(
+  opts: {
+    tone?: 'accent' | 'inherit' | undefined;
+    underline?: 'always' | 'hover' | undefined;
+    touchHeight?: boolean | 'always' | undefined;
+    className?: string | undefined;
+  } = {},
+): string {
+  return cx(
+    'aura-link',
+    opts.tone === 'inherit' && 'aura-link--inherit',
+    opts.underline === 'hover' && 'aura-link--hover-underline',
+    opts.touchHeight === 'always' ? 'aura-link--touch-always' : opts.touchHeight && 'aura-link--touch',
+    opts.className,
+  );
+}
+
 /* The server entry's versions: plain functions (a Server Component can't pass a ref) with the same markup. */
 export function ServerAlert(props: Omit<AlertProps, 'onDismiss'>): React.ReactElement {
   return alertElement(props, undefined, null);

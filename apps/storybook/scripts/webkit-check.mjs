@@ -233,6 +233,14 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.59 (#172): linkClass touchHeight — a short text link is ≥44×44 at a phone width, still underlined. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-59-chamber-os-172--text-links');
+  x = await ex(`const a = document.querySelector('[data-testid=short]'), r = a.getBoundingClientRect(); return [innerWidth < 640, r.width >= 44, r.height >= 44, getComputedStyle(a).textDecorationLine]`);
+  check(JSON.stringify(x) === '[true,true,true,"underline"]', 'linkClass touchHeight ≥44×44 below 640px, underlined', x);
+  x = await ex(`const k = (id) => { const e = document.querySelector('[data-testid=' + id + ']'), s = getComputedStyle(e), r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), s.color, s.fontSize, s.backgroundColor, s.borderTopWidth, s.paddingLeft, s.textDecorationLine].join('|'); }; return [k('btn') === k('btn-a'), k('btn')]`);
+  check(x[0] === true, 'linkClass on a <button> looks like the <a> (no button chrome)', x);
+
   /* 5.58 (#171): at a phone width a short touchHeight tab is ≥44px wide. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-58-chamber-os-171--short-tab');

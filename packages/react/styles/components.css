@@ -184,7 +184,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   .aura-table__td { overflow: clip; overflow-clip-margin: var(--aura-space-1); }
 }
 @supports not (overflow-clip-margin: 1px) {
-  .aura-table__td :focus-visible { outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+  .aura-table__td :focus-visible, .aura-table__td .aura-link:focus-visible { outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
 }
 /* 5.11 rowHeight="auto" (never virtualized): a row grows to fit what wraps in it; each cell centres its content.
  * The padding only shows once content is taller than the row: a small Button or IconButton (32px), a pill or one line
@@ -1099,6 +1099,45 @@ a.aura-tab { text-decoration: none; }
   .aura-drawer__foot > .aura-btn, .aura-drawer__foot > * > .aura-btn:only-child { min-height: var(--aura-touch-target); }
   .aura-actionbar__actions > .aura-icon-btn, .aura-actionbar__actions > * > .aura-icon-btn:only-child,
   .aura-actionbar__start > .aura-icon-btn, .aura-actionbar__start > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
+}
+
+/* ---------- Text link (5.59, Chamber-OS 172) ---------- */
+/* linkClass(): a link that reads as text — on an <a> or a <button> alike (a button's chrome is reset: no fill, border
+ * or padding, the surrounding font and line height, a pointer). accent (default) or inherit colour; underlined, or
+ * only on hover; hover thickens an underline that is always there. Focus is Button's ring. With touchHeight it is at
+ * least 44×44 below 640px or on a coarse pointer (or always), the text unchanged — the box grows around the label,
+ * centred. For a link on its own line (a row title, "+ Create new event"), not mid-sentence. */
+.aura-link {
+  -webkit-appearance: none; appearance: none; margin: 0; padding: 0; border: 0; background: none;
+  font: inherit; line-height: inherit; letter-spacing: inherit; word-spacing: inherit; text-align: inherit;
+  text-transform: inherit; text-indent: inherit; text-shadow: inherit; cursor: pointer;
+  color: var(--aura-fg-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;
+  border-radius: var(--aura-radius-xs);
+}
+.aura-link:hover { text-decoration-thickness: 2px; }
+.aura-link--inherit { color: inherit; }
+.aura-link--hover-underline { text-decoration: none; }
+.aura-link--hover-underline:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+.aura-link:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+.aura-link:disabled, .aura-link[aria-disabled="true"] { opacity: var(--aura-disabled-opacity); cursor: not-allowed; text-decoration-thickness: 1px; }
+.aura-link--hover-underline:is(:disabled, [aria-disabled="true"]):hover { text-decoration: none; }
+/* Forced colours: a <button> would take ButtonText; both forms read as a link. */
+@media (forced-colors: active) {
+  .aura-link { color: LinkText; }
+  .aura-link:is(:disabled, [aria-disabled="true"]) { color: GrayText; }
+}
+.aura-link.aura-link--touch-always { display: inline-flex; align-items: center; justify-content: center; min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-link.aura-link--touch { display: inline-flex; align-items: center; justify-content: center; min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
+}
+/* In a DataTable grid cell the row is the target and the cell clips with an ellipsis: the link stays inline there.
+ * In DataTable's stacked cards nothing clips, so the 44px target comes back (container query: right before hydration). */
+.aura-table__td .aura-link.aura-link:is(.aura-link--touch, .aura-link--touch-always) { display: inline; min-height: 0; min-width: 0; }
+@container aura-stack (width < 9999.5px) {
+  .aura-table__td .aura-link.aura-link.aura-link--touch-always { display: inline-flex; min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
+  @media (max-width: 639.98px), (pointer: coarse) {
+    .aura-table__td .aura-link.aura-link.aura-link--touch { display: inline-flex; min-height: var(--aura-touch-target); min-width: var(--aura-touch-target); }
+  }
 }
 
 /* ---------- Dropdown ---------- */

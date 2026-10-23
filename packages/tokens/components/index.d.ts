@@ -1946,6 +1946,18 @@ export declare function buttonClass(opts?: {
 	touchHeight?: boolean | undefined;
 	className?: string | undefined;
 }): string;
+/** The class list of a text link (5.59, Chamber-OS 172) — a link that reads as text, not a button. Put it on your own
+ * `<a>` or `<Link>`, also in a Server Component: `<Link href={url} className={linkClass({ touchHeight: true })}>`.
+ * `tone`: `accent` (default) or `inherit` (the surrounding colour). `underline`: `always` (default) or `hover`.
+ * `touchHeight`: at least 44×44 below 640px or on a coarse pointer (`true`) or at every width (`'always'`), the label
+ * centred and its look unchanged — for a link on its own line, not mid-sentence. On a `<button>` (an action that
+ * opens something) the button's chrome is reset, so it looks like the link; hover and Button's focus ring included. */
+export declare function linkClass(opts?: {
+	tone?: "accent" | "inherit" | undefined;
+	underline?: "always" | "hover" | undefined;
+	touchHeight?: boolean | "always" | undefined;
+	className?: string | undefined;
+}): string;
 export declare const Alert: React$1.ForwardRefExoticComponent<AlertProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Show a toast; returns its id. Needs `<Toaster />` mounted once. */
 export declare function toast(opts: ToastOptions | string): string;
