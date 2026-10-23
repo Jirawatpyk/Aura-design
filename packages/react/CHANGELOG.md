@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.59.0
+
+### Minor Changes
+
+- a34c1e9: New `linkClass({ tone, underline, touchHeight, className })` from the root and `/server`: a text link that, with `touchHeight`, is at least 44×44 below 640px or on a coarse pointer, its look unchanged (Chamber-OS 172).
+
 ## 5.58.0
 
 ### Minor Changes
