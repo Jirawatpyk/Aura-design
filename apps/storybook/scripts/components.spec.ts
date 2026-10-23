@@ -10148,3 +10148,125 @@ test.describe('5.56: Chamber-OS 168 — AppShell menu button is a 44px touch tar
     expect((await box(page, '.aura-shell__menu'))[2]).toBe(false);
   });
 });
+
+test.describe('5.57: Chamber-OS 169 — a modal opens with focus inside when its first control is in a closed <details>', () => {
+  const S = (n: string) => 'aura-new-in-5-57-chamber-os-169--' + n;
+  const where = (page: Page) =>
+    page.evaluate(() => {
+      const a = document.activeElement as HTMLElement | null;
+      return {
+        inside: !!a && !!a.closest('[role=dialog]'),
+        tag: a ? a.tagName.toLowerCase() : '',
+        id: (a && a.getAttribute('data-testid')) || '',
+      };
+    });
+
+  for (const kind of ['drawer', 'dialog'] as const) {
+    const id = S(kind + '-closed-details');
+
+    test(`169 (${kind}): opens on the <summary>, not the hidden Copy; Escape closes it and focus returns to the trigger`, async ({
+      page,
+    }) => {
+      await story(page, id);
+      await page.getByTestId('trigger').click();
+      await page.waitForSelector('[role=dialog]');
+      expect(await page.evaluate(() => (document.querySelector('[data-testid=more]') as HTMLDetailsElement).open)).toBe(
+        false,
+      );
+      expect(await where(page)).toEqual({ inside: true, tag: 'summary', id: '' });
+      await page.keyboard.press('Escape');
+      await expect(page.locator('[role=dialog]')).toHaveCount(0);
+      expect((await where(page)).id).toBe('trigger');
+    });
+
+    test(`169 (${kind}): Tab and Shift+Tab stay in the modal and never land on a control in the closed <details>`, async ({
+      page,
+    }) => {
+      await story(page, id);
+      await page.getByTestId('trigger').click();
+      await page.waitForSelector('[role=dialog]');
+      for (const key of ['Tab', 'Shift+Tab']) {
+        const seen: string[] = [];
+        for (let i = 0; i < 6; i++) {
+          await page.keyboard.press(key);
+          const w = await where(page);
+          expect(w.inside, key + ' #' + i).toBe(true);
+          seen.push(w.id || w.tag);
+        }
+        expect(seen, key).not.toContain('copy');
+        expect(seen, key).toContain('summary');
+      }
+      /* opened, Copy is a Tab stop again */
+      await page.locator('[data-testid=more] > summary').click();
+      const seen: string[] = [];
+      for (let i = 0; i < 4; i++) {
+        await page.keyboard.press('Tab');
+        seen.push((await where(page)).id);
+      }
+      expect(seen).toContain('copy');
+    });
+
+    test(`169 (${kind}): a control that refuses focus() is passed over — focus falls back to the panel, Escape still closes`, async ({
+      page,
+    }) => {
+      await story(page, id);
+      /* the summary looks focusable but focus() does nothing, as Chromium does for a control in a closed <details> */
+      await page.evaluate(() => {
+        const f = HTMLElement.prototype.focus;
+        HTMLElement.prototype.focus = function (this: HTMLElement, o?: FocusOptions) {
+          if (this.tagName !== 'SUMMARY') f.call(this, o);
+        };
+      });
+      await page.getByTestId('trigger').click();
+      await page.waitForSelector('[role=dialog]');
+      const w = await where(page);
+      expect(w.inside).toBe(true);
+      expect(w.tag).not.toBe('summary');
+      await page.keyboard.press('Escape');
+      await expect(page.locator('[role=dialog]')).toHaveCount(0);
+      expect((await where(page)).id).toBe('trigger');
+    });
+  }
+
+  test('169: a first control that forwards focus to an inner field keeps it there (not moved on to the summary)', async ({
+    page,
+  }) => {
+    await story(page, S('dialog-forwarding-first'));
+    await page.getByTestId('trigger').click();
+    await page.waitForSelector('[role=dialog]');
+    expect(await where(page)).toEqual({ inside: true, tag: 'input', id: 'inner' });
+  });
+
+  test('169: an open <details> first in the body — the Drawer opens on its summary (the first Tab stop)', async ({
+    page,
+  }) => {
+    await story(page, S('drawer-open-details'));
+    await page.getByTestId('trigger').click();
+    await page.waitForSelector('[role=dialog]');
+    expect(await where(page)).toEqual({ inside: true, tag: 'summary', id: '' });
+    await page.keyboard.press('Tab');
+    expect((await where(page)).tag).toBe('input');
+  });
+
+  test('169: Popover — opens on the summary, Tab wraps summary ⇄ button and never reaches Copy, Escape closes', async ({
+    page,
+  }) => {
+    await story(page, S('popover-closed-details'));
+    await page.getByTestId('trigger').click();
+    await page.waitForSelector('.aura-popover');
+    expect(await where(page)).toEqual({ inside: true, tag: 'summary', id: '' });
+    for (const key of ['Tab', 'Shift+Tab']) {
+      const seen: string[] = [];
+      for (let i = 0; i < 4; i++) {
+        await page.keyboard.press(key);
+        const w = await where(page);
+        expect(w.inside, key + ' #' + i).toBe(true);
+        seen.push(w.id || w.tag);
+      }
+      expect(seen.sort(), key).toEqual(['after', 'after', 'summary', 'summary']);
+    }
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.aura-popover')).toHaveCount(0);
+    expect((await where(page)).id).toBe('trigger');
+  });
+});

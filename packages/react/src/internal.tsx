@@ -51,6 +51,52 @@ export const uid: () => string =
 export const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
+/* 5.57 (Chamber-OS 169): inside a closed <details> only its own <summary> is shown. Chromium still gives the hidden
+ * controls a client rect and tabIndex 0, but focus() on them does nothing, so a focus trap or a dialog's first-focus
+ * pick has to skip them by hand. */
+export function inClosedDetails(el: Element): boolean {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    if (p.tagName !== 'DETAILS' || (p as HTMLDetailsElement).open) continue;
+    let s: Element | null = null;
+    for (let c = p.firstElementChild; c; c = c.nextElementSibling)
+      if (c.tagName === 'SUMMARY') {
+        s = c;
+        break;
+      }
+    if (!s || !(s === el || s.contains(el))) return true;
+  }
+  return false;
+}
+
+/* 5.57: Tab stops for focus traps and first focus — FOCUSABLE plus a <details>'s own <summary>. */
+export const TAB_STOPS = FOCUSABLE + ',details > summary';
+/* Reachable by Tab: not tabindex=-1, laid out (unless the page has no layout at all — jsdom — and the caller allows
+ * it), not inside a closed <details>. */
+export function isTabStop(c: HTMLElement, layoutless?: boolean): boolean {
+  return c.tabIndex >= 0 && (layoutless || c.getClientRects().length > 0) && !inClosedDetails(c);
+}
+/* 5.57 (Chamber-OS 169): focus the first candidate that takes focus. A control can pass every check and still refuse
+ * focus() (a browser hiding it in a way the checks miss), so only stop once focus is inside the container — on the
+ * candidate or wherever its focus handler forwarded it. Candidates are tried lazily, in order. Returns whether focus
+ * landed; the caller then focuses the container itself. A candidate whose focus handler sends focus out of the container
+ * counts as not landed, and the next one is tried. */
+export function focusFirst(
+  container: HTMLElement,
+  auto: HTMLElement | null,
+  lists: ArrayLike<HTMLElement>[],
+  layoutless?: boolean,
+): boolean {
+  const took = function (c: HTMLElement) {
+    c.focus();
+    const a = document.activeElement;
+    return !!a && a !== container && container.contains(a);
+  };
+  if (auto && took(auto)) return true;
+  for (let l = 0; l < lists.length; l++)
+    for (let i = 0; i < lists[l].length; i++) if (isTabStop(lists[l][i], layoutless) && took(lists[l][i])) return true;
+  return false;
+}
+
 /* True after the first client render: portals wait for it so server rendering (Next.js) never touches document. */
 /* false on the server and while hydrating, true for components mounted fresh on the client (a menu opened on click),
  * so they render their portal in the first pass. React's useSyncExternalStore picks the right snapshot. */
@@ -74,9 +120,9 @@ export const useIsoLayoutEffect = typeof window !== 'undefined' ? React.useLayou
 export function trapTab(e: React.KeyboardEvent | KeyboardEvent, container: HTMLElement | null): void {
   if (e.key !== 'Tab' || !container) return;
   const list = Array.prototype.filter.call(
-    container.querySelectorAll<HTMLElement>(FOCUSABLE),
+    container.querySelectorAll<HTMLElement>(TAB_STOPS),
     function (el: HTMLElement) {
-      return el.tabIndex >= 0 && el.offsetParent !== null;
+      return el.tabIndex >= 0 && el.offsetParent !== null && !inClosedDetails(el);
     },
   );
   if (!list.length) return;

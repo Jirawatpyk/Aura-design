@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { IconButton } from './IconButton.js';
 import {
-  FOCUSABLE,
   cx,
+  focusFirst,
+  TAB_STOPS,
   trapTab,
   uid,
   useIsoLayoutEffect,
@@ -94,10 +95,19 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     function () {
       if (!open || !mounted) return;
       if (props.autoFocus !== false && pop.current) {
-        const f =
-          pop.current.querySelector<HTMLElement>('[data-autofocus]') ||
-          pop.current.querySelector<HTMLElement>(FOCUSABLE);
-        (f || pop.current).focus();
+        /* 5.57: the first Tab stop that takes focus (not one in a closed <details>), else the panel. Without any
+         * layout (jsdom) the first control still counts, as before. */
+        const p = pop.current;
+        const layoutless = document.documentElement.getClientRects().length === 0;
+        if (
+          !focusFirst(
+            p,
+            p.querySelector<HTMLElement>('[data-autofocus]'),
+            [p.querySelectorAll<HTMLElement>(TAB_STOPS)],
+            layoutless,
+          )
+        )
+          p.focus();
       }
       let timer: ReturnType<typeof setTimeout> | undefined;
       function outside(e: Event) {

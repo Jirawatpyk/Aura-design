@@ -233,6 +233,21 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.57 (#169): a Drawer / Dialog whose only body control is in a closed <details> opens with focus inside (on the
+   * summary or the panel), and Escape closes it back to the trigger. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  for (const kind of ['drawer', 'dialog']) {
+    await go('aura-new-in-5-57-chamber-os-169--' + kind + '-closed-details');
+    /* focus first: Safari doesn't focus a button on click, so a keyboard user's path (focused trigger) is the test */
+    await ex(`const t = document.querySelector('[data-testid=trigger]'); t.focus(); t.click()`);
+    await sleep(400);
+    x = await ex(`const a = document.activeElement; return [!!a.closest('[role=dialog]'), a.getAttribute('data-testid') !== 'copy']`);
+    await call('POST', S('/actions'), { actions: [{ type: 'key', id: 'esc' + kind, actions: [{ type: 'keyDown', value: '\uE00C' }, { type: 'keyUp', value: '\uE00C' }] }] });
+    await sleep(400);
+    x = x.concat(await ex(`return [!document.querySelector('[role=dialog]'), document.activeElement.getAttribute('data-testid') === 'trigger']`));
+    check(JSON.stringify(x) === '[true,true,true,true]', kind + ' with a closed <details>: focus inside, Escape closes to the trigger', x);
+  }
+
   /* 5.56 (#168): AppShell's menu button is 44×44 at a phone width, in compact density. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-56-chamber-os-168--menu-button');

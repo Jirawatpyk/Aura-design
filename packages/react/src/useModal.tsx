@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FOCUSABLE, useMounted } from './internal.js';
+import { focusFirst, inClosedDetails, TAB_STOPS, useMounted } from './internal.js';
 
 /* Shared modal behaviour for Dialog and Drawer: mount after hydration, move focus in, lock page scroll,
  * trap Tab, close on Escape, and hand focus back to whatever opened it. */
@@ -32,10 +32,11 @@ function lockScroll(): () => void {
     if (locks === 0) body.style.overflow = savedOverflow;
   };
 }
-/* The controls Tab can actually reach: not tabindex=-1 (roving tabs, closed groups' children) and not hidden. */
+/* The controls Tab can actually reach: not tabindex=-1 (roving tabs, closed groups' children), not hidden, and not
+ * inside a closed <details> (5.57). */
 function tabbable(el: HTMLElement): HTMLElement[] {
-  const all = Array.prototype.filter.call(el.querySelectorAll<HTMLElement>(FOCUSABLE), function (c: HTMLElement) {
-    return c.tabIndex >= 0;
+  const all = Array.prototype.filter.call(el.querySelectorAll<HTMLElement>(TAB_STOPS), function (c: HTMLElement) {
+    return c.tabIndex >= 0 && !inClosedDetails(c);
   }) as HTMLElement[];
   const shown = all.filter(function (c: HTMLElement) {
     return c.getClientRects().length > 0;
@@ -60,25 +61,23 @@ export function useModal(
       prev.current = document.activeElement as HTMLElement | null;
       const unlock = lockScroll();
       const el = ref.current;
-      /* The first control in the Tab order inside a part. FOCUSABLE is a selector list, so every part is scoped
-       * (5.1: before, `button` alone matched the header's close button). Skip tabindex=-1 (roving tabs, segments)
-       * and anything hidden. */
-      const firstIn = function (scope: string | undefined): HTMLElement | null {
-        if (!scope || !el) return null;
-        const sel = FOCUSABLE.split(',')
+      /* The Tab stops inside a part. TAB_STOPS is a selector list, so every part is scoped (5.1: before, `button`
+       * alone matched the header's close button). focusFirst skips tabindex=-1 (roving tabs, segments), anything
+       * hidden and (5.57) anything in a closed <details>, and stops at the first that takes focus; else the panel
+       * itself (tabIndex -1), so focus is always inside the modal and Escape and the Tab trap work. */
+      const inPart = function (scope: string | undefined): ArrayLike<HTMLElement> {
+        if (!scope || !el) return [];
+        const sel = TAB_STOPS.split(',')
           .map(function (s: string) {
             return scope + ' ' + s;
           })
           .join(',');
-        const list = el.querySelectorAll<HTMLElement>(sel);
-        for (let i = 0; i < list.length; i++)
-          if (list[i].tabIndex >= 0 && list[i].getClientRects().length > 0) return list[i];
-        return null;
+        return el.querySelectorAll<HTMLElement>(sel);
       };
-      const target =
-        el &&
-        (el.querySelector<HTMLElement>('[data-autofocus]') || firstIn(o.bodySelector) || firstIn(o.footSelector) || el);
-      if (target && o.autoFocus !== false) target.focus();
+      if (el && o.autoFocus !== false) {
+        const auto = el.querySelector<HTMLElement>('[data-autofocus]');
+        if (!focusFirst(el, auto, [inPart(o.bodySelector), inPart(o.footSelector)])) el.focus();
+      }
       return function () {
         unlock();
         const l = latest.current;

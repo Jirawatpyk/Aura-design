@@ -331,6 +331,34 @@ window.Aura = (() => {
     return r2.current;
   };
   var FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  function inClosedDetails(el) {
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      if (p.tagName !== "DETAILS" || p.open) continue;
+      let s = null;
+      for (let c = p.firstElementChild; c; c = c.nextElementSibling)
+        if (c.tagName === "SUMMARY") {
+          s = c;
+          break;
+        }
+      if (!s || !(s === el || s.contains(el))) return true;
+    }
+    return false;
+  }
+  var TAB_STOPS = FOCUSABLE + ",details > summary";
+  function isTabStop(c, layoutless) {
+    return c.tabIndex >= 0 && (layoutless || c.getClientRects().length > 0) && !inClosedDetails(c);
+  }
+  function focusFirst(container, auto, lists, layoutless) {
+    const took = function(c) {
+      c.focus();
+      const a = document.activeElement;
+      return !!a && a !== container && container.contains(a);
+    };
+    if (auto && took(auto)) return true;
+    for (let l = 0; l < lists.length; l++)
+      for (let i = 0; i < lists[l].length; i++) if (isTabStop(lists[l][i], layoutless) && took(lists[l][i])) return true;
+    return false;
+  }
   function noopSubscribe() {
     return function() {
     };
@@ -348,9 +376,9 @@ window.Aura = (() => {
   function trapTab(e, container) {
     if (e.key !== "Tab" || !container) return;
     const list = Array.prototype.filter.call(
-      container.querySelectorAll(FOCUSABLE),
+      container.querySelectorAll(TAB_STOPS),
       function(el) {
-        return el.tabIndex >= 0 && el.offsetParent !== null;
+        return el.tabIndex >= 0 && el.offsetParent !== null && !inClosedDetails(el);
       }
     );
     if (!list.length) return;
@@ -4793,8 +4821,8 @@ window.Aura = (() => {
     };
   }
   function tabbable(el) {
-    const all = Array.prototype.filter.call(el.querySelectorAll(FOCUSABLE), function(c) {
-      return c.tabIndex >= 0;
+    const all = Array.prototype.filter.call(el.querySelectorAll(TAB_STOPS), function(c) {
+      return c.tabIndex >= 0 && !inClosedDetails(c);
     });
     const shown = all.filter(function(c) {
       return c.getClientRects().length > 0;
@@ -4813,18 +4841,17 @@ window.Aura = (() => {
         prev.current = document.activeElement;
         const unlock = lockScroll();
         const el = ref.current;
-        const firstIn = function(scope) {
-          if (!scope || !el) return null;
-          const sel = FOCUSABLE.split(",").map(function(s) {
+        const inPart = function(scope) {
+          if (!scope || !el) return [];
+          const sel = TAB_STOPS.split(",").map(function(s) {
             return scope + " " + s;
           }).join(",");
-          const list = el.querySelectorAll(sel);
-          for (let i = 0; i < list.length; i++)
-            if (list[i].tabIndex >= 0 && list[i].getClientRects().length > 0) return list[i];
-          return null;
+          return el.querySelectorAll(sel);
         };
-        const target = el && (el.querySelector("[data-autofocus]") || firstIn(o.bodySelector) || firstIn(o.footSelector) || el);
-        if (target && o.autoFocus !== false) target.focus();
+        if (el && o.autoFocus !== false) {
+          const auto = el.querySelector("[data-autofocus]");
+          if (!focusFirst(el, auto, [inPart(o.bodySelector), inPart(o.footSelector)])) el.focus();
+        }
         return function() {
           unlock();
           const l = latest.current;
@@ -10391,8 +10418,15 @@ window.Aura = (() => {
       function() {
         if (!open || !mounted) return;
         if (props.autoFocus !== false && pop.current) {
-          const f = pop.current.querySelector("[data-autofocus]") || pop.current.querySelector(FOCUSABLE);
-          (f || pop.current).focus();
+          const p = pop.current;
+          const layoutless = document.documentElement.getClientRects().length === 0;
+          if (!focusFirst(
+            p,
+            p.querySelector("[data-autofocus]"),
+            [p.querySelectorAll(TAB_STOPS)],
+            layoutless
+          ))
+            p.focus();
         }
         let timer2;
         function outside(e) {
