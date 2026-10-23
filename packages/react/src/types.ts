@@ -949,7 +949,8 @@ export interface TabsProps {
   current?: 'page' | 'location' | undefined;
   /** 5.39 (Chamber-OS 143): 44px tabs, button or link form, either variant — `true` below 640px or on a coarse
    * pointer, as Button's `touchHeight`; `'always'` at every width. Without it: the density's input height (44px on a
-   * coarse pointer). Panels are not affected. */
+   * coarse pointer). Panels are not affected. 5.58 (Chamber-OS 171): also at least 44px wide, label centred, so a
+   * short label is a 44×44 target; longer tabs keep their width. */
   touchHeight?: TouchHeight | undefined;
 }
 export interface NavItem {

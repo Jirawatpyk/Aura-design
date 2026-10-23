@@ -10301,3 +10301,70 @@ test.describe('5.57: Chamber-OS 170 — a titled Alert is named by its title', (
     expect(snap).toContain('note "Personal data erased on 22 Oct 2026"');
   });
 });
+
+test.describe('5.58: Chamber-OS 171 — a short touchHeight tab is a 44×44 target', () => {
+  const ID = 'aura-new-in-5-58-chamber-os-171--short-tab';
+  const tabs = (page: Page, t: string) =>
+    page.evaluate((t) => {
+      const els = [...document.querySelectorAll(`[data-testid=${t}] .aura-tab`)];
+      return els.map((e, i) => {
+        const r = e.getBoundingClientRect();
+        const next = els[i + 1]?.getBoundingClientRect();
+        return {
+          label: e.textContent,
+          w: Math.round(r.width),
+          h: Math.round(r.height),
+          gap: next ? Math.round(next.left - r.right) : null,
+        };
+      });
+    }, t);
+
+  test('171: at 390px with a mouse, "Tax" is ≥44×44 with its label centred; longer tabs keep their width and the gap', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const touch = await tabs(page, 'touch'),
+      plain = await tabs(page, 'plain');
+    const tax = touch.find((x) => x.label === 'Tax')!;
+    expect(plain.find((x) => x.label === 'Tax')!.w).toBeLessThan(44);
+    expect(tax.w).toBeGreaterThanOrEqual(44);
+    expect(tax.h).toBeGreaterThanOrEqual(44);
+    for (let i = 0; i < touch.length; i++) {
+      if (touch[i]!.label !== 'Tax') expect(touch[i]!.w, touch[i]!.label!).toBe(plain[i]!.w);
+      if (touch[i]!.gap !== null) expect(touch[i]!.gap, touch[i]!.label!).toBe(plain[i]!.gap);
+    }
+    const centred = await page.evaluate(() => {
+      const t = [...document.querySelectorAll('[data-testid=touch] .aura-tab')].find((e) => e.textContent === 'Tax')!;
+      const r = t.getBoundingClientRect(),
+        range = document.createRange();
+      range.selectNodeContents(t);
+      const x = range.getBoundingClientRect();
+      return Math.abs(x.left - r.left - (r.right - x.right));
+    });
+    expect(centred).toBeLessThanOrEqual(1);
+    /* a one-letter segmented option is 44px wide too */
+    for (const x of await tabs(page, 'seg')) expect(x.w, 'segmented ' + x.label).toBeGreaterThanOrEqual(44);
+  });
+
+  test('171: with a mouse at 1440px nothing changes — the touchHeight tabs match the plain ones', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await story(page, ID);
+    const touch = await tabs(page, 'touch'),
+      plain = await tabs(page, 'plain');
+    expect(touch).toEqual(plain);
+  });
+
+  test.describe('touch screen at 1024px', () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 1024, height: 768 } });
+    test('171: "Tax" is ≥44×44 on a coarse pointer', async ({ page }) => {
+      await story(page, ID);
+      const tax = (await tabs(page, 'touch')).find((x) => x.label === 'Tax')!;
+      expect(tax.w).toBeGreaterThanOrEqual(44);
+      expect(tax.h).toBeGreaterThanOrEqual(44);
+      /* fullWidth="below-md" isn't filling at 1024px: its short tab gets the 44px minimum */
+      const a = (await tabs(page, 'fill-md')).find((x) => x.label === 'A')!;
+      expect(a.w).toBeGreaterThanOrEqual(44);
+    });
+  });
+});

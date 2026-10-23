@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.58 (#171): at a phone width a short touchHeight tab is ≥44px wide. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-58-chamber-os-171--short-tab');
+  x = await ex(`const t = [...document.querySelectorAll('[data-testid=touch] .aura-tab')].find((e) => e.textContent === 'Tax').getBoundingClientRect(); return [innerWidth < 640, t.width >= 44, t.height >= 44]`);
+  check(JSON.stringify(x) === '[true,true,true]', 'short touchHeight tab ≥44×44 below 640px', x);
+
   /* 5.57 (#170): a titled Alert is labelled by its title element. */
   await go('aura-new-in-5-57-chamber-os-170--named-alerts');
   x = await ex(`const a = [...document.querySelectorAll('.aura-alert[aria-labelledby]')]; return [a.length, a.every((n) => document.getElementById(n.getAttribute('aria-labelledby')) === n.querySelector('.aura-alert__title'))]`);

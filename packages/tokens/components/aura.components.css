@@ -805,8 +805,12 @@ a.aura-tab { text-decoration: none; }
 .aura-tabs__panel { padding-top: var(--aura-space-6); outline: none; }
 /* 5.39 (Chamber-OS 143): touchHeight — 44px tabs (underline or segmented, buttons or links) below 640px or on a coarse
  * pointer (is-touch), or always. The height is set on the tabs, not through --aura-input-height, so panels keep theirs. */
-.aura-tabs.is-touch-always .aura-tab { height: var(--aura-touch-target); }
-@media (max-width: 639.98px), (pointer: coarse) { .aura-tabs.is-touch .aura-tab { height: var(--aura-touch-target); } }
+/* 5.58 (Chamber-OS 171): and at least 44px wide, the label centred, so a short label ("Tax") is a 44×44 target; a
+ * longer tab keeps its width and the gap. A full-width row (later rules, max-content) already sizes its tabs. */
+.aura-tabs.is-touch-always .aura-tab { height: var(--aura-touch-target); min-width: var(--aura-touch-target); justify-content: center; }
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-tabs.is-touch .aura-tab { height: var(--aura-touch-target); min-width: var(--aura-touch-target); justify-content: center; }
+}
 .aura-tabs__panel[hidden] { display: none; }
 .aura-tabs__panel:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; border-radius: var(--aura-radius-sm); }
 
