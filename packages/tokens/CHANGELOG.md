@@ -2,6 +2,13 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.60.0
+
+### Minor Changes
+
+- 73028f1: `linkClass`: a link with `touchHeight` (and the `<button>` and `<summary>` forms) is laid out at every width — inline-flex, a 4px icon gap, `min-width: 0` for a truncating child — with its label at the start of the 44px box; a type class on an `<a>` now applies (Chamber-OS 173).
+- 8ad7e21: Table cells wrap words whole (`overflow-wrap: break-word`): a long email or URL now widens its column and the table scrolls sideways (a `stickyHeader` table then stops pinning) — give that cell `wrap="anywhere"` for the old behaviour. New `wrap="anywhere" | "none"` on `Td`/`Th`; a wide `stickyHeader` Table's header no longer covers its first row (Chamber-OS 174, 175).
+
 ## 5.59.0
 
 ### Minor Changes
