@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.58.0 — 2026-10-23
+
+### Minor changes
+
+- a704e16: With `touchHeight`, tabs are at least 44px wide (label centred) below 640px or on a coarse pointer, so a short label is a 44×44 target; longer tabs and the gap are unchanged (Chamber-OS 171).
+
 ## 5.57.0 — 2026-10-23
 
 ### Minor changes
