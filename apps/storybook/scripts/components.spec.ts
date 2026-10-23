@@ -5904,7 +5904,7 @@ test.describe('5.30: audit items 4 and 8–20', () => {
           return new Set(Array.from(r.getClientRects()).map((x) => Math.round(x.top))).size;
         }),
       ).toBe(1);
-    /* …and a long email still breaks to fit a 600px box instead of widening the table. */
+    /* …and a long email (wrap="anywhere", 5.60) still breaks to fit a 600px box instead of widening the table. */
     const mail = page.getByTestId('email').locator('.aura-tbl-wrap');
     expect(await mail.evaluate((e) => e.scrollWidth <= e.clientWidth + 1)).toBe(true);
     const foot = wrap.locator('.aura-tbl__foot .aura-tbl__row');
@@ -10740,5 +10740,97 @@ test.describe('5.60: Chamber-OS 173 — linkClass lays a link out at every width
     expect(await page.locator('[data-testid=sentence] a').evaluate((a) => a.getClientRects().length)).toBeGreaterThan(
       1,
     );
+  });
+});
+
+test.describe('5.60: Chamber-OS 174–175 — static Table wrapping and a wide sticky header', () => {
+  const S = (n: string) => 'aura-new-in-5-60-chamber-os-174-175--' + n;
+
+  test('174: in a 703px box a two-word name wraps between its words, a wrap="none" cell stays on one line, nothing scrolls sideways', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await story(page, S('plans-list'));
+    const words = await page.evaluate(() => {
+      const out: Array<[string, number]> = [];
+      document.querySelectorAll('[data-testid^=name-]').forEach((td) => {
+        const t = td.firstChild as Text;
+        let at = 0;
+        for (const w of t.textContent!.split(' ')) {
+          const r = document.createRange();
+          r.setStart(t, at);
+          r.setEnd(t, at + w.length);
+          out.push([w, r.getClientRects().length]);
+          at += w.length + 1;
+        }
+      });
+      return out;
+    });
+    for (const [w, n] of words) expect(n, w).toBe(1);
+    const docLines = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-testid^=doc-]')].map((td) => {
+        const r = document.createRange();
+        r.selectNodeContents(td);
+        return r.getClientRects().length;
+      }),
+    );
+    for (const n of docLines) expect(n).toBe(1);
+    const scroll = await page.evaluate(() => {
+      const w = document.querySelector('[data-testid=box] .aura-tbl-wrap')!;
+      return [
+        w.scrollWidth <= w.clientWidth,
+        document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ];
+    });
+    expect(scroll).toEqual([true, true]);
+    /* squeezed (a 360px box): the names wrap, still between words — never inside one */
+    await page.getByTestId('box').evaluate((b) => ((b as HTMLElement).style.width = '360px'));
+    const squeezed = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-testid^=name-]')].map((td) => {
+        const t = td.firstChild as Text,
+          whole = document.createRange();
+        whole.selectNodeContents(td);
+        let at = 0,
+          broken = false;
+        for (const w of t.textContent!.split(' ')) {
+          const r = document.createRange();
+          r.setStart(t, at);
+          r.setEnd(t, at + w.length);
+          if (r.getClientRects().length > 1) broken = true;
+          at += w.length + 1;
+        }
+        return [new Set([...whole.getClientRects()].map((x) => Math.round(x.top))).size, broken];
+      }),
+    );
+    expect(squeezed.some(([lines]) => (lines as number) > 1)).toBe(true);
+    for (const [, broken] of squeezed) expect(broken).toBe(false);
+    /* wrap="anywhere" keeps the old rule for a URL */
+    expect(await page.getByTestId('url').evaluate((td) => getComputedStyle(td).overflowWrap)).toBe('anywhere');
+  });
+
+  test('175: a wide stickyHeader Table shows its first row in full below the header at rest', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await story(page, S('wide-sticky'));
+    await expect(page.locator('[data-testid=wide] .aura-tbl-wrap')).toHaveClass(/is-wide/);
+    const m = await page.evaluate(() => {
+      const th = document.querySelector('[data-testid=wide] .aura-tbl__th')!.getBoundingClientRect();
+      const row = document.querySelector('[data-testid=wide] .aura-tbl__body .aura-tbl__row')!.getBoundingClientRect();
+      const head = document.querySelector('[data-testid=wide] .aura-tbl__head')!.getBoundingClientRect();
+      return [Math.round(row.top - th.bottom), Math.round(th.top - head.top)];
+    });
+    expect(m[0]).toBeGreaterThanOrEqual(-1);
+    expect(m[1]).toBe(0);
+    /* widened so it fits, it pins to the page again (the offset back); narrowed, back in flow */
+    const top = () =>
+      page
+        .locator('[data-testid=wide] .aura-tbl__th')
+        .first()
+        .evaluate((th) => getComputedStyle(th).top);
+    await page.getByTestId('wide').evaluate((b) => ((b as HTMLElement).style.width = '990px'));
+    await expect(page.locator('[data-testid=wide] .aura-tbl-wrap')).not.toHaveClass(/is-wide/);
+    expect(await top()).toBe('56px');
+    await page.getByTestId('wide').evaluate((b) => ((b as HTMLElement).style.width = '360px'));
+    await expect(page.locator('[data-testid=wide] .aura-tbl-wrap')).toHaveClass(/is-wide/);
+    expect(await top()).toBe('0px');
   });
 });

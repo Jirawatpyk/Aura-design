@@ -233,6 +233,16 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.60 (#174, #175): words wrap whole in a static Table; a wide sticky header sits above the first row. */
+  await call('POST', S('/window/rect'), { width: 1024, height: 900 });
+  await go('aura-new-in-5-60-chamber-os-174-175--plans-list');
+  x = await ex(`const w = document.querySelector('[data-testid=box] .aura-tbl-wrap'); return [w.scrollWidth <= w.clientWidth, getComputedStyle(document.querySelector('[data-testid=name-0]')).overflowWrap]`);
+  check(JSON.stringify(x) === '[true,"break-word"]', 'static Table at 703px fits, cells break-word', x);
+  await go('aura-new-in-5-60-chamber-os-174-175--wide-sticky');
+  await sleep(300);
+  x = await ex(`const th = document.querySelector('[data-testid=wide] .aura-tbl__th').getBoundingClientRect(), row = document.querySelector('[data-testid=wide] .aura-tbl__body .aura-tbl__row').getBoundingClientRect(); return row.top - th.bottom >= -1`);
+  check(x === true, 'wide stickyHeader Table: header above the first row', x);
+
   /* 5.60 (#173): with a mouse, an icon link truncates inside its parent with a 4px gap; a stretched link starts at its box. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });
   await go('aura-new-in-5-60-chamber-os-173--layouts');

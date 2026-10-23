@@ -9009,12 +9009,15 @@ window.Aura = (() => {
       align === "end" && "is-end",
       align === "center" && "is-center",
       p.numeric && "is-numeric",
+      /* 5.60 (Chamber-OS 174) */
+      p.wrap === "anywhere" && "is-wrap-anywhere",
+      p.wrap === "none" && "is-nowrap",
       p.mono && "aura-table__mono",
       p.className
     );
   }
   var Th = React52.forwardRef(function Th2(props, ref) {
-    const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, ...rest } = props;
+    const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, wrap, ...rest } = props;
     const stacked = React52.useContext(StackLabels) != null;
     return /* @__PURE__ */ React52.createElement(
       "th",
@@ -9029,7 +9032,7 @@ window.Aura = (() => {
     );
   });
   var Td = React52.forwardRef(function Td2(props, ref) {
-    const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, ...rest } = props;
+    const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, wrap, ...rest } = props;
     const labels = React52.useContext(StackLabels), col = React52.useContext(ColumnIndex);
     const slot = labels && (card === "title" || card === "action") ? card : void 0;
     const shown = labels && !slot ? label != null ? label : col >= 0 ? labels[col] : void 0 : void 0;

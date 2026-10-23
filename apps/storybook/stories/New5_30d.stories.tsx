@@ -122,7 +122,8 @@ export const Polish: StoryObj = {
             <Aura.TBody>
               <Aura.Tr>
                 <Aura.Td>Nordic Timber Oy</Aura.Td>
-                <Aura.Td>accounts.payable.department@nordictimbergroupholdings.example.com</Aura.Td>
+                {/* 5.60: a cell may break inside a word only with wrap="anywhere" (the default wraps words whole) */}
+                <Aura.Td wrap="anywhere">accounts.payable.department@nordictimbergroupholdings.example.com</Aura.Td>
                 <Aura.Td>Corporate</Aura.Td>
               </Aura.Tr>
             </Aura.TBody>

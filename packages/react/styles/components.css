@@ -2271,7 +2271,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-tbl__caption { caption-side: top; padding: var(--aura-space-4) var(--aura-space-6) var(--aura-space-3); text-align: left; font-size: max(14px, .875rem); font-weight: 600; }
 /* 5.30: from 640px a cell is at least 10ch wide, so the table never squeezes a column to one letter; a longer word (an
  * email, a URL) still breaks to fit instead of widening the table. Phones keep fitting the box: use stackBelow there. */
-.aura-tbl__th, .aura-tbl__td { padding: var(--aura-tbl-cell-py, var(--aura-space-3)) var(--aura-space-4); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.aura-tbl__th, .aura-tbl__td { padding: var(--aura-tbl-cell-py, var(--aura-space-3)) var(--aura-space-4); text-align: left; vertical-align: top; overflow-wrap: break-word; }
+/* 5.60 (Chamber-OS 174): break-word, not anywhere — `anywhere` made every cell's min-content one character wide, so an
+ * auto-layout table squeezed a text column until "Diamond Partnership" broke inside a word. With break-word words wrap
+ * whole; a long unbroken string widens its column (the table scrolls sideways; stacked cards still break it). Td/Th
+ * `wrap`: `anywhere` (the old rule, for URLs and emails that may shrink the column) or `none` (one line; stacked cards
+ * wrap as usual). */
+.aura-tbl__th.is-wrap-anywhere, .aura-tbl__td.is-wrap-anywhere { overflow-wrap: anywhere; }
+.aura-tbl__th.is-nowrap, .aura-tbl__td.is-nowrap { white-space: nowrap; }
 @media (min-width: 640px) { .aura-tbl__th, .aura-tbl__td { min-width: 10ch; } }
 .aura-tbl__th:first-child, .aura-tbl__td:first-child { padding-left: var(--aura-space-6); }
 .aura-tbl__th:last-child, .aura-tbl__td:last-child { padding-right: var(--aura-space-6); }
@@ -2305,6 +2312,10 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   }
 }
 .aura-tbl-wrap.is-sticky-box > .aura-tbl > .aura-tbl__head .aura-tbl__th { top: 0; }
+/* 5.60 (Chamber-OS 175): a table wider than its box scrolls sideways inside it, and that scroll box is what a sticky
+ * header pins to — so the page offset (the shell bar) pushed the header down over the first row. Such a table can't
+ * pin to the page: its header sits in flow (top 0 in a box that doesn't scroll down). */
+.aura-tbl-wrap.is-sticky-page.is-wide > .aura-tbl > .aura-tbl__head .aura-tbl__th { top: 0; }
 .aura-tbl-wrap:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 2px; }
 /* 5.13 (Chamber-OS 81): align="middle" centres body and footer cells on their row; bordered={false} drops the frame and
  * the outer cells' side padding, so the table lines up with what's around it (a Card's heading). */

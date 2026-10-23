@@ -794,6 +794,11 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (got !== 'data-label="Seen" data-label="Seen" data-label="New"' || !/role="table"/.test(tbl) || !/role="rowheader"/.test(tbl)) { console.log(label, 'Table stack labels:', got, tbl); fail++; }
     if ((tbl.match(/role="table"/g) || []).length !== 1 || /<td class="aura-tbl__td" role="cell">x/.test(tbl)) { console.log(label, 'nested table took the outer labels or roles:', tbl); fail++; }
     if (S.buttonClass({ variant: 'secondary', size: 'sm', fullWidth: true }) !== 'aura-btn aura-btn--secondary aura-btn--sm aura-btn--full') { console.log(label, 'buttonClass'); fail++; }
+    /* 5.60 (Chamber-OS 174): Td / Th wrap is a class. */
+    {
+      const w = m(e(A.Table, { caption: 'c' }, e(A.TBody, null, e(A.Tr, null, e(A.Td, { wrap: 'none' }, 'SC-1'), e(A.Td, { wrap: 'anywhere' }, 'x@y'), e(A.Td, { wrap: 'word' }, 'z')))));
+      if (!/class="aura-tbl__td is-nowrap"/.test(w) || !/class="aura-tbl__td is-wrap-anywhere"/.test(w) || /wrap=/.test(w)) { console.log(label, 'Td wrap:', w); fail++; }
+    }
     /* 5.59 (Chamber-OS 172): linkClass is the same from the root and the server entry. */
     if (A.linkClass({ touchHeight: true }) !== 'aura-link aura-link--touch' || S.linkClass({ touchHeight: true }) !== A.linkClass({ touchHeight: true })) { console.log(label, 'linkClass'); fail++; }
     if (m(e(A.Button, { href: '/x', variant: 'secondary' }, 'Go')).indexOf('class="' + S.buttonClass({ variant: 'secondary' }) + '"') < 0) { console.log(label, 'Button class != buttonClass'); fail++; }

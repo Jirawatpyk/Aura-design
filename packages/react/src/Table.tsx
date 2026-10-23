@@ -298,6 +298,9 @@ function cellClass(base: string, p: TableCellProps) {
     align === 'end' && 'is-end',
     align === 'center' && 'is-center',
     p.numeric && 'is-numeric',
+    /* 5.60 (Chamber-OS 174) */
+    p.wrap === 'anywhere' && 'is-wrap-anywhere',
+    p.wrap === 'none' && 'is-nowrap',
     p.mono && 'aura-table__mono',
     p.className,
   );
@@ -305,7 +308,7 @@ function cellClass(base: string, p: TableCellProps) {
 
 /** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
 export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Th(props, ref) {
-  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, ...rest } = props;
+  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, wrap, ...rest } = props;
   const stacked = React.useContext(StackLabels) != null;
   return (
     <th
@@ -322,7 +325,7 @@ export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(functio
 
 /** Data cell. `numeric` right-aligns with tabular figures (money, counts). */
 export const Td = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Td(props, ref) {
-  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, ...rest } = props;
+  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, wrap, ...rest } = props;
   const labels = React.useContext(StackLabels),
     col = React.useContext(ColumnIndex);
   /* 5.13 (Chamber-OS 84): a title or action cell in a stacked row shows no label. */

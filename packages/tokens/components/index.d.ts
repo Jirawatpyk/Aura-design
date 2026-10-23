@@ -1435,6 +1435,11 @@ export interface TableCellProps extends Omit<React$1.TdHTMLAttributes<HTMLTableC
 	numeric?: boolean | undefined;
 	/** IDs and codes in the mono face. */
 	mono?: boolean | undefined;
+	/** How the cell's text wraps (5.60, Chamber-OS 174). Default `word` (`overflow-wrap: break-word`): between words; a
+	 * long unbroken string widens its column (the table then scrolls sideways; in stacked cards it breaks to fit).
+	 * `anywhere`: may break inside a word, so the column can shrink (URLs, emails; the rule before 5.60). `none`: on one
+	 * line (a document number); stacked cards still wrap. */
+	wrap?: "word" | "anywhere" | "none" | undefined;
 	/** Th only. Default `col`. */
 	scope?: "col" | "row" | "colgroup" | "rowgroup" | undefined;
 	/** The label this cell shows when its table is stacked (`stackBelow`, 5.8). Default: the matching header's text. */
