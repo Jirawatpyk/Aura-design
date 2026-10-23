@@ -27,8 +27,8 @@ export const ShortTab: StoryObj = {
             label="Size"
             variant="segmented"
             tabs={[
-              { id: 's', label: 'S' },
-              { id: 'm', label: 'M' },
+              { id: 's', label: 'S', content: <p>Small</p> },
+              { id: 'm', label: 'M', content: <p>Medium</p> },
             ]}
             touchHeight
           />
@@ -37,8 +37,8 @@ export const ShortTab: StoryObj = {
           <Aura.Tabs
             label="Size (full width below md)"
             tabs={[
-              { id: 'a', label: 'A' },
-              { id: 'all', label: 'All members' },
+              { id: 'a', label: 'A', content: <p>Members starting with A</p> },
+              { id: 'all', label: 'All members', content: <p>All members</p> },
             ]}
             fullWidth="below-md"
             touchHeight
