@@ -1271,9 +1271,13 @@ summary.aura-link::-webkit-details-marker { display: none; }
  * fills it, and icon buttons keep their size. The :has rule is alone so older browsers drop only it.
  * 5.44 (Chamber-OS 149): with an icon button among them (a ⋯ menu) the actions are one bar: the row never wraps,
  * the buttons share what the icon leaves and wrap their labels inside (never an ellipsis). */
+/* 5.61 (Chamber-OS 176): the share rule (here and in the actionsBarBelow bar) skips a visually hidden child (an
+ * aria-describedby text beside a button) — a class (.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text),
+ * [hidden], or an inline position: absolute (Radix / React Aria VisuallyHidden): min-width: max-content made the 1px
+ * span as wide as its text and the page scrolled sideways. :where keeps the selector's weight as before. */
 @media (max-width: 639.98px) {
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
-  .aura-page-header--actions-full-below-sm > .aura-page-header__actions > * { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
@@ -1284,7 +1288,7 @@ summary.aura-link::-webkit-details-marker { display: none; }
 }
 @media (max-width: 767.98px) {
   .aura-page-header--actions-full-below-md > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
-  .aura-page-header--actions-full-below-md > .aura-page-header__actions > * { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-full-below-md > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
@@ -1295,7 +1299,7 @@ summary.aura-link::-webkit-details-marker { display: none; }
 }
 @media (max-width: 1023.98px) {
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
-  .aura-page-header--actions-full-below-lg > .aura-page-header__actions > * { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
@@ -1318,7 +1322,7 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-icon-btn, .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-page-header--actions-bar-below-sm.aura-page-header--actions-bar-floating > .aura-page-header__actions { left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); padding-bottom: var(--aura-space-2); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :not(.aura-page-header__status) { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"]) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }
@@ -1339,7 +1343,7 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-icon-btn, .aura-page-header--actions-bar-below-md > .aura-page-header__actions > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
   .aura-page-header--actions-bar-below-md.aura-page-header--actions-bar-floating > .aura-page-header__actions { left: var(--aura-space-4); right: var(--aura-space-4); bottom: calc(var(--aura-bottomnav-offset, 0px) + max(var(--aura-space-3), env(safe-area-inset-bottom, 0px))); padding-bottom: var(--aura-space-2); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); box-shadow: var(--aura-shadow-overlay); }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__status { display: block; flex: 1 1 100%; min-width: 0; font-size: max(14px, .875rem); line-height: 1.5; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :not(.aura-page-header__status) { flex: 1 1 0; min-width: max-content; }
+  .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"]) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-icon-btn { flex: none; }
   .aura-page-header--actions-bar-below-md > .aura-page-header__actions > :has(> .aura-icon-btn) { flex: none; }

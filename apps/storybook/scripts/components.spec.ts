@@ -10834,3 +10834,35 @@ test.describe('5.60: Chamber-OS 174–175 — static Table wrapping and a wide s
     expect(await top()).toBe('0px');
   });
 });
+
+test.describe('5.61: Chamber-OS 176 — a visually hidden child of full-width header actions', () => {
+  test('176: at 390px a visually hidden description keeps its 1px box, the buttons still share the row, nothing scrolls sideways', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-61-chamber-os-176--hidden-description');
+    for (const id of ['desc', 'desc-tw', 'desc-inline'])
+      expect(
+        await page.getByTestId(id).evaluate((s) => Math.round(s.getBoundingClientRect().width)),
+        id,
+      ).toBeLessThanOrEqual(1);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+    ).toBe(true);
+    /* the two buttons still share the row edge to edge (the hidden spans take no share) */
+    const fill = await page.locator('.aura-page-header__actions').evaluate((row) => {
+      const bs = [...row.querySelectorAll(':scope > .aura-btn')].map((b) => b.getBoundingClientRect());
+      const r = row.getBoundingClientRect();
+      return [bs.length, Math.round(bs[0]!.left - r.left), Math.round(r.right - bs[bs.length - 1]!.right)];
+    });
+    expect(fill).toEqual([2, 0, 0]);
+  });
+
+  test('176: the same in the actionsBarBelow bar at 390px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-61-chamber-os-176--hidden-description-bar');
+    expect(
+      await page.getByTestId('desc').evaluate((s) => Math.round(s.getBoundingClientRect().width)),
+    ).toBeLessThanOrEqual(1);
+  });
+});

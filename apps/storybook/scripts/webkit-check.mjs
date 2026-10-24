@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.61 (#176): a visually hidden child of full-width header actions keeps its 1px box; no sideways scroll at 390. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-61-chamber-os-176--hidden-description');
+  x = await ex(`return [['desc', 'desc-tw', 'desc-inline'].every((id) => Math.round(document.querySelector('[data-testid=' + id + ']').getBoundingClientRect().width) <= 1), document.documentElement.scrollWidth <= document.documentElement.clientWidth]`);
+  check(JSON.stringify(x) === '[true,true]', 'PageHeader full-width actions skip a visually hidden child', x);
+
   /* 5.60 (#174, #175): words wrap whole in a static Table; a wide sticky header sits above the first row. */
   await call('POST', S('/window/rect'), { width: 1024, height: 900 });
   await go('aura-new-in-5-60-chamber-os-174-175--plans-list');
