@@ -1365,6 +1365,8 @@ summary.aura-link::-webkit-details-marker { display: none; }
 .aura-page-header__title-row > .aura-page-header__title { min-width: 0; }
 .aura-page-header__title-addon { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); min-width: 0; }
 .aura-page-header__eyebrow--rich { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); font-family: var(--font-sans); line-height: 1.5; }
+/* 5.62 (Chamber-OS 177): a meta of chips only (no text) is a wrapping row, as the eyebrow — 8px apart, 4px under the title. */
+.aura-page-header__meta--rich { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2); }
 .aura-page-header--hero, .aura-page-header--hero-lg { padding-top: var(--aura-page-header-hero-space, var(--aura-space-4)); }
 .aura-page-header--hero .aura-page-header__title { font-size: var(--aura-page-header-title-size, max(30px, 1.875rem)); line-height: var(--aura-page-header-title-line-height, 1.2); }
 /* 5.47 (Chamber-OS 152): compact — the staff boards' 26 / 32; hero steps to 36px from 1024px like hero-lg. */

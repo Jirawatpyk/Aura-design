@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.62 (#177): PageHeader meta chips sit 8px apart. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await go('aura-new-in-5-62-chamber-os-177--meta-chips');
+  x = await ex(`const k = [...document.querySelector('[data-testid=chips] .aura-page-header__meta').children].map((c) => c.getBoundingClientRect()); return k.slice(1).map((r, i) => Math.round(r.left - k[i].right))`);
+  check(JSON.stringify(x) === '[8,8]', 'PageHeader meta chips 8px apart', x);
+
   /* 5.61 (#176): a visually hidden child of full-width header actions keeps its 1px box; no sideways scroll at 390. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-61-chamber-os-176--hidden-description');

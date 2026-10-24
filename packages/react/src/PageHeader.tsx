@@ -4,6 +4,24 @@ import type { DataAttributes } from './types.js';
 
 const h = React.createElement;
 
+/* True when a node is one or more elements and no text (through Fragments and arrays): a row of chips. */
+function chipsOnly(node: React.ReactNode): boolean {
+  let el = 0;
+  const walk = function (n: React.ReactNode): boolean {
+    if (n == null || typeof n === 'boolean') return true;
+    if (typeof n === 'string') return n.trim() === '';
+    if (typeof n === 'number' || typeof n === 'bigint') return false;
+    if (Array.isArray(n)) return n.every(walk);
+    if (React.isValidElement(n)) {
+      if (n.type === React.Fragment) return walk((n.props as { children?: React.ReactNode }).children);
+      el++;
+      return true;
+    }
+    return false;
+  };
+  return walk(node) && el > 0;
+}
+
 /** PageHeader (5.32, DxT Monitor request 3): the top of a page — an eyebrow, the page's heading, a meta line and the
  * page's actions. It has no outer padding: inside AppShell, the content padding is the page margin (16px at the sides
  * and 24px top and bottom on phones, 24px from 640px, 32px from 1024px). Stateless, so it is also exported from
@@ -42,7 +60,8 @@ export interface PageHeaderProps
   /** 5.46: `end` (default) lines the actions up with the bottom of the text; `start` with its top (the title, when
    * there is no breadcrumb or eyebrow). */
   actionsAlign?: 'end' | 'start' | undefined;
-  /** A line under the title — counts, last update, owner. */
+  /** A line under the title — counts, last update, owner. 5.62 (Chamber-OS 177): made only of elements (Badges, a
+   * StatusPill), it is laid out as a wrapping row, 8px apart; any text in it keeps it a line. */
   meta?: React.ReactNode | undefined;
   /** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
   actions?: React.ReactNode | undefined;
@@ -97,6 +116,9 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
   const size = props.size === 'compact' || props.size === 'hero' || props.size === 'hero-lg' ? props.size : null;
   const eyebrow = props.eyebrow;
   const plainEyebrow = typeof eyebrow === 'string' || typeof eyebrow === 'number';
+  /* 5.62 (Chamber-OS 177): a meta made only of elements (Badges, a StatusPill) is a wrapping row of chips, as the
+   * eyebrow; any text in it (a sentence with a <strong> or <time>) keeps it a line. */
+  const richMeta = chipsOnly(props.meta);
   const heading = h(
     'h' + level,
     {
@@ -148,7 +170,9 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
           )
         : heading,
       shown(props.subtitle) ? h('div', { className: 'aura-page-header__subtitle' }, props.subtitle) : null,
-      props.meta != null && props.meta !== false ? h('div', { className: 'aura-page-header__meta' }, props.meta) : null,
+      props.meta != null && props.meta !== false
+        ? h('div', { className: cx('aura-page-header__meta', richMeta && 'aura-page-header__meta--rich') }, props.meta)
+        : null,
     ),
     props.actions != null && props.actions !== false
       ? h(

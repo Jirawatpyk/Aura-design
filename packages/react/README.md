@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.62 — Chamber-OS addendum 78 (#177)
+
+- **PageHeader `meta` lays chips out as a row:** a `meta` made only of elements (Badges, a StatusPill — through Fragments and arrays) is now a wrapping row, 8px apart and vertically centred, as `eyebrow` — so chips no longer touch when the JSX has no space between them, and they wrap on a phone. Any text in it — a string `meta` ("128 members · updated 3 min ago"), or a sentence with a `<strong>`, `<time>`, a link or `{count}` — keeps it a text line, as before. Also from `/server`. Drop a `flex flex-wrap items-center gap-2` stand-in wrapper.
+
 ## 5.61 — Chamber-OS addendum 77 (#176)
 
 - **A visually hidden child of full-width header actions stays hidden:** below the `actionsFullWidthBelow` width every direct child of PageHeader's actions took a share of the row with `min-width: max-content` — including a visually hidden description beside a button (`aria-describedby` → a `.sr-only` / `.aura-sr-only` span), which grew to its text's width and scrolled the page sideways. The share rule — here and in the `actionsBarBelow` bar — now skips a visually hidden child: `.sr-only`, `.aura-sr-only`, `.visually-hidden`, `.screen-reader-text`, `[hidden]`, or one with an inline `position: absolute` (Radix and React Aria `VisuallyHidden`); the buttons share the row as before. Drop a `.sr-only { min-width: 0 }` stand-in. Another out-of-flow child styled by a class of your own (an absolutely positioned badge) needs `min-width: 0`, or put it inside the button.

@@ -7914,6 +7914,22 @@ window.Aura = (() => {
   // src/PageHeader.tsx
   var React43 = __toESM(require_react(), 1);
   var h8 = React43.createElement;
+  function chipsOnly(node) {
+    let el = 0;
+    const walk = function(n3) {
+      if (n3 == null || typeof n3 === "boolean") return true;
+      if (typeof n3 === "string") return n3.trim() === "";
+      if (typeof n3 === "number" || typeof n3 === "bigint") return false;
+      if (Array.isArray(n3)) return n3.every(walk);
+      if (React43.isValidElement(n3)) {
+        if (n3.type === React43.Fragment) return walk(n3.props.children);
+        el++;
+        return true;
+      }
+      return false;
+    };
+    return walk(node) && el > 0;
+  }
   var PageHeader = React43.forwardRef(function PageHeader2(props, ref) {
     const attrs2 = {};
     Object.keys(props).forEach(function(k) {
@@ -7930,6 +7946,7 @@ window.Aura = (() => {
     const size = props.size === "compact" || props.size === "hero" || props.size === "hero-lg" ? props.size : null;
     const eyebrow = props.eyebrow;
     const plainEyebrow = typeof eyebrow === "string" || typeof eyebrow === "number";
+    const richMeta = chipsOnly(props.meta);
     const heading = h8(
       "h" + level,
       {
@@ -7971,7 +7988,7 @@ window.Aura = (() => {
           h8("div", { className: "aura-page-header__title-addon" }, props.titleAddon)
         ) : heading,
         shown(props.subtitle) ? h8("div", { className: "aura-page-header__subtitle" }, props.subtitle) : null,
-        props.meta != null && props.meta !== false ? h8("div", { className: "aura-page-header__meta" }, props.meta) : null
+        props.meta != null && props.meta !== false ? h8("div", { className: cx("aura-page-header__meta", richMeta && "aura-page-header__meta--rich") }, props.meta) : null
       ),
       props.actions != null && props.actions !== false ? h8(
         "div",

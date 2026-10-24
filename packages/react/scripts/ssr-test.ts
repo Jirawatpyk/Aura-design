@@ -794,6 +794,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (got !== 'data-label="Seen" data-label="Seen" data-label="New"' || !/role="table"/.test(tbl) || !/role="rowheader"/.test(tbl)) { console.log(label, 'Table stack labels:', got, tbl); fail++; }
     if ((tbl.match(/role="table"/g) || []).length !== 1 || /<td class="aura-tbl__td" role="cell">x/.test(tbl)) { console.log(label, 'nested table took the outer labels or roles:', tbl); fail++; }
     if (S.buttonClass({ variant: 'secondary', size: 'sm', fullWidth: true }) !== 'aura-btn aura-btn--secondary aura-btn--sm aura-btn--full') { console.log(label, 'buttonClass'); fail++; }
+    /* 5.62 (Chamber-OS 177): a PageHeader meta that isn't text is a rich row, from the root and the server entry. */
+    for (const C of [A, S]) {
+      const rich = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: e(React.Fragment, null, e('span', null, 'a'), e('span', null, 'b')) }));
+      const plain = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: '12 members' }));
+      const mixed = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: e(React.Fragment, null, 'Edited by ', e('strong', null, 'Anna'), ' ', 3, ' min ago') }));
+      if (!/class="aura-page-header__meta aura-page-header__meta--rich"/.test(rich) || /__meta--rich/.test(plain) || /__meta--rich/.test(mixed)) { console.log(label, 'PageHeader meta rich:', rich, plain, mixed); fail++; }
+    }
     /* 5.60 (Chamber-OS 174): Td / Th wrap is a class. */
     {
       const w = m(e(A.Table, { caption: 'c' }, e(A.TBody, null, e(A.Tr, null, e(A.Td, { wrap: 'none' }, 'SC-1'), e(A.Td, { wrap: 'anywhere' }, 'x@y'), e(A.Td, { wrap: 'word' }, 'z')))));

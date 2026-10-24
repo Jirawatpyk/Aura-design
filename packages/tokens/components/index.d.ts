@@ -2072,7 +2072,8 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	/** 5.46: `end` (default) lines the actions up with the bottom of the text; `start` with its top (the title, when
 	 * there is no breadcrumb or eyebrow). */
 	actionsAlign?: "end" | "start" | undefined;
-	/** A line under the title — counts, last update, owner. */
+	/** A line under the title — counts, last update, owner. 5.62 (Chamber-OS 177): made only of elements (Badges, a
+	 * StatusPill), it is laid out as a wrapping row, 8px apart; any text in it keeps it a line. */
 	meta?: React$1.ReactNode | undefined;
 	/** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
 	actions?: React$1.ReactNode | undefined;

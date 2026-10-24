@@ -10866,3 +10866,52 @@ test.describe('5.61: Chamber-OS 176 — a visually hidden child of full-width he
     ).toBeLessThanOrEqual(1);
   });
 });
+
+test.describe('5.62: Chamber-OS 177 — PageHeader meta chips as a row', () => {
+  const ID = 'aura-new-in-5-62-chamber-os-177--meta-chips';
+  const gaps = (page: Page) =>
+    page.locator('[data-testid=chips] .aura-page-header__meta').evaluate((m) => {
+      const k = [...m.children].map((c) => c.getBoundingClientRect());
+      return k.slice(1).map((r, i) => (Math.abs(r.top - k[i]!.top) < 4 ? Math.round(r.left - k[i]!.right) : null));
+    });
+
+  test('177: chips in meta sit 8px apart; a string meta stays a block line', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await story(page, ID);
+    expect(await gaps(page)).toEqual([8, 8]);
+    expect(
+      await page.locator('[data-testid=text] .aura-page-header__meta').evaluate((m) => getComputedStyle(m).display),
+    ).toBe('block');
+    /* text with inline elements stays a line: a space (not 8px) before <strong>, the "." right after the link */
+    const sent = await page.locator('[data-testid=sentence] .aura-page-header__meta').evaluate((m) => {
+      const st = m.querySelector('strong')!.getBoundingClientRect(),
+        a = m.querySelector('a')!.getBoundingClientRect();
+      const r = document.createRange();
+      r.setStart(m.firstChild!, 0);
+      r.setEnd(m.firstChild!, 'Last edited by'.length);
+      const dot = document.createRange();
+      dot.selectNodeContents(m.lastChild!);
+      return [
+        getComputedStyle(m).display,
+        Math.round(st.left - r.getBoundingClientRect().right) < 6,
+        Math.round(dot.getBoundingClientRect().left - a.right) < 2,
+      ];
+    });
+    expect(sent).toEqual(['block', true, true]);
+  });
+
+  test('177: at 320px the chips wrap to another line, 8px apart, without sideways scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await story(page, ID);
+    const m = await page.locator('[data-testid=chips] .aura-page-header__meta').evaluate((el) => {
+      const tops = new Set([...el.children].map((c) => Math.round(c.getBoundingClientRect().top)));
+      const k = [...el.children].map((c) => c.getBoundingClientRect());
+      return { lines: tops.size, rowGap: Math.round(k[k.length - 1]!.top - k[0]!.bottom) };
+    });
+    expect(m.lines).toBeGreaterThan(1);
+    expect(m.rowGap).toBe(8);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+    ).toBe(true);
+  });
+});
