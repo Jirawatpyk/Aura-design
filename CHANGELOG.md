@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.62.0 — 2026-10-24
+
+### Minor changes
+
+- 85388ee: PageHeader: a `meta` that isn't text (Badges, a StatusPill) is a wrapping row 8px apart, as `eyebrow` (Chamber-OS 177).
+
 ## 5.61.0 — 2026-10-24
 
 ### Minor changes
