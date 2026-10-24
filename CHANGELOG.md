@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.61.0 — 2026-10-24
+
+### Minor changes
+
+- 1cf4b06: PageHeader `actionsFullWidthBelow`: a visually hidden child (`.sr-only`, `.aura-sr-only`, `.visually-hidden`, `[hidden]`) no longer takes a share of the row and widens the page (Chamber-OS 176).
+
 ## 5.60.0 — 2026-10-23
 
 ### Minor changes

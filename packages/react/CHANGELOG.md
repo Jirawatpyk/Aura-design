@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.61.0
+
+### Minor Changes
+
+- 1cf4b06: PageHeader `actionsFullWidthBelow`: a visually hidden child (`.sr-only`, `.aura-sr-only`, `.visually-hidden`, `[hidden]`) no longer takes a share of the row and widens the page (Chamber-OS 176).
+
 ## 5.60.0
 
 ### Minor Changes
