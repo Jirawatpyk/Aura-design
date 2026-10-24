@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.62.0
+
+### Minor Changes
+
+- 85388ee: PageHeader: a `meta` that isn't text (Badges, a StatusPill) is a wrapping row 8px apart, as `eyebrow` (Chamber-OS 177).
+
 ## 5.61.0
 
 ### Minor Changes
