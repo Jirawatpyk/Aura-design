@@ -358,6 +358,13 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-icon-btn--outline { box-sizing: border-box; border: 1px solid var(--aura-button-secondary-border); } /* 5.44 (Chamber-OS 149): reads as a button beside outlined ones */
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
+/* 5.65 (Chamber-OS 180): a toggle (aria-pressed="true", or the pressed prop) looks on — the selected fill and the
+ * accent icon — and hover still shows on top of it (an accent hairline inside). Outline toggles take an accent border.
+ * The focus ring is unchanged. Not inside a field: PasswordField's reveal eye (aria-pressed) stays quiet (5.30 #14).
+ * One class stronger than the open-menu fill, so a pressed menu trigger stays on while its menu is open. */
+.aura-icon-btn[aria-pressed="true"]:not(.aura-input *) { background: var(--aura-bg-selected); color: var(--aura-fg-accent); }
+.aura-icon-btn[aria-pressed="true"]:not(.aura-input *):hover { background: var(--aura-bg-selected); box-shadow: inset 0 0 0 1px var(--aura-fg-accent); }
+.aura-icon-btn--outline[aria-pressed="true"]:not(.aura-input *) { border-color: var(--aura-fg-accent); }
 .aura-icon-btn:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 /* 5.15 (Chamber-OS 100): touchHeight — visibly 44px on phones, for buttons and icon buttons a phone design wants full size.
  * 5.24 (Chamber-OS 123): also wherever the primary pointer is coarse — a tablet at 768–1366px is a finger, not a mouse.
@@ -2552,6 +2559,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-switch-row.is-disabled .aura-choice__label { color: GrayText; }
   .aura-progress__track, .aura-upload__bar { border: 1px solid CanvasText; }
   .aura-progress :is(.aura-progress__bar, .aura-progress__swatch), .aura-upload__bar > span { background: Highlight; forced-color-adjust: none; } /* every tone (5.64) */
+  .aura-icon-btn[aria-pressed="true"]:not(.aura-input *) { background: Highlight; color: HighlightText; forced-color-adjust: none; } /* 5.65 */
+  .aura-icon-btn[aria-pressed="true"]:not(.aura-input *):hover { box-shadow: inset 0 0 0 1px HighlightText; }
+  .aura-icon-btn[aria-pressed="true"]:not(.aura-input *):focus-visible { outline-color: CanvasText; }
   .aura-segmented__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
   .aura-tab { border-bottom-color: Canvas; }
   .aura-tab.is-active { border-bottom-color: Highlight; }

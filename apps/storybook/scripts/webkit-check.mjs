@@ -233,6 +233,11 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.65 (#180): a pressed IconButton has the selected fill; an unpressed one is transparent. */
+  await go('aura-new-in-5-65-chamber-os-180--toggles');
+  x = await ex(`const s = (id) => getComputedStyle(document.querySelector('[data-testid=' + id + ']')); return [s('bold').backgroundColor !== s('plain').backgroundColor, s('bold').color !== s('plain').color, s('italic').backgroundColor === s('plain').backgroundColor]`);
+  check(JSON.stringify(x) === '[true,true,true]', 'IconButton pressed looks on, unpressed as before', x);
+
   /* 5.64 (#179): Progress legend — two swatches in the bar's tone, hidden from AT; absent at 0. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });
   await go('aura-new-in-5-64-chamber-os-179--quota-legend');

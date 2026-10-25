@@ -384,6 +384,9 @@ export interface IconButtonProps extends React$1.ButtonHTMLAttributes<HTMLButton
 	/** 44×44 instead of 32×32 below 640px (the viewport's) or wherever the primary pointer is coarse (a tablet, 5.24) —
 	 * a phone sheet's close button, a card's ⋯ trigger (5.15, Chamber-OS 100). */
 	touchHeight?: boolean | undefined;
+	/** A toggle (5.65, Chamber-OS 180): sets `aria-pressed`, and a pressed button draws as on — the selected fill and the
+	 * accent icon. Omit for an ordinary button. An `aria-pressed` you pass draws the same. */
+	pressed?: boolean | undefined;
 }
 export interface MenuItem {
 	label?: string | undefined;

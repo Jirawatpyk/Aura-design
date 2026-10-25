@@ -1649,7 +1649,7 @@ window.Aura = (() => {
 
   // src/IconButton.tsx
   var IconButton = React8.forwardRef(function IconButton2(props, ref) {
-    const rest = omit(props, ["icon", "label", "className", "size", "tone", "touchHeight", "variant"]);
+    const rest = omit(props, ["icon", "label", "className", "size", "tone", "touchHeight", "variant", "pressed"]);
     useAutoTip();
     const own = props.title !== void 0;
     return /* @__PURE__ */ React8.createElement(
@@ -1659,6 +1659,7 @@ window.Aura = (() => {
         ref,
         type: props.type || "button",
         "aria-label": props.label,
+        "aria-pressed": props.pressed != null ? props.pressed : props["aria-pressed"],
         "data-aura-tip": own ? void 0 : props.label,
         className: cx(
           "aura-icon-btn",

@@ -11039,3 +11039,113 @@ test.describe('5.64: Chamber-OS 179 — a key for Progress’s reserved part', (
     expect(a).toBe(d);
   });
 });
+
+test.describe('5.65: Chamber-OS 180 — a pressed IconButton looks on', () => {
+  const ID = 'aura-new-in-5-65-chamber-os-180--toggles';
+  const look = (page: Page, id: string) =>
+    page.getByTestId(id).evaluate((b) => {
+      const s = getComputedStyle(b);
+      return {
+        bg: s.backgroundColor,
+        color: s.color,
+        shadow: s.boxShadow,
+        border: s.borderTopColor,
+        pressed: b.getAttribute('aria-pressed'),
+      };
+    });
+  const lum = (c: string) => {
+    const [r, g, b] = c
+      .match(/[\d.]+/g)!
+      .slice(0, 3)
+      .map((v) => {
+        const x = Number(v) / 255;
+        return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+      });
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  };
+  const ratio = (a: string, b: string) => {
+    const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+    return (x! + 0.05) / (y! + 0.05);
+  };
+
+  for (const theme of ['light', 'dark']) {
+    test(`180 (${theme}): pressed draws the selected fill and the accent icon (≥3:1); unpressed draws as before; hover shows on top`, async ({
+      page,
+    }) => {
+      await story(page, ID, theme);
+      const sel = await page.evaluate(() => {
+        const p = document.createElement('span');
+        p.style.background = 'var(--aura-bg-selected)';
+        p.style.color = 'var(--aura-fg-accent)';
+        document.body.appendChild(p);
+        const s = getComputedStyle(p);
+        const out = [s.backgroundColor, s.color];
+        p.remove();
+        return out;
+      });
+      const on = await look(page, 'bold'),
+        aria = await look(page, 'aria'),
+        off = await look(page, 'italic'),
+        plain = await look(page, 'plain');
+      expect(on).toMatchObject({ bg: sel[0], color: sel[1], pressed: 'true' });
+      expect(aria).toMatchObject({ bg: sel[0], color: sel[1], pressed: 'true' });
+      expect(off.pressed).toBe('false');
+      expect(plain.pressed).toBeNull();
+      expect(off.bg).toBe(plain.bg);
+      expect(off.color).toBe(plain.color);
+      expect(ratio(on.color, on.bg)).toBeGreaterThanOrEqual(3);
+      /* hover on a pressed one changes it (an accent hairline), keeping the fill */
+      await page.getByTestId('bold').hover();
+      const hov = await look(page, 'bold');
+      expect(hov.bg).toBe(sel[0]);
+      expect(hov.shadow).not.toBe('none');
+      /* outline: accent border when pressed */
+      expect((await look(page, 'outline-on')).border).toBe(sel[1]);
+      expect((await look(page, 'outline-off')).border).not.toBe(sel[1]);
+    });
+  }
+
+  test('180: forced colours — a pressed toggle is Highlight, an unpressed one is not', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await story(page, ID);
+    const [on, off] = await Promise.all(['bold', 'italic'].map((id) => look(page, id)));
+    expect(on.bg).not.toBe(off.bg);
+    expect(on.color).not.toBe(off.color);
+    /* the focus ring on a pressed toggle is the system's text colour, not the accent */
+    await page.keyboard.press('Tab');
+    await page.getByTestId('bold').focus();
+    const [ring, canvasText] = await page.getByTestId('bold').evaluate((b) => {
+      const p = document.createElement('span');
+      p.style.color = 'CanvasText';
+      document.body.appendChild(p);
+      const c = getComputedStyle(p).color;
+      p.remove();
+      return [getComputedStyle(b).outlineColor, c];
+    });
+    expect(ring).toBe(canvasText);
+  });
+
+  test('180: PasswordField’s reveal eye (aria-pressed) stays quiet when shown', async ({ page }) => {
+    await story(page, ID);
+    const eye = page.locator('[data-testid=pw] .aura-icon-btn');
+    const before = await eye.evaluate((b) => [getComputedStyle(b).backgroundColor, getComputedStyle(b).color]);
+    await eye.click();
+    await page.mouse.move(0, 0);
+    expect(await eye.getAttribute('aria-pressed')).toBe('true');
+    await expect
+      .poll(() => eye.evaluate((b) => [getComputedStyle(b).backgroundColor, getComputedStyle(b).color]))
+      .toEqual(before);
+  });
+
+  test('180: pressed toggles aria-pressed; the focus ring is unchanged', async ({ page }) => {
+    await story(page, ID);
+    await page.getByTestId('bold').click();
+    expect((await look(page, 'bold')).pressed).toBe('false');
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    const ring = await page
+      .getByTestId('bold')
+      .evaluate((b) => [getComputedStyle(b).outlineStyle, getComputedStyle(b).outlineWidth]);
+    expect(ring).toEqual(['solid', '2px']);
+  });
+});
