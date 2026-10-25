@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.64.0 — 2026-10-25
+
+### Minor changes
+
+- 86ee99c: Progress `legend={{ value, secondary }}`: a key under the bar for the value and the striped reserved part, in the bar's tone, shown while `secondaryValue` is above 0 and hidden from screen readers (Chamber-OS 179).
+
 ## 5.63.0 — 2026-10-25
 
 ### Minor changes
