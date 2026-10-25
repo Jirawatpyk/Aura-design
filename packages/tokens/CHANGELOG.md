@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.64.0
+
+### Minor Changes
+
+- 86ee99c: Progress `legend={{ value, secondary }}`: a key under the bar for the value and the striped reserved part, in the bar's tone, shown while `secondaryValue` is above 0 and hidden from screen readers (Chamber-OS 179).
+
 ## 5.63.0
 
 ### Minor Changes
