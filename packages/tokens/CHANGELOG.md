@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.65.0
+
+### Minor Changes
+
+- 5b83a29: IconButton: `aria-pressed="true"` (or the new `pressed` prop) draws as on — the selected fill and the accent icon, hover on top, an accent border on `outline`, Highlight in forced colours (Chamber-OS 180).
+
 ## 5.64.0
 
 ### Minor Changes
