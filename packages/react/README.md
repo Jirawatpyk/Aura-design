@@ -186,6 +186,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.64 — Chamber-OS addendum 80 (#179)
+
+- **Progress `legend` — a key for the reserved part:** `legend={{ value: 'Used', secondary: 'Reserved (in review or scheduled)' }}` draws a key under the bar (above the `hint`): a swatch in the bar's tone for each part (`value` is optional), the second striped like the reserved segment, so it follows `tone="danger"`. It shows only while the reserved segment is drawn and wraps on a phone. It is `aria-hidden`, so while it shows the bar reads both counts ("2 of 6 used, 1 reserved") even when you pass a `valueLabel` — pass `valueText` to word it yourself. In forced colours the bar and the swatches use Highlight in every tone (before 5.64 a toned bar kept its colour). Drop a hand-drawn key that copies the stripe.
+
 ## 5.63 — Chamber-OS addendum 79 (#178)
 
 - **A lazy chip still makes `meta` the chip row:** a Server Component's Badge or StatusPill passed through a `'use client'` wrapper can arrive as a lazy node on Next's dev server. PageHeader now looks through a resolved lazy node (a chip makes the row, text keeps the line, as when it arrives resolved), and an unresolved one is neutral — the other children decide — so the layout no longer depends on the build mode. Anything else unresolved (a promise, an iterator) keeps a line.

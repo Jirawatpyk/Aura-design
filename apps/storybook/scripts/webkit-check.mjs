@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.64 (#179): Progress legend — two swatches in the bar's tone, hidden from AT; absent at 0. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await go('aura-new-in-5-64-chamber-os-179--quota-legend');
+  x = await ex(`const lg = document.querySelector('[data-testid=accent] .aura-progress__legend'), bar = document.querySelector('[data-testid=accent] .aura-progress__bar'); return [lg.querySelectorAll('.aura-progress__swatch').length, lg.getAttribute('aria-hidden'), getComputedStyle(lg.querySelector('.aura-progress__swatch')).backgroundColor === getComputedStyle(bar).backgroundColor, !document.querySelector('[data-testid=none] .aura-progress__legend')]`);
+  check(JSON.stringify(x) === '[2,"true",true,true]', 'Progress legend: two swatches, aria-hidden, bar tone, absent at 0', x);
+
   /* 5.63 (#178): a lazy chip still makes meta the chip row. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });
   await go('aura-new-in-5-63-chamber-os-178--lazy-chip');

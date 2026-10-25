@@ -1578,13 +1578,19 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-progress__track { position: relative; height: 8px; border-radius: var(--aura-radius-full); background: var(--aura-progress-track); box-shadow: inset 0 0 0 1px var(--aura-progress-track-edge); overflow: hidden; }
 .aura-progress.is-sm .aura-progress__track { height: 4px; }
 .aura-progress__bar { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--aura-fg-accent); transition: width var(--aura-duration-base) var(--aura-ease); }
-.aura-progress--success .aura-progress__bar { background: var(--aura-fg-positive); }
-.aura-progress--warning .aura-progress__bar { background: var(--aura-alert-warning-fg); }
-.aura-progress--danger .aura-progress__bar { background: var(--aura-fg-danger); }
-.aura-progress--neutral .aura-progress__bar { background: var(--aura-fg-secondary); }
+/* 5.64 (Chamber-OS 179): legend — a swatch per part in the bar's tone, the reserved one striped like its segment. */
+.aura-progress__legend { display: flex; flex-wrap: wrap; gap: var(--aura-space-1) var(--aura-space-4); font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-progress__key { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.aura-progress__swatch { flex: none; width: 12px; height: 8px; border-radius: 2px; background: var(--aura-fg-accent); }
+.aura-progress--success :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-fg-positive); }
+.aura-progress--warning :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-alert-warning-fg); }
+.aura-progress--danger :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-fg-danger); }
+.aura-progress--neutral :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-fg-secondary); }
 /* 5.15 (Chamber-OS 89): a reserved amount after the value — the same tone, striped, so it reads without colour. */
 .aura-progress__bar--reserved {
   transition: left var(--aura-duration-base) var(--aura-ease), width var(--aura-duration-base) var(--aura-ease);
+}
+.aura-progress__bar--reserved, .aura-progress__swatch--reserved {
   -webkit-mask-image: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 6px);
   mask-image: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 6px);
 }
@@ -2545,7 +2551,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-switch.is-on:disabled .aura-switch__thumb { background: Canvas; }
   .aura-switch-row.is-disabled .aura-choice__label { color: GrayText; }
   .aura-progress__track, .aura-upload__bar { border: 1px solid CanvasText; }
-  .aura-progress__bar, .aura-upload__bar > span { background: Highlight; forced-color-adjust: none; }
+  .aura-progress :is(.aura-progress__bar, .aura-progress__swatch), .aura-upload__bar > span { background: Highlight; forced-color-adjust: none; } /* every tone (5.64) */
   .aura-segmented__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
   .aura-tab { border-bottom-color: Canvas; }
   .aura-tab.is-active { border-bottom-color: Highlight; }

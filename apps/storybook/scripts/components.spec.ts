@@ -10935,3 +10935,107 @@ test.describe('5.63: Chamber-OS 178 — a lazy chip in PageHeader meta; metaLayo
     );
   });
 });
+
+test.describe('5.64: Chamber-OS 179 — a key for Progress’s reserved part', () => {
+  const ID = 'aura-new-in-5-64-chamber-os-179--quota-legend';
+  test('179: two swatches in the bar’s tone (the second striped like the reserved segment), aria-hidden, following danger; absent at 0', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const read = (id: string) =>
+      page.getByTestId(id).evaluate((root) => {
+        const lg = root.querySelector('.aura-progress__legend');
+        if (!lg) return null;
+        const mk = (c: CSSStyleDeclaration) =>
+          (c.getPropertyValue('mask-image') || c.getPropertyValue('-webkit-mask-image')).replace(
+            /rgba?\([^)]*\)/g,
+            'c',
+          ); /* the stripe's geometry; its colour is currentColor (only alpha masks) */
+        const sw = [...lg.querySelectorAll('.aura-progress__swatch')].map((s) => getComputedStyle(s));
+        const bar = getComputedStyle(root.querySelector('.aura-progress__bar')!);
+        const res = getComputedStyle(root.querySelector('.aura-progress__bar--reserved')!);
+        return {
+          hidden: lg.getAttribute('aria-hidden'),
+          n: sw.length,
+          sameTone: sw.every((s) => s.backgroundColor === bar.backgroundColor),
+          striped:
+            mk(sw[1]!) === mk(res) && /repeating-linear-gradient/.test(mk(sw[1]!)) && !/gradient/.test(mk(sw[0]!)),
+          text: lg.textContent,
+          before:
+            !!root.querySelector('.aura-progress__legend + .aura-progress__hint') ||
+            !root.querySelector('.aura-progress__hint'),
+          tone: bar.backgroundColor,
+        };
+      });
+    const a = await read('accent'),
+      d = await read('danger');
+    expect(a).toMatchObject({
+      hidden: 'true',
+      n: 2,
+      sameTone: true,
+      striped: true,
+      text: 'UsedReserved (in review or scheduled)',
+      before: true,
+    });
+    expect(d).toMatchObject({ n: 2, sameTone: true, striped: true });
+    expect(d!.tone).not.toBe(a!.tone);
+    expect(await read('none')).toBeNull();
+    /* the key is hidden, so the bar reads both counts even with a valueLabel */
+    expect(await page.getByTestId('accent').locator('[role=progressbar]').getAttribute('aria-valuetext')).toBe(
+      '2 of 6 used, 1 reserved',
+    );
+    /* no reserved segment drawn (value is the max): no key; a key with only the reserved part */
+    expect(await read('full')).toBeNull();
+    expect(await page.getByTestId('only-secondary').locator('.aura-progress__swatch').count()).toBe(1);
+  });
+
+  test('179: in a 200px box the key wraps — two lines, each part inside the box, the long label wrapping beside a 12px swatch', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    const m = await page.getByTestId('narrow').evaluate((box) => {
+      const lg = box.querySelector('.aura-progress__legend')!,
+        keys = [...lg.querySelectorAll('.aura-progress__key')];
+      const b = box.getBoundingClientRect(),
+        sw = keys[1]!.querySelector('.aura-progress__swatch')!.getBoundingClientRect();
+      const r = document.createRange();
+      r.selectNodeContents(keys[1]!.lastChild!);
+      return {
+        lines: new Set(keys.map((k) => Math.round(k.getBoundingClientRect().top))).size,
+        inside: keys.every((k) => k.getBoundingClientRect().right <= b.right + 0.5),
+        swatch: Math.round(sw.width),
+        labelLines: new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size,
+      };
+    });
+    expect(m).toEqual({ lines: 2, inside: true, swatch: 12, labelLines: 2 });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+    ).toBe(true);
+  });
+
+  test('179: forced colours — the swatches match the bar in every tone (Highlight)', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await story(page, ID);
+    for (const id of ['accent', 'danger']) {
+      const c = await page
+        .getByTestId(id)
+        .evaluate((root) => [
+          getComputedStyle(root.querySelector('.aura-progress__bar')!).backgroundColor,
+          ...[...root.querySelectorAll('.aura-progress__swatch')].map((s) => getComputedStyle(s).backgroundColor),
+        ]);
+      expect(new Set(c).size, id).toBe(1);
+    }
+    const [a, d] = await Promise.all(
+      ['accent', 'danger'].map((id) =>
+        page
+          .getByTestId(id)
+          .locator('.aura-progress__bar')
+          .first()
+          .evaluate((b) => getComputedStyle(b).backgroundColor),
+      ),
+    );
+    expect(a).toBe(d);
+  });
+});

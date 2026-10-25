@@ -14,14 +14,19 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(function
   /* The reserved segment starts where the value ends and never runs past the end of the track. */
   const sec = det && props.secondaryValue != null && props.secondaryValue > 0 ? props.secondaryValue : 0;
   const spct = sec ? Math.max(0, Math.min(100 - pct, (sec / max) * 100)) : 0;
+  /* 5.64 (Chamber-OS 179): the key is hidden from screen readers, so while it shows the bar reads both counts even
+   * with a valueLabel ("2 of 6 used, 1 reserved"), unless valueText says otherwise. */
+  const keyed = !!props.legend && spct > 0;
   const valueText =
     props.valueText != null
       ? props.valueText
-      : props.valueLabel != null
-        ? String(props.valueLabel)
-        : sec
-          ? t.progressReserved(props.value!, sec, max)
-          : undefined;
+      : keyed
+        ? t.progressReserved(props.value!, sec, max)
+        : props.valueLabel != null
+          ? String(props.valueLabel)
+          : sec
+            ? t.progressReserved(props.value!, sec, max)
+            : undefined;
   const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + '%' : null;
   return (
     <div
@@ -63,6 +68,21 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(function
           />
         ) : null}
       </div>
+      {/* 5.64 (Chamber-OS 179): the key for the two parts, only while something is reserved. */}
+      {keyed ? (
+        <div className="aura-progress__legend" aria-hidden="true">
+          {props.legend!.value != null && props.legend!.value !== false ? (
+            <span className="aura-progress__key">
+              <span className="aura-progress__swatch" />
+              {props.legend!.value}
+            </span>
+          ) : null}
+          <span className="aura-progress__key">
+            <span className="aura-progress__swatch aura-progress__swatch--reserved" />
+            {props.legend!.secondary}
+          </span>
+        </div>
+      ) : null}
       {props.hint ? <p className="aura-progress__hint">{props.hint}</p> : null}
     </div>
   );

@@ -10171,7 +10171,8 @@ window.Aura = (() => {
     const pct = det ? Math.max(0, Math.min(100, props.value / max * 100)) : 0;
     const sec = det && props.secondaryValue != null && props.secondaryValue > 0 ? props.secondaryValue : 0;
     const spct = sec ? Math.max(0, Math.min(100 - pct, sec / max * 100)) : 0;
-    const valueText = props.valueText != null ? props.valueText : props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value, sec, max) : void 0;
+    const keyed = !!props.legend && spct > 0;
+    const valueText = props.valueText != null ? props.valueText : keyed ? t.progressReserved(props.value, sec, max) : props.valueLabel != null ? String(props.valueLabel) : sec ? t.progressReserved(props.value, sec, max) : void 0;
     const shown = props.valueLabel != null ? props.valueLabel : det ? Math.round(pct) + "%" : null;
     return /* @__PURE__ */ React61.createElement(
       "div",
@@ -10206,6 +10207,7 @@ window.Aura = (() => {
           }
         ) : null
       ),
+      keyed ? /* @__PURE__ */ React61.createElement("div", { className: "aura-progress__legend", "aria-hidden": "true" }, props.legend.value != null && props.legend.value !== false ? /* @__PURE__ */ React61.createElement("span", { className: "aura-progress__key" }, /* @__PURE__ */ React61.createElement("span", { className: "aura-progress__swatch" }), props.legend.value) : null, /* @__PURE__ */ React61.createElement("span", { className: "aura-progress__key" }, /* @__PURE__ */ React61.createElement("span", { className: "aura-progress__swatch aura-progress__swatch--reserved" }), props.legend.secondary)) : null,
       props.hint ? /* @__PURE__ */ React61.createElement("p", { className: "aura-progress__hint" }, props.hint) : null
     );
   });

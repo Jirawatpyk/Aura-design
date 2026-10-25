@@ -1770,6 +1770,11 @@ export interface ProgressProps {
   /** A reserved amount drawn after `value` as a striped segment of the same tone — queued sends on a quota
    * (5.15, Chamber-OS 89). Both counts are read out ("2 of 6 used, 1 reserved") unless `valueLabel` is given. */
   secondaryValue?: number | undefined;
+  /** A key under the bar for its two parts (5.64, Chamber-OS 179): `{ value: 'Used', secondary: 'Reserved' }` — a
+   * swatch in the bar's tone for each (`value` optional), the second striped like the reserved segment. Shown only
+   * while the reserved segment is drawn; hidden from screen readers — so while it shows, the bar reads both counts
+   * ("2 of 6 used, 1 reserved") even with a `valueLabel`, unless you pass `valueText`. */
+  legend?: { value?: React.ReactNode; secondary: React.ReactNode } | undefined;
   hint?: React.ReactNode | undefined;
   tone?: Tone | undefined;
   size?: 'sm' | 'md' | undefined;
