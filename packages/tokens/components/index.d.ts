@@ -2075,6 +2075,10 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	/** A line under the title — counts, last update, owner. 5.62 (Chamber-OS 177): made only of elements (Badges, a
 	 * StatusPill), it is laid out as a wrapping row, 8px apart; any text in it keeps it a line. */
 	meta?: React$1.ReactNode | undefined;
+	/** 5.63 (Chamber-OS 178): `row` lays `meta` out as the wrapping chip row whatever its children are, `line` as a text
+	 * line; `auto` (default) guesses from them (elements only → row). Pass `row` when chips come from a Server Component
+	 * through a client wrapper, where they may arrive unresolved. */
+	metaLayout?: "auto" | "row" | "line" | undefined;
 	/** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
 	actions?: React$1.ReactNode | undefined;
 	/** 5.37 (DxT Monitor #17): below this breakpoint (`sm` 640px, `md` 768px, `lg` 1024px) the actions take the whole

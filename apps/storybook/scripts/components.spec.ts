@@ -10915,3 +10915,23 @@ test.describe('5.62: Chamber-OS 177 — PageHeader meta chips as a row', () => {
     ).toBe(true);
   });
 });
+
+test.describe('5.63: Chamber-OS 178 — a lazy chip in PageHeader meta; metaLayout', () => {
+  const ID = 'aura-new-in-5-63-chamber-os-178--lazy-chip';
+  test('178: a meta with a lazy node is the chip row (8px apart); metaLayout row / line set it outright', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    await page.waitForSelector('[data-testid=lazy] .aura-pill');
+    const lazy = await page.locator('[data-testid=lazy] .aura-page-header__meta').evaluate((m) => {
+      const k = [...m.children].map((c) => c.getBoundingClientRect());
+      return [m.classList.contains('aura-page-header__meta--rich'), k.length, Math.round(k[1]!.left - k[0]!.right)];
+    });
+    expect(lazy).toEqual([true, 2, 8]);
+    expect(await page.locator('[data-testid=row] .aura-page-header__meta').getAttribute('class')).toContain('--rich');
+    expect(await page.locator('[data-testid=line] .aura-page-header__meta').getAttribute('class')).not.toContain(
+      '--rich',
+    );
+  });
+});

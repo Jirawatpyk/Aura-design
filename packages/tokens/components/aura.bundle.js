@@ -7914,6 +7914,7 @@ window.Aura = (() => {
   // src/PageHeader.tsx
   var React43 = __toESM(require_react(), 1);
   var h8 = React43.createElement;
+  var LAZY = Symbol.for("react.lazy");
   function chipsOnly(node) {
     let el = 0;
     const walk = function(n3) {
@@ -7921,6 +7922,16 @@ window.Aura = (() => {
       if (typeof n3 === "string") return n3.trim() === "";
       if (typeof n3 === "number" || typeof n3 === "bigint") return false;
       if (Array.isArray(n3)) return n3.every(walk);
+      if (typeof n3 === "object" && n3.$$typeof === LAZY) {
+        const lazy = n3;
+        let value;
+        try {
+          value = lazy._init(lazy._payload);
+        } catch {
+          return true;
+        }
+        return walk(value);
+      }
       if (React43.isValidElement(n3)) {
         if (n3.type === React43.Fragment) return walk(n3.props.children);
         el++;
@@ -7946,7 +7957,7 @@ window.Aura = (() => {
     const size = props.size === "compact" || props.size === "hero" || props.size === "hero-lg" ? props.size : null;
     const eyebrow = props.eyebrow;
     const plainEyebrow = typeof eyebrow === "string" || typeof eyebrow === "number";
-    const richMeta = chipsOnly(props.meta);
+    const richMeta = props.metaLayout === "row" ? true : props.metaLayout === "line" ? false : chipsOnly(props.meta);
     const heading = h8(
       "h" + level,
       {

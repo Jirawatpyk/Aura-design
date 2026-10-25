@@ -233,6 +233,13 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.63 (#178): a lazy chip still makes meta the chip row. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 900 });
+  await go('aura-new-in-5-63-chamber-os-178--lazy-chip');
+  await sleep(300);
+  x = await ex(`const m = document.querySelector('[data-testid=lazy] .aura-page-header__meta'), k = [...m.children].map((c) => c.getBoundingClientRect()); return [m.classList.contains('aura-page-header__meta--rich'), k.length === 2 && Math.round(k[1].left - k[0].right)]`);
+  check(JSON.stringify(x) === '[true,8]', 'PageHeader meta with a lazy chip is the row', x);
+
   /* 5.62 (#177): PageHeader meta chips sit 8px apart. */
   await call('POST', S('/window/rect'), { width: 1280, height: 900 });
   await go('aura-new-in-5-62-chamber-os-177--meta-chips');

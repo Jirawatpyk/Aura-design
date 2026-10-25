@@ -186,6 +186,11 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.63 — Chamber-OS addendum 79 (#178)
+
+- **A lazy chip still makes `meta` the chip row:** a Server Component's Badge or StatusPill passed through a `'use client'` wrapper can arrive as a lazy node on Next's dev server. PageHeader now looks through a resolved lazy node (a chip makes the row, text keeps the line, as when it arrives resolved), and an unresolved one is neutral — the other children decide — so the layout no longer depends on the build mode. Anything else unresolved (a promise, an iterator) keeps a line.
+- **`metaLayout`:** `"row"` lays `meta` out as the wrapping chip row whatever it holds, `"line"` as a text line; `"auto"` (default) keeps 5.62's guess (elements only → row). Pass `metaLayout="row"` where chips come from a Server Component, so nothing is guessed (an all-lazy meta that hasn't resolved would otherwise be a line). Also from `/server`. Drop the `flex flex-wrap items-center gap-2` stand-in.
+
 ## 5.62 — Chamber-OS addendum 78 (#177)
 
 - **PageHeader `meta` lays chips out as a row:** a `meta` made only of elements (Badges, a StatusPill — through Fragments and arrays) is now a wrapping row, 8px apart and vertically centred, as `eyebrow` — so chips no longer touch when the JSX has no space between them, and they wrap on a phone. Any text in it — a string `meta` ("128 members · updated 3 min ago"), or a sentence with a `<strong>`, `<time>`, a link or `{count}` — keeps it a text line, as before. Also from `/server`. Drop a `flex flex-wrap items-center gap-2` stand-in wrapper.

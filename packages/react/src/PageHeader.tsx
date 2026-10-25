@@ -4,7 +4,11 @@ import type { DataAttributes } from './types.js';
 
 const h = React.createElement;
 
-/* True when a node is one or more elements and no text (through Fragments and arrays): a row of chips. */
+/* True when a node is one or more elements and no text (through Fragments and arrays): a row of chips. 5.63
+ * (Chamber-OS 178): a lazy node (a Server Component's child, as Next's dev server sends one through a client wrapper)
+ * is looked through when it has resolved — React resolves it the same way when it renders — and is neutral while it
+ * hasn't (the other children decide). Anything else unresolved (a promise, an iterator) keeps a line: use metaLayout. */
+const LAZY = Symbol.for('react.lazy');
 function chipsOnly(node: React.ReactNode): boolean {
   let el = 0;
   const walk = function (n: React.ReactNode): boolean {
@@ -12,6 +16,16 @@ function chipsOnly(node: React.ReactNode): boolean {
     if (typeof n === 'string') return n.trim() === '';
     if (typeof n === 'number' || typeof n === 'bigint') return false;
     if (Array.isArray(n)) return n.every(walk);
+    if (typeof n === 'object' && (n as { $$typeof?: unknown }).$$typeof === LAZY) {
+      const lazy = n as unknown as { _payload: unknown; _init: (p: unknown) => React.ReactNode };
+      let value: React.ReactNode;
+      try {
+        value = lazy._init(lazy._payload);
+      } catch {
+        return true; /* not resolved yet (it threw its promise): neutral */
+      }
+      return walk(value);
+    }
     if (React.isValidElement(n)) {
       if (n.type === React.Fragment) return walk((n.props as { children?: React.ReactNode }).children);
       el++;
@@ -63,6 +77,10 @@ export interface PageHeaderProps
   /** A line under the title — counts, last update, owner. 5.62 (Chamber-OS 177): made only of elements (Badges, a
    * StatusPill), it is laid out as a wrapping row, 8px apart; any text in it keeps it a line. */
   meta?: React.ReactNode | undefined;
+  /** 5.63 (Chamber-OS 178): `row` lays `meta` out as the wrapping chip row whatever its children are, `line` as a text
+   * line; `auto` (default) guesses from them (elements only → row). Pass `row` when chips come from a Server Component
+   * through a client wrapper, where they may arrive unresolved. */
+  metaLayout?: 'auto' | 'row' | 'line' | undefined;
   /** Buttons for the page, bottom-aligned at the end; they wrap below the text on a narrow screen. */
   actions?: React.ReactNode | undefined;
   /** 5.37 (DxT Monitor #17): below this breakpoint (`sm` 640px, `md` 768px, `lg` 1024px) the actions take the whole
@@ -118,7 +136,8 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
   const plainEyebrow = typeof eyebrow === 'string' || typeof eyebrow === 'number';
   /* 5.62 (Chamber-OS 177): a meta made only of elements (Badges, a StatusPill) is a wrapping row of chips, as the
    * eyebrow; any text in it (a sentence with a <strong> or <time>) keeps it a line. */
-  const richMeta = chipsOnly(props.meta);
+  /* 5.63 (Chamber-OS 178): metaLayout "row" / "line" skips the guess. */
+  const richMeta = props.metaLayout === 'row' ? true : props.metaLayout === 'line' ? false : chipsOnly(props.meta);
   const heading = h(
     'h' + level,
     {

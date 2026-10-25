@@ -800,6 +800,17 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const plain = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: '12 members' }));
       const mixed = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: e(React.Fragment, null, 'Edited by ', e('strong', null, 'Anna'), ' ', 3, ' min ago') }));
       if (!/class="aura-page-header__meta aura-page-header__meta--rich"/.test(rich) || /__meta--rich/.test(plain) || /__meta--rich/.test(mixed)) { console.log(label, 'PageHeader meta rich:', rich, plain, mixed); fail++; }
+      /* 5.63 (Chamber-OS 178): a resolved lazy node is looked through — a chip makes the row, text keeps the line (an
+       * unresolved one, neutral, is covered in Storybook: a server render can't hold a pending lazy). */
+      const lz = (v: unknown) => ({ $$typeof: Symbol.for('react.lazy'), _payload: v, _init: (p: unknown) => p });
+      const lzChip = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: [e('span', { key: 'a' }, 'Gold'), lz(e('span', null, 'Full'))] }));
+      const lzText = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: lz(e(React.Fragment, null, 'Edited by ', e('strong', null, 'Anna'))) }));
+      const lzMix = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', meta: [e('span', { key: 'a' }, 'Gold'), lz(' members')] }));
+      if (!/__meta--rich/.test(lzChip) || /__meta--rich/.test(lzText) || /__meta--rich/.test(lzMix)) { console.log(label, 'PageHeader lazy meta:', lzChip, lzText, lzMix); fail++; }
+      /* 5.63 (Chamber-OS 178): metaLayout overrides the guess, and isn't an attribute. */
+      const forcedRow = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', metaLayout: 'row', meta: e(React.Fragment, null, 'Plan ', e('b', null, 'x')) }));
+      const forcedLine = m(e(C.PageHeader as React.ComponentType<any>, { title: 'T', metaLayout: 'line', meta: e(React.Fragment, null, e('span', null, 'a'), e('span', null, 'b')) }));
+      if (!/__meta--rich/.test(forcedRow) || /__meta--rich/.test(forcedLine) || /metalayout/i.test(forcedRow)) { console.log(label, 'PageHeader metaLayout:', forcedRow, forcedLine); fail++; }
     }
     /* 5.60 (Chamber-OS 174): Td / Th wrap is a class. */
     {
