@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.63.0
+
+### Minor Changes
+
+- ae5c33d: PageHeader: a lazy node in `meta` (a Server Component's chip on Next's dev server) counts as a chip; new `metaLayout="auto" | "row" | "line"` sets the meta layout outright (Chamber-OS 178).
+
 ## 5.62.0
 
 ### Minor Changes
