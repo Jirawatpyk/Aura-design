@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.66.0 — 2026-10-26
+
+### Minor changes
+
+- ce339a4: Menu: a checkable item with an icon keeps the icon and shows a trailing check mark (`checkPlacement: 'start'` keeps the old look) (Chamber-OS 181). Combobox: `invalid` and `aria-describedby`, as on TextField (Chamber-OS 182).
+
 ## 5.65.0 — 2026-10-25
 
 ### Minor changes

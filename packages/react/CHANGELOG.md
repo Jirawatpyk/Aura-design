@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.66.0
+
+### Minor Changes
+
+- ce339a4: Menu: a checkable item with an icon keeps the icon and shows a trailing check mark (`checkPlacement: 'start'` keeps the old look) (Chamber-OS 181). Combobox: `invalid` and `aria-describedby`, as on TextField (Chamber-OS 182).
+
 ## 5.65.0
 
 ### Minor Changes
