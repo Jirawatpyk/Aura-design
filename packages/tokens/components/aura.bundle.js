@@ -1835,11 +1835,13 @@ window.Aura = (() => {
       if (it.separator) return /* @__PURE__ */ React9.createElement("div", { key: "s" + i, role: "separator", className: "aura-menu__sep" });
       const isRadio = it.type === "radio";
       const isCheck = !isRadio && it.checked !== void 0;
-      const lead = isRadio ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__radio", it.checked && "is-on") }) : isCheck ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__check", it.checked && "is-on") }, it.checked ? /* @__PURE__ */ React9.createElement(Icon, { name: /* @__PURE__ */ React9.createElement(IconCheck, null), size: 12, strokeWidth: 3 }) : null) : it.icon ? /* @__PURE__ */ React9.createElement(Icon, { name: it.icon }) : /* @__PURE__ */ React9.createElement("span", { className: "aura-menu__blank" });
+      const checkAtEnd = isCheck && !!it.icon && it.checkPlacement !== "start";
+      const lead = isRadio ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__radio", it.checked && "is-on") }) : isCheck && !checkAtEnd ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__check", it.checked && "is-on") }, it.checked ? /* @__PURE__ */ React9.createElement(Icon, { name: /* @__PURE__ */ React9.createElement(IconCheck, null), size: 12, strokeWidth: 3 }) : null) : it.icon ? /* @__PURE__ */ React9.createElement(Icon, { name: it.icon }) : /* @__PURE__ */ React9.createElement("span", { className: "aura-menu__blank" });
       const body = [
         /* @__PURE__ */ React9.createElement(React9.Fragment, { key: "l" }, lead),
         /* @__PURE__ */ React9.createElement("span", { key: "t", className: "aura-menu__label" }, it.label),
-        it.hint ? /* @__PURE__ */ React9.createElement("span", { key: "h", className: "aura-menu__hint" }, it.hint) : null
+        it.hint ? /* @__PURE__ */ React9.createElement("span", { key: "h", className: "aura-menu__hint" }, it.hint) : null,
+        checkAtEnd ? /* @__PURE__ */ React9.createElement("span", { key: "c", className: cx("aura-menu__mark", it.checked && "is-on") }, it.checked ? /* @__PURE__ */ React9.createElement(Icon, { name: /* @__PURE__ */ React9.createElement(IconCheck, null), size: 16, strokeWidth: 2.5 }) : null) : null
       ];
       const cls = cx("aura-menu__item", it.tone === "danger" && "aura-menu__item--danger");
       const reasonId = it.disabled && it.disabledReason ? itemId + "-r" + i : void 0;
@@ -4249,6 +4251,7 @@ window.Aura = (() => {
           label: props.label,
           hint: props.hint,
           error: props.error,
+          invalid: props.invalid,
           required: props.required,
           optional: props.optional,
           disabled: props.disabled,
@@ -4293,8 +4296,18 @@ window.Aura = (() => {
             "aria-controls": open && live.length ? listId : void 0,
             "aria-autocomplete": "list",
             "aria-activedescendant": open && live[activeIdx] ? optId(activeIdx) : void 0,
-            "aria-invalid": props.error ? true : void 0,
-            "aria-describedby": [props.error ? id + "-error" : props.hint ? id + "-hint" : "", multi && picked.length ? summaryId : ""].filter(Boolean).join(" ") || void 0,
+            "aria-invalid": props.error || props.invalid ? true : void 0,
+            "aria-describedby": (
+              /* each id once, in order: error or hint, the chip summary, then yours */
+              Array.from(
+                new Set(
+                  [
+                    props.error ? id + "-error" : props.hint ? id + "-hint" : "",
+                    multi && picked.length ? summaryId : ""
+                  ].concat(String(props["aria-describedby"] || "").split(/\s+/)).filter(Boolean)
+                )
+              ).join(" ") || void 0
+            ),
             placeholder: multi && values.length ? void 0 : props.placeholder,
             disabled: props.disabled,
             readOnly: props.readOnly,

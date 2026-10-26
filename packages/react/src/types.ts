@@ -471,8 +471,13 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 export interface MenuItem {
   label?: string | undefined;
   icon?: IconInput | undefined;
-  /** Present = a checkable item (menuitemcheckbox). */
+  /** Present = a checkable item (menuitemcheckbox). 5.66 (Chamber-OS 181): with an `icon` too, the icon stays at the
+   * start and the state is a check mark at the end (after `hint`); without one, a check box at the start. A radio
+   * item (`type: 'radio'`) still draws its circle in place of an icon. */
   checked?: boolean | undefined;
+  /** 5.66: where a checkable item with an `icon` shows its state — `end` (default: the icon stays, a check mark at the
+   * end) or `start` (the check box in place of the icon, as before 5.66). */
+  checkPlacement?: 'start' | 'end' | undefined;
   /** Dimmed and does nothing when chosen, but still reachable with the arrow keys and announced (5.10). */
   disabled?: boolean | undefined;
   /** Why it's disabled ("You can resend in 5 minutes"): shown in place of the hint and read with the item. (5.10) */
@@ -1090,6 +1095,12 @@ export interface ComboboxMultipleProps extends Omit<
   max?: number | undefined;
 }
 export interface ComboboxProps extends FieldProps {
+  /** 5.66 (Chamber-OS 182): ids added to the input's own description (the hint or error, the chip summary) — a page's
+   * `role="alert"` message beside the field (each id once). With `invalid` the field is marked wrong without
+   * AURA's message line; `error` still wins. */
+  'aria-describedby'?: string | undefined;
+  /** 5.66 (Chamber-OS 182): the danger border and `aria-invalid="true"` without AURA's message line, as on TextField. */
+  invalid?: boolean | undefined;
   /** 5.38 (Chamber-OS 141): a 44px box, its buttons 44px wide — `true` below 640px or on a coarse pointer, as
    * TextField's `touchHeight`; `'always'` at every width. Default: the density's input height. */
   touchHeight?: TouchHeight | undefined;

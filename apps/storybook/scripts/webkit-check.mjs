@@ -233,6 +233,11 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.66 (#181, #182): a checkable icon item keeps its icon with a trailing mark; Combobox invalid + describedby. */
+  await go('aura-new-in-5-66-chamber-os-181-182--combobox-described');
+  x = await ex(`const i = document.querySelector('[data-testid=described] input[role=combobox]'); return [i.getAttribute('aria-invalid'), / member-alert$/.test(i.getAttribute('aria-describedby'))]`);
+  check(JSON.stringify(x) === '["true",true]', 'Combobox invalid and aria-describedby', x);
+
   /* 5.65 (#180): a pressed IconButton has the selected fill; an unpressed one is transparent. */
   await go('aura-new-in-5-65-chamber-os-180--toggles');
   x = await ex(`const s = (id) => getComputedStyle(document.querySelector('[data-testid=' + id + ']')); return [s('bold').backgroundColor !== s('plain').backgroundColor, s('bold').color !== s('plain').color, s('italic').backgroundColor === s('plain').backgroundColor]`);

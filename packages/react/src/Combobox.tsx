@@ -424,6 +424,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
         label={props.label}
         hint={props.hint}
         error={props.error}
+        invalid={props.invalid}
         required={props.required}
         optional={props.optional}
         disabled={props.disabled}
@@ -497,11 +498,20 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
             aria-controls={open && live.length ? listId : undefined}
             aria-autocomplete="list"
             aria-activedescendant={open && live[activeIdx] ? optId(activeIdx) : undefined}
-            aria-invalid={props.error ? true : undefined}
+            /* 5.66 (Chamber-OS 182): invalid (no message line) and your own aria-describedby, as on TextField. */
+            aria-invalid={props.error || props.invalid ? true : undefined}
             aria-describedby={
-              [props.error ? id + '-error' : props.hint ? id + '-hint' : '', multi && picked.length ? summaryId : '']
-                .filter(Boolean)
-                .join(' ') || undefined
+              /* each id once, in order: error or hint, the chip summary, then yours */
+              Array.from(
+                new Set(
+                  [
+                    props.error ? id + '-error' : props.hint ? id + '-hint' : '',
+                    multi && picked.length ? summaryId : '',
+                  ]
+                    .concat(String(props['aria-describedby'] || '').split(/\s+/))
+                    .filter(Boolean),
+                ),
+              ).join(' ') || undefined
             }
             placeholder={multi && values.length ? undefined : props.placeholder}
             disabled={props.disabled}

@@ -11149,3 +11149,118 @@ test.describe('5.65: Chamber-OS 180 — a pressed IconButton looks on', () => {
     expect(ring).toEqual(['solid', '2px']);
   });
 });
+
+test.describe('5.66: Chamber-OS 181–182 — checkable menu items keep their icon; Combobox invalid and aria-describedby', () => {
+  const S = (n: string) => 'aura-new-in-5-66-chamber-os-181-182--' + n;
+
+  for (const theme of ['light', 'dark']) {
+    test(`181 (${theme}): an icon item shows its icon at the start and a check mark at the end; no icon keeps the box; roles unchanged`, async ({
+      page,
+    }) => {
+      await story(page, S('checkable-icons'), theme);
+      await page.getByRole('button', { name: 'Lists and headings' }).click();
+      const items = await page.locator('[role=menu] [role^=menuitem]').evaluateAll((els) =>
+        els.map((el) => {
+          const kids = [...el.children];
+          const first = kids[0]!,
+            last = kids[kids.length - 1]!;
+          return {
+            role: el.getAttribute('role'),
+            checked: el.getAttribute('aria-checked'),
+            leadIcon: first.matches('svg.aura-icon, .aura-icon'),
+            leadBox: first.classList.contains('aura-menu__check'),
+            mark: last.classList.contains('aura-menu__mark') ? (last.querySelector('svg') ? 'check' : 'empty') : null,
+            markColor:
+              last.classList.contains('aura-menu__mark') && last.querySelector('svg')
+                ? getComputedStyle(last.querySelector('svg')!).color
+                : null,
+          };
+        }),
+      );
+      expect(items[0]).toMatchObject({
+        role: 'menuitemcheckbox',
+        checked: 'true',
+        leadIcon: true,
+        leadBox: false,
+        mark: 'check',
+      });
+      expect(items[1]).toMatchObject({ role: 'menuitemcheckbox', checked: 'false', leadIcon: true, mark: 'empty' });
+      expect(items[2]).toMatchObject({ role: 'menuitemcheckbox', checked: 'true', leadBox: true, mark: null });
+      expect(items[3]).toMatchObject({ checked: 'true', leadBox: true, mark: null });
+      expect(items[4]).toMatchObject({ role: 'menuitem', leadIcon: true, mark: null });
+      const checkedBg = await page.evaluate(() => {
+        const p = document.createElement('span');
+        p.style.color = 'var(--aura-control-checked-bg)';
+        document.body.appendChild(p);
+        const c = getComputedStyle(p).color;
+        p.remove();
+        return c;
+      });
+      expect(items[0]!.markColor).toBe(checkedBg);
+      /* labels line up checked or not: the mark slot keeps its width */
+      const ends = await page
+        .locator('[role=menu] .aura-menu__mark')
+        .evaluateAll((m) => m.map((x) => Math.round(x.getBoundingClientRect().width)));
+      expect(ends).toEqual([16, 16]);
+      /* toggling keeps the menu open and moves the mark */
+      await page.getByRole('menuitemcheckbox', { name: 'Bulleted list' }).click();
+      await expect(page.getByRole('menuitemcheckbox', { name: 'Bulleted list' })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      );
+      expect(
+        await page.getByRole('menuitemcheckbox', { name: 'Bulleted list' }).locator('.aura-menu__mark svg').count(),
+      ).toBe(1);
+    });
+  }
+
+  test('181: forced colours — the check mark is the text colour (visible)', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await story(page, S('checkable-icons'));
+    await page.getByRole('button', { name: 'Lists and headings' }).click();
+    const [mark, label] = await page
+      .getByRole('menuitemcheckbox', { name: 'Heading' })
+      .evaluate((el) => [
+        getComputedStyle(el.querySelector('.aura-menu__mark svg')!).color,
+        getComputedStyle(el.querySelector('.aura-menu__label')!).color,
+      ]);
+    expect(mark).toBe(label);
+  });
+
+  test('182: invalid and aria-describedby on Combobox — aria-invalid, the hint id and the page’s id; error still wins; none, nothing', async ({
+    page,
+  }) => {
+    await story(page, S('combobox-described'));
+    const read = (id: string) =>
+      page
+        .getByTestId(id)
+        .locator('input[role=combobox]')
+        .evaluate((i) => ({
+          invalid: i.getAttribute('aria-invalid'),
+          by: i.getAttribute('aria-describedby'),
+          field: i.closest('.aura-field')!.classList.contains('is-invalid'),
+          border: getComputedStyle(i.closest('.aura-input')!).borderTopColor,
+          errorLine: !!i.closest('.aura-field')!.querySelector('.aura-field__error'),
+        }));
+    const d = await read('described'),
+      e = await read('error'),
+      p = await read('plain');
+    expect(d.invalid).toBe('true');
+    expect(d.by!.split(' ')).toEqual([expect.stringMatching(/-hint$/), 'member-alert']);
+    expect(d.field).toBe(true);
+    expect(d.errorLine).toBe(false);
+    expect(d.border).not.toBe(p.border);
+    expect(e.invalid).toBe('true');
+    expect(e.by!.split(' ')).toEqual([expect.stringMatching(/-error$/), 'other']);
+    expect(e.errorLine).toBe(true);
+    expect(p.invalid).toBeNull();
+    expect(p.by).toMatch(/-hint$/);
+    /* an id passed twice (or the hint's own) is read once */
+    expect(
+      await page
+        .getByTestId('dup')
+        .locator('input[role=combobox]')
+        .evaluate((i) => i.getAttribute('aria-describedby')!.split(' ').length),
+    ).toBe(2);
+  });
+});

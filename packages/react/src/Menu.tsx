@@ -215,9 +215,11 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     if (it.separator) return <div key={'s' + i} role="separator" className="aura-menu__sep" />;
     const isRadio = it.type === 'radio';
     const isCheck = !isRadio && it.checked !== undefined;
+    /* 5.66 (Chamber-OS 181): a checkable item with an icon keeps it; its state is a trailing check mark. */
+    const checkAtEnd = isCheck && !!it.icon && it.checkPlacement !== 'start';
     const lead = isRadio ? (
       <span className={cx('aura-menu__radio', it.checked && 'is-on')} />
-    ) : isCheck ? (
+    ) : isCheck && !checkAtEnd ? (
       <span className={cx('aura-menu__check', it.checked && 'is-on')}>
         {it.checked ? <Icon name={<IconCheck />} size={12} strokeWidth={3} /> : null}
       </span>
@@ -234,6 +236,11 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       it.hint ? (
         <span key="h" className="aura-menu__hint">
           {it.hint}
+        </span>
+      ) : null,
+      checkAtEnd ? (
+        <span key="c" className={cx('aura-menu__mark', it.checked && 'is-on')}>
+          {it.checked ? <Icon name={<IconCheck />} size={16} strokeWidth={2.5} /> : null}
         </span>
       ) : null,
     ];

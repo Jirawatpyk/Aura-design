@@ -317,6 +317,11 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 }
 .aura-menu__check.is-on { background: var(--aura-control-checked-bg); border-color: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); }
 .aura-menu__check.is-on .aura-icon { color: inherit; }
+/* 5.66 (Chamber-OS 181): the trailing check mark of a checkable item that keeps its icon — the checked colour (text colour in forced colours), a fixed
+ * width so labels line up checked or not. */
+.aura-menu__mark { flex: none; width: var(--aura-icon-sm); height: var(--aura-icon-sm); display: inline-flex; align-items: center; justify-content: center; }
+.aura-menu__item .aura-menu__mark .aura-icon { color: var(--aura-control-checked-bg); }
+.aura-menu__item--danger .aura-menu__mark .aura-icon { color: inherit; } /* a danger item's mark is its danger text */
 .aura-menu__item--danger, .aura-menu__item--danger .aura-icon { color: var(--aura-fg-danger); }
 .aura-menu__item--danger:hover, .aura-menu__item--danger:focus { background: var(--aura-alert-danger-bg); color: var(--aura-alert-danger-fg); }
 .aura-menu__item--danger:hover .aura-icon, .aura-menu__item--danger:focus .aura-icon { color: var(--aura-alert-danger-fg); }
@@ -2559,6 +2564,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-switch-row.is-disabled .aura-choice__label { color: GrayText; }
   .aura-progress__track, .aura-upload__bar { border: 1px solid CanvasText; }
   .aura-progress :is(.aura-progress__bar, .aura-progress__swatch), .aura-upload__bar > span { background: Highlight; forced-color-adjust: none; } /* every tone (5.64) */
+  .aura-menu__item .aura-menu__mark .aura-icon { color: inherit; } /* 5.66: the item's text colour */
   .aura-icon-btn[aria-pressed="true"]:not(.aura-input *) { background: Highlight; color: HighlightText; forced-color-adjust: none; } /* 5.65 */
   .aura-icon-btn[aria-pressed="true"]:not(.aura-input *):hover { box-shadow: inset 0 0 0 1px HighlightText; }
   .aura-icon-btn[aria-pressed="true"]:not(.aura-input *):focus-visible { outline-color: CanvasText; }
