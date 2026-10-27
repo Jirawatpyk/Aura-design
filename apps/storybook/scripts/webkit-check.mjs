@@ -233,6 +233,13 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.67 (#183): CheckboxGroup is a named group; ticking gives option order. */
+  await go('aura-new-in-5-67-chamber-os-183--categories');
+  await ex(`const g = document.querySelector('[data-testid=group]'); g.querySelectorAll('input')[1].click(); g.querySelectorAll('input')[0].click();`);
+  await sleep(200);
+  x = await ex(`return [document.querySelector('[data-testid=value]').textContent, document.querySelector('[data-testid=group] fieldset').getAttribute('aria-describedby') !== null]`);
+  check(JSON.stringify(x) === '["[\\"corporate\\",\\"partnership\\"]",true]', 'CheckboxGroup option order, described', x);
+
   /* 5.66 (#181, #182): a checkable icon item keeps its icon with a trailing mark; Combobox invalid + describedby. */
   await go('aura-new-in-5-66-chamber-os-181-182--combobox-described');
   x = await ex(`const i = document.querySelector('[data-testid=described] input[role=combobox]'); return [i.getAttribute('aria-invalid'), / member-alert$/.test(i.getAttribute('aria-describedby'))]`);

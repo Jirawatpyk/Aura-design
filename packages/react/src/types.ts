@@ -763,6 +763,25 @@ export interface RadioGroupProps extends FieldProps {
    * screens already get it), `'always'` at every width, also with a mouse. Default: as tall as the control and label. */
   touchHeight?: TouchHeight | undefined;
 }
+/** 5.67 (Chamber-OS 183): RadioGroup's many-choice twin — one legend, one hint, one error over a set of checkboxes. */
+export interface CheckboxGroupProps extends FieldProps {
+  options: ChoiceOption[];
+  /** The ticked options' values, in option order (not the order they were ticked); values not among the options are
+   * kept, after them. `required` shows the `*` and adds "(required)" to the group's name; "at least one" is yours to
+   * check — pass `error`. */
+  value?: string[] | undefined;
+  defaultValue?: string[] | undefined;
+  onChange?: ((values: string[]) => void) | undefined;
+  /** Each box's `name` for a native form (one entry per ticked value). Default: the group's id. */
+  name?: string | undefined;
+  /** Default `vertical`. */
+  orientation?: 'vertical' | 'horizontal' | undefined;
+  disabled?: boolean | undefined;
+  id?: string | undefined;
+  className?: string | undefined;
+  /** 44px rows, as RadioGroup: `true` below 640px or on a coarse pointer, `'always'` at every width. */
+  touchHeight?: TouchHeight | undefined;
+}
 export interface SwitchProps {
   label?: string | undefined;
   description?: string | undefined;

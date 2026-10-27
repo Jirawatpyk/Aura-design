@@ -13,6 +13,7 @@ export { Select } from './Select.js';
 export { FilterSelect } from './FilterSelect.js';
 export { FilterDateRange } from './FilterDateRange.js';
 export { RadioGroup } from './RadioGroup.js';
+export { CheckboxGroup } from './CheckboxGroup.js';
 export { Switch } from './Switch.js';
 export { Combobox, defaultFilter as comboboxFilter } from './Combobox.js';
 export { DatePicker, DateRangePicker, Calendar, formatDate, parseDate, useFormatDate } from './DatePicker.js';

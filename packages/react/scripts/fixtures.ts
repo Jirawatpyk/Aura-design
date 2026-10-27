@@ -65,6 +65,12 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       defaultValue: 'all',
     }),
     RadioGroup: h(A.RadioGroup, { label: 'Frequency', options: ['Once', 'Weekly'], defaultValue: 'Once' }),
+    CheckboxGroup: h(A.CheckboxGroup, {
+      label: 'Categories',
+      options: ['Corporate', 'Partnership'],
+      defaultValue: ['Partnership'],
+      hint: 'Pick at least one.',
+    }),
     Switch: h(A.Switch, { label: 'Notify' }),
     Combobox: h(A.Combobox, {
       label: 'ผู้ดูแล',
@@ -106,7 +112,12 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       markers: [{ icon: 'lock', label: 'SSL expires soon' }],
       href: '#s',
     }),
-    TileGrid: h(A.TileGrid, null, h(A.StatusTile, { status: 'ok', title: 'A' }), h(A.StatusTile, { status: 'ok', title: 'B' })),
+    TileGrid: h(
+      A.TileGrid,
+      null,
+      h(A.StatusTile, { status: 'ok', title: 'A' }),
+      h(A.StatusTile, { status: 'ok', title: 'B' }),
+    ),
     Sparkline: h(A.Sparkline, { data: [1, null, 3, 4, 2], failed: [false, true], failures: 'band', label: 'Latency' }),
     PageHeader: h(
       A.PageHeader,

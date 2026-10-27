@@ -11264,3 +11264,82 @@ test.describe('5.66: Chamber-OS 181–182 — checkable menu items keep their ic
     ).toBe(2);
   });
 });
+
+test.describe('5.67: Chamber-OS 183 — CheckboxGroup', () => {
+  const ID = 'aura-new-in-5-67-chamber-os-183--categories';
+  test('183: a group named by its legend and described by the hint; ticking B then A gives option order; error marks the boxes', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    const group = page.getByRole('group', { name: 'Membership categories' });
+    await expect(group).toHaveCount(1);
+    /* required is in the group's name (the * is hidden) */
+    await expect(page.getByRole('group', { name: 'Membership categories (required)', exact: true })).toHaveCount(1);
+    const desc = await group.evaluate((g) => document.getElementById(g.getAttribute('aria-describedby')!)!.textContent);
+    expect(desc).toBe('Pick at least one.');
+    /* the legend looks like RadioGroup's beside it, required marker included */
+    const legends = await page
+      .locator('legend.aura-field__label')
+      .evaluateAll((ls) =>
+        ls
+          .slice(0, 2)
+          .map((l) => [
+            getComputedStyle(l).fontSize,
+            getComputedStyle(l).fontWeight,
+            !!l.querySelector('.aura-field__req'),
+          ]),
+      );
+    expect(legends[0]).toEqual(legends[1]);
+    await group.getByRole('checkbox', { name: 'Partnership' }).check();
+    await group.getByRole('checkbox', { name: 'Corporate' }).check();
+    await expect(page.getByTestId('value')).toHaveText('["corporate","partnership"]');
+    await group.getByRole('checkbox', { name: 'Corporate' }).uncheck();
+    await group.getByRole('checkbox', { name: 'Partnership' }).uncheck();
+    await page.getByTestId('send').click();
+    const err = await group.evaluate((g) => ({
+      by: document.getElementById(g.getAttribute('aria-describedby')!)!.textContent,
+      invalid: [...g.querySelectorAll('input[type=checkbox]')].map((i) => i.getAttribute('aria-invalid')),
+      cls: g.classList.contains('is-invalid'),
+    }));
+    expect(err).toEqual({ by: 'Pick at least one membership category.', invalid: ['true', 'true'], cls: true });
+    /* the empty boxes take the danger edge and point at the error */
+    await settle(page);
+    const edge = await group.evaluate((g) => {
+      const p = document.createElement('span');
+      p.style.color = 'var(--aura-border-danger)';
+      document.body.appendChild(p);
+      const c = getComputedStyle(p).color;
+      p.remove();
+      return [...g.querySelectorAll('.aura-check__box')]
+        .map((b) => getComputedStyle(b).borderTopColor === c)
+        .concat(
+          [...g.querySelectorAll('input')].map((i) =>
+            (i.getAttribute('aria-describedby') || '').split(' ').some((x) => x.endsWith('-error')),
+          ),
+        );
+    });
+    expect(edge).toEqual([true, true, true, true]);
+    /* the description is read after the name */
+    expect(await group.getByRole('checkbox', { name: 'Partnership', exact: true }).count()).toBe(1);
+  });
+
+  test('183: a value not among the options is kept after the others when another box is ticked', async ({ page }) => {
+    await story(page, ID);
+    await page.getByTestId('keep').getByRole('checkbox', { name: 'Partnership' }).check();
+    await expect(page.getByTestId('keep-value')).toHaveText('["corporate","partnership","archived"]');
+  });
+
+  test('183: disabled disables every box; touchHeight gives 44px rows', async ({ page }) => {
+    await story(page, ID);
+    const dis = await page
+      .getByTestId('disabled')
+      .locator('input[type=checkbox]')
+      .evaluateAll((is) => is.map((i) => (i as HTMLInputElement).disabled));
+    expect(dis).toEqual([true, true]);
+    const rows = await page
+      .getByTestId('touch')
+      .locator('.aura-check--labelled')
+      .evaluateAll((ls) => ls.map((l) => Math.round(l.getBoundingClientRect().height)));
+    for (const h of rows) expect(h).toBeGreaterThanOrEqual(44);
+  });
+});

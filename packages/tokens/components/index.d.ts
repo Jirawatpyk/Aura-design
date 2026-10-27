@@ -687,6 +687,25 @@ export interface RadioGroupProps extends FieldProps {
 	 * screens already get it), `'always'` at every width, also with a mouse. Default: as tall as the control and label. */
 	touchHeight?: TouchHeight | undefined;
 }
+/** 5.67 (Chamber-OS 183): RadioGroup's many-choice twin — one legend, one hint, one error over a set of checkboxes. */
+export interface CheckboxGroupProps extends FieldProps {
+	options: ChoiceOption[];
+	/** The ticked options' values, in option order (not the order they were ticked); values not among the options are
+	 * kept, after them. `required` shows the `*` and adds "(required)" to the group's name; "at least one" is yours to
+	 * check — pass `error`. */
+	value?: string[] | undefined;
+	defaultValue?: string[] | undefined;
+	onChange?: ((values: string[]) => void) | undefined;
+	/** Each box's `name` for a native form (one entry per ticked value). Default: the group's id. */
+	name?: string | undefined;
+	/** Default `vertical`. */
+	orientation?: "vertical" | "horizontal" | undefined;
+	disabled?: boolean | undefined;
+	id?: string | undefined;
+	className?: string | undefined;
+	/** 44px rows, as RadioGroup: `true` below 640px or on a coarse pointer, `'always'` at every width. */
+	touchHeight?: TouchHeight | undefined;
+}
 export interface SwitchProps {
 	label?: string | undefined;
 	description?: string | undefined;
@@ -1933,6 +1952,7 @@ export declare const FilterSelect: React$1.ForwardRefExoticComponent<FilterSelec
  * complete, a preset is picked or the range is cleared; never on a lone start day. */
 export declare const FilterDateRange: React$1.ForwardRefExoticComponent<FilterDateRangeProps & React$1.RefAttributes<HTMLButtonElement>>;
 export declare const RadioGroup: React$1.ForwardRefExoticComponent<RadioGroupProps & React$1.RefAttributes<HTMLFieldSetElement>>;
+export declare const CheckboxGroup: React$1.ForwardRefExoticComponent<CheckboxGroupProps & React$1.RefAttributes<HTMLFieldSetElement>>;
 export declare const Switch: React$1.ForwardRefExoticComponent<SwitchProps & React$1.RefAttributes<HTMLButtonElement>>;
 /** One value, or with `multiple` any number (chips). Two call signatures so value/onChange are typed for each. */
 export interface ComboboxComponent {
@@ -2239,6 +2259,8 @@ export interface AuraStrings {
 	statusUnknown: string;
 	/** Read after a Menu link item with `target="_blank"` (5.41): "Visit site (opens in a new tab)". */
 	opensInNewTab: string;
+	/** 5.67: read after a CheckboxGroup's legend when `required` (its `*` is hidden from screen readers). */
+	required: string;
 	/** 5.42: FilterBar's collapsed-filters button, read with its count ("Filters, 2 applied"). */
 	filtersApplied: (n: number) => string;
 	/** 5.42: closes FilterBar's "Filters" sheet. */

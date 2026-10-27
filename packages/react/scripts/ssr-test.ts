@@ -289,6 +289,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     const tf = m(e(A.TextField, { label: 'Cert', id: 'c1', hint: 'h', touchHeight: 'always' }));
     const tt = m(e(A.Textarea, { label: 'N', id: 'n1', touchHeight: true }));
     const rg = m(e(A.RadioGroup, { label: 'R', id: 'r1', options: ['a'], touchHeight: 'always' }));
+    /* 5.67 (Chamber-OS 183): CheckboxGroup — a fieldset with RadioGroup's classes, described by the hint, boxes named
+     * by the group's name, ticked from defaultValue. */
+    {
+      const cg = m(e(A.CheckboxGroup, { label: 'Cats', id: 'cg', options: ['a', 'b'], defaultValue: ['b'], hint: 'h', name: 'cats' }));
+      const req = m(e(A.CheckboxGroup, { label: 'Cats', id: 'cr', options: ['a'], required: true }));
+      if (!/<span class="aura-sr-only"> \(required\)<\/span>/.test(req) || /required=""/.test(req)) { console.log(label, 'CheckboxGroup required:', req); fail++; }
+      if (!/<fieldset class="aura-field aura-radio-group aura-checkbox-group" aria-describedby="cg-hint"/.test(cg) || (cg.match(/name="cats"/g) || []).length !== 2 || !/<input[^>]*checked=""[^>]*value="b"/.test(cg) || /<input[^>]*checked=""[^>]*value="a"/.test(cg)) { console.log(label, 'CheckboxGroup:', cg); fail++; }
+    }
     const cbx = m(e(A.Checkbox, { touchHeight: 'always' }, 'Yes')), cbBare = m(e(A.Checkbox, { label: 'x', hideLabel: true, touchHeight: 'always' }));
     const sel = m(e(A.Select, { label: 'S', id: 's1', options: ['a'], touchHeight: 'always' }));
     if (!/^<div class="aura-field is-touch-always">/.test(tf) || !/aria-describedby="c1-hint"/.test(tf) || /touch[hH]eight/.test(tf + tt + rg + cbx + cbBare + sel) || !/^<div class="aura-field is-touch">/.test(tt) || !/class="aura-field aura-radio-group is-touch-always"/.test(rg) || !/class="aura-check aura-check--labelled is-touch-always"/.test(cbx) || /is-touch/.test(cbBare) || !/^<div class="aura-field is-touch-always">/.test(sel)) bad('touchHeight on fields:', tf, tt, rg, cbx, cbBare, sel);

@@ -608,6 +608,8 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-radio:checked { border: 5px solid var(--aura-control-checked-bg); background: var(--aura-control-checked-fg); }
 .aura-radio:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-radio-group.is-invalid .aura-radio:not(:checked) { border-color: var(--aura-border-danger); }
+/* 5.67 (Chamber-OS 183): CheckboxGroup shares RadioGroup's legend, list and touch rows; an error edges the empty boxes. */
+.aura-checkbox-group.is-invalid .aura-check__input:not(:checked) + .aura-check__box { border-color: var(--aura-border-danger); }
 
 .aura-switch-row { display: flex; align-items: flex-start; gap: var(--aura-space-3); font-family: var(--font-sans); }
 /* 5.10.1: disabled rows, on or off, are treated alike and stay readable — the label turns secondary, the description
