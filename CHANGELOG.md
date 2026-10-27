@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.67.0 — 2026-10-27
+
+### Minor changes
+
+- a8e70a6: New `CheckboxGroup`: RadioGroup's many-choice twin — a fieldset with legend, hint, error, required marker, disabled, orientation and touchHeight; `value` / `onChange` take the ticked values in option order (Chamber-OS 183).
+
 ## 5.66.0 — 2026-10-26
 
 ### Minor changes
