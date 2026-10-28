@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.68.0
+
+### Minor Changes
+
+- d55b8fe: RadioGroup and CheckboxGroup dim their legend when `disabled`, as Field does its label; new opt-in `errorLive` on CheckboxGroup, RadioGroup and Field keeps an empty polite error line ready so an error that appears as the user changes the field is announced (Chamber-OS 184).
+
 ## 5.67.0
 
 ### Minor Changes
