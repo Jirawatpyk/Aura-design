@@ -11343,3 +11343,109 @@ test.describe('5.67: Chamber-OS 183 — CheckboxGroup', () => {
     for (const h of rows) expect(h).toBeGreaterThanOrEqual(44);
   });
 });
+
+test.describe('5.68: Chamber-OS 184 — group fields: disabled legend, errorLive', () => {
+  const DIS = 'aura-new-in-5-68-chamber-os-184--disabled';
+  const LIVE = 'aura-new-in-5-68-chamber-os-184--error-live';
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`184: a disabled group's legend takes a disabled Field label's colour (${scheme})`, async ({ page }) => {
+      await story(page, DIS, scheme);
+      await settle(page);
+      const c = await page.evaluate(() => {
+        const col = (el: Element | null) => (el ? getComputedStyle(el).color : null);
+        const legends = [...document.querySelectorAll('legend.aura-field__label')];
+        return {
+          field: col(document.querySelector('.aura-field.is-disabled > label.aura-field__label')),
+          radio: col(legends[0]!),
+          check: col(legends[1]!),
+          enabled: col(legends[2]!),
+          cls: [...document.querySelectorAll('fieldset.aura-field')].map((f) => f.classList.contains('is-disabled')),
+        };
+      });
+      expect(c.field).not.toBeNull();
+      expect(c.radio).toBe(c.field);
+      expect(c.check).toBe(c.field);
+      expect(c.enabled).not.toBe(c.field);
+      expect(c.cls).toEqual([true, true, false]);
+    });
+  }
+
+  test('184: with errorLive the error line is live and waiting, empty and out of the gap; the first message lands in it', async ({
+    page,
+  }) => {
+    await story(page, LIVE);
+    await settle(page);
+    const live = page.getByTestId('live');
+    const plain = page.getByTestId('plain');
+    const before = await page.evaluate(() => {
+      const box = (t: string) => document.querySelector(`[data-testid="${t}"] fieldset`)!;
+      const err = box('live').querySelector('p.aura-field__error') as HTMLElement & { mark?: number };
+      err.mark = 1;
+      return {
+        live: err.getAttribute('aria-live'),
+        text: err.textContent,
+        h: err.getBoundingClientRect().height,
+        hint: box('live').querySelector('.aura-field__hint')?.textContent,
+        sameHeight: box('live').getBoundingClientRect().height === box('plain').getBoundingClientRect().height,
+        plainLive: document.querySelectorAll('[data-testid="plain"] [aria-live]').length,
+        plainErr: document.querySelectorAll('[data-testid="plain"] .aura-field__error').length,
+      };
+    });
+    expect(before).toEqual({
+      live: 'polite',
+      text: '',
+      h: 1,
+      hint: 'Pick at least one.',
+      sameHeight: true,
+      plainLive: 0,
+      plainErr: 0,
+    });
+    await live.getByRole('checkbox', { name: 'Corporate' }).uncheck();
+    await plain.getByRole('checkbox', { name: 'Corporate' }).uncheck();
+    const after = await page.evaluate(() => {
+      const box = (t: string) => document.querySelector(`[data-testid="${t}"] fieldset`)!;
+      const err = box('live').querySelector('p.aura-field__error') as HTMLElement & { mark?: number };
+      return {
+        same: err.mark === 1,
+        text: err.textContent,
+        tall: err.getBoundingClientRect().height > 10,
+        by: document.getElementById(box('live').getAttribute('aria-describedby')!) === err,
+        hints: box('live').querySelectorAll('.aura-field__hint').length,
+        /* the same line as without errorLive, but live */
+        plain: box('plain').querySelector('p.aura-field__error')!.getAttribute('aria-live'),
+        looks:
+          getComputedStyle(err).color === getComputedStyle(box('plain').querySelector('p.aura-field__error')!).color &&
+          err.getBoundingClientRect().height ===
+            box('plain').querySelector('p.aura-field__error')!.getBoundingClientRect().height,
+      };
+    });
+    expect(after).toEqual({
+      same: true,
+      text: 'Choose at least one membership category.',
+      tall: true,
+      by: true,
+      hints: 0,
+      plain: null,
+      looks: true,
+    });
+  });
+
+  test('184: RadioGroup and Field take errorLive too', async ({ page }) => {
+    await story(page, LIVE);
+    const r = page.getByTestId('radio-live');
+    await expect(r.locator('p.aura-field__error[aria-live="polite"]')).toHaveText('');
+    await r.getByRole('radio', { name: 'Lifetime' }).check();
+    await expect(r.locator('p.aura-field__error[aria-live="polite"]')).toHaveText(
+      'Lifetime billing is not offered for this tier.',
+    );
+    const f = page.getByTestId('field-live');
+    await expect(f.locator('p.aura-field__error[aria-live="polite"]')).toHaveText('');
+    await expect(f.locator('.aura-field__hint')).toHaveText('Letters and digits.');
+    await f.getByRole('textbox', { name: 'Promo code' }).fill('a-b');
+    await expect(f.locator('p.aura-field__error[aria-live="polite"]')).toHaveText('Use letters and digits only.');
+    await expect(f.getByRole('textbox', { name: 'Promo code' })).toHaveAccessibleDescription(
+      'Use letters and digits only.',
+    );
+    await expect(f.locator('.aura-field__hint')).toHaveCount(0);
+  });
+});

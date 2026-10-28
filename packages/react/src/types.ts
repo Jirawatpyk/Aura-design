@@ -756,7 +756,12 @@ export interface RadioGroupProps extends FieldProps {
   name?: string | undefined;
   /** Default `vertical`. */
   orientation?: 'vertical' | 'horizontal' | undefined;
+  /** Disables every option and (5.68) dims the legend, as Field does its label. */
   disabled?: boolean | undefined;
+  /** 5.68 (Chamber-OS 184): announce the error line when it appears (`aria-live="polite"`) — for an error shown as
+   * the user changes the group ("Choose at least one…" when the last box is unticked), not on submit. The error line
+   * stays in the page, empty, while there is none, so the first message is read too. Off by default. */
+  errorLive?: boolean | undefined;
   id?: string | undefined;
   className?: string | undefined;
   /** 44px rows (5.30, Chamber-OS 135), the one-line label centred: `true` below 640px or on a coarse pointer (touch
@@ -776,7 +781,12 @@ export interface CheckboxGroupProps extends FieldProps {
   name?: string | undefined;
   /** Default `vertical`. */
   orientation?: 'vertical' | 'horizontal' | undefined;
+  /** Disables every option and (5.68) dims the legend, as Field does its label. */
   disabled?: boolean | undefined;
+  /** 5.68 (Chamber-OS 184): announce the error line when it appears (`aria-live="polite"`) — for an error shown as
+   * the user changes the group ("Choose at least one…" when the last box is unticked), not on submit. The error line
+   * stays in the page, empty, while there is none, so the first message is read too. Off by default. */
+  errorLive?: boolean | undefined;
   id?: string | undefined;
   className?: string | undefined;
   /** 44px rows, as RadioGroup: `true` below 640px or on a coarse pointer, `'always'` at every width. */

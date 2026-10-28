@@ -14,6 +14,12 @@ export interface FieldComponentProps extends Omit<FieldPropsPublic, 'label'> {
   /** The control's id: the label points at it, and the hint/error ids derive from it. */
   id?: string | undefined;
   children?: React.ReactNode | undefined;
+  /** 5.68 (Chamber-OS 184): announce the error line when it appears — for an error shown as the user types or ticks,
+   * not on submit. The error `<p>` gets `aria-live="polite"` and stays in the page, empty, while there is no error, so
+   * the first message is read too. Off by default: an error shown on submit, with focus moved to the field, is read
+   * already, and a live line would read it twice. Your control should still point at `{id}-error` in its
+   * `aria-describedby` while there is an error (TextField and the others do), so the message stays its description. */
+  errorLive?: boolean | undefined;
   /** 5.31 (Chamber-OS addendum 41): a node between the label and the control, in a `.aura-field__addon` box with the
    * id `{id}-addon`. TextField and Textarea add that id to the input's `aria-describedby`; a custom control should too. */
   labelAddon?: React.ReactNode | undefined;
@@ -58,16 +64,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldComponentProps>(funct
         </div>
       ) : null}
       {props.children}
-      {props.error ? (
-        <p className="aura-field__error" id={props.id + '-error'}>
-          <Icon name={<IconCircleAlert />} size={14} />
-          {props.error}
-        </p>
-      ) : props.hint ? (
-        <p className="aura-field__hint" id={props.id + '-hint'}>
-          {props.hint}
-        </p>
-      ) : null}
+      {fieldNote(props.id, props.error, props.hint, props.errorLive)}
     </div>
   );
 });
@@ -77,6 +74,45 @@ export function describedBy(
   p: { error?: React.ReactNode | undefined; hint?: React.ReactNode | undefined },
 ): string | undefined {
   return p.error ? id + '-error' : p.hint ? id + '-hint' : undefined;
+}
+
+/* The hint or error line under a field, group or not. 5.68 (Chamber-OS 184): with `live` the error <p> is always
+ * rendered, `aria-live="polite"`, empty (and visually hidden, out of the field's gap) until there is an error, so a
+ * message that appears is announced; the hint shows while there is none. Without `live`, as before: one or the other. */
+export function fieldNote(
+  id: string | undefined,
+  error: React.ReactNode,
+  hint: React.ReactNode,
+  live?: boolean | undefined,
+): React.ReactNode {
+  const err = error ? (
+    <>
+      <Icon name={<IconCircleAlert />} size={14} />
+      {error}
+    </>
+  ) : null;
+  const hintLine = hint ? (
+    <p className="aura-field__hint" id={id + '-hint'}>
+      {hint}
+    </p>
+  ) : null;
+  if (!live)
+    return err ? (
+      <p className="aura-field__error" id={id + '-error'}>
+        {err}
+      </p>
+    ) : (
+      hintLine
+    );
+  return (
+    <>
+      {err ? null : hintLine}
+      {/* no id, no id: a Field without one would put "undefined-error" in the page even with no error */}
+      <p className="aura-field__error" id={id == null ? undefined : id + '-error'} aria-live="polite">
+        {err}
+      </p>
+    </>
+  );
 }
 
 /* 5.31: is there an addon to render? Not for null, undefined, booleans or '' (a `cond && x` that came out falsy). */

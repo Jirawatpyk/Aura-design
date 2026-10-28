@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { Checkbox } from './Checkbox.js';
-import { describedBy } from './Field.js';
-import { Icon } from './Icon.js';
+import { describedBy, fieldNote } from './Field.js';
 import { cx, touchClass, uid, useMaybeControlled } from './internal.js';
 import { useStrings } from './locale.js';
 import type { CheckboxGroupProps, ChoiceOption } from './types.js';
-import { IconCircleAlert } from './icons.js';
 
 /* 5.67 (Chamber-OS 183): CheckboxGroup — RadioGroup's many-choice twin. One fieldset named by its legend, one hint,
  * one error; the value is the ticked options' values in option order, whatever order they were ticked in. */
@@ -41,6 +39,7 @@ export const CheckboxGroup = React.forwardRef<HTMLFieldSetElement, CheckboxGroup
         className={cx(
           'aura-field aura-radio-group aura-checkbox-group',
           props.error && 'is-invalid',
+          props.disabled && 'is-disabled',
           touchClass(props.touchHeight),
           props.className,
         )}
@@ -97,16 +96,7 @@ export const CheckboxGroup = React.forwardRef<HTMLFieldSetElement, CheckboxGroup
             );
           })}
         </div>
-        {props.error ? (
-          <p className="aura-field__error" id={id + '-error'}>
-            <Icon name={<IconCircleAlert />} size={14} />
-            {props.error}
-          </p>
-        ) : props.hint ? (
-          <p className="aura-field__hint" id={id + '-hint'}>
-            {props.hint}
-          </p>
-        ) : null}
+        {fieldNote(id, props.error, props.hint, props.errorLive)}
       </fieldset>
     );
   },

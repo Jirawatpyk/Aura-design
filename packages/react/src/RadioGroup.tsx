@@ -1,9 +1,7 @@
 import * as React from 'react';
-import { describedBy } from './Field.js';
-import { Icon } from './Icon.js';
+import { describedBy, fieldNote } from './Field.js';
 import { cx, touchClass, uid, useMaybeControlled } from './internal.js';
 import type { ChoiceOption, RadioGroupProps } from './types.js';
-import { IconCircleAlert } from './icons.js';
 
 export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>(function RadioGroup(props, ref) {
   const auto = uid(),
@@ -36,6 +34,7 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
       className={cx(
         'aura-field aura-radio-group',
         props.error && 'is-invalid',
+        props.disabled && 'is-disabled',
         touchClass(props.touchHeight),
         props.className,
       )}
@@ -89,16 +88,7 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
           );
         })}
       </div>
-      {props.error ? (
-        <p className="aura-field__error" id={id + '-error'}>
-          <Icon name={<IconCircleAlert />} size={14} />
-          {props.error}
-        </p>
-      ) : props.hint ? (
-        <p className="aura-field__hint" id={id + '-hint'}>
-          {props.hint}
-        </p>
-      ) : null}
+      {fieldNote(id, props.error, props.hint, props.errorLive)}
     </fieldset>
   );
 });

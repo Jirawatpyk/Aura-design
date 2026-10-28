@@ -297,6 +297,19 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       if (!/<span class="aura-sr-only"> \(required\)<\/span>/.test(req) || /required=""/.test(req)) { console.log(label, 'CheckboxGroup required:', req); fail++; }
       if (!/<fieldset class="aura-field aura-radio-group aura-checkbox-group" aria-describedby="cg-hint"/.test(cg) || (cg.match(/name="cats"/g) || []).length !== 2 || !/<input[^>]*checked=""[^>]*value="b"/.test(cg) || /<input[^>]*checked=""[^>]*value="a"/.test(cg)) { console.log(label, 'CheckboxGroup:', cg); fail++; }
     }
+    /* 5.68 (Chamber-OS 184): a disabled group is is-disabled (the legend dims); errorLive keeps an empty, polite error
+     * line in the server HTML (the hint still shows), and fills it when there is an error. Without it, as before. */
+    {
+      const dis = m(e(A.RadioGroup, { label: 'R', id: 'rd', options: ['a'], disabled: true })) + m(e(A.CheckboxGroup, { label: 'C', id: 'cd', options: ['a'], disabled: true }));
+      const lv = m(e(A.CheckboxGroup, { label: 'C', id: 'cl', options: ['a'], hint: 'h', errorLive: true }));
+      const lvE = m(e(A.RadioGroup, { label: 'R', id: 'rl', options: ['a'], hint: 'h', error: 'Pick one', errorLive: true }));
+      const fl = m(e(A.Field, { label: 'F', id: 'fl', hint: 'h', errorLive: true }, e('input', { id: 'fl' })));
+      const off = m(e(A.CheckboxGroup, { label: 'C', id: 'co', options: ['a'], hint: 'h' }));
+      /* no hint: the waiting line alone; a Field with no id gets no "undefined-error" id */
+      const bare = m(e(A.RadioGroup, { label: 'R', id: 'rb', options: ['a'], errorLive: true })) + m(e(A.Field, { label: 'F', errorLive: true }, e('input')));
+      if (!/<\/div><p class="aura-field__error" id="rb-error" aria-live="polite"><\/p><\/fieldset>/.test(bare) || /aura-field__hint|undefined-/.test(bare) || !/<p class="aura-field__error" aria-live="polite"><\/p><\/div>$/.test(bare)) bad('5.68 errorLive bare:', bare);
+      if ((dis.match(/<fieldset class="aura-field aura-radio-group[^"]* is-disabled"[^>]* disabled=""/g) || []).length !== 2 || !/<p class="aura-field__hint" id="cl-hint">h<\/p><p class="aura-field__error" id="cl-error" aria-live="polite"><\/p><\/fieldset>$/.test(lv) || !/<p class="aura-field__error" id="rl-error" aria-live="polite"><svg[^]*Pick one<\/p><\/fieldset>$/.test(lvE) || /aura-field__hint/.test(lvE) || !/<p class="aura-field__error" id="fl-error" aria-live="polite"><\/p><\/div>$/.test(fl) || /aria-live|aura-field__error/.test(off)) bad('5.68 group disabled / errorLive:', dis, lv, lvE, fl, off);
+    }
     const cbx = m(e(A.Checkbox, { touchHeight: 'always' }, 'Yes')), cbBare = m(e(A.Checkbox, { label: 'x', hideLabel: true, touchHeight: 'always' }));
     const sel = m(e(A.Select, { label: 'S', id: 's1', options: ['a'], touchHeight: 'always' }));
     if (!/^<div class="aura-field is-touch-always">/.test(tf) || !/aria-describedby="c1-hint"/.test(tf) || /touch[hH]eight/.test(tf + tt + rg + cbx + cbBare + sel) || !/^<div class="aura-field is-touch">/.test(tt) || !/class="aura-field aura-radio-group is-touch-always"/.test(rg) || !/class="aura-check aura-check--labelled is-touch-always"/.test(cbx) || /is-touch/.test(cbBare) || !/^<div class="aura-field is-touch-always">/.test(sel)) bad('touchHeight on fields:', tf, tt, rg, cbx, cbBare, sel);

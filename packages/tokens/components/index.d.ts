@@ -680,7 +680,12 @@ export interface RadioGroupProps extends FieldProps {
 	name?: string | undefined;
 	/** Default `vertical`. */
 	orientation?: "vertical" | "horizontal" | undefined;
+	/** Disables every option and (5.68) dims the legend, as Field does its label. */
 	disabled?: boolean | undefined;
+	/** 5.68 (Chamber-OS 184): announce the error line when it appears (`aria-live="polite"`) — for an error shown as
+	 * the user changes the group ("Choose at least one…" when the last box is unticked), not on submit. The error line
+	 * stays in the page, empty, while there is none, so the first message is read too. Off by default. */
+	errorLive?: boolean | undefined;
 	id?: string | undefined;
 	className?: string | undefined;
 	/** 44px rows (5.30, Chamber-OS 135), the one-line label centred: `true` below 640px or on a coarse pointer (touch
@@ -700,7 +705,12 @@ export interface CheckboxGroupProps extends FieldProps {
 	name?: string | undefined;
 	/** Default `vertical`. */
 	orientation?: "vertical" | "horizontal" | undefined;
+	/** Disables every option and (5.68) dims the legend, as Field does its label. */
 	disabled?: boolean | undefined;
+	/** 5.68 (Chamber-OS 184): announce the error line when it appears (`aria-live="polite"`) — for an error shown as
+	 * the user changes the group ("Choose at least one…" when the last box is unticked), not on submit. The error line
+	 * stays in the page, empty, while there is none, so the first message is read too. Off by default. */
+	errorLive?: boolean | undefined;
 	id?: string | undefined;
 	className?: string | undefined;
 	/** 44px rows, as RadioGroup: `true` below 640px or on a coarse pointer, `'always'` at every width. */
@@ -1927,6 +1937,12 @@ export interface FieldComponentProps extends Omit<FieldPropsPublic, "label"> {
 	/** The control's id: the label points at it, and the hint/error ids derive from it. */
 	id?: string | undefined;
 	children?: React$1.ReactNode | undefined;
+	/** 5.68 (Chamber-OS 184): announce the error line when it appears — for an error shown as the user types or ticks,
+	 * not on submit. The error `<p>` gets `aria-live="polite"` and stays in the page, empty, while there is no error, so
+	 * the first message is read too. Off by default: an error shown on submit, with focus moved to the field, is read
+	 * already, and a live line would read it twice. Your control should still point at `{id}-error` in its
+	 * `aria-describedby` while there is an error (TextField and the others do), so the message stays its description. */
+	errorLive?: boolean | undefined;
 	/** 5.31 (Chamber-OS addendum 41): a node between the label and the control, in a `.aura-field__addon` box with the
 	 * id `{id}-addon`. TextField and Textarea add that id to the input's `aria-describedby`; a custom control should too. */
 	labelAddon?: React$1.ReactNode | undefined;

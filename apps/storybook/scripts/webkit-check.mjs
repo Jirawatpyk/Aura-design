@@ -233,6 +233,13 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.68 (#184): errorLive keeps an empty polite error line that takes no room; unticking the last box fills it. */
+  await go('aura-new-in-5-68-chamber-os-184--error-live');
+  x = await ex(`const f = (t) => document.querySelector('[data-testid=' + t + '] fieldset'); const p = f('live').querySelector('.aura-field__error'); const r = [p.getAttribute('aria-live'), p.textContent, f('live').getBoundingClientRect().height === f('plain').getBoundingClientRect().height]; f('live').querySelector('input').click(); return r`);
+  await sleep(200);
+  x = x.concat(await ex(`return [document.querySelector('[data-testid=live] .aura-field__error').textContent]`));
+  check(JSON.stringify(x) === '["polite","",true,"Choose at least one membership category."]', 'errorLive: waiting empty line, then the message', x);
+
   /* 5.67 (#183): CheckboxGroup is a named group; ticking gives option order. */
   await go('aura-new-in-5-67-chamber-os-183--categories');
   await ex(`const g = document.querySelector('[data-testid=group]'); g.querySelectorAll('input')[1].click(); g.querySelectorAll('input')[0].click();`);

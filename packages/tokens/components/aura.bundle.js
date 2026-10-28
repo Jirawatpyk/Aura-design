@@ -2081,11 +2081,18 @@ window.Aura = (() => {
       ) : null,
       hasAddon(props.labelAddon) ? /* @__PURE__ */ React13.createElement("div", { className: "aura-field__addon", id: props.id + "-addon" }, props.labelAddon) : null,
       props.children,
-      props.error ? /* @__PURE__ */ React13.createElement("p", { className: "aura-field__error", id: props.id + "-error" }, /* @__PURE__ */ React13.createElement(Icon, { name: /* @__PURE__ */ React13.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React13.createElement("p", { className: "aura-field__hint", id: props.id + "-hint" }, props.hint) : null
+      fieldNote(props.id, props.error, props.hint, props.errorLive)
     );
   });
   function describedBy(id, p) {
     return p.error ? id + "-error" : p.hint ? id + "-hint" : void 0;
+  }
+  function fieldNote(id, error, hint, live) {
+    const err = error ? /* @__PURE__ */ React13.createElement(React13.Fragment, null, /* @__PURE__ */ React13.createElement(Icon, { name: /* @__PURE__ */ React13.createElement(IconCircleAlert, null), size: 14 }), error) : null;
+    const hintLine = hint ? /* @__PURE__ */ React13.createElement("p", { className: "aura-field__hint", id: id + "-hint" }, hint) : null;
+    if (!live)
+      return err ? /* @__PURE__ */ React13.createElement("p", { className: "aura-field__error", id: id + "-error" }, err) : hintLine;
+    return /* @__PURE__ */ React13.createElement(React13.Fragment, null, err ? null : hintLine, /* @__PURE__ */ React13.createElement("p", { className: "aura-field__error", id: id == null ? void 0 : id + "-error", "aria-live": "polite" }, err));
   }
   function hasAddon(n3) {
     return n3 != null && typeof n3 !== "boolean" && n3 !== "";
@@ -3872,6 +3879,7 @@ window.Aura = (() => {
         className: cx(
           "aura-field aura-radio-group",
           props.error && "is-invalid",
+          props.disabled && "is-disabled",
           touchClass(props.touchHeight),
           props.className
         ),
@@ -3901,7 +3909,7 @@ window.Aura = (() => {
           }
         ), /* @__PURE__ */ React20.createElement("span", { className: "aura-choice__text" }, /* @__PURE__ */ React20.createElement("span", { className: "aura-choice__label", id: oid ? oid + "-label" : void 0 }, v.label), v.description ? /* @__PURE__ */ React20.createElement("span", { className: "aura-choice__desc", id: oid + "-desc" }, v.description) : null));
       })),
-      props.error ? /* @__PURE__ */ React20.createElement("p", { className: "aura-field__error", id: id + "-error" }, /* @__PURE__ */ React20.createElement(Icon, { name: /* @__PURE__ */ React20.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React20.createElement("p", { className: "aura-field__hint", id: id + "-hint" }, props.hint) : null
+      fieldNote(id, props.error, props.hint, props.errorLive)
     );
   });
 
@@ -3936,6 +3944,7 @@ window.Aura = (() => {
           className: cx(
             "aura-field aura-radio-group aura-checkbox-group",
             props.error && "is-invalid",
+            props.disabled && "is-disabled",
             touchClass(props.touchHeight),
             props.className
           ),
@@ -3973,7 +3982,7 @@ window.Aura = (() => {
             v.label
           );
         })),
-        props.error ? /* @__PURE__ */ React21.createElement("p", { className: "aura-field__error", id: id + "-error" }, /* @__PURE__ */ React21.createElement(Icon, { name: /* @__PURE__ */ React21.createElement(IconCircleAlert, null), size: 14 }), props.error) : props.hint ? /* @__PURE__ */ React21.createElement("p", { className: "aura-field__hint", id: id + "-hint" }, props.hint) : null
+        fieldNote(id, props.error, props.hint, props.errorLive)
       );
     }
   );
