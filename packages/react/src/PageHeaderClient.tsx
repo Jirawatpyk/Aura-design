@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PageHeader as StaticPageHeader } from './PageHeader.js';
 import type { PageHeaderProps } from './PageHeader.js';
-import { devWarnOnce, useMergedRef } from './internal.js';
+import { devWarnOnce, fixedTrapped as trapped, useMergedRef } from './internal.js';
 
 /* 5.45 (Chamber-OS 150): the main entry's PageHeader is the stateless one plus one effect — while `actionsBarBelow`
  * has made the actions a fixed bar, their height goes to --aura-page-actions-height on <html>, so the page's end and a
@@ -10,25 +10,6 @@ import { devWarnOnce, useMergedRef } from './internal.js';
 const NAME = '--aura-page-actions-height';
 /* Bars on the page, newest last: the newest one's height is the one written; when it goes, the one before takes over. */
 const bars: Array<() => void> = [];
-
-/* `position: fixed` is relative to an ancestor with a transform, filter, perspective, will-change or paint
- * or layout containment, not to the screen. */
-function trapped(el: HTMLElement): boolean {
-  for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
-    const s = getComputedStyle(p);
-    if (
-      s.transform !== 'none' ||
-      s.filter !== 'none' ||
-      (s.backdropFilter || 'none') !== 'none' ||
-      (s as unknown as { contentVisibility?: string }).contentVisibility === 'auto' ||
-      s.perspective !== 'none' ||
-      /transform|filter|perspective/.test(s.willChange) ||
-      /paint|layout|strict|content/.test(s.contain)
-    )
-      return true;
-  }
-  return false;
-}
 
 export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(function PageHeader(props, ref) {
   const own = React.useRef<HTMLDivElement | null>(null);

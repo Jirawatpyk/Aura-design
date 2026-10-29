@@ -2270,6 +2270,32 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-actionbar__start:empty { display: none; }
 @container aura-actionbar (min-width: 640px) { .aura-actionbar__start { order: -1; } }
 @container aura-actionbar (max-width: 639.98px) { .aura-actionbar__inner.has-start > .aura-actionbar__status:not(:empty) { flex-basis: 100%; } }
+/* 5.69 (Chamber-OS 185): look="edge" / edgeBelow — PageHeader's edge strip (5.48): the screen's full width, on the
+ * bottom edge or on a BottomNav, a top border only, the home-indicator inset inside it. Fixed, so it spans the screen
+ * and not its parent; as PageHeader's bar, the page gains its height at the end (the shell's content, else the body)
+ * and as scroll-padding — --aura-actionbar-height, measured on the client, 60px until then — so the page's end and a
+ * focused field scroll clear of it. On a screen 30rem tall or less it is static, in the flow, as every bar (5.48/5.49). */
+.aura-actionbar--edge:not(.is-idle) { border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; }
+@media (min-height: 30.00125rem) {
+  .aura-actionbar--edge:not(.is-idle) { position: fixed; left: 0; right: 0; width: auto; bottom: var(--aura-bottomnav-offset, 0px); margin: 0; padding-bottom: max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px)); }
+  :root:has(.aura-actionbar--edge:not(.is-idle)) { --aura-actionbar-space: calc(var(--aura-actionbar-height, 60px) + var(--aura-bottomnav-offset, 0px) + var(--aura-space-3)); scroll-padding-bottom: var(--aura-actionbar-space); }
+  :root:has(.aura-actionbar--edge:not(.is-idle)) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-actionbar-space)); }
+  :root:has(.aura-actionbar--edge:not(.is-idle)):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-actionbar-space); }
+}
+@media (max-width: 639.98px) { .aura-actionbar--edge-below-sm:not(.is-idle) { border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; } }
+@media (max-width: 639.98px) and (min-height: 30.00125rem) {
+  .aura-actionbar--edge-below-sm:not(.is-idle) { position: fixed; left: 0; right: 0; width: auto; bottom: var(--aura-bottomnav-offset, 0px); margin: 0; padding-bottom: max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px)); }
+  :root:has(.aura-actionbar--edge-below-sm:not(.is-idle)) { --aura-actionbar-space: calc(var(--aura-actionbar-height, 60px) + var(--aura-bottomnav-offset, 0px) + var(--aura-space-3)); scroll-padding-bottom: var(--aura-actionbar-space); }
+  :root:has(.aura-actionbar--edge-below-sm:not(.is-idle)) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-actionbar-space)); }
+  :root:has(.aura-actionbar--edge-below-sm:not(.is-idle)):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-actionbar-space); }
+}
+@media (max-width: 767.98px) { .aura-actionbar--edge-below-md:not(.is-idle) { border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; } }
+@media (max-width: 767.98px) and (min-height: 30.00125rem) {
+  .aura-actionbar--edge-below-md:not(.is-idle) { position: fixed; left: 0; right: 0; width: auto; bottom: var(--aura-bottomnav-offset, 0px); margin: 0; padding-bottom: max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px)); }
+  :root:has(.aura-actionbar--edge-below-md:not(.is-idle)) { --aura-actionbar-space: calc(var(--aura-actionbar-height, 60px) + var(--aura-bottomnav-offset, 0px) + var(--aura-space-3)); scroll-padding-bottom: var(--aura-actionbar-space); }
+  :root:has(.aura-actionbar--edge-below-md:not(.is-idle)) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-actionbar-space)); }
+  :root:has(.aura-actionbar--edge-below-md:not(.is-idle)):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-actionbar-space); }
+}
 
 /* ---------- 4.20: Separator ---------- */
 .aura-separator { flex: none; align-self: stretch; height: 1px; margin: var(--aura-separator-space, 0) 0; background: var(--aura-border-default); border: 0; }

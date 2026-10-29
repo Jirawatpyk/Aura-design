@@ -159,3 +159,22 @@ export function plainClick(e: React.MouseEvent): boolean {
 /* 5.42 (Chamber-OS 146): true inside FilterBar's phone "Filters" sheet, where FilterSelect and FilterDateRange show
  * their name as a visible label above a full-width field instead of the compact face. */
 export const FilterSheet = React.createContext(false);
+
+/* 5.45, shared since 5.69 (PageHeader's bar, ActionBar's edge strip): `position: fixed` is relative to an ancestor with a transform, filter, perspective, will-change or paint
+ * or layout containment, not to the screen. */
+export function fixedTrapped(el: HTMLElement): boolean {
+  for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+    const s = getComputedStyle(p);
+    if (
+      s.transform !== 'none' ||
+      s.filter !== 'none' ||
+      (s.backdropFilter || 'none') !== 'none' ||
+      (s as unknown as { contentVisibility?: string }).contentVisibility === 'auto' ||
+      s.perspective !== 'none' ||
+      /transform|filter|perspective/.test(s.willChange) ||
+      /paint|layout|strict|content/.test(s.contain)
+    )
+      return true;
+  }
+  return false;
+}

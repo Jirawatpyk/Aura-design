@@ -409,6 +409,14 @@ window.Aura = (() => {
     return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
   }
   var FilterSheet = React3.createContext(false);
+  function fixedTrapped(el) {
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      if (s.transform !== "none" || s.filter !== "none" || (s.backdropFilter || "none") !== "none" || s.contentVisibility === "auto" || s.perspective !== "none" || /transform|filter|perspective/.test(s.willChange) || /paint|layout|strict|content/.test(s.contain))
+        return true;
+    }
+    return false;
+  }
 
   // src/display.tsx
   var React4 = __toESM(require_react(), 1);
@@ -8113,14 +8121,6 @@ window.Aura = (() => {
   // src/PageHeaderClient.tsx
   var NAME = "--aura-page-actions-height";
   var bars = [];
-  function trapped(el) {
-    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
-      const s = getComputedStyle(p);
-      if (s.transform !== "none" || s.filter !== "none" || (s.backdropFilter || "none") !== "none" || s.contentVisibility === "auto" || s.perspective !== "none" || /transform|filter|perspective/.test(s.willChange) || /paint|layout|strict|content/.test(s.contain))
-        return true;
-    }
-    return false;
-  }
   var PageHeader3 = React45.forwardRef(function PageHeader4(props, ref) {
     const own = React45.useRef(null);
     const merged = useMergedRef(ref, own);
@@ -8137,7 +8137,7 @@ window.Aura = (() => {
           if (bars[bars.length - 1] !== sync) return;
           if (getComputedStyle(el).position === "fixed") {
             root.style.setProperty(NAME, el.offsetHeight + "px");
-            if (!checked && (checked = true, trapped(el)))
+            if (!checked && (checked = true, fixedTrapped(el)))
               devWarnOnce(
                 "pageheader-bar-trapped",
                 "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors."
@@ -8680,6 +8680,17 @@ window.Aura = (() => {
 
   // src/ActionBar.tsx
   var React50 = __toESM(require_react(), 1);
+  var HEIGHT = "--aura-actionbar-height";
+  var edges = [];
+  function writeHeight() {
+    const root = document.documentElement;
+    for (let i = edges.length - 1; i >= 0; i--)
+      if (getComputedStyle(edges[i]).position === "fixed") {
+        root.style.setProperty(HEIGHT, edges[i].offsetHeight + "px");
+        return;
+      }
+    root.style.removeProperty(HEIGHT);
+  }
   var ActionBar = React50.forwardRef(function ActionBar2(props, ref) {
     const t = useStrings();
     const bulk = props.selected != null;
@@ -8690,6 +8701,40 @@ window.Aura = (() => {
     });
     const cameFrom = React50.useRef(null);
     const own = React50.useRef(null);
+    const viewport = (props.position || "viewport") === "viewport";
+    const edge = !viewport ? null : props.look === "edge" ? "all" : props.edgeBelow || null;
+    if (props.look === "edge" && props.edgeBelow && viewport)
+      devWarnOnce(
+        "actionbar-edge-both",
+        'ActionBar: look="edge" draws the edge strip at every width, so edgeBelow does nothing. Pass edgeBelow alone for a strip on a phone and the floating card above it.'
+      );
+    React50.useEffect(
+      function() {
+        const el = own.current;
+        if (!edge || !el) return;
+        let checked = false;
+        function sync() {
+          writeHeight();
+          if (!checked && getComputedStyle(el).position === "fixed" && (checked = true, fixedTrapped(el)))
+            devWarnOnce(
+              "actionbar-edge-trapped",
+              `ActionBar look="edge": an ancestor has a transform, filter, will-change or paint containment, so the fixed strip is placed against it instead of the screen. Remove it from the bar's ancestors.`
+            );
+        }
+        edges.push(el);
+        const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
+        if (ro) ro.observe(el, { box: "border-box" });
+        window.addEventListener("resize", sync);
+        sync();
+        return function() {
+          if (ro) ro.disconnect();
+          window.removeEventListener("resize", sync);
+          edges.splice(edges.indexOf(el), 1);
+          writeHeight();
+        };
+      },
+      [edge, idle]
+    );
     function clear() {
       props.onClearSelection();
       setTimeout(function() {
@@ -8716,6 +8761,7 @@ window.Aura = (() => {
         className: cx(
           "aura-actionbar",
           "aura-actionbar--" + (props.position || "viewport"),
+          edge && (edge === "all" ? "aura-actionbar--edge" : "aura-actionbar--edge-below-" + edge),
           idle && "is-idle",
           props.className
         )

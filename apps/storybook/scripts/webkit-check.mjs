@@ -233,6 +233,14 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.69 (#185): ActionBar look="edge" at a phone width — the screen's width, on the bottom edge, top border only; the
+   * page's end is padded past it. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-69-chamber-os-185--edge');
+  await sleep(300);
+  x = await ex(`const a = document.querySelector('form .aura-actionbar'), r = a.getBoundingClientRect(), s = getComputedStyle(a); return [Math.round(r.left), Math.round(r.right) === innerWidth, Math.round(innerHeight - r.bottom), s.position, s.borderTopWidth, s.borderLeftWidth, s.borderTopLeftRadius, parseFloat(getComputedStyle(document.querySelector('.aura-shell__content')).paddingBottom) >= r.height]`);
+  check(JSON.stringify(x) === '[0,true,0,"fixed","1px","0px","0px",true]', 'ActionBar edge strip', x);
+
   /* 5.68 (#184): errorLive keeps an empty polite error line that takes no room; unticking the last box fills it. */
   await go('aura-new-in-5-68-chamber-os-184--error-live');
   x = await ex(`const f = (t) => document.querySelector('[data-testid=' + t + '] fieldset'); const p = f('live').querySelector('.aura-field__error'); const r = [p.getAttribute('aria-live'), p.textContent, f('live').getBoundingClientRect().height === f('plain').getBoundingClientRect().height]; f('live').querySelector('input').click(); return r`);

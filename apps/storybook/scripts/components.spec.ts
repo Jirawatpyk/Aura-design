@@ -11449,3 +11449,170 @@ test.describe('5.68: Chamber-OS 184 — group fields: disabled legend, errorLive
     await expect(f.locator('.aura-field__hint')).toHaveCount(0);
   });
 });
+
+test.describe("5.69: Chamber-OS 185 — ActionBar's edge look", () => {
+  const ID = (s: string) => 'aura-new-in-5-69-chamber-os-185--' + s;
+  const bar = (page: Page, sel = 'form .aura-actionbar') =>
+    page.evaluate((sel) => {
+      const a = document.querySelector<HTMLElement>(sel)!;
+      const r = a.getBoundingClientRect();
+      const s = getComputedStyle(a);
+      return {
+        left: Math.round(r.left),
+        right: Math.round(r.right),
+        fromBottom: Math.round(innerHeight - r.bottom),
+        top: r.top,
+        height: r.height,
+        position: s.position,
+        borders: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth],
+        radius: s.borderTopLeftRadius,
+        shadow: s.boxShadow,
+        marginTop: s.marginTop,
+        look: [s.backgroundColor, s.borderTopColor, s.borderTopStyle].join(' '),
+        btns: [...a.querySelectorAll('button')].map((b) => Math.round(b.getBoundingClientRect().height)),
+      };
+    }, sel);
+
+  for (const scheme of ['light', 'dark']) {
+    test(`185: look="edge" at 390 — the screen's width, on the bottom edge, top border only, as PageHeader's edge bar (${scheme})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 727 });
+      await story(page, ID('page-header-bar'), scheme);
+      const ph = await bar(page, '[data-testid=header] .aura-page-header__actions');
+      await story(page, ID('edge'), scheme);
+      await settle(page);
+      const g = await bar(page);
+      expect([g.left, g.right, g.fromBottom, g.position]).toEqual([0, 390, 0, 'fixed']);
+      expect(g.borders).toEqual(['1px', '0px', '0px', '0px']);
+      expect([g.radius, g.shadow, g.marginTop]).toEqual(['0px', 'none', '0px']);
+      expect(g.look).toBe(ph.look);
+      expect([ph.left, ph.right, ph.fromBottom]).toEqual([g.left, g.right, g.fromBottom]);
+      for (const h of g.btns) expect(h).toBeGreaterThanOrEqual(44);
+      await expect(page.getByRole('region', { name: 'Payment' })).toHaveCount(1);
+      await expect(page.getByRole('region', { name: 'Payment' }).getByRole('status')).toHaveText(
+        'Amount due 10,700.00 THB · due 22 Oct 2026',
+      );
+    });
+  }
+
+  test("185: the page's end — after the form too — and a focused field scroll clear; on a BottomNav it sits on the nav", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 727 });
+    for (const s of ['edge', 'edge-above-bottom-nav']) {
+      await story(page, ID(s));
+      await settle(page);
+      const fit = await page.evaluate(() => {
+        const a = document.querySelector<HTMLElement>('form .aura-actionbar')!;
+        return {
+          sibling: a.nextElementSibling,
+          root: document.documentElement.style.getPropertyValue('--aura-actionbar-height') === a.offsetHeight + 'px',
+        };
+      });
+      expect(fit, s).toEqual({ sibling: null, root: true });
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      const top = (await bar(page)).top;
+      for (const id of ['last', 'footer']) {
+        const b = (await page.getByTestId(id).boundingBox())!;
+        expect(b.y + b.height, s + ' ' + id).toBeLessThanOrEqual(top);
+      }
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.getByLabel('Note to the chamber').focus();
+      await page.waitForTimeout(100);
+      const f = (await page.getByLabel('Note to the chamber').boundingBox())!;
+      expect(f.y + f.height, s).toBeLessThanOrEqual((await bar(page)).top);
+      if (s === 'edge-above-bottom-nav') {
+        const nav = (await page.locator('nav.aura-bottomnav').boundingBox())!;
+        const g = await bar(page);
+        expect(Math.abs(727 - g.fromBottom - nav.y), s).toBeLessThanOrEqual(1);
+        expect(
+          await page.evaluate(() => getComputedStyle(document.querySelector('form .aura-actionbar')!).paddingBottom),
+        ).toBe('0px');
+      }
+    }
+    /* the home-indicator padding changes the bar's border box only (a BottomNav sliding away): the height follows */
+    const h = await page.evaluate(async () => {
+      const a = document.querySelector<HTMLElement>('form .aura-actionbar')!;
+      a.style.paddingBottom = '34px';
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      return [document.documentElement.style.getPropertyValue('--aura-actionbar-height'), a.offsetHeight + 'px'];
+    });
+    expect(h[0]).toBe(h[1]);
+  });
+
+  test('185: edgeBelow="sm" is the strip on a phone and the floating card from 640px; short screens are static', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 727 });
+    await story(page, ID('edge-below-sm'));
+    await settle(page);
+    const phone = await bar(page);
+    expect([phone.left, phone.right, phone.fromBottom, phone.position, phone.radius]).toEqual([
+      0,
+      390,
+      0,
+      'fixed',
+      '0px',
+    ]);
+    await page.setViewportSize({ width: 800, height: 727 });
+    await page.waitForTimeout(200);
+    const wide = await bar(page);
+    expect(wide.position).toBe('sticky');
+    expect(wide.borders).toEqual(['1px', '1px', '1px', '1px']);
+    expect(wide.radius).not.toBe('0px');
+    expect(wide.shadow).not.toBe('none');
+    expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--aura-actionbar-height'))).toBe(
+      '',
+    );
+    /* 320×180: static and in the flow, after the last field */
+    for (const s of ['edge', 'edge-below-sm']) {
+      await page.setViewportSize({ width: 320, height: 180 });
+      await story(page, ID(s));
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      const g = await bar(page);
+      const last = (await page.getByTestId('last').boundingBox())!;
+      expect(g.position, s).toBe('static');
+      expect(g.top, s).toBeGreaterThanOrEqual(last.y + last.height);
+      expect(
+        await page.evaluate(() => document.documentElement.style.getPropertyValue('--aura-actionbar-height')),
+        s,
+      ).toBe('');
+    }
+  });
+
+  test('185: without look the bar is unchanged — the same markup and page padding as look="floating"; an idle bulk bar adds no room', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 727 });
+    const shape = () =>
+      page.evaluate(() => {
+        const a = document.querySelector('form .aura-actionbar')!;
+        return [
+          a.className,
+          a.nextElementSibling ? a.nextElementSibling.className : null,
+          getComputedStyle(a).position,
+          getComputedStyle(document.querySelector('.aura-shell__content')!).paddingBottom,
+        ];
+      });
+    await story(page, ID('floating'));
+    const def = await shape();
+    expect(def.slice(0, 3)).toEqual(['aura-actionbar aura-actionbar--viewport', null, 'sticky']);
+    await story(page, ID('floating') + '&args=look:floating');
+    expect(await shape()).toEqual(def);
+    await story(page, ID('idle-bulk'));
+    const idle = await page.evaluate(() => [
+      document.querySelector('.aura-actionbar')!.classList.contains('is-idle'),
+      getComputedStyle(document.body).paddingBottom,
+      document.documentElement.style.getPropertyValue('--aura-actionbar-height'),
+    ]);
+    expect(idle).toEqual([true, '0px', '']);
+    await page.getByTestId('pick').click();
+    await settle(page);
+    const on = await bar(page, '.aura-actionbar');
+    expect([on.left, on.right, on.fromBottom, on.position]).toEqual([0, 390, 0, 'fixed']);
+    /* no AppShell: the body is padded by the bar's height and more */
+    const pad = await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingBottom));
+    expect(pad).toBeGreaterThanOrEqual(on.height);
+  });
+});

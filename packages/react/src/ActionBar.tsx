@@ -1,11 +1,25 @@
 import * as React from 'react';
 import { Button } from './Button.js';
-import { cx } from './internal.js';
+import { cx, devWarnOnce, fixedTrapped } from './internal.js';
 import { useStrings } from './locale.js';
 import type { ActionBarProps } from './types.js';
 
 /** ActionBar — a bar stuck to the bottom of the screen or of a card: a status line and the form's or selection's
- * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field. */
+ * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field.
+ * 5.69 (Chamber-OS 185): `look="edge"` / `edgeBelow` make a viewport bar PageHeader's edge strip — fixed, the screen's
+ * full width — and the page gains its height at the end, as PageHeader's bar does, so it still never covers it. */
+const HEIGHT = '--aura-actionbar-height';
+/* Edge bars on the page, oldest first: the newest one that is fixed right now writes its height to <html>. */
+const edges: HTMLElement[] = [];
+function writeHeight() {
+  const root = document.documentElement;
+  for (let i = edges.length - 1; i >= 0; i--)
+    if (getComputedStyle(edges[i]!).position === 'fixed') {
+      root.style.setProperty(HEIGHT, edges[i]!.offsetHeight + 'px');
+      return;
+    }
+  root.style.removeProperty(HEIGHT);
+}
 export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(props, ref) {
   const t = useStrings();
   const bulk = props.selected != null;
@@ -18,6 +32,45 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
   /* Where focus came from before it entered the bar: Clear hides the bar's buttons, so focus goes back there. */
   const cameFrom = React.useRef<HTMLElement | null>(null);
   const own = React.useRef<HTMLDivElement | null>(null);
+  const viewport = (props.position || 'viewport') === 'viewport';
+  const edge = !viewport ? null : props.look === 'edge' ? 'all' : props.edgeBelow || null;
+  if (props.look === 'edge' && props.edgeBelow && viewport)
+    devWarnOnce(
+      'actionbar-edge-both',
+      'ActionBar: look="edge" draws the edge strip at every width, so edgeBelow does nothing. Pass edgeBelow alone for a strip on a phone and the floating card above it.',
+    );
+  /* 5.69: while the edge strip is fixed (the CSS decides: width, a screen taller than 30rem, not an idle bulk bar),
+   * <html> gets its height as --aura-actionbar-height: the page's end is padded by it (the shell's content, else the
+   * body) and scroll-padding-bottom keeps a focused field clear, whatever the bar holds. */
+  React.useEffect(
+    function () {
+      const el = own.current;
+      if (!edge || !el) return;
+      let checked = false;
+      function sync() {
+        writeHeight();
+        if (!checked && getComputedStyle(el!).position === 'fixed' && ((checked = true), fixedTrapped(el!)))
+          devWarnOnce(
+            'actionbar-edge-trapped',
+            'ActionBar look="edge": an ancestor has a transform, filter, will-change or paint containment, so the fixed strip is placed against it instead of the screen. Remove it from the bar\'s ancestors.',
+          );
+      }
+      edges.push(el);
+      /* border-box: the home-indicator padding changes with the BottomNav (hideOnScroll, data-aura-hide-bottomnav)
+       * while the content box stays the same. */
+      const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
+      if (ro) ro.observe(el, { box: 'border-box' });
+      window.addEventListener('resize', sync);
+      sync();
+      return function () {
+        if (ro) ro.disconnect();
+        window.removeEventListener('resize', sync);
+        edges.splice(edges.indexOf(el), 1);
+        writeHeight();
+      };
+    },
+    [edge, idle],
+  );
   function clear() {
     props.onClearSelection!();
     setTimeout(function () {
@@ -44,6 +97,7 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
       className={cx(
         'aura-actionbar',
         'aura-actionbar--' + (props.position || 'viewport'),
+        edge && (edge === 'all' ? 'aura-actionbar--edge' : 'aura-actionbar--edge-below-' + edge),
         idle && 'is-idle',
         props.className,
       )}

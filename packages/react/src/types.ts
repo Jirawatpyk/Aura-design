@@ -1619,6 +1619,16 @@ export interface ActionBarProps {
    * parent, so they never cover the last field. Make it the last child of the form or card it belongs to: like any
    * `position: sticky` element it sticks only while that parent is on screen. */
   position?: 'viewport' | 'container' | undefined;
+  /** 5.69 (Chamber-OS 185), `position="viewport"` only. `floating` (default): the inset card, bordered all round,
+   * rounded, with a shadow. `edge`: PageHeader's edge strip at every width — the screen's full width, on the bottom
+   * edge or on a BottomNav, a top border only, the home-indicator inset inside it. The strip is `position: fixed` and
+   * stays on screen for the whole page (not only while its form is), so, as PageHeader's bar, the page gains its height
+   * at the end (`--aura-actionbar-height` on `<html>`) and a focused field scrolls clear; on a screen 30rem tall or
+   * less it is static, in the flow. For a strip on a phone only, use `edgeBelow`. */
+  look?: 'floating' | 'edge' | undefined;
+  /** 5.69 (Chamber-OS 185), `position="viewport"` only: the edge strip below this width (`sm` 640px, `md` 768px),
+   * the `look` card at and above it — as PageHeader's `actionsBarBelow`. */
+  edgeBelow?: 'sm' | 'md' | undefined;
   /** 5.35 (DxT Monitor #14): while this bar is on the page, a BottomNav (and its spacer) is hidden and the bar takes the
    * bottom edge — for a page whose own actions (Acknowledge, Visit site) replace the tab bar. Any element can do the
    * same with the `data-aura-hide-bottomnav` attribute. */

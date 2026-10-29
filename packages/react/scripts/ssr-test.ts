@@ -161,6 +161,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     if (/row-density|tbl--middle/.test(t({}))) { console.log(label, 'Table default changed'); fail++; }
     if (!/aura-tbl--middle aura-tbl--row-density/.test(t({ rowHeight: 'density' })) || /tbl--middle/.test(t({ rowHeight: 'density', align: 'top' }))) { console.log(label, 'Table rowHeight centring'); fail++; }
   }
+  /* 5.69 (Chamber-OS 185): look="edge" / edgeBelow add their class (nothing else in the markup); a container bar
+   * ignores them; no look, or look="floating", renders as before. */
+  {
+    const e = React.createElement;
+    const r = (p: Record<string, unknown>) => renderToString(e(A.ActionBar, Object.assign({ label: 'Pay' }, p), e('button', null, 'Pay now')));
+    const edge = r({ look: 'edge' }), below = r({ edgeBelow: 'sm' }), md = r({ edgeBelow: 'md', look: 'floating' }), plain = r({}), fl = r({ look: 'floating' }), ct = r({ position: 'container', look: 'edge', edgeBelow: 'sm' });
+    if (edge !== plain.replace('aura-actionbar--viewport"', 'aura-actionbar--viewport aura-actionbar--edge"') || below !== plain.replace('aura-actionbar--viewport"', 'aura-actionbar--viewport aura-actionbar--edge-below-sm"') || edge === plain || !/aura-actionbar--edge-below-md"/.test(md) || plain !== fl || /edge/.test(plain + ct) || !/aura-actionbar--container"/.test(ct)) { console.log(label, 'ActionBar edge:', edge, below, md, plain, fl, ct); fail++; }
+  }
   /* 5.20 (Chamber-OS 115, 116): a Table takes the provider's density; ActionBar's start slot. Defaults unchanged. */
   {
     const e = React.createElement;
@@ -408,11 +416,11 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       ) bad('Chamber-OS 156:', ti, ta, te, tn);
     }
     /* 5.49 (Chamber-OS 155): every short-screen height threshold in the shipped CSS is in rem (follows the browser's
-     * text size); none is left in px. */
+     * text size); none is left in px. 5.69: three more, ActionBar's edge strip (edge, edge-below-sm, -md). */
     {
       const css = readFileSync(new URL('../dist/styles.css', import.meta.url), 'utf8');
       const rem = css.match(/(?:max|min)-height:\s*30(?:\.00125)?rem/g) || [];
-      if (rem.length !== 4 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
+      if (rem.length !== 7 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
     }
     /* 5.48 (Chamber-OS 153): actionsBarLook="floating" is a class beside the bar class; edge (default) adds none. */
     {
