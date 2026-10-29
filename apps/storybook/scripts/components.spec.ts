@@ -11616,3 +11616,241 @@ test.describe("5.69: Chamber-OS 185 — ActionBar's edge look", () => {
     expect(pad).toBeGreaterThanOrEqual(on.height);
   });
 });
+
+test.describe('5.70: Chamber-OS 186–190', () => {
+  const ID = (s: string) => 'aura-new-in-5-70-chamber-os-186-190--' + s;
+
+  test('186: aria-disabled and aria-busy are merged with loading; an aria-disabled IconButton ignores clicks', async ({
+    page,
+  }) => {
+    await story(page, ID('button-states'));
+    const attrs = (id: string) =>
+      page
+        .getByTestId(id)
+        .evaluate((b) => [
+          b.getAttribute('aria-disabled'),
+          b.getAttribute('aria-busy'),
+          (b as HTMLButtonElement).disabled,
+        ]);
+    expect(await attrs('cooldown')).toEqual(['true', null, false]);
+    expect(await attrs('sending')).toEqual(['true', 'true', false]);
+    expect(await attrs('busy')).toEqual([null, 'true', false]);
+    expect(await attrs('icon-cooldown')).toEqual(['true', null, false]);
+    for (const id of ['cooldown', 'sending', 'icon-cooldown']) await page.getByTestId(id).click({ force: true });
+    await page.getByTestId('cooldown').focus();
+    await page.keyboard.press('Enter');
+    await page.getByTestId('icon-cooldown').focus();
+    await expect(page.getByTestId('icon-cooldown')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('clicks')).toHaveText('0');
+    await page.getByTestId('icon-live').click();
+    await page.getByTestId('busy').click();
+    await expect(page.getByTestId('clicks')).toHaveText('2');
+    /* a link Button keeps a passed aria-disabled: still a focusable link, a click does nothing */
+    const link = page.getByTestId('link-cooldown');
+    expect(await link.evaluate((a) => [a.tagName, a.getAttribute('aria-disabled'), a.getAttribute('href')])).toEqual([
+      'A',
+      'true',
+      '#resent',
+    ]);
+    await link.focus();
+    await expect(link).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('clicks')).toHaveText('2');
+    expect(await page.evaluate(() => location.hash)).not.toBe('#resent');
+    const op = await page.getByTestId('icon-cooldown').evaluate((b) => Number(getComputedStyle(b).opacity));
+    expect(op).toBeLessThan(1);
+  });
+
+  test('187: cursor mode — real links (through linkComponent), disabled ends out of the tab order, a status, no numbers', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('cursor-pagination'));
+    const links = page.getByRole('navigation', { name: 'Audit log pages' });
+    await expect(links).toHaveCount(1);
+    await expect(links.locator('ol, .aura-pagination__list, .aura-pagination__compact')).toHaveCount(0);
+    await expect(links.locator('.aura-pagination__status')).toHaveText('Showing 50 of 1,240');
+    const next = links.getByRole('link', { name: 'Next page' });
+    await expect(next).toHaveAttribute('href', '#after=evt_50');
+    await expect(next).toHaveAttribute('rel', 'next');
+    const off = await links
+      .locator('[aria-disabled="true"]')
+      .evaluateAll((es) =>
+        es.map((e) => [e.tagName, e.getAttribute('role'), e.textContent, (e as HTMLElement).tabIndex]),
+      );
+    expect(off).toEqual([
+      ['SPAN', 'link', 'First page', -1],
+      ['SPAN', 'link', 'Previous page', -1],
+    ]);
+    /* buttons with callbacks */
+    const btns = page.getByRole('navigation', { name: 'E-Blast pages' });
+    await expect(btns.getByRole('button', { name: 'First page' })).toBeDisabled();
+    await expect(btns.getByRole('button', { name: 'Previous page' })).toBeDisabled();
+    await btns.getByRole('button', { name: 'Next page' }).click();
+    await expect(btns.locator('.aura-pagination__status')).toHaveText('Batch 2');
+    await btns.getByRole('button', { name: 'Previous page' }).click();
+    await expect(btns.locator('.aura-pagination__status')).toHaveText('Batch 1');
+    /* a forward-only list: no First, the router's link */
+    const fwd = page.getByRole('navigation', { name: 'Change requests' });
+    await expect(fwd.getByText('First page')).toHaveCount(0);
+    await expect(fwd.getByRole('link', { name: 'Next page' })).toHaveAttribute('data-router', '');
+  });
+
+  test('187: cursor steps are 44px on a touch screen, as the page numbers', async ({ browser }) => {
+    const ctx = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      viewport: { width: 390, height: 800 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const page = await ctx.newPage();
+    await story(page, ID('cursor-pagination'));
+    expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+    const hs = await page
+      .locator('[data-testid=links] .aura-page')
+      .evaluateAll((es) => es.map((e) => Math.round(e.getBoundingClientRect().height)));
+    expect(hs.length).toBe(3);
+    for (const h of hs) expect(h).toBeGreaterThanOrEqual(44);
+    await ctx.close();
+  });
+
+  test('188: a sortable Th — aria-sort, AURA sort icon, a button (click and Enter) or a link; unchanged without the props', async ({
+    page,
+  }) => {
+    await story(page, ID('sortable-th'));
+    const th = (id: string) => page.getByTestId(id);
+    const firstRow = () =>
+      page
+        .getByRole('table', { name: 'Pending review' })
+        .locator('tbody tr')
+        .first()
+        .locator('td')
+        .first()
+        .textContent();
+    await expect(th('member')).toHaveAttribute('aria-sort', 'ascending');
+    const btn = th('member').getByRole('button', { name: 'Member' });
+    await expect(btn).toHaveClass(/aura-table__sort/);
+    await expect(btn).toHaveClass(/is-active/);
+    const icon = (loc: ReturnType<typeof th>) => loc.locator('svg').evaluate((s) => s.innerHTML);
+    const up = await icon(th('member'));
+    expect(await firstRow()).toBe('Bangkok Bakers');
+    await btn.click();
+    await expect(th('member')).toHaveAttribute('aria-sort', 'descending');
+    expect(await firstRow()).toBe('Siam Steel');
+    expect(await icon(th('member'))).not.toBe(up);
+    await btn.focus();
+    await page.keyboard.press('Enter');
+    await expect(th('member')).toHaveAttribute('aria-sort', 'ascending');
+    expect(await icon(th('member'))).toBe(up);
+    /* keyboard focus draws the ring on the control */
+    await page.keyboard.press('Tab');
+    const ring = await page.evaluate(() => {
+      const a = document.activeElement as HTMLElement;
+      return [a.tagName, a.getAttribute('href'), getComputedStyle(a).outlineStyle, a.hasAttribute('data-router')];
+    });
+    expect(ring).toEqual(['A', '?sort=submitted', 'solid', true]);
+    await expect(th('submitted')).toHaveAttribute('aria-sort', 'none');
+    expect(await icon(th('submitted'))).not.toBe(up);
+    /* sort alone: says the order, no control */
+    await expect(th('amount')).toHaveAttribute('aria-sort', 'descending');
+    await expect(th('amount').locator('button, a')).toHaveCount(0);
+    /* nothing: as before */
+    expect(await th('plain').evaluate((t) => [t.hasAttribute('aria-sort'), t.innerHTML])).toEqual([false, 'Notes']);
+  });
+
+  test('189: Spinner — hidden alone, a status with a label, the sizes, Button’s glyph and motion; StatusPill busy', async ({
+    page,
+  }) => {
+    await story(page, ID('spinners'));
+    const sp = await page.evaluate(() => {
+      const g = (s: string) => document.querySelector(s) as HTMLElement;
+      /* the layout width (a turning glyph's bounding box is wider) */
+      const w = (el: Element) => Math.round(parseFloat(getComputedStyle(el.querySelector('svg')!).width));
+      const inline = g('[data-testid=inline] .aura-spinner'),
+        lg = g('[data-testid=panel] .aura-spinner--lg'),
+        md = g('[data-testid=md]'),
+        btn = g('[data-testid=btn] svg');
+      return {
+        inline: [inline.getAttribute('aria-hidden'), inline.getAttribute('role'), w(inline)],
+        lg: [lg.getAttribute('role'), lg.textContent, lg.hasAttribute('aria-hidden'), w(lg)],
+        md: w(md),
+        glyph: inline.querySelector('svg')!.innerHTML === btn.innerHTML,
+        sm: w(inline) === Math.round(parseFloat(getComputedStyle(btn).width)),
+        anim: getComputedStyle(inline.querySelector('svg')!).animationName === getComputedStyle(btn).animationName,
+        colour: getComputedStyle(lg.querySelector('svg')!).stroke === getComputedStyle(g('[data-testid=panel]')).color,
+        pill: [!!g('[data-testid=pill] svg.aura-spin'), !!g('[data-testid=pill-plain] svg.aura-spin')],
+      };
+    });
+    expect(sp).toEqual({
+      inline: ['true', null, 16],
+      lg: ['status', 'Processing payment', false, 24],
+      md: 20,
+      glyph: true,
+      sm: true,
+      anim: true,
+      colour: true,
+      pill: [true, false],
+    });
+    /* reduced motion: the same rule as Button's loading spinner */
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const rm = await page.evaluate(() => {
+      const a = getComputedStyle(document.querySelector('[data-testid=inline] svg')!),
+        b = getComputedStyle(document.querySelector('[data-testid=btn] svg')!);
+      return [a.animationName === b.animationName, a.animationDuration === b.animationDuration];
+    });
+    expect(rm).toEqual([true, true]);
+  });
+
+  test('190: FileUpload variant="button" — a Button opens the picker, checks the file, calls onSelect once; progress', async ({
+    page,
+  }) => {
+    await story(page, ID('upload-button'));
+    const box = page.getByTestId('logo');
+    const btn = box.getByRole('button', { name: 'Invoice logo Upload logo' });
+    await expect(btn).toHaveClass(/aura-btn/);
+    expect(await btn.getAttribute('aria-describedby')).toMatch(/-hint/);
+    const input = box.locator('input[type=file]');
+    expect(
+      await input.evaluate((i) => [
+        i.getAttribute('accept'),
+        (i as HTMLElement).tabIndex,
+        i.getAttribute('aria-hidden'),
+      ]),
+    ).toEqual(['image/png,image/jpeg', -1, 'true']);
+    await expect(box.locator('.aura-upload, .aura-upload__list')).toHaveCount(0);
+    /* the Button opens the picker */
+    const chooser = page.waitForEvent('filechooser');
+    await btn.click();
+    await (await chooser).setFiles({ name: 'logo.png', mimeType: 'image/png', buffer: Buffer.alloc(1024) });
+    await expect(page.getByTestId('picked')).toHaveText('["logo.png"]');
+    await expect(box.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
+    expect(
+      await input.evaluate((i) => [(i as HTMLInputElement).required, (i as HTMLInputElement).files!.length]),
+    ).toEqual([true, 1]);
+    /* too big: the error, no call, and the input (it has a name) posts nothing refused */
+    await input.setInputFiles({ name: 'huge.png', mimeType: 'image/png', buffer: Buffer.alloc(300 * 1024) });
+    await expect(box.locator('.aura-field__error')).toContainText('Larger than');
+    expect(await input.evaluate((i) => (i as HTMLInputElement).files!.length)).toBe(0);
+    expect(await btn.getAttribute('aria-describedby')).toMatch(/-error/);
+    await input.setInputFiles({ name: 'notes.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(10) });
+    await expect(box.locator('.aura-field__error')).toContainText('isn’t accepted');
+    await expect(page.getByTestId('picked')).toHaveText('["logo.png"]');
+    /* a good pick clears the refusal */
+    await input.setInputFiles({ name: 'logo2.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(10) });
+    await expect(page.getByTestId('picked')).toHaveText('["logo.png","logo2.jpg"]');
+    await expect(box.locator('.aura-field__error')).toHaveCount(0);
+    await page.getByTestId('indeterminate').click();
+    expect(await box.getByRole('progressbar').getAttribute('aria-valuenow')).toBeNull();
+    /* ref.focus() lands on the Button */
+    await page.getByTestId('focus-field').click();
+    await expect(btn).toBeFocused();
+    /* a native submit with nothing picked: the Field's error and focus on the Button, not the hidden input */
+    await page.getByTestId('save').click();
+    const cert = page.getByTestId('cert-form');
+    await expect(cert.getByRole('button', { name: 'Zero-rate certificate Choose a file' })).toBeFocused();
+    await expect(cert.locator('.aura-field__error')).toHaveText('Choose a file');
+    /* the dropzone is as before */
+    await expect(page.getByTestId('zone').locator('.aura-upload')).toHaveCount(1);
+  });
+});

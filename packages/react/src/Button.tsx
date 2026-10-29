@@ -16,6 +16,10 @@ export interface ButtonComponent {
 function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorElement>, Link: React.ElementType) {
   const variant = props.variant || 'primary';
   const disabled = !!props.disabled;
+  /* 5.70 (Chamber-OS 186): a passed aria-disabled is kept, as on the button (5.14): the link stays focusable and
+   * announced as unavailable, and a click does nothing. `disabled` still drops the link altogether. */
+  const ad = (props as { 'aria-disabled'?: unknown })['aria-disabled'];
+  const gated = !disabled && (ad === true || ad === 'true');
   const rest = omit(props, [
     'variant',
     'className',
@@ -36,7 +40,7 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
       ref={ref}
       href={disabled ? undefined : props.href}
       role={disabled ? 'link' : undefined}
-      aria-disabled={disabled || undefined}
+      aria-disabled={disabled || gated || undefined}
       tabIndex={disabled ? -1 : props.tabIndex}
       className={buttonClass({
         variant: variant,
@@ -45,7 +49,15 @@ function ButtonLink(props: ButtonLinkProps, ref: React.ForwardedRef<HTMLAnchorEl
         touchHeight: props.touchHeight,
         className: props.className,
       })}
-      onClick={disabled ? undefined : props.onClick}
+      onClick={
+        disabled
+          ? undefined
+          : gated
+            ? function (e: React.MouseEvent<HTMLAnchorElement>) {
+                e.preventDefault();
+              }
+            : props.onClick
+      }
     >
       {props.icon ? <Icon name={props.icon} /> : null}
       {props.children}
@@ -70,6 +82,10 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
      * announced as unavailable, and clicks do nothing — a gated confirm. */
     const ad = (props as { 'aria-disabled'?: unknown })['aria-disabled'];
     const blocked = loading || ad === true || ad === 'true';
+    /* 5.70 (Chamber-OS 186): a passed aria-busy is merged with loading's too (it was replaced, so a caller's busy state
+     * was lost whenever the button wasn't loading). */
+    const ab = (props as { 'aria-busy'?: unknown })['aria-busy'];
+    const busy = loading || ab === true || ab === 'true';
     const rest = omit(props, [
       'variant',
       'className',
@@ -96,7 +112,7 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
           loading: loading,
           className: props.className,
         })}
-        aria-busy={loading || undefined}
+        aria-busy={busy || undefined}
         aria-disabled={blocked || undefined}
         onClick={
           blocked

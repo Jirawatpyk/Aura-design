@@ -251,6 +251,12 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
   transition: color var(--aura-duration-fast) var(--aura-ease);
 }
 .aura-table__sort:hover, .aura-table__sort.is-active { color: var(--aura-fg-primary); }
+/* 5.70 (Chamber-OS 188): the same control in a plain Table's Th — a button or a link, with its own focus ring (a
+ * DataTable header ring is on the cell, which roves). */
+a.aura-table__sort { text-decoration: none; }
+.aura-tbl__th .aura-table__sort { white-space: normal; text-align: inherit; }
+.aura-tbl__th .aura-table__sort:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
+.aura-tbl__th.is-end .aura-table__sort { flex-direction: row-reverse; }
 
 /* Column menu trigger — shows on header hover or focus */
 .aura-table__menu-btn {
@@ -363,6 +369,9 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-icon-btn--outline { box-sizing: border-box; border: 1px solid var(--aura-button-secondary-border); } /* 5.44 (Chamber-OS 149): reads as a button beside outlined ones */
 .aura-icon-btn--danger:hover { background: var(--aura-alert-danger-bg); }
 .aura-icon-btn:disabled { opacity: var(--aura-disabled-opacity); pointer-events: none; }
+/* 5.70 (Chamber-OS 186): aria-disabled keeps it focusable (a cooldown); it looks unavailable and hover changes nothing. */
+.aura-icon-btn[aria-disabled="true"] { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
+.aura-icon-btn[aria-disabled="true"]:hover { background: transparent; }
 /* 5.65 (Chamber-OS 180): a toggle (aria-pressed="true", or the pressed prop) looks on — the selected fill and the
  * accent icon — and hover still shows on top of it (an accent hairline inside). Outline toggles take an accent border.
  * The focus ring is unchanged. Not inside a field: PasswordField's reveal eye (aria-pressed) stays quiet (5.30 #14).
@@ -482,6 +491,8 @@ a.aura-icon-btn { text-decoration: none; }
 /* Loading spinner */
 @keyframes aura-spin { to { transform: rotate(360deg); } }
 .aura-spin { animation: aura-spin var(--aura-duration-spin) linear infinite; }
+/* 5.70 (Chamber-OS 189): Spinner — the same glyph and spin, inline with the text. */
+.aura-spinner { display: inline-flex; flex: none; vertical-align: middle; color: inherit; line-height: 0; }
 @media (prefers-reduced-motion: reduce) {
   .aura-spin { animation-duration: calc(var(--aura-duration-spin) * 3); }
 }
@@ -1513,6 +1524,10 @@ button.aura-stat { font: inherit; width: 100%; cursor: pointer; }
 .aura-time__option { min-height: 36px; font-variant-numeric: tabular-nums; }
 
 /* ---------- FileUpload ---------- */
+/* 5.70 (Chamber-OS 190): FileUpload variant="button" — the Button, the accepted types and size beside it (wrapping
+ * under on a narrow field), an optional Progress under them. */
+.aura-upload-button { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2) var(--aura-space-3); }
+.aura-upload-button > .aura-upload__note { flex-basis: auto; font-size: max(12px, .75rem); color: var(--aura-fg-secondary); }
 .aura-upload {
   position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--aura-space-2);
   min-height: 96px; padding: var(--aura-space-5); text-align: center; cursor: pointer;
@@ -1649,6 +1664,14 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-page:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-pagination__gap { min-width: 24px; text-align: center; color: var(--aura-fg-secondary); }
 .aura-pagination__compact { display: none; padding: 0 var(--aura-space-2); color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
+/* 5.70 (Chamber-OS 187): cursor mode — a status line at the start, First / Previous / Next at the end, each an
+ * .aura-page with text (44px on touch, as the numbers); a disabled end is dimmed and takes no clicks. */
+.aura-pagination--cursor { flex-wrap: wrap; justify-content: flex-end; gap: var(--aura-space-1) var(--aura-space-3); }
+.aura-pagination__status { flex: 1 1 auto; min-width: 0; color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; }
+.aura-pagination__steps { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-inline-start: auto; }
+.aura-page--step { gap: var(--aura-space-1); padding: 0 var(--aura-space-3); white-space: nowrap; }
+.aura-page--step:is(:disabled, [aria-disabled="true"]) { opacity: var(--aura-disabled-opacity); cursor: not-allowed; }
+.aura-page--step:is(:disabled, [aria-disabled="true"]):hover { background: transparent; }
 @media (max-width: 639.98px) {
   .aura-pagination__list { display: none; }
   .aura-pagination__compact { display: inline; }

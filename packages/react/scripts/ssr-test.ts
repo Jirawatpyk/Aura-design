@@ -305,6 +305,21 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       if (!/<span class="aura-sr-only"> \(required\)<\/span>/.test(req) || /required=""/.test(req)) { console.log(label, 'CheckboxGroup required:', req); fail++; }
       if (!/<fieldset class="aura-field aura-radio-group aura-checkbox-group" aria-describedby="cg-hint"/.test(cg) || (cg.match(/name="cats"/g) || []).length !== 2 || !/<input[^>]*checked=""[^>]*value="b"/.test(cg) || /<input[^>]*checked=""[^>]*value="a"/.test(cg)) { console.log(label, 'CheckboxGroup:', cg); fail++; }
     }
+    /* 5.70 (Chamber-OS 186–190) */
+    {
+      const btn = m(e(A.Button, { 'aria-busy': true }, 'Refreshing')) + m(e(A.Button, { loading: true, 'aria-disabled': false, 'aria-busy': false }, 'Send')) + m(e(A.IconButton, { icon: 'pencil', label: 'Resend', 'aria-disabled': true }));
+      if (!/<button aria-busy="true"[^>]*>Refreshing/.test(btn) || (btn.match(/aria-busy="true"/g) || []).length !== 2 || !/aria-disabled="true"[^>]*aria-label="Resend"/.test(btn)) bad('186 Button aria-busy / IconButton aria-disabled:', btn);
+      const cur = m(e(A.Pagination, { mode: 'cursor', label: 'Audit', nextHref: '/a?after=9', status: 'Showing 50' }));
+      const curB = m(e(A.Pagination, { mode: 'cursor', onNext: () => {}, showFirst: false }));
+      if (!/^<nav class="aura-pagination aura-pagination--cursor" aria-label="Audit"><span class="aura-pagination__status">Showing 50<\/span>/.test(cur) || (cur.match(/<span class="aura-page aura-page--step" role="link" aria-disabled="true">/g) || []).length !== 2 || !/<a href="\/a\?after=9" rel="next" class="aura-page aura-page--step">/.test(cur) || /<ol|aura-pagination__compact/.test(cur + curB) || (curB.match(/<button type="button" class="aura-page aura-page--step" disabled="">/g) || []).length !== 1 || /First page/.test(curB)) bad('187 cursor Pagination:', cur, curB);
+      const head = (p: Record<string, unknown>) => m(e(A.Table, null, e(A.THead, null, e(A.Tr, null, e(A.Th, p, 'Member')))));
+      const ts = head({ sort: 'ascending', onSort: () => {} }), tl = head({ sortHref: '?s=m' }), to = head({ sort: 'descending' }), tp = head({});
+      if (!/<th scope="col" class="aura-tbl__th" aria-sort="ascending"><button type="button" class="aura-table__sort is-active">Member<svg/.test(ts) || !/aria-sort="none"><a href="\?s=m" class="aura-table__sort">Member<svg/.test(tl) || !/aria-sort="descending">Member<\/th>/.test(to) || !/<th scope="col" class="aura-tbl__th">Member<\/th>/.test(tp)) bad('188 sortable Th:', ts, tl, to, tp);
+      const spin = m(e(A.Spinner, {})) + m(e(A.Spinner, { size: 'sm', label: 'Working' })) + m(e(A.StatusPill, { busy: true, children: 'Waiting' }));
+      if (!/^<span class="aura-spinner aura-spinner--md" aria-hidden="true"><svg[^>]*width="20"/.test(spin) || !/<span class="aura-spinner aura-spinner--sm" role="status"><svg[^>]*width="16"[^]*<span class="aura-sr-only">Working<\/span><\/span>/.test(spin) || !/class="aura-icon aura-spin"[^]*Waiting<\/span>$/.test(spin) || /busy=/.test(spin)) bad('189 Spinner / StatusPill busy:', spin);
+      const up = m(e(A.FileUpload, { variant: 'button', label: 'Logo', id: 'lg', accept: 'image/png', hint: 'h', buttonLabel: 'Upload logo', progress: 40 }));
+      if (!/<span class="aura-field__label" id="lg-label">Logo<\/span>/.test(up) || !/<button id="lg-button"[^>]*aria-labelledby="lg-label lg-button" aria-describedby="lg-hint lg-note"[^>]*class="aura-btn aura-btn--secondary"/.test(up) || !/<input id="lg" type="file" class="aura-upload__input" tabindex="-1" aria-hidden="true" accept="image\/png"/.test(up) || !/role="progressbar"[^>]*aria-valuenow="40"/.test(up) || /aura-upload"|aura-upload__list|onSelect|buttonLabel|touchHeight|variant=/.test(up)) bad('190 FileUpload button:', up);
+    }
     /* 5.68 (Chamber-OS 184): a disabled group is is-disabled (the legend dims); errorLive keeps an empty, polite error
      * line in the server HTML (the hint still shows), and fills it when there is an error. Without it, as before. */
     {

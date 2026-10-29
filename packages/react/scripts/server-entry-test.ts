@@ -82,6 +82,10 @@ for (const [name, A] of [
       tree(A.TableSkeleton({ columns: [{ label: 'Member', width: '30%', card: 'title' }, { label: 'Stage', skeleton: { kind: 'pill' } }], rows: 2, stackBelow: 'sm' })),
       /* 5.51 (Chamber-OS 158): wrap renders the words in their own box, with no leaked attribute. */
       tree(A.StatusPill({ wrap: true, children: 'Awaiting marketing review' })),
+      /* 5.70 (Chamber-OS 189): Spinner and StatusPill busy are stateless too. */
+      tree(A.Spinner({ size: 'lg', label: 'Processing payment' })),
+      tree(A.Spinner({})),
+      tree(A.StatusPill({ busy: true, tone: 'progress', children: 'Waiting for payment' })),
       tree(A.Alert({ tone: 'danger', role: 'status', icon: 'clock', title: 'Paused', children: 'Benefits paused' })),
       tree(A.Badge({ tone: 'success', children: '3' })),
       tree(A.EmptyState({ title: 'Nothing yet' })),
@@ -122,6 +126,10 @@ for (const [name, A] of [
       'aria-labelledby="t1"',
       'aura-pill--ready',
       'data-state="decided"',
+      '<span class="aura-spinner aura-spinner--lg" role="status"><svg',
+      '<span class="aura-sr-only">Processing payment</span></span>',
+      '<span class="aura-spinner aura-spinner--md" aria-hidden="true"><svg',
+      'class="aura-icon aura-spin" aria-hidden="true"',
       'role="status"',
       'aura-alert--danger',
       'aura-badge--success',

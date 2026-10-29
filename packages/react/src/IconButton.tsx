@@ -10,6 +10,10 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
    * yourself is kept as is, without the AURA tip. */
   useAutoTip();
   const own = props.title !== undefined;
+  /* 5.70 (Chamber-OS 186): as Button (5.14), an aria-disabled IconButton stays focusable and announced as unavailable,
+   * looks unavailable and ignores clicks — a cooldown, a gated action. */
+  const ad = props['aria-disabled'];
+  const blocked = ad === true || ad === 'true';
   return (
     <button
       {...rest}
@@ -19,6 +23,13 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
       /* 5.65 (Chamber-OS 180): pressed sets aria-pressed (a toggle); an aria-pressed you pass is kept without it. */
       aria-pressed={props.pressed != null ? props.pressed : props['aria-pressed']}
       data-aura-tip={own ? undefined : props.label}
+      onClick={
+        blocked
+          ? function (e: React.MouseEvent<HTMLButtonElement>) {
+              e.preventDefault();
+            }
+          : props.onClick
+      }
       className={cx(
         'aura-icon-btn',
         props.tone === 'danger' && 'aura-icon-btn--danger',

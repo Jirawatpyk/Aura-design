@@ -60,6 +60,7 @@ export { Progress } from './Progress.js';
 export { Skeleton } from './Skeleton.js';
 export { EmptyState } from './EmptyState.js';
 export { Pagination } from './Pagination.js';
+export { Spinner } from './Spinner.js';
 export { Accordion } from './Accordion.js';
 export { Popover } from './Popover.js';
 export { NumberField } from './NumberField.js';

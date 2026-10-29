@@ -107,6 +107,8 @@ export interface AuraStrings {
   opensInNewTab: string;
   /** 5.67: read after a CheckboxGroup's legend when `required` (its `*` is hidden from screen readers). */
   required: string;
+  /** 5.70: a cursor Pagination's link back to the start. */
+  firstPage: string;
   /** 5.42: FilterBar's collapsed-filters button, read with its count ("Filters, 2 applied"). */
   filtersApplied: (n: number) => string;
   /** 5.42: closes FilterBar's "Filters" sheet. */
@@ -246,6 +248,7 @@ export const STRINGS: { en: AuraStrings; th: AuraStrings; sv: AuraStrings } = {
     statusUnknown: 'No data',
     opensInNewTab: 'opens in a new tab',
     required: 'required',
+    firstPage: 'First page',
     filtersApplied: function (n) {
       return 'Filters, ' + n.toLocaleString('en') + ' applied';
     },

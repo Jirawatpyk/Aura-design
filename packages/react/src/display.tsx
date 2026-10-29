@@ -12,6 +12,7 @@ import type {
   EmptyStateProps,
   FeedbackTone,
   StatProps,
+  SpinnerProps,
   StatusPillProps,
   StatusTone,
 } from './types.js';
@@ -23,6 +24,7 @@ import {
   IconCircleDotDashed,
   IconInbox,
   IconInfo,
+  IconLoaderCircle,
   IconMinus,
   IconTrendingDown,
   IconTrendingUp,
@@ -154,16 +156,40 @@ export function statusPillElement(
   ref: React.Ref<HTMLSpanElement> | undefined,
 ): React.ReactElement {
   const tone = props.tone || toneFor(props.children);
-  const rest = omit(props, ['tone', 'className', 'children', 'wrap']);
+  const rest = omit(props, ['tone', 'className', 'children', 'wrap', 'busy']);
   return (
     <span
       {...rest}
       ref={ref}
       className={cx('aura-pill', 'aura-pill--' + tone, props.wrap && 'is-wrap', props.className)}
     >
-      <Icon name={h(PILL_ICON[tone] || IconCircle)} size={12} />
+      {/* 5.70 (Chamber-OS 189): busy puts the spinner in the icon slot ("Waiting for payment"). */}
+      {props.busy ? (
+        <Icon name={h(IconLoaderCircle)} size={12} className="aura-spin" />
+      ) : (
+        <Icon name={h(PILL_ICON[tone] || IconCircle)} size={12} />
+      )}
       {/* 5.51 (Chamber-OS 158): a wrapping pill's words in their own box, so they can break. */}
       {props.wrap ? <span className="aura-pill__text">{props.children}</span> : props.children}
+    </span>
+  );
+}
+
+/* 5.70 (Chamber-OS 189): Spinner — Button's loading glyph on its own. Hidden from screen readers unless it has a
+ * `label`, which makes it a status with that text; the words beside it, or your live region, announce otherwise. */
+export function spinnerElement(props: SpinnerProps, ref: React.Ref<HTMLSpanElement> | undefined): React.ReactElement {
+  const rest = omit(props, ['size', 'label', 'className']);
+  const label = props.label;
+  return (
+    <span
+      {...rest}
+      ref={ref}
+      className={cx('aura-spinner', 'aura-spinner--' + (props.size || 'md'), props.className)}
+      role={label ? 'status' : undefined}
+      aria-hidden={label ? undefined : true}
+    >
+      <Icon name={h(IconLoaderCircle)} size={props.size || 'md'} className="aura-spin" />
+      {label ? <span className="aura-sr-only">{label}</span> : null}
     </span>
   );
 }
@@ -437,6 +463,9 @@ export function ServerCard(props: CardProps): React.ReactElement {
 }
 export function ServerStatusPill(props: StatusPillProps): React.ReactElement {
   return statusPillElement(props, undefined);
+}
+export function ServerSpinner(props: SpinnerProps): React.ReactElement {
+  return spinnerElement(props, undefined);
 }
 export function ServerBadge(props: BadgeProps): React.ReactElement {
   return badgeElement(props, undefined);

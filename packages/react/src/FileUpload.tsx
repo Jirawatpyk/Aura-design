@@ -6,9 +6,11 @@ import type { FileUploadProps, UploadItem } from './types.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { Field } from './Field.js';
+import { Button } from './Button.js';
+import { Progress } from './Progress.js';
 
 import { formatBytes } from './text.js';
-import { IconCircleAlert, IconCircleCheck, IconCloudUpload, IconFile, IconImage, IconX } from './icons.js';
+import { IconCircleAlert, IconCircleCheck, IconCloudUpload, IconFile, IconImage, IconUpload, IconX } from './icons.js';
 export { formatBytes };
 function matches(file: File, accept: string | undefined): boolean {
   if (!accept) return true;
@@ -56,6 +58,25 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
   const urls = React.useRef<Record<string, string>>({});
   const maxFiles = props.multiple ? props.maxFiles : 1;
   const note = t.accepts(describeAccept(props.accept, t), props.maxSize ? formatBytes(props.maxSize) : '');
+  /* 5.70: variant="button" — the refusal of the last pick (wrong type, too big), until the next pick. */
+  const pickState = React.useState<string | null>(null);
+  const buttonRef = React.useRef<HTMLButtonElement | null>(null);
+  /* 5.70: in button mode the forwarded ref is still the input (it carries the files), but its focus() goes to the
+   * Button — a form library focusing an invalid field lands on the visible control. */
+  const buttonMode = props.variant === 'button';
+  React.useEffect(
+    function () {
+      const el = inputRef.current;
+      if (!buttonMode || !el) return;
+      el.focus = function (o?: FocusOptions) {
+        if (buttonRef.current) buttonRef.current.focus(o);
+      };
+      return function () {
+        delete (el as { focus?: unknown }).focus;
+      };
+    },
+    [buttonMode],
+  );
 
   React.useEffect(function () {
     return function () {
@@ -131,6 +152,110 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(fu
     if (inputRef.current) inputRef.current.focus();
   }
   const error = props.error;
+  /* 5.70 (Chamber-OS 190): a Button that opens the picker; the app sends the file and owns the status. */
+  if (props.variant === 'button') {
+    const err = error || pickState[0];
+    const desc =
+      [err ? id + '-error' : props.hint ? id + '-hint' : null, note ? id + '-note' : null].filter(Boolean).join(' ') ||
+      undefined;
+    return (
+      <Field
+        id={id}
+        label={props.label}
+        labelAs="span"
+        labelId={id + '-label'}
+        hint={props.hint}
+        error={err}
+        required={props.required}
+        optional={props.optional}
+        disabled={props.disabled}
+        className={cx('aura-upload-field', props.className)}
+      >
+        <div className="aura-upload-button">
+          <Button
+            ref={buttonRef}
+            id={id + '-button'}
+            variant="secondary"
+            icon={<IconUpload />}
+            touchHeight={props.touchHeight}
+            disabled={props.disabled}
+            aria-labelledby={props.label ? id + '-label ' + id + '-button' : undefined}
+            aria-describedby={desc}
+            onClick={function () {
+              if (inputRef.current) inputRef.current.click();
+            }}
+          >
+            {props.buttonLabel != null ? props.buttonLabel : props.multiple ? t.browse : t.browseOne}
+          </Button>
+          {/* The real input, out of reach: the Button is the control. With a `name` it still carries the files. */}
+          <input
+            ref={inputMerged}
+            id={id}
+            type="file"
+            className="aura-upload__input"
+            tabIndex={-1}
+            aria-hidden={true}
+            accept={props.accept}
+            multiple={!!props.multiple}
+            disabled={props.disabled}
+            name={props.name}
+            /* With a name the browser checks it on submit (its message points at the Button's box). */
+            required={props.name ? props.required : undefined}
+            /* The browser's own check would focus this hidden input and show its bubble: show the Field's error and
+             * move focus to the Button instead. */
+            onInvalid={function (e: React.FormEvent<HTMLInputElement>) {
+              e.preventDefault();
+              pickState[1](props.multiple ? t.browse : t.browseOne);
+              if (buttonRef.current) buttonRef.current.focus();
+            }}
+            onChange={function (e: React.ChangeEvent<HTMLInputElement>) {
+              const files: File[] = Array.prototype.slice.call(e.target.files || []);
+              if (!files.length) return;
+              let refused: string | null = null;
+              const ok = files.filter(function (f: File) {
+                const why = !matches(f, props.accept)
+                  ? t.fileWrongType
+                  : props.maxSize && f.size > props.maxSize
+                    ? t.fileTooBig(formatBytes(props.maxSize))
+                    : null;
+                if (why && !refused) refused = why;
+                return !why;
+              });
+              pickState[1](refused);
+              /* Without a name nothing reads the input, so the same file can be picked again. With one, a refused file
+               * must not be posted: the input keeps only the accepted files. */
+              if (!props.name) e.target.value = '';
+              else if (refused) {
+                try {
+                  const dt = new DataTransfer();
+                  ok.forEach(function (f: File) {
+                    dt.items.add(f);
+                  });
+                  e.target.files = dt.files;
+                } catch (x) {
+                  e.target.value = '';
+                }
+              }
+              if (ok.length && props.onSelect) props.onSelect(ok);
+            }}
+          />
+          {note ? (
+            <span className="aura-upload__note" id={id + '-note'}>
+              {note}
+            </span>
+          ) : null}
+        </div>
+        {props.progress !== undefined ? (
+          <Progress
+            className="aura-upload-button__progress"
+            size="sm"
+            value={props.progress == null ? undefined : props.progress}
+            label={t.uploading}
+          />
+        ) : null}
+      </Field>
+    );
+  }
   return (
     <Field
       id={id}

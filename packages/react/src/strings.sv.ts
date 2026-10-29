@@ -134,6 +134,7 @@ export const sv: AuraLocalePack = {
   statusUnknown: 'Ingen data',
   opensInNewTab: 'öppnas i en ny flik',
   required: 'obligatoriskt',
+  firstPage: 'Första sidan',
   filtersApplied: function (n) {
     return 'Filter, ' + n.toLocaleString('sv-SE') + ' aktiva';
   },

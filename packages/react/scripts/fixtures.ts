@@ -65,6 +65,7 @@ export function fixtures(A: AuraModule, React: typeof ReactNS): Record<string, R
       defaultValue: 'all',
     }),
     RadioGroup: h(A.RadioGroup, { label: 'Frequency', options: ['Once', 'Weekly'], defaultValue: 'Once' }),
+    Spinner: h(A.Spinner, { label: 'Working' }),
     CheckboxGroup: h(A.CheckboxGroup, {
       label: 'Categories',
       options: ['Corporate', 'Partnership'],

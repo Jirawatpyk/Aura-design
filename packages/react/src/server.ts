@@ -30,6 +30,7 @@ export {
   ServerEmptyState as EmptyState,
   ServerStat as Stat,
   ServerAvatar as Avatar,
+  ServerSpinner as Spinner,
   buttonClass,
   linkClass,
 } from './display.js';
@@ -67,4 +68,5 @@ export type {
   IconName,
   IconProps,
   StatusPillProps,
+  SpinnerProps,
 } from './types.js';

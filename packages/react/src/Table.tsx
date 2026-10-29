@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { cx, devWarnOnce, uid, useIsoLayoutEffect } from './internal.js';
-import { useDensity } from './locale.js';
+import { useDensity, useLinkComponent } from './locale.js';
+import { Icon } from './Icon.js';
+import { IconArrowDown, IconArrowUp, IconArrowUpDown } from './icons.js';
 import type { TableCellProps, TableProps, TableSectionProps, TableRowProps, TableSkeletonColumn } from './types.js';
 import { inertProps, skeletonBody, skeletonColgroup } from './TableSkeleton.js';
 
@@ -308,8 +310,51 @@ function cellClass(base: string, p: TableCellProps) {
 
 /** Header cell. `scope` defaults to `col`; pass `scope="row"` for a row header in the body. */
 export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(function Th(props, ref) {
-  const { align, numeric, mono, className, scope, label, card, skeleton, skeletonWidth, wrap, ...rest } = props;
+  const {
+    align,
+    numeric,
+    mono,
+    className,
+    scope,
+    label,
+    card,
+    skeleton,
+    skeletonWidth,
+    wrap,
+    sort,
+    onSort,
+    sortHref,
+    linkComponent,
+    ...rest
+  } = props;
   const stacked = React.useContext(StackLabels) != null;
+  const Link = useLinkComponent(linkComponent);
+  /* 5.70 (Chamber-OS 188): a sortable header — the label in a button (onSort) or a link (sortHref) with the sort icon,
+   * aria-sort on the th. Without the props the markup is as before. */
+  const sortable = !!onSort || sortHref != null;
+  const ariaSort = sort || (sortable ? 'none' : undefined);
+  let children = props.children;
+  if (sortable) {
+    const icon = (
+      <Icon
+        name={sort === 'ascending' ? <IconArrowUp /> : sort === 'descending' ? <IconArrowDown /> : <IconArrowUpDown />}
+        size={12}
+      />
+    );
+    const cls = cx('aura-table__sort', sort && sort !== 'none' && 'is-active');
+    children =
+      sortHref != null ? (
+        <Link href={sortHref} className={cls}>
+          {props.children}
+          {icon}
+        </Link>
+      ) : (
+        <button type="button" className={cls} onClick={onSort}>
+          {props.children}
+          {icon}
+        </button>
+      );
+  }
   return (
     <th
       ref={ref}
@@ -318,8 +363,11 @@ export const Th = React.forwardRef<HTMLTableCellElement, TableCellProps>(functio
       role={stacked ? (scope === 'row' ? 'rowheader' : 'columnheader') : undefined}
       /* 5.13: a row header can be a stacked row's title (or action), like a Td. */
       data-card={stacked && (card === 'title' || card === 'action') ? card : undefined}
+      aria-sort={ariaSort}
       {...rest}
-    />
+    >
+      {children}
+    </th>
   );
 });
 

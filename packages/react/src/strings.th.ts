@@ -134,6 +134,7 @@ export const th: AuraLocalePack = {
   statusUnknown: 'ยังไม่มีข้อมูล',
   opensInNewTab: 'เปิดในแท็บใหม่',
   required: 'จำเป็น',
+  firstPage: 'หน้าแรก',
   filtersApplied: function (n) {
     return 'ตัวกรอง, ใช้อยู่ ' + n.toLocaleString('en') + ' รายการ';
   },

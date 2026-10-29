@@ -233,6 +233,22 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.70 (#186–#190): cursor Pagination, a sortable Th, the Spinner and FileUpload's button. */
+  await go('aura-new-in-5-70-chamber-os-186-190--cursor-pagination');
+  x = await ex(`const n = document.querySelector('[data-testid=links] nav'); return [n.querySelectorAll('ol').length, n.querySelectorAll('[aria-disabled="true"]').length, n.querySelector('a[rel=next]').getAttribute('href')]`);
+  check(JSON.stringify(x) === '[0,2,"#after=evt_50"]', 'cursor Pagination', x);
+  await go('aura-new-in-5-70-chamber-os-186-190--sortable-th');
+  await ex(`document.querySelector('[data-testid=member] button').click()`);
+  await sleep(200);
+  x = await ex(`return [document.querySelector('[data-testid=member]').getAttribute('aria-sort'), document.querySelector('table[aria-label="Pending review"] tbody td').textContent]`);
+  check(JSON.stringify(x) === '["descending","Siam Steel"]', 'sortable Th', x);
+  await go('aura-new-in-5-70-chamber-os-186-190--spinners');
+  x = await ex(`const s = document.querySelector('[data-testid=inline] svg'); return [getComputedStyle(s).animationName, Math.round(parseFloat(getComputedStyle(s).width))]`);
+  check(JSON.stringify(x) === '["aura-spin",16]', 'Spinner spins at 16px', x);
+  await go('aura-new-in-5-70-chamber-os-186-190--upload-button');
+  x = await ex(`const b = document.querySelector('[data-testid=logo] button'); return [b.className.includes('aura-btn'), document.querySelector('[data-testid=logo] input[type=file]').tabIndex]`);
+  check(JSON.stringify(x) === '[true,-1]', 'FileUpload button variant', x);
+
   /* 5.69 (#185): ActionBar look="edge" at a phone width — the screen's width, on the bottom edge, top border only; the
    * page's end is padded past it. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });

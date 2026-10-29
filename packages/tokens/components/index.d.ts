@@ -332,8 +332,22 @@ export interface StatusPillProps extends Omit<React$1.HTMLAttributes<HTMLSpanEle
 	/** 5.51 (Chamber-OS 158): in a box narrower than the words, the text wraps inside the pill (still rounded, the icon
 	 * on the first line) instead of running out of it. Without it a pill stays on one line. */
 	wrap?: boolean | undefined;
+	/** 5.70 (Chamber-OS 189): the spinner in the icon slot, for a state still in progress ("Waiting for payment").
+	 * The words still say it; the tone is unchanged. */
+	busy?: boolean | undefined;
 	/** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
 	tone?: StatusTone | undefined;
+	className?: string | undefined;
+}
+/** 5.70 (Chamber-OS 189): Button's loading spinner on its own, for "working" outside a button. */
+export interface SpinnerProps extends Omit<React$1.HTMLAttributes<HTMLSpanElement>, "children"> {
+	/** `sm` 16px (Button's spinner) · `md` 20px (default) · `lg` 24px — the icon sizes. It takes the text colour. */
+	size?: "sm" | "md" | "lg" | undefined;
+	/** Without it the spinner is `aria-hidden`: the text beside it, or your live region, says what is happening. With it
+	 * the spinner is `role="status"` with this text (visually hidden), for a spinner standing alone: it names it for
+	 * browse mode, but a status inserted with its text already in it is often not announced — to announce the change,
+	 * keep a live region on the page and put the words in it. */
+	label?: string | undefined;
 	className?: string | undefined;
 }
 /** 16px checkbox with 4px corners; ink when checked, a dash when indeterminate. */
@@ -1497,6 +1511,16 @@ export interface TableCellProps extends Omit<React$1.TdHTMLAttributes<HTMLTableC
 	/** Th in the head only (5.52): this column's width while loading — a share such as `'22%'` — when the loaded table
 	 * sizes it from its content. Default: the cell's `width`, else an even share. */
 	skeletonWidth?: string | number | undefined;
+	/** Th only (5.70, Chamber-OS 188): this column's order — `aria-sort` on the header. With `onSort` or `sortHref` the
+	 * label becomes a button or link holding AURA's sort icon (up, down, or both ways for `none`), as DataTable's
+	 * sortable header; alone, it only says the order. */
+	sort?: "ascending" | "descending" | "none" | undefined;
+	/** Th only (5.70): the header becomes a button that calls this — flip the order yourself. */
+	onSort?: (() => void) | undefined;
+	/** Th only (5.70): the header becomes a link (through `linkComponent`) to this, for a server-sorted page. */
+	sortHref?: string | undefined;
+	/** Th only (5.70): your router's link for `sortHref`; defaults to AuraProvider's `linkComponent`, then `<a>`. */
+	linkComponent?: React$1.ElementType | undefined;
 	className?: string | undefined;
 }
 export interface ActionBarProps {
@@ -1668,6 +1692,22 @@ export interface FileUploadProps extends FieldProps {
 	name?: string | undefined;
 	disabled?: boolean | undefined;
 	className?: string | undefined;
+	/** 5.70 (Chamber-OS 190): `dropzone` (default) is the drop area with its file list. `button` is a Button that opens
+	 * the picker, for a file the app sends itself (a logo, a certificate): it checks `accept` and `maxSize` with the same
+	 * messages, calls `onSelect` with the accepted files and keeps no list (`value` / `onChange` are not used). The
+	 * label, hint and error are Field's, as before; the Button is named by the label and its own text. */
+	variant?: "dropzone" | "button" | undefined;
+	/** `variant="button"`: the accepted files of a pick (none is passed when every file was refused; the error shows).
+	 * With a `name` the input posts only the accepted files, and `required` is checked by the browser on submit. The
+	 * forwarded ref is the input, but its `focus()` moves to the Button. */
+	onSelect?: ((files: File[]) => void) | undefined;
+	/** `variant="button"`: the Button's text. Default "Choose a file" ("Choose files" with `multiple`). */
+	buttonLabel?: React$1.ReactNode | undefined;
+	/** `variant="button"`: an upload in progress under the Button — 0–100, or `null` for indeterminate; leave it out
+	 * when nothing is uploading. */
+	progress?: number | null | undefined;
+	/** `variant="button"`: Button's `touchHeight` (44px below 640px or on a coarse pointer). */
+	touchHeight?: boolean | undefined;
 }
 export type Tone = "neutral" | "accent" | "success" | "warning" | "danger";
 export interface BadgeProps extends React$1.HTMLAttributes<HTMLSpanElement> {
@@ -1749,7 +1789,37 @@ export interface EmptyStateProps extends Omit<React$1.HTMLAttributes<HTMLDivElem
 	headingLevel?: 2 | 3 | 4 | 5 | 6 | false | undefined;
 	className?: string | undefined;
 }
+/** 5.70 (Chamber-OS 187): keyset / cursor lists — no page count, only whether there is a first, previous and next
+ * page. Pass an href (rendered through `linkComponent`) or a callback for each end; one with neither, or with its
+ * `has…` false, is shown disabled (out of the tab order). */
+export interface CursorPaginationProps {
+	mode: "cursor";
+	firstHref?: string | undefined;
+	previousHref?: string | undefined;
+	nextHref?: string | undefined;
+	/** Run instead of following the href on a plain click, or as a button's action without one. */
+	onFirst?: (() => void) | undefined;
+	onPrevious?: (() => void) | undefined;
+	onNext?: (() => void) | undefined;
+	/** `false` disables that end even with an href or callback (default: enabled when it has one). */
+	hasFirst?: boolean | undefined;
+	hasPrevious?: boolean | undefined;
+	hasNext?: boolean | undefined;
+	/** Default true. `false` leaves the First link out (a list that only goes forward). */
+	showFirst?: boolean | undefined;
+	/** A line at the start, e.g. "Showing 50 of 1,240". Not a live region. */
+	status?: React$1.ReactNode | undefined;
+	/** Name of the nav. Default "Pagination". */
+	label?: string | undefined;
+	linkComponent?: React$1.ElementType | undefined;
+	className?: string | undefined;
+}
+/** Either kind of Pagination's props (5.70). `PaginationProps` stays the numbered one, so wrappers that extend or
+ * pick from it keep compiling. */
+export type AnyPaginationProps = PaginationProps | CursorPaginationProps;
 export interface PaginationProps {
+	/** `pages` (default): numbered pages. `cursor` (5.70): see CursorPaginationProps. */
+	mode?: "pages" | undefined;
 	pageCount: number;
 	/** 1-based, controlled; pair with onChange. Or defaultPage. */
 	page?: number | undefined;
@@ -2287,6 +2357,8 @@ export interface AuraStrings {
 	opensInNewTab: string;
 	/** 5.67: read after a CheckboxGroup's legend when `required` (its `*` is hidden from screen readers). */
 	required: string;
+	/** 5.70: a cursor Pagination's link back to the start. */
+	firstPage: string;
 	/** 5.42: FilterBar's collapsed-filters button, read with its count ("Filters, 2 applied"). */
 	filtersApplied: (n: number) => string;
 	/** 5.42: closes FilterBar's "Filters" sheet. */
@@ -2412,7 +2484,8 @@ export declare const Tag: React$1.ForwardRefExoticComponent<TagProps & React$1.R
 export declare const Progress: React$1.ForwardRefExoticComponent<ProgressProps & React$1.RefAttributes<HTMLDivElement>>;
 export declare const Skeleton: React$1.ForwardRefExoticComponent<SkeletonProps & React$1.RefAttributes<HTMLSpanElement>>;
 export declare const EmptyState: React$1.ForwardRefExoticComponent<EmptyStateProps & React$1.RefAttributes<HTMLDivElement>>;
-export declare const Pagination: React$1.ForwardRefExoticComponent<PaginationProps & React$1.RefAttributes<HTMLElement>>;
+export declare const Pagination: React$1.ForwardRefExoticComponent<AnyPaginationProps & React$1.RefAttributes<HTMLElement>>;
+export declare const Spinner: React$1.ForwardRefExoticComponent<SpinnerProps & React$1.RefAttributes<HTMLSpanElement>>;
 export declare const Accordion: React$1.ForwardRefExoticComponent<AccordionProps & React$1.RefAttributes<HTMLDivElement>>;
 export declare const Popover: React$1.ForwardRefExoticComponent<PopoverProps & React$1.RefAttributes<HTMLDivElement>>;
 /** Number input with thousands separators, +/− buttons and arrow keys (ARIA spinbutton). */
