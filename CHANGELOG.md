@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.70.0 — 2026-10-29
+
+### Minor changes
+
+- d4b2a97: Button merges a passed `aria-busy` and IconButton honours `aria-disabled`; Pagination `mode="cursor"` for keyset lists; a sortable `Th` (`sort`, `onSort`, `sortHref`); new `Spinner` (root and `/server`) and `StatusPill busy`; FileUpload `variant="button"` with `onSelect` and `progress` (Chamber-OS 186–190).
+
 ## 5.69.0 — 2026-10-29
 
 ### Minor changes

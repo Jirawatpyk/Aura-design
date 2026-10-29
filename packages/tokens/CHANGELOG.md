@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.70.0
+
+### Minor Changes
+
+- d4b2a97: Button merges a passed `aria-busy` and IconButton honours `aria-disabled`; Pagination `mode="cursor"` for keyset lists; a sortable `Th` (`sort`, `onSort`, `sortHref`); new `Spinner` (root and `/server`) and `StatusPill busy`; FileUpload `variant="button"` with `onSelect` and `progress` (Chamber-OS 186–190).
+
 ## 5.69.0
 
 ### Minor Changes

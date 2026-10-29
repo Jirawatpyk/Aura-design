@@ -1,6 +1,6 @@
 {
   "name": "@jirawatpyk/aura-react",
-  "version": "5.69.0",
+  "version": "5.70.0",
   "description": "AURA Design System — React components (Enterprise Standard, Human Creative). Thai-first: Buddhist-era dates, Thai collation.",
   "license": "MIT",
   "type": "module",
