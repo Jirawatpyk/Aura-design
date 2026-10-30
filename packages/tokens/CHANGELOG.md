@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.74.0
+
+### Minor Changes
+
+- 8295f8d: PageHeader: a phone bar whose content is all hidden (only the status left) takes no box and no page padding, and comes back when its content does (Chamber-OS 193).
+
 ## 5.73.0
 
 ### Minor Changes
