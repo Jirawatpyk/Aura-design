@@ -140,7 +140,7 @@ export const SortableTh: StoryObj = {
 /* #189: Spinner outside a button, and StatusPill busy. */
 export const Spinners: StoryObj = {
   render: () => (
-    <div style={{ display: 'grid', gap: 16 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 16 }}>
       <p
         data-testid="inline"
         className="aura-text-body"
@@ -155,7 +155,7 @@ export const Spinners: StoryObj = {
         <Aura.Spinner size="lg" label="Processing payment" />
         <Aura.Spinner data-testid="md" />
       </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
         <Aura.Button data-testid="btn" loading>
           Pay now
         </Aura.Button>

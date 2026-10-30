@@ -30,15 +30,17 @@ export function tone(t: Tone | undefined): string {
  * script) the lookup throws and nothing is printed. */
 declare const process: { env: { NODE_ENV?: string } };
 const warned: Record<string, boolean> = {};
+/** True in a development build (5.78: so a check that measures layout can skip itself in production). */
+export function isDev(): boolean {
+  try {
+    return process.env.NODE_ENV !== 'production';
+  } catch (e) {
+    return false;
+  }
+}
 export function devWarnOnce(key: string, message: string): void {
   if (warned[key]) return;
-  let dev = false;
-  try {
-    dev = process.env.NODE_ENV !== 'production';
-  } catch (e) {
-    dev = false;
-  }
-  if (!dev) return;
+  if (!isDev()) return;
   warned[key] = true;
   console.warn('[AURA] ' + message);
 }

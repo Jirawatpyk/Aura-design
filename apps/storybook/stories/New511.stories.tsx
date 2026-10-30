@@ -22,7 +22,7 @@ export const Overlays: StoryObj = {
     const [forced, setForced] = React.useState(false);
     return (
       <Aura.Stack gap={4} align="start">
-        <Aura.Stack direction="row" gap={3}>
+        <Aura.Stack direction="row" gap={3} wrap>
           <Aura.Button onClick={() => setTrap(true)}>Trap</Aura.Button>
           <Aura.Button variant="secondary" onClick={() => setA(true)}>
             Delete host

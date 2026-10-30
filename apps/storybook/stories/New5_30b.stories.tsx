@@ -16,7 +16,7 @@ const ROWS: Row[] = [
 export const VisualPolish: StoryObj = {
   render: () => (
     <Aura.Stack gap={6} style={{ maxWidth: 760 }}>
-      <Aura.Stack direction="row" gap={2} align="center">
+      <Aura.Stack direction="row" gap={2} align="center" wrap>
         <Aura.Button>Save</Aura.Button>
         <Aura.Button disabled>Disabled primary</Aura.Button>
         <Aura.Button variant="danger" disabled>
@@ -30,7 +30,7 @@ export const VisualPolish: StoryObj = {
         </Aura.Button>
         <Aura.Button aria-disabled>Gated primary</Aura.Button>
       </Aura.Stack>
-      <div data-testid="pills" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div data-testid="pills" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
         <Aura.StatusPill tone="neutral">Lapsed</Aura.StatusPill>
         <Aura.StatusPill tone="ready">Paid</Aura.StatusPill>
         <Aura.StatusPill tone="warning">At risk</Aura.StatusPill>

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Icon } from './Icon.js';
-import { cx, devWarnOnce, omit, touchClass, uid, useMaybeControlled } from './internal.js';
+import { cx, devWarnOnce, omit, touchClass, uid, useMaybeControlled, useScrollEdges } from './internal.js';
 import { useLinkComponent } from './locale.js';
 import type { TabItem, TabsProps } from './types.js';
 
@@ -49,6 +49,9 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
   };
   const rootCls = cx('aura-tabs', seg && 'aura-tabs--segmented', touchClass(props.touchHeight));
   const [focusId, setFocusId] = React.useState<string | null>(null);
+  /* 5.78 (visual audit 24): a list that scrolls sideways fades the end that has more tabs. */
+  const listRef = React.useRef<HTMLDivElement | null>(null);
+  useScrollEdges(listRef, asLinks);
   items.forEach(function (t: TabItem) {
     const al = t.tabProps && t.tabProps['aria-label'];
     if (al && al.toLowerCase().indexOf(String(t.label).toLowerCase()) !== 0)
@@ -70,7 +73,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
         aria-label={props.label}
         className={cx(rootCls, 'aura-tabs--links', props.className)}
       >
-        <div className={listCls}>
+        <div ref={listRef} className={listCls}>
           {items.map(function (t: TabItem) {
             /* Only an exact match is the current page (5.0.1): a route with no tab of its own marks none. */
             const on = t.id === cur;
@@ -133,7 +136,12 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
     const t = enabled[(i + enabled.length) % enabled.length];
     if (manual) setFocusId(t.id);
     else st[1](t.id);
-    if (refs.current[t.id]) refs.current[t.id]!.focus();
+    if (refs.current[t.id]) {
+      refs.current[t.id]!.focus();
+      /* 5.78: a tab half under the list's edge (or its fade) scrolls fully into view */
+      const tab = refs.current[t.id] as HTMLElement;
+      if (typeof tab.scrollIntoView === 'function') tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
   }
   /* The tab holding the tab stop: the focused one while moving manually, else the selected one. */
   const stop =
@@ -146,6 +154,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs(pr
   return (
     <div ref={ref} className={cx(rootCls, props.className)}>
       <div
+        ref={listRef}
         role="tablist"
         aria-label={props.label}
         className={listCls}

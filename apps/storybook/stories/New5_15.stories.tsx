@@ -242,7 +242,7 @@ export const CheckboxHitArea: StoryObj = {
 /* 100: the pay sheet's compact actions, 32px on a desktop and 44px on a phone. */
 export const TouchHeight: StoryObj = {
   render: () => (
-    <Aura.Stack direction="row" gap={3}>
+    <Aura.Stack direction="row" gap={3} wrap>
       <Aura.Button size="sm" touchHeight variant="secondary">
         Pay ฿12,400.00
       </Aura.Button>

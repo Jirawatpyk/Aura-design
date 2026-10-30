@@ -174,15 +174,16 @@ window.Aura = (() => {
     return TONES.indexOf(t) >= 0 ? t : "neutral";
   }
   var warned = {};
+  function isDev() {
+    try {
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
   function devWarnOnce(key, message) {
     if (warned[key]) return;
-    let dev = false;
-    try {
-      dev = true;
-    } catch (e) {
-      dev = false;
-    }
-    if (!dev) return;
+    if (!isDev()) return;
     warned[key] = true;
     console.warn("[AURA] " + message);
   }
@@ -517,6 +518,48 @@ window.Aura = (() => {
   }
   function pointerModality() {
     setModality("pointer");
+  }
+  function useScrollEdges(r2, key) {
+    React3.useEffect(
+      function() {
+        const el = r2.current;
+        if (!el || typeof ResizeObserver === "undefined") return;
+        let raf = 0;
+        const mark = function() {
+          raf = 0;
+          const max = el.scrollWidth - el.clientWidth;
+          const x = Math.abs(el.scrollLeft);
+          const v = ((x > 1 ? "start " : "") + (x < max - 1 ? "end" : "")).trim();
+          if ((el.getAttribute("data-aura-more") || "") === v) return;
+          if (v) el.setAttribute("data-aura-more", v);
+          else el.removeAttribute("data-aura-more");
+        };
+        const on = function() {
+          if (!raf) raf = requestAnimationFrame(mark);
+        };
+        mark();
+        el.addEventListener("scroll", on, { passive: true });
+        const ro = new ResizeObserver(on);
+        ro.observe(el);
+        Array.prototype.forEach.call(el.children, function(c) {
+          ro.observe(c);
+        });
+        const mo = new MutationObserver(function() {
+          Array.prototype.forEach.call(el.children, function(c) {
+            ro.observe(c);
+          });
+          on();
+        });
+        mo.observe(el, { childList: true });
+        return function() {
+          cancelAnimationFrame(raf);
+          el.removeEventListener("scroll", on);
+          ro.disconnect();
+          mo.disconnect();
+        };
+      },
+      [key]
+    );
   }
 
   // src/display.tsx
@@ -6199,6 +6242,24 @@ window.Aura = (() => {
       [measure, levelShape]
     );
     const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
+    React34.useEffect(
+      function() {
+        if (!isDev() || props.stackBelow || typeof window === "undefined" || window.innerWidth >= 640 || !wrapRef.current)
+          return;
+        const sc = wrapRef.current.querySelector(".aura-table__scroll");
+        const raf = requestAnimationFrame(function() {
+          if (sc && sc.scrollWidth > sc.clientWidth + 1)
+            devWarnOnce(
+              "datatable-no-stack",
+              'DataTable "' + props.label + '" scrolls sideways at ' + window.innerWidth + "px wide, so its last columns are off screen. On a phone pass stackBelow={640} to show each row as a card. It becomes the default in 6.0."
+            );
+        });
+        return function() {
+          cancelAnimationFrame(raf);
+        };
+      },
+      [props.stackBelow]
+    );
     const noCardSel = !!props.hideSelectionInCards && selectable;
     useIsoLayoutEffect(
       function() {
@@ -7593,6 +7654,8 @@ window.Aura = (() => {
     };
     const rootCls = cx("aura-tabs", seg && "aura-tabs--segmented", touchClass(props.touchHeight));
     const [focusId, setFocusId] = React36.useState(null);
+    const listRef = React36.useRef(null);
+    useScrollEdges(listRef, asLinks);
     items2.forEach(function(t) {
       const al = t.tabProps && t.tabProps["aria-label"];
       if (al && al.toLowerCase().indexOf(String(t.label).toLowerCase()) !== 0)
@@ -7609,7 +7672,7 @@ window.Aura = (() => {
           "aria-label": props.label,
           className: cx(rootCls, "aura-tabs--links", props.className)
         },
-        /* @__PURE__ */ React36.createElement("div", { className: listCls }, items2.map(function(t) {
+        /* @__PURE__ */ React36.createElement("div", { ref: listRef, className: listCls }, items2.map(function(t) {
           const on = t.id === cur2;
           const inner = [
             t.icon ? /* @__PURE__ */ React36.createElement(Icon, { key: "i", name: t.icon }) : null,
@@ -7662,7 +7725,11 @@ window.Aura = (() => {
       const t = enabled[(i + enabled.length) % enabled.length];
       if (manual) setFocusId(t.id);
       else st[1](t.id);
-      if (refs.current[t.id]) refs.current[t.id].focus();
+      if (refs.current[t.id]) {
+        refs.current[t.id].focus();
+        const tab = refs.current[t.id];
+        if (typeof tab.scrollIntoView === "function") tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
     }
     const stop2 = manual && focusId && items2.filter(function(t) {
       return t.id === focusId && !t.disabled;
@@ -7670,6 +7737,7 @@ window.Aura = (() => {
     return /* @__PURE__ */ React36.createElement("div", { ref, className: cx(rootCls, props.className) }, /* @__PURE__ */ React36.createElement(
       "div",
       {
+        ref: listRef,
         role: "tablist",
         "aria-label": props.label,
         className: listCls,
@@ -8182,6 +8250,15 @@ window.Aura = (() => {
   var React44 = __toESM(require_react(), 1);
   var h8 = React44.createElement;
   var LAZY = Symbol.for("react.lazy");
+  var ID = /([A-Za-z0-9]+(?:-[A-Za-z0-9]+)+)/;
+  function keepIds(title) {
+    if (typeof title !== "string" || title.indexOf("-") < 0) return title;
+    const parts = title.split(ID);
+    if (parts.length < 2) return title;
+    return parts.map(function(p, i) {
+      return i % 2 && /\d/.test(p) && p.length <= 24 ? h8("span", { key: i, className: "aura-nowrap" }, p) : p;
+    });
+  }
   function chipsOnly(node) {
     let el = 0;
     const walk = function(n3) {
@@ -8233,7 +8310,7 @@ window.Aura = (() => {
         tabIndex: props.focusTitleOnMount ? -1 : void 0,
         "data-aura-focus-on-mount": props.focusTitleOnMount ? "" : void 0
       },
-      props.title
+      keepIds(props.title)
     );
     const hasActions = props.actions != null && props.actions !== false;
     const hasBarActions = props.actionsBar != null && props.actionsBar !== false;
@@ -8415,6 +8492,21 @@ window.Aura = (() => {
     ok: "statusOk",
     unknown: "statusUnknown"
   };
+  function breakAtDots(title) {
+    if (typeof title !== "string" || !/[./][A-Za-z]/.test(title)) return title;
+    const out = [];
+    let run = "";
+    for (let i = 0; i < title.length; i++) {
+      const c = title.charAt(i);
+      run += c;
+      if ((c === "." || c === "/") && i + 1 < title.length && /[A-Za-z]/.test(title.charAt(i + 1))) {
+        out.push(run, h9("wbr", { key: i }));
+        run = "";
+      }
+    }
+    if (run) out.push(run);
+    return out;
+  }
   function statusWord(status, t) {
     return String(t[STATUS_WORD[status]] || STATUS_WORD[status]);
   }
@@ -8453,7 +8545,7 @@ window.Aura = (() => {
         "span",
         { className: "aura-status-tile__head" },
         h9(Icon, { name: h9(STATUS_ICON[status]), size: 16, className: "aura-status-tile__icon" }),
-        h9("span", { className: "aura-status-tile__title", ref: titleRef }, props.title, comma),
+        h9("span", { className: "aura-status-tile__title", ref: titleRef }, breakAtDots(props.title), comma),
         h9("span", { className: "aura-sr-only" }, word + (hasValue || hasMeta || markers.length ? "," : "")),
         hasValue ? h9(
           "span",
@@ -9284,6 +9376,11 @@ window.Aura = (() => {
       function check() {
         const sideways = el.scrollWidth > el.clientWidth + 1;
         wide[1](sideways);
+        if (sideways && !stackBelow && !outer && typeof window !== "undefined" && window.innerWidth < 640)
+          devWarnOnce(
+            "table-no-stack",
+            "Table" + (rest["aria-label"] ? ' "' + rest["aria-label"] + '"' : "") + " scrolls sideways at " + window.innerWidth + "px wide, so its last columns are off screen. On a phone pass stackBelow={640} (cards or rows). It becomes the default in 6.0."
+          );
         sc[1](sideways || el.scrollHeight > el.clientHeight + 1);
       }
       check();

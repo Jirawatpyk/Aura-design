@@ -42,7 +42,7 @@ export const DataTableCardOptions: StoryObj = {
       },
     ];
     const table = (t: string, label: string) => (
-      <div data-testid={t} style={t === 'cards' ? { width: 380 } : undefined}>
+      <div data-testid={t} style={t === 'cards' ? { width: 380, maxWidth: '100%' } : undefined}>
         <Aura.DataTable<Member>
           label={label}
           rows={members}
@@ -60,7 +60,7 @@ export const DataTableCardOptions: StoryObj = {
       <Aura.Stack gap={6}>
         {table('grid', 'Members')}
         {table('cards', 'Members (cards)')}
-        <div data-testid="cards-loading" style={{ width: 380 }}>
+        <div data-testid="cards-loading" style={{ width: 380, maxWidth: '100%' }}>
           <Aura.DataTable<Member>
             label="Members (loading)"
             rows={[]}
@@ -228,11 +228,11 @@ export const TableCardSlots: StoryObj = {
     return (
       <Aura.Stack gap={6}>
         <div data-testid="queue-wide">{table}</div>
-        <div data-testid="queue-phone" style={{ width: 360 }}>
+        <div data-testid="queue-phone" style={{ width: 360, maxWidth: '100%' }}>
           {table}
         </div>
         {/* Edge rows: a row header as the title; an action with no title; a title with nothing else. */}
-        <div data-testid="queue-edges" style={{ width: 360 }}>
+        <div data-testid="queue-edges" style={{ width: 360, maxWidth: '100%' }}>
           <Aura.Table caption="Edge rows" captionHidden stackBelow="sm">
             <Aura.THead>
               <Aura.Tr>

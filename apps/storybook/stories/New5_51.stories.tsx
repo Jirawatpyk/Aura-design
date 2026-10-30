@@ -308,7 +308,7 @@ export const PillWrap: StoryObj<{ lang: Lang }> = {
           {STAGE[a.lang][1]}
         </Aura.StatusPill>
       </div>
-      <div data-testid="wide" style={{ width: 480 }}>
+      <div data-testid="wide" style={{ width: 480, maxWidth: '100%' }}>
         <Aura.StatusPill tone="progress" wrap>
           {STAGE[a.lang][3]}
         </Aura.StatusPill>{' '}
@@ -333,7 +333,7 @@ export const PillWrap: StoryObj<{ lang: Lang }> = {
       <div data-testid="plain" style={{ width: 128 }}>
         <Aura.StatusPill tone="progress">{STAGE[a.lang][0]}</Aura.StatusPill>
       </div>
-      <div data-testid="cards" style={{ width: 360 }}>
+      <div data-testid="cards" style={{ width: 360, maxWidth: '100%' }}>
         <Aura.DataTable
           label="Stacked"
           stackBelow={640}

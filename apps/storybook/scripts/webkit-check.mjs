@@ -233,6 +233,15 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.78 (visual audit set 2): an overflowing tab list fades its end; the edge strip stacks its status above its button. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-78-visual-audit-set-2--tabs-overflow');
+  x = await ex(`const l = document.querySelector('[data-testid=ltr] .aura-tabs__list'); const m = getComputedStyle(l).maskImage || getComputedStyle(l).webkitMaskImage; return [l.getAttribute('data-aura-more'), /gradient/.test(m)]`);
+  check(JSON.stringify(x) === '["end",true]', 'Tabs overflow fade', x);
+  await go('aura-new-in-5-69-chamber-os-185--edge');
+  x = await ex(`const b = document.querySelector('.aura-actionbar__inner'), s = document.querySelector('.aura-actionbar__status').getBoundingClientRect(), btn = b.querySelector('.aura-btn').getBoundingClientRect(), cs = getComputedStyle(b); return [cs.paddingLeft, cs.paddingRight, btn.top >= s.bottom - 0.5]`);
+  check(JSON.stringify(x) === '["16px","16px",true]', 'Edge ActionBar on a phone: status row, 16px both sides', x);
+
   /* 5.76 (#194): on a screen 30rem tall or less a Dialog scrolls as one box, the footer at the end. */
   await call('POST', S('/window/rect'), { width: 568, height: 320 });
   await go('aura-new-in-5-76-chamber-os-194--short-screen');

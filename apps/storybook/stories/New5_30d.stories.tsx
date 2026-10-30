@@ -17,7 +17,7 @@ export const Polish: StoryObj = {
     const [page, setPage] = React.useState(2);
     const [tags, setTags] = React.useState(['Status: Unpaid', 'Tier: SME']);
     return (
-      <div style={{ display: 'grid', gap: 24, maxWidth: 760 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 24, maxWidth: 760 }}>
         <div data-testid="chosen" style={{ display: 'grid', gap: 12 }}>
           <Aura.Checkbox defaultChecked>Send a copy</Aura.Checkbox>
           <Aura.RadioGroup
@@ -110,7 +110,7 @@ export const Polish: StoryObj = {
             </Aura.TFoot>
           </Aura.Table>
         </div>
-        <div data-testid="email" style={{ width: 600 }}>
+        <div data-testid="email" style={{ width: 600, maxWidth: '100%' }}>
           <Aura.Table caption="Billing contacts">
             <Aura.THead>
               <Aura.Tr>

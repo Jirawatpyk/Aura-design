@@ -54,7 +54,7 @@ export const SelectionLabelsAndTargets: StoryObj = {
           />
         </div>
         {/* Fixed height (sticky header) and narrower than its columns (scrolls sideways), nothing pinned. */}
-        <div data-testid="sel-scroll" style={{ width: 380 }}>
+        <div data-testid="sel-scroll" style={{ width: 380, maxWidth: '100%' }}>
           <Aura.DataTable<Member>
             label="Members (scrolling)"
             rows={[...members, ...members.map((m) => ({ ...m, id: m.id + '-b' }))]}
@@ -137,7 +137,7 @@ export const AutoRowHeight: StoryObj = {
         {/* Below stackBelow both are cards, and look the same. */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           {[true, false].map((auto) => (
-            <div key={String(auto)} data-testid={auto ? 'auto-cards' : 'fixed-cards'} style={{ width: 380 }}>
+            <div key={String(auto)} data-testid={auto ? 'auto-cards' : 'fixed-cards'} style={{ width: 380, maxWidth: '100%' }}>
               <Aura.DataTable<Member>
                 label={auto ? 'Members (auto rows, cards)' : 'Members (cards)'}
                 rows={members}

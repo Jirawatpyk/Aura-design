@@ -36,6 +36,24 @@ const STATUS_WORD: Record<StatusTileStatus, keyof AuraStrings> = {
 };
 
 /** The status word for a tile, from a strings table. */
+/* 5.78 (visual audit 23): a host or a path in a plain-text title ("api.example.co.th") breaks after a dot or a slash
+ * that a letter follows (not in "99.95%" or "v2.1"), not in the middle of a label; a part still too long breaks as before. */
+function breakAtDots(title: React.ReactNode): React.ReactNode {
+  if (typeof title !== 'string' || !/[./][A-Za-z]/.test(title)) return title;
+  const out: React.ReactNode[] = [];
+  let run = '';
+  /* no lookbehind: Safari before 16.4 can't parse it */
+  for (let i = 0; i < title.length; i++) {
+    const c = title.charAt(i);
+    run += c;
+    if ((c === '.' || c === '/') && i + 1 < title.length && /[A-Za-z]/.test(title.charAt(i + 1))) {
+      out.push(run, h('wbr', { key: i }));
+      run = '';
+    }
+  }
+  if (run) out.push(run);
+  return out;
+}
 export function statusWord(status: StatusTileStatus, t: AuraStrings): string {
   return String(t[STATUS_WORD[status]] || STATUS_WORD[status]);
 }
@@ -91,7 +109,7 @@ export function statusTileElement(
       'span',
       { className: 'aura-status-tile__head' },
       h(Icon, { name: h(STATUS_ICON[status]), size: 16, className: 'aura-status-tile__icon' }),
-      h('span', { className: 'aura-status-tile__title', ref: titleRef }, props.title, comma),
+      h('span', { className: 'aura-status-tile__title', ref: titleRef }, breakAtDots(props.title), comma),
       h('span', { className: 'aura-sr-only' }, word + (hasValue || hasMeta || markers.length ? ',' : '')),
       hasValue
         ? h(

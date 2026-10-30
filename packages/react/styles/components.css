@@ -820,6 +820,20 @@ a.aura-icon-btn { text-decoration: none; }
  * indicator paints over its bottom row. The list scrolls sideways (overflow-x), and a scroll container clips at its
  * padding box: an indicator pulled 1px over a border (as up to 5.22) showed only half its height. Same box height. */
 .aura-tabs__list { display: flex; gap: var(--aura-space-6); box-shadow: inset 0 -1px 0 var(--aura-border-default); overflow-x: auto; scrollbar-width: none; }
+/* 5.78 (visual audit 24): a list wider than its box fades the end (or ends) with more tabs, so a cut tab reads as
+ * "scroll for more", not as a broken label. Logical: in RTL the fades swap sides. */
+.aura-tabs__list[data-aura-more] {
+  --aura-fade-s: 0px; --aura-fade-e: 0px;
+  -webkit-mask-image: linear-gradient(to right, transparent, black var(--aura-fade-s), black calc(100% - var(--aura-fade-e)), transparent);
+  mask-image: linear-gradient(to right, transparent, black var(--aura-fade-s), black calc(100% - var(--aura-fade-e)), transparent);
+}
+.aura-tabs__list[data-aura-more] { scroll-padding-inline: var(--aura-space-8); } /* a focused tab scrolls clear of the fade */
+.aura-tabs__list[data-aura-more~='start'] { --aura-fade-s: var(--aura-space-8); }
+.aura-tabs__list[data-aura-more~='end'] { --aura-fade-e: var(--aura-space-8); }
+[dir='rtl'] .aura-tabs__list[data-aura-more], .aura-tabs__list[data-aura-more][dir='rtl'] {
+  -webkit-mask-image: linear-gradient(to left, transparent, black var(--aura-fade-s), black calc(100% - var(--aura-fade-e)), transparent);
+  mask-image: linear-gradient(to left, transparent, black var(--aura-fade-s), black calc(100% - var(--aura-fade-e)), transparent);
+}
 .aura-tab {
   position: relative; display: inline-flex; align-items: center; gap: var(--aura-space-2); flex: none;
   box-sizing: border-box; /* 5.39: a link tab (<a>) was 2px taller than a button tab — its underline sat outside the height */
@@ -999,6 +1013,9 @@ a.aura-tab { text-decoration: none; }
 /* ---------- Combobox ---------- */
 .aura-combo { cursor: text; }
 .aura-combo .aura-input__control { padding-right: calc(var(--aura-space-2) + 2 * var(--aura-control-sm)); }
+/* 5.78 (visual audit 25): room for the clear button only while there is one — an empty TimePicker in a narrow column
+ * showed "hh:m". (Also on a coarse pointer and with touchHeight, below.) */
+.aura-combo:not(.is-multi):not(:has(.aura-combo__clear)) .aura-input__control { padding-right: calc(var(--aura-space-2) + var(--aura-control-sm)); }
 .aura-combo__clear, .aura-combo__toggle, .aura-date__toggle {
   position: absolute; display: inline-flex; align-items: center; justify-content: center;
   width: var(--aura-control-sm); height: var(--aura-control-sm); padding: 0; border: 0; border-radius: var(--aura-radius-full);
@@ -1294,6 +1311,9 @@ summary.aura-link::-webkit-details-marker { display: none; }
 .aura-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--aura-space-4) var(--aura-space-6); min-width: 0; font-family: var(--font-sans); }
 .aura-page-header__text { display: flex; flex-direction: column; gap: var(--aura-space-1); flex: 1 1 320px; min-width: 0; }
 .aura-page-header__eyebrow { margin: 0; font-family: var(--font-mono); font-size: max(12px, .75rem); line-height: 1.7; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
+.aura-nowrap { white-space: nowrap; } /* 5.78: a code or document number kept on one line */
+/* …in a PageHeader title the number moves to the next line whole, and still breaks if it is longer than a line. */
+.aura-page-header__title .aura-nowrap { display: inline-block; max-width: 100%; white-space: normal; }
 .aura-page-header__title { margin: 0; font-family: var(--font-display); font-size: var(--aura-page-header-title-size, max(28px, 1.75rem)); line-height: var(--aura-page-header-title-line-height, 1.15); font-weight: 600; letter-spacing: -0.01em; color: var(--aura-fg-primary); overflow-wrap: anywhere; }
 .aura-page-header__breadcrumb { min-width: 0; } /* 5.33 (DxT Monitor #7): Breadcrumb keeps its own type */
 .aura-page-header__meta { min-width: 0; font-size: max(13px, .8125rem); line-height: 1.5; color: var(--aura-fg-secondary); overflow-wrap: anywhere; }
@@ -1323,6 +1343,8 @@ summary.aura-link::-webkit-details-marker { display: none; }
  * span as wide as its text and the page scrolled sideways. :where keeps the selector's weight as before. */
 @media (max-width: 639.98px) {
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
+  .aura-page-header--actions-full-below-sm:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11): a label that wraps to two lines is a rounded box, not a lozenge */
+  .aura-page-header--actions-full-below-sm:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > .aura-page-header__bar > :where(:not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; } /* 5.71: actionsBar in the row, as the actions (5.61) */
@@ -1333,10 +1355,14 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-full-below-sm:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11) */
+  .aura-page-header--actions-full-below-sm:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 @media (max-width: 767.98px) {
   .aura-page-header--actions-full-below-md > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
+  .aura-page-header--actions-full-below-md:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11): a label that wraps to two lines is a rounded box, not a lozenge */
+  .aura-page-header--actions-full-below-md:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > .aura-page-header__bar > :where(:not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; } /* 5.71: actionsBar in the row, as the actions (5.61) */
@@ -1346,10 +1372,14 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-full-below-md:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11) */
+  .aura-page-header--actions-full-below-md:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 @media (max-width: 1023.98px) {
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
+  .aura-page-header--actions-full-below-lg:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11): a label that wraps to two lines is a rounded box, not a lozenge */
+  .aura-page-header--actions-full-below-lg:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > .aura-page-header__bar > :where(:not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; } /* 5.71: actionsBar in the row, as the actions (5.61) */
@@ -1359,6 +1389,8 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
+  .aura-page-header--actions-full-below-lg:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11) */
+  .aura-page-header--actions-full-below-lg:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 /* 5.48 (Chamber-OS 154): only on a screen taller than 30rem (5.49: 480px at the default text size) — on a short one (400% zoom, a phone held sideways) the
@@ -1379,7 +1411,7 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-bar-below-sm[data-aura-bar="empty"] > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-sm[data-aura-bar="empty"] > .aura-page-header__actions > .aura-page-header__bar { display: none; }
   /* …and before hydration, from the markup alone (actionsBar's strip whose element children but the status are all `hidden` or visually hidden): it already goes; the page padding follows once the client has looked. */
   .aura-page-header--actions-bar-below-sm:not([data-aura-bar="shown"]) > .aura-page-header__actions > .aura-page-header__bar:not(:has(> :not(.aura-page-header__status, [hidden], .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text))):has(> *) { display: none; }
-  :is(.aura-page-header--actions-bar-below-sm > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__bar) { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
+  :is(.aura-page-header--actions-bar-below-sm > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__bar) { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-4) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); /* 5.78 (audit 9): 16px both sides, the phone gutter */ background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
   /* 5.54 (Chamber-OS 166): the bar's buttons are 44px whatever the density, as ActionBar's on a phone. */
   :is(.aura-page-header--actions-bar-below-sm > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__bar) { --aura-button-height: var(--aura-touch-target); --aura-button-height-sm: var(--aura-touch-target); }
   :is(.aura-page-header--actions-bar-below-sm > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__bar) > .aura-icon-btn, :is(.aura-page-header--actions-bar-below-sm > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-sm > .aura-page-header__actions > .aura-page-header__bar) > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
@@ -1405,7 +1437,7 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-bar-below-md[data-aura-bar="empty"] > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-md[data-aura-bar="empty"] > .aura-page-header__actions > .aura-page-header__bar { display: none; }
   /* …and before hydration, from the markup alone (actionsBar's strip whose element children but the status are all `hidden` or visually hidden): it already goes; the page padding follows once the client has looked. */
   .aura-page-header--actions-bar-below-md:not([data-aura-bar="shown"]) > .aura-page-header__actions > .aura-page-header__bar:not(:has(> :not(.aura-page-header__status, [hidden], .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text))):has(> *) { display: none; }
-  :is(.aura-page-header--actions-bar-below-md > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__bar) { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-3) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
+  :is(.aura-page-header--actions-bar-below-md > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__bar) { position: fixed; z-index: var(--aura-z-bar); left: 0; right: 0; bottom: var(--aura-bottomnav-offset, 0px); box-sizing: border-box; min-height: 60px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--aura-space-2); margin: 0; padding: var(--aura-space-2) var(--aura-space-4) calc(var(--aura-space-2) + max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px))) var(--aura-space-4); /* 5.78 (audit 9): 16px both sides, the phone gutter */ background: var(--aura-bg-surface); color: var(--aura-fg-primary); border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; transition: bottom var(--aura-duration-base) var(--aura-ease); }
   /* 5.54 (Chamber-OS 166): the bar's buttons are 44px whatever the density, as ActionBar's on a phone. */
   :is(.aura-page-header--actions-bar-below-md > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__bar) { --aura-button-height: var(--aura-touch-target); --aura-button-height-sm: var(--aura-touch-target); }
   :is(.aura-page-header--actions-bar-below-md > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__bar) > .aura-icon-btn, :is(.aura-page-header--actions-bar-below-md > .aura-page-header__actions:not(.is-split), .aura-page-header--actions-bar-below-md > .aura-page-header__actions > .aura-page-header__bar) > * > .aura-icon-btn:only-child { width: var(--aura-touch-target); height: var(--aura-touch-target); }
@@ -1913,6 +1945,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-combo__toggle, .aura-date__toggle { right: 0; }
   .aura-combo__clear, .aura-date .aura-combo__clear { right: var(--aura-touch-target); }
   .aura-combo .aura-input__control, .aura-date .aura-input__control { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+  .aura-combo:not(.is-multi):not(:has(.aura-combo__clear)) .aura-input__control { padding-right: calc(var(--aura-space-1) + var(--aura-touch-target)); }
   .aura-combo__clear::after, .aura-combo__toggle::after, .aura-date__toggle::after, .aura-tag__remove::after {
     content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, var(--aura-touch-target)); height: max(100%, var(--aura-touch-target)); transform: translate(-50%, -50%);
   }
@@ -1983,6 +2016,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 :is(.aura-field, .aura-filterbar).is-touch-always :is(.aura-combo__toggle, .aura-date__toggle) { right: 0; }
 :is(.aura-field, .aura-filterbar).is-touch-always .aura-combo__clear { right: var(--aura-touch-target); }
 :is(.aura-field, .aura-filterbar).is-touch-always :is(.aura-combo, .aura-date) .aura-input__control { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+:is(.aura-field, .aura-filterbar).is-touch-always .aura-combo:not(.is-multi):not(:has(.aura-combo__clear)) .aura-input__control { padding-right: calc(var(--aura-space-1) + var(--aura-touch-target)); }
 :is(.aura-field, .aura-filterbar).is-touch-always .aura-combo.is-multi { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
 :is(.aura-field, .aura-filterbar).is-touch-always .aura-combo.is-multi :is(.aura-combo__clear, .aura-combo__toggle) { top: calc((var(--aura-input-height) - 2px - 40px) / 2); }
 :is(.aura-field, .aura-filterbar).is-touch-always .aura-number__step { width: var(--aura-touch-target); }
@@ -1991,6 +2025,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   :is(.aura-field, .aura-filterbar).is-touch :is(.aura-combo__toggle, .aura-date__toggle) { right: 0; }
   :is(.aura-field, .aura-filterbar).is-touch .aura-combo__clear { right: var(--aura-touch-target); }
   :is(.aura-field, .aura-filterbar).is-touch :is(.aura-combo, .aura-date) .aura-input__control { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
+  :is(.aura-field, .aura-filterbar).is-touch .aura-combo:not(.is-multi):not(:has(.aura-combo__clear)) .aura-input__control { padding-right: calc(var(--aura-space-1) + var(--aura-touch-target)); }
   :is(.aura-field, .aura-filterbar).is-touch .aura-combo.is-multi { padding-right: calc(var(--aura-space-1) + 2 * var(--aura-touch-target)); }
   :is(.aura-field, .aura-filterbar).is-touch .aura-combo.is-multi :is(.aura-combo__clear, .aura-combo__toggle) { top: calc((var(--aura-input-height) - 2px - 40px) / 2); }
   :is(.aura-field, .aura-filterbar).is-touch .aura-number__step { width: var(--aura-touch-target); }
@@ -2358,6 +2393,25 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   :root:has(.aura-actionbar--edge:not(.is-idle)) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-actionbar-space)); }
   :root:has(.aura-actionbar--edge:not(.is-idle)):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-actionbar-space); }
 }
+/* 5.78 (visual audit 9): one rule for the bottom strips on a phone, as PageHeader's (5.48) — the status on its own row
+ * at the top, the actions sharing the row under it (an IconButton keeps its square; labels too long to share take a row
+ * each), 16px both sides as the page. edgeBelow="md" follows it up to 768px, as PageHeader's md strip. */
+@media (max-width: 639.98px) {
+  @container aura-actionbar (max-width: 639.98px) {
+    :is(.aura-actionbar--edge, .aura-actionbar--edge-below-sm, .aura-actionbar--edge-below-md):not(.is-idle) > .aura-actionbar__inner { padding-inline: var(--aura-space-4); }
+    :is(.aura-actionbar--edge, .aura-actionbar--edge-below-sm, .aura-actionbar--edge-below-md):not(.is-idle) > .aura-actionbar__inner > .aura-actionbar__status:not(:empty) { flex-basis: 100%; }
+    :is(.aura-actionbar--edge, .aura-actionbar--edge-below-sm, .aura-actionbar--edge-below-md):not(.is-idle) .aura-actionbar__actions { flex: 1 1 auto; min-width: 0; margin-inline-start: 0; }
+    :is(.aura-actionbar--edge, .aura-actionbar--edge-below-sm, .aura-actionbar--edge-below-md):not(.is-idle) .aura-actionbar__actions > :not(.aura-icon-btn, :has(> .aura-icon-btn)) { flex: 1 1 0; min-width: max-content; } /* as PageHeader's strip (5.61): shares, a long label takes its own row */
+    :is(.aura-actionbar--edge, .aura-actionbar--edge-below-sm, .aura-actionbar--edge-below-md):not(.is-idle) .aura-actionbar__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor):not(:has(> .aura-icon-btn)) > .aura-btn { width: 100%; }
+  }
+}
+@media (min-width: 640px) and (max-width: 767.98px) {
+  .aura-actionbar--edge-below-md:not(.is-idle) > .aura-actionbar__inner { padding-inline: var(--aura-space-4); }
+  .aura-actionbar--edge-below-md:not(.is-idle) > .aura-actionbar__inner > .aura-actionbar__status:not(:empty) { flex-basis: 100%; }
+  .aura-actionbar--edge-below-md:not(.is-idle) .aura-actionbar__actions { flex: 1 1 auto; min-width: 0; margin-inline-start: 0; }
+  .aura-actionbar--edge-below-md:not(.is-idle) .aura-actionbar__actions > :not(.aura-icon-btn, :has(> .aura-icon-btn)) { flex: 1 1 0; min-width: max-content; } /* as PageHeader's strip (5.61): shares, a long label takes its own row */
+  .aura-actionbar--edge-below-md:not(.is-idle) .aura-actionbar__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor):not(:has(> .aura-icon-btn)) > .aura-btn { width: 100%; }
+}
 @media (max-width: 639.98px) { .aura-actionbar--edge-below-sm:not(.is-idle) { border: 0; border-top: 1px solid var(--aura-border-default); border-radius: 0; box-shadow: none; } }
 @media (max-width: 639.98px) and (min-height: 30.00125rem) {
   .aura-actionbar--edge-below-sm:not(.is-idle) { position: fixed; left: 0; right: 0; width: auto; bottom: var(--aura-bottomnav-offset, 0px); margin: 0; padding-bottom: max(0px, env(safe-area-inset-bottom, 0px) - var(--aura-bottomnav-offset, 0px)); }
@@ -2581,7 +2635,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__head:not(.has-select-all) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); }
   .aura-table__head > .aura-table__sel { position: static; width: auto; gap: var(--aura-space-3); padding: 0 var(--aura-space-4); }
   .aura-table__sel-text { display: inline; color: var(--aura-fg-secondary); }
-  .aura-table__gutter { display: none; }
+  .aura-table__gutter, .aura-table__gutter--end.has-picker { display: none; } /* 5.78 (audit 20): the column picker's slot too, which squeezed the card's title */
   .aura-table__row, .aura-table__row:last-child {
     height: auto; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--aura-space-1) var(--aura-space-4);
     margin-bottom: var(--aura-space-2); padding: var(--aura-space-4);

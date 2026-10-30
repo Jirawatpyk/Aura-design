@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export { cx, omit, tone, devWarnOnce, touchClass } from './classes.js';
+export { cx, omit, tone, devWarnOnce, isDev, touchClass } from './classes.js';
 
 /* Controlled-or-not state: use the prop when given, else keep it here.
  * 5.1.1: the setter is stable and always calls the latest onChange, so effects that keep it (outside-click handlers)
@@ -305,4 +305,52 @@ export function useInputModality(): void {
 /** An option hovered by the pointer: the list is under the pointer now, until the next key. */
 export function pointerModality(): void {
   setModality('pointer');
+}
+
+/* 5.78 (visual audit 24): a row that scrolls sideways (Tabs) says which ends have more — data-aura-more="start",
+ * "end" or "start end" — so CSS can fade that edge. Logical: in RTL "start" is the right. Re-read on scroll (once a
+ * frame) and when the row or a child resizes (fonts, a label change). */
+export function useScrollEdges(r: React.RefObject<HTMLElement | null>, key?: unknown): void {
+  /* key: re-attach when the element is a different one (Tabs switching between its link list and its tablist). */
+  React.useEffect(
+    function () {
+      const el = r.current;
+      if (!el || typeof ResizeObserver === 'undefined') return;
+      let raf = 0;
+      const mark = function () {
+        raf = 0;
+        const max = el.scrollWidth - el.clientWidth;
+        const x = Math.abs(el.scrollLeft);
+        const v = ((x > 1 ? 'start ' : '') + (x < max - 1 ? 'end' : '')).trim();
+        if ((el.getAttribute('data-aura-more') || '') === v) return;
+        if (v) el.setAttribute('data-aura-more', v);
+        else el.removeAttribute('data-aura-more');
+      };
+      const on = function () {
+        if (!raf) raf = requestAnimationFrame(mark);
+      };
+      mark();
+      el.addEventListener('scroll', on, { passive: true });
+      const ro = new ResizeObserver(on);
+      ro.observe(el);
+      Array.prototype.forEach.call(el.children, function (c: Element) {
+        ro.observe(c);
+      });
+      /* a tab added or removed later */
+      const mo = new MutationObserver(function () {
+        Array.prototype.forEach.call(el.children, function (c: Element) {
+          ro.observe(c);
+        });
+        on();
+      });
+      mo.observe(el, { childList: true });
+      return function () {
+        cancelAnimationFrame(raf);
+        el.removeEventListener('scroll', on);
+        ro.disconnect();
+        mo.disconnect();
+      };
+    },
+    [key],
+  );
 }

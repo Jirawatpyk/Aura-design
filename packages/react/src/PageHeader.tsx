@@ -9,6 +9,17 @@ const h = React.createElement;
  * is looked through when it has resolved — React resolves it the same way when it renders — and is neutral while it
  * hasn't (the other children decide). Anything else unresolved (a promise, an iterator) keeps a line: use metaLayout. */
 const LAZY = Symbol.for('react.lazy');
+/* 5.78 (visual audit 22): a document number in a plain-text title ("Invoice SC-2026-900001") never breaks at its
+ * hyphens — the line breaks before it instead. Only short tokens with a digit and a hyphen; the text is unchanged. */
+const ID = /([A-Za-z0-9]+(?:-[A-Za-z0-9]+)+)/;
+function keepIds(title: React.ReactNode): React.ReactNode {
+  if (typeof title !== 'string' || title.indexOf('-') < 0) return title;
+  const parts = title.split(ID);
+  if (parts.length < 2) return title;
+  return parts.map(function (p: string, i: number) {
+    return i % 2 && /\d/.test(p) && p.length <= 24 ? h('span', { key: i, className: 'aura-nowrap' }, p) : p;
+  });
+}
 function chipsOnly(node: React.ReactNode): boolean {
   let el = 0;
   const walk = function (n: React.ReactNode): boolean {
@@ -151,7 +162,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
       tabIndex: props.focusTitleOnMount ? -1 : undefined,
       'data-aura-focus-on-mount': props.focusTitleOnMount ? '' : undefined,
     },
-    props.title,
+    keepIds(props.title),
   );
   const hasActions = props.actions != null && props.actions !== false;
   const hasBarActions = props.actionsBar != null && props.actionsBar !== false;

@@ -16,7 +16,7 @@ const PLANS = [
  * (wrap="none") stays on one line; the URL column (wrap="anywhere") may break inside a word. */
 export const PlansList: StoryObj = {
   render: () => (
-    <div data-testid="box" style={{ width: 703, padding: 0 }}>
+    <div data-testid="box" style={{ width: 703, padding: 0, maxWidth: '100%' }}>
       <Aura.Table caption="Plans" captionHidden>
         <Aura.THead>
           <Aura.Tr>
@@ -62,7 +62,7 @@ export const PlansList: StoryObj = {
 export const WideSticky: StoryObj = {
   render: () => (
     <div style={{ ['--aura-shell-bar-height' as string]: '56px', padding: 16 }}>
-      <div data-testid="wide" style={{ width: 360 }}>
+      <div data-testid="wide" style={{ width: 360, maxWidth: '100%' }}>
         <Aura.Table caption="Plans (wide)" captionHidden stickyHeader>
           <Aura.THead>
             <Aura.Tr>

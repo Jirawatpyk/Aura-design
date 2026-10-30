@@ -166,6 +166,17 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(function Tab
     function check() {
       const sideways = el!.scrollWidth > el!.clientWidth + 1;
       wide[1](sideways);
+      /* 5.78 (visual audit 21): on a phone a table that scrolls sideways hides its last columns behind a scroll
+       * nobody sees; stackBelow shows every cell. Opt-in in 5.x (it changes the layout), the default from 6.0. */
+      if (sideways && !stackBelow && !outer && typeof window !== 'undefined' && window.innerWidth < 640)
+        devWarnOnce(
+          'table-no-stack',
+          'Table' +
+            (rest['aria-label'] ? ' "' + rest['aria-label'] + '"' : '') +
+            ' scrolls sideways at ' +
+            window.innerWidth +
+            'px wide, so its last columns are off screen. On a phone pass stackBelow={640} (cards or rows). It becomes the default in 6.0.',
+        );
       sc[1](sideways || el!.scrollHeight > el!.clientHeight + 1);
     }
     check();

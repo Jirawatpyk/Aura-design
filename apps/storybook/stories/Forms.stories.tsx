@@ -7,7 +7,7 @@ export default meta;
 
 export const TextFields: StoryObj = {
   render: () => (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24, maxWidth: 720 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 24, maxWidth: 720 }}>
       <Aura.TextField label="Email address" type="email" icon="mail" placeholder="name@company.co.th" hint="We only use this for sign-in." required />
       <Aura.TextField label="Budget" suffix="THB" defaultValue="120,000" optional />
       <Aura.TextField label="Project key" defaultValue="aura 01" error="Use capital letters and a hyphen, e.g. AURA-01." />
@@ -19,7 +19,7 @@ export const NumberFields: StoryObj = {
   render: () => {
     const [qty, setQty] = React.useState<number | null>(2);
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 24, maxWidth: 720 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 24, maxWidth: 720 }}>
         <Aura.NumberField label="จำนวน" value={qty} onChange={setQty} min={1} max={20} suffix="ชิ้น" hint={'Value: ' + String(qty)} />
         <Aura.NumberField label="ราคาต่อหน่วย" prefix="฿" defaultValue={12500} step={0.01} min={0} />
         <Aura.NumberField label="Discount" suffix="%" defaultValue={10} min={0} max={100} step={5} optional />

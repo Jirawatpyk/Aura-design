@@ -123,7 +123,7 @@ export const SetOneMisc: StoryObj = {
   render: function Render() {
     const [stage, setStage] = React.useState(0);
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: '240px minmax(0, 1fr)', gap: 24 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
         <Aura.SideNav
           value="invoices"
           items={[
@@ -132,7 +132,7 @@ export const SetOneMisc: StoryObj = {
             { id: 'members', label: 'Members', icon: 'users', href: '#members' },
           ]}
         />
-        <div style={{ display: 'grid', gap: 24, alignContent: 'start', minWidth: 0 }}>
+        <div style={{ display: 'grid', gap: 24, alignContent: 'start', minWidth: 0, flex: '1 1 260px' }}>
           <div data-testid="filters">
             <Aura.FilterBar search="" onSearchChange={() => {}} searchLabel="Search e-blasts">
               {['Awaiting review', 'Approved'].map((s, i) => (

@@ -95,7 +95,7 @@ export const PopoverClosedDetails: StoryObj = {
     <Aura.Popover label="Member" trigger={<Aura.Button data-testid="trigger">Member</Aura.Button>}>
       <div style={{ padding: 12 }}>
         {body}
-        <button type="button" data-testid="after">
+        <button type="button" className="aura-link" data-testid="after">
           Open record
         </button>
       </div>

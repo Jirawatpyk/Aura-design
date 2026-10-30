@@ -97,7 +97,7 @@ export const Overview: StoryObj = {
         <Aura.StatusTile
           status="problem"
           title="A long site name with a retry button in its meta line"
-          meta={<button type="button">Retry</button>}
+          meta={<button type="button" className="aura-link">Retry</button>}
         />
       </div>
       <Aura.TileGrid data-testid="grid-frag" columns={3}>
@@ -139,7 +139,7 @@ export const Sparklines: StoryObj = {
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'max-content max-content',
+        gridTemplateColumns: 'max-content minmax(0, max-content)',
         gap: '12px 24px',
         padding: 24,
         alignItems: 'center',
@@ -162,7 +162,7 @@ export const Sparklines: StoryObj = {
       <span>Decorative</span>
       <Aura.Sparkline data-testid="decor" data={[1, 3, 2, 5]} />
       <span>Shared scale</span>
-      <span style={{ display: 'flex', gap: 8 }}>
+      <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         <Aura.Sparkline data-testid="scale-a" data={[100, 100]} min={0} max={400} label="A" />
         <Aura.Sparkline data-testid="scale-b" data={[400, 400]} min={0} max={400} label="B" />
         <Aura.Sparkline data-testid="scale-swapped" data={[400, 400]} min={400} max={0} label="Swapped" />

@@ -51,6 +51,7 @@ export const SmallButtonsInCompactTable: StoryObj = {
   render: () => (
     <Aura.DataTable
       label="Invoices"
+      stackBelow={640}
       density="compact"
       rows={ROWS}
       columns={[

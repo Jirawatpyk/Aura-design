@@ -186,6 +186,18 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.78 — visual audit, set 2 (phones)
+
+- **Bottom strips on a phone follow one rule:** ActionBar's edge strip (`look="edge"`, `edgeBelow`) now lays out as PageHeader's bar (5.48) — the status on its own row at the top, the actions sharing the row under it (an IconButton keeps its square; labels too long to share take a row each, as PageHeader's) — and both strips are 16px from either side, the page's phone gutter (they were 16 and 12). `edgeBelow="md"` follows it up to 768px. A single label wider than the screen still overflows, as in PageHeader's strip — keep bar labels short.
+- **PageHeader `actionsFullWidthBelow`:** on a phone its buttons are `--aura-radius-md` boxes, so a label that wraps to two lines is a rounded box, not a lozenge (the ⋯ IconButton stays round) — also the header's own actions beside an `actionsBar` strip. The bottom strip keeps its pill buttons.
+- **A document number in a PageHeader title stays whole:** in a plain-text title, a short token with a digit and a hyphen ("Invoice SC-2026-900001") never breaks at its hyphens; the line breaks before it. The text is unchanged (a `.aura-nowrap` span, a utility you can use too).
+- **DataTable cards with `columnControls`:** the column picker's slot no longer squeezes the card's title (it took 48px of the first line).
+- **StatusTile:** a host or a path in a plain-text title ("api.example.co.th") breaks after a dot or a slash, not in the middle of a label.
+- **Tabs:** a tab list wider than its box fades the end that has more tabs (both ends once scrolled; mirrored in RTL), so a cut tab reads as "scroll for more". `data-aura-more="start" | "end" | "start end"` on the list.
+- **Combobox and TimePicker:** room is kept for the clear button only while there is one — an empty TimePicker in a narrow column showed "hh:m".
+- **Development warning:** a `DataTable` or `Table` that scrolls sideways on a screen under 640px without `stackBelow` warns once — its last columns are off screen. `stackBelow` stays opt-in in 5.x (it changes the layout) and becomes the default in 6.0.
+- **Stories:** the examples that scrolled the page sideways at 390px (fixed grids, rows that didn't wrap, fixed-width demo boxes) and the demo tables now fit a phone.
+
 ## 5.77 — Chamber-OS addendum 95 follow-up (#194)
 
 - **A confirmation opens at its top on a short screen:** when a Dialog scrolls as one box (5.76) and its first focus lands in the footer — `data-autofocus` on Cancel, or a dialog with nothing to fill in — it no longer scrolls to its end on open: the title, the description and the summary of what is being confirmed are what show first, with Cancel focused below. Tab or a scroll reaches the buttons as before. A field in the body that takes the first focus is still scrolled into view (it is what you type in next). By design the focused Cancel then starts below the fold: focus is in the dialog, on the safe action, and a screen reader reads the title and description first. Above 30rem nothing changes — where the panel can't scroll, the browser keeps the focused button in view as before; a Drawer is unaffected. With `autoFocus={false}`, a footer button you focus yourself scrolls as the browser does.

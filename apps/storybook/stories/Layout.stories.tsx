@@ -7,7 +7,7 @@ export default meta;
 
 export const Cards: StoryObj = {
   render: () => (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 24 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 24 }}>
       <Aura.Card title="Token adoption" description="Last 30 days" actions={<Aura.IconButton icon="ellipsis" label="Card options" />}>
         <div style={{ fontSize: 36, fontWeight: 600 }}>92.3%</div>
       </Aura.Card>

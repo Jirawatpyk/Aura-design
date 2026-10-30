@@ -18,7 +18,7 @@ export const ComboboxStory: StoryObj = {
   render: () => {
     const [v, setV] = React.useState<string | null>(null);
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 320px))', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 320px))', gap: 24 }}>
         <Aura.Combobox label="ผู้ดูแล" placeholder="พิมพ์ชื่อ หรือ kamon" options={staff} value={v} onChange={setV} hint={'Value: ' + String(v)} />
         <Aura.Combobox label="Team" options={['Sales', 'Delivery', 'Support']} required error="Choose a team to see who is available." />
       </div>
@@ -31,7 +31,7 @@ export const ComboboxMultiple: StoryObj = {
   render: () => {
     const [v, setV] = React.useState<string[]>(['m1']);
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 360px))', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 360px))', gap: 24 }}>
         <Aura.Combobox multiple label="ผู้รับผิดชอบ" placeholder="เพิ่มคน" options={staff} value={v} onChange={setV} hint={'Value: ' + JSON.stringify(v)} />
         <Aura.Combobox multiple label="Tags" options={['Urgent', 'VIP', 'Corporate', 'Repeat', 'Weekend']} defaultValue={['VIP', 'Weekend']} max={3} hint="Up to 3." />
       </div>
@@ -59,7 +59,7 @@ export const DatePickerStory: StoryObj = {
   render: () => {
     const [a, setA] = React.useState<string | null>('2026-09-18');
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 320px))', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 320px))', gap: 24 }}>
         <Aura.DatePicker locale="th" label="วันที่ส่ง" value={a} onChange={setA} min="2026-09-01" hint={'ISO: ' + String(a)} />
         <Aura.DatePicker label="Due date" locale="en" calendar="gregory" weekStartsOn={1} optional />
         <Aura.DatePicker locale="th" label="วันเกิด" required error="ใส่วันเกิดเป็น วว/ดด/ปปปป เช่น 05/12/2530" />

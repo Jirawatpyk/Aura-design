@@ -25,7 +25,7 @@ const COLS = [
  * ring). Request 16: DataTable columns already take align: 'end' — header and cells together. */
 export const Cells: StoryObj = {
   render: () => (
-    <div style={{ display: 'grid', gap: 24, padding: 24, maxWidth: 820 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 24, padding: 24, maxWidth: 820 }}>
       <div data-testid="incidents">
         <Aura.DataTable label="Incidents" rows={ROWS} columns={COLS} getRowHref={(r) => '#' + r.id} />
       </div>

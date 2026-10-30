@@ -46,15 +46,15 @@ export const MonitorShell: StoryObj = {
 /* Side by side: the divider, the default header, the collapsed rail; PageHeader variants; skeleton pills. */
 export const Parts: StoryObj = {
   render: () => (
-    <div style={{ display: 'grid', gap: 32, padding: 24 }}>
-      <div style={{ display: 'flex', gap: 24, height: 320 }}>
-        <div data-testid="divided">
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 32, padding: 24 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+        <div data-testid="divided" style={{ height: 320 }}>
           <Aura.SideNav header={<Brand />} headerDivider items={ITEMS} defaultValue="overview" label="Divided" />
         </div>
-        <div data-testid="plain">
+        <div data-testid="plain" style={{ height: 320 }}>
           <Aura.SideNav header={<Brand />} items={ITEMS} defaultValue="overview" label="Plain" />
         </div>
-        <div data-testid="rail">
+        <div data-testid="rail" style={{ height: 320 }}>
           <Aura.SideNav
             header={<Brand />}
             headerDivider
@@ -72,7 +72,7 @@ export const Parts: StoryObj = {
       <div data-testid="h2">
         <Aura.PageHeader headingLevel={2} title="Sites" />
       </div>
-      <div data-testid="long" style={{ width: 360 }}>
+      <div data-testid="long" style={{ width: 360, maxWidth: '100%' }}>
         <Aura.PageHeader
           eyebrow="Monitor / Sites / https://status.example-very-long-customer-domain-name.co.th/healthcheck"
           title="A site with a very long name for the overview page"

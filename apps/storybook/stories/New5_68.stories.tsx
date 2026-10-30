@@ -75,14 +75,16 @@ function Code() {
         errorLive
         error={bad ? 'Use letters and digits only.' : undefined}
       >
-        <input
-          id="code-live"
-          className="aura-input__control"
-          aria-describedby={bad ? 'code-live-error' : 'code-live-hint'}
-          aria-invalid={bad || undefined}
-          value={v}
-          onChange={(e) => setV(e.target.value)}
-        />
+        <div className="aura-input">
+          <input
+            id="code-live"
+            className="aura-input__control"
+            aria-describedby={bad ? 'code-live-error' : 'code-live-hint'}
+            aria-invalid={bad || undefined}
+            value={v}
+            onChange={(e) => setV(e.target.value)}
+          />
+        </div>
       </Aura.Field>
     </div>
   );

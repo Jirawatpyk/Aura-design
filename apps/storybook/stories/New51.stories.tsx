@@ -77,7 +77,7 @@ export const OverlayFocus: StoryObj = {
 /* SideNav without a header keeps its first item off the top edge; bordered={false} drops its own divider. */
 export const NavNoHeader: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', height: 240, gap: 24 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', minHeight: 240, gap: 24 }}>
       <div data-testid="plain" style={{ display: 'flex' }}>
         <Aura.SideNav
           value="srv"

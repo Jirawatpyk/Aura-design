@@ -47,7 +47,7 @@ export const StickyHeaderPage: StoryObj = {
 /* In a box: maxHeight scrolls the rows inside it; and the default (no stickyHeader) stays put. */
 export const StickyHeaderBox: StoryObj = {
   render: () => (
-    <div style={{ display: 'grid', gap: 24, padding: 24 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 24, padding: 24 }}>
       <div data-testid="box">
         <Plans caption="Boxed plans" sticky maxHeight={240} />
       </div>

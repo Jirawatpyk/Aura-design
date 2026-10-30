@@ -315,6 +315,14 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const only = ph({ actionsBar: e('button', null, 'Pay now'), actionsBarBelow: 'md' });
       if (!/class="aura-page-header aura-page-header--actions-full-below-sm aura-page-header--actions-bar-below-sm"/.test(sp) || !/<div class="aura-page-header__actions is-split"><button>PDF<\/button><div class="aura-page-header__bar"><div class="aura-page-header__status" role="status">Due<\/div><button data-testid="pay">Pay now<\/button><\/div><\/div>/.test(sp) || (sp.match(/data-testid="pay"/g) || []).length !== 1 || !/<div class="aura-page-header__actions"><button>PDF<\/button><button>Pay now<\/button><\/div>/.test(plain) || /bar-below|__bar|is-split|__status/.test(plain) || !/<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Due<\/div><button>PDF<\/button><\/div>/.test(old) || !/actions-bar-below-md"[^]*is-split"><div class="aura-page-header__bar"><button>Pay now/.test(only)) bad('191 PageHeader actionsBar:', sp, plain, old, only);
     }
+    /* 5.78 (visual audit set 2): a document number in a PageHeader title stays whole; a host in a StatusTile title
+     * breaks after its dots; other titles are untouched. */
+    {
+      const ph = (title: string) => m(e(A.PageHeader, { title }));
+      const id = ph('Invoice SC-2026-900001'), plain = ph('Members'), word = ph('Sign-in settings'), long = ph('Ref ABCD-1234-EFGH-5678-IJKL-9012');
+      const tile = m(e(A.StatusTile, { title: 'api.example.co.th', status: 'ok' })), tile2 = m(e(A.StatusTile, { title: 'Checkout', status: 'ok' })) + m(e(A.StatusTile, { title: 'Uptime 99.95% v2.1', status: 'ok' }));
+      if (!/<h1 class="aura-page-header__title">Invoice <span class="aura-nowrap">SC-2026-900001<\/span><\/h1>/.test(id) || !/<h1 class="aura-page-header__title">Members<\/h1>/.test(plain) || /aura-nowrap/.test(word + long) || !/api\.<wbr\/>example\.<wbr\/>co\.<wbr\/>th/.test(tile) || /<wbr/.test(tile2)) bad('5.78 titles:', id, plain, word, long, tile, tile2);
+    }
     /* 5.75 (visual audit set 1): StatusPill variant="solid", Down/Active words, createTheme's dark nav edge */
     {
       const pills = m(e(A.StatusPill, { variant: 'solid', children: 'Blocked' })) + m(e(A.StatusPill, { children: 'Down' })) + m(e(A.StatusPill, { children: 'Active' })) + m(e(A.StatusPill, { variant: 'soft', children: 'Ready' }));

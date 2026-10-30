@@ -88,7 +88,7 @@
     "test:hydrate": "node scripts/hydrate-test.ts",
     "size": "node scripts/size-check.ts",
     "preexamples": "node scripts/build.ts",
-    "test:layout": "node scripts/layout-test.ts"
+    "test:layout": "node scripts/layout-test.ts && node scripts/dev-warn-test.ts"
   },
   "peerDependencies": {
     "react": ">=18",

@@ -1,7 +1,16 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { useStrings, useAuraLocale, useLinkComponent } from './locale.js';
-import { cx, devWarnOnce, omit, useMaybeControlled, compare, useIsoLayoutEffect, useMergedRef } from './internal.js';
+import {
+  cx,
+  devWarnOnce,
+  isDev,
+  omit,
+  useMaybeControlled,
+  compare,
+  useIsoLayoutEffect,
+  useMergedRef,
+} from './internal.js';
 import { Icon } from './Icon.js';
 import { IconButton } from './IconButton.js';
 import { Checkbox } from './Checkbox.js';
@@ -254,6 +263,30 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     [measure, levelShape],
   );
   const stacked = !!props.stackBelow && boxWidth[0] != null && below(boxWidth[0], props.stackBelow);
+  /* 5.78 (visual audit 21): on a phone, rows that scroll sideways hide their last columns behind a scroll nobody
+   * sees; stackBelow shows them as cards. Opt-in in 5.x (it changes the layout), the default from 6.0. */
+  React.useEffect(
+    function () {
+      if (!isDev() || props.stackBelow || typeof window === 'undefined' || window.innerWidth >= 640 || !wrapRef.current)
+        return;
+      const sc = wrapRef.current.querySelector<HTMLElement>('.aura-table__scroll');
+      const raf = requestAnimationFrame(function () {
+        if (sc && sc.scrollWidth > sc.clientWidth + 1)
+          devWarnOnce(
+            'datatable-no-stack',
+            'DataTable "' +
+              props.label +
+              '" scrolls sideways at ' +
+              window.innerWidth +
+              'px wide, so its last columns are off screen. On a phone pass stackBelow={640} to show each row as a card. It becomes the default in 6.0.',
+          );
+      });
+      return function () {
+        cancelAnimationFrame(raf);
+      };
+    },
+    [props.stackBelow],
+  );
   /* 5.13 (Chamber-OS 80): cards without the selection boxes; the selection itself is kept. */
   const noCardSel = !!props.hideSelectionInCards && selectable;
   useIsoLayoutEffect(

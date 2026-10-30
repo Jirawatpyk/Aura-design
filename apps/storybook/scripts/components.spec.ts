@@ -12590,3 +12590,234 @@ test.describe('5.77: Chamber-OS 194 follow-up — a confirmation opens at the to
       expect(r).toEqual(['hidden', true]);
     });
 });
+
+test.describe('5.78: visual audit set 2 — phones', () => {
+  test('item 20: a card with the column picker keeps its title wide (the picker slot leaves the card)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-5-51-chamber-os-157-160--tab-keys');
+    const w = await page.evaluate(() =>
+      ['tab', 'tab-controls'].map((t) => {
+        const row = [...document.querySelectorAll(`[data-testid=${t}] [role=row]`)][1]!;
+        const gutter = row.querySelector('.aura-table__gutter--end') as HTMLElement | null;
+        return [
+          Math.round(row.querySelector('.aura-table__td')!.getBoundingClientRect().width),
+          gutter ? gutter.getClientRects().length : 0,
+        ];
+      }),
+    );
+    expect(w[1]![0]).toBe(w[0]![0]);
+    expect(w[1]![1]).toBe(0);
+  });
+
+  test('item 22: a document number in a PageHeader title breaks before it, never at its hyphens', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-45-chamber-os-150--invoice-en');
+    const r = await page.evaluate(() => {
+      const id = document.querySelector('.aura-page-header__title .aura-nowrap')!;
+      return [
+        id.textContent,
+        id.getClientRects().length,
+        document.querySelector('.aura-page-header__title')!.textContent,
+      ];
+    });
+    expect(r).toEqual(['SC-2026-900001', 1, 'Invoice SC-2026-900001']);
+  });
+
+  test('item 9: on a phone the edge bars put the status on its own row, the actions sharing the row under it, 16px both sides', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const [id, bar, status] of [
+      ['aura-new-in-5-69-chamber-os-185--edge', '.aura-actionbar__inner', '.aura-actionbar__status'],
+      ['aura-new-in-5-69-chamber-os-185--page-header-bar', '.aura-page-header__actions', '.aura-page-header__status'],
+    ] as const) {
+      await story(page, id);
+      const r = await page.evaluate(
+        ([b, s]) => {
+          const bar = document.querySelector(b!) as HTMLElement,
+            st = document.querySelector(s!)!.getBoundingClientRect();
+          const btn = bar.querySelector('.aura-btn')!.getBoundingClientRect();
+          const cs = getComputedStyle(bar);
+          return { pl: cs.paddingLeft, pr: cs.paddingRight, below: btn.top >= st.bottom - 0.5, wide: btn.width > 160 };
+        },
+        [bar, status],
+      );
+      expect(r).toEqual({ pl: '16px', pr: '16px', below: true, wide: true });
+    }
+  });
+
+  test('item 11: in PageHeader full-width mode on a phone a button that wraps is a rounded box (radius-md), not a lozenge', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-44-chamber-os-149--invoice-actions');
+    const r = await page.evaluate(() => {
+      const b = document.querySelector('.aura-page-header__actions .aura-btn')!;
+      return [
+        getComputedStyle(b).borderTopLeftRadius,
+        getComputedStyle(document.querySelector('.aura-page-header__actions .aura-icon-btn')!).borderTopLeftRadius,
+        getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim(),
+      ];
+    });
+    expect(r[0]).toBe(r[2]);
+    expect(r[1]).not.toBe(r[2]);
+  });
+
+  test('item 23: a host name in a StatusTile title breaks after a dot, not inside a label', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, 'aura-new-in-5-34-status-tiles--overview');
+    const bad = await page.evaluate(() => {
+      const out: string[] = [];
+      for (const t of document.querySelectorAll('.aura-status-tile__title')) {
+        if (!/\.\S/.test(t.textContent || '')) continue;
+        let prevTop: number | null = null,
+          prev = '';
+        const walker = document.createTreeWalker(t, NodeFilter.SHOW_TEXT);
+        let n: Node | null;
+        while ((n = walker.nextNode())) {
+          if (n.parentElement!.closest('.aura-sr-only')) continue;
+          for (let i = 0; i < n.textContent!.length; i++) {
+            const r = document.createRange();
+            r.setStart(n, i);
+            r.setEnd(n, i + 1);
+            const rc = r.getBoundingClientRect();
+            if (!rc.width) continue; // the zero-size separator
+            const top = Math.round(rc.top);
+            if (prevTop != null && top > prevTop + 2 && !/[./\s,]/.test(prev)) out.push(t.textContent + ' @' + i);
+            prevTop = top;
+            prev = n.textContent![i]!;
+          }
+        }
+      }
+      return out;
+    });
+    expect(bad).toEqual([]);
+  });
+
+  test('item 24: an overflowing tab list fades the end with more; scrolled to the end, the start; RTL mirrored; a list that fits has none', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 600 });
+    await story(page, 'aura-new-in-5-78-visual-audit-set-2--tabs-overflow');
+    const more = (t: string) => page.locator(`[data-testid=${t}] .aura-tabs__list`).getAttribute('data-aura-more');
+    await expect.poll(() => more('ltr')).toBe('end');
+    await expect.poll(() => more('rtl')).toBe('end');
+    expect(await more('fits')).toBeNull();
+    expect(
+      await page.locator('[data-testid=ltr] .aura-tabs__list').evaluate((e) => getComputedStyle(e).maskImage),
+    ).toMatch(/linear-gradient\(to right/);
+    expect(
+      await page.locator('[data-testid=rtl] .aura-tabs__list').evaluate((e) => getComputedStyle(e).maskImage),
+    ).toMatch(/linear-gradient\(to left/);
+    await page.locator('[data-testid=ltr] .aura-tabs__list').evaluate((e) => (e.scrollLeft = 60));
+    await expect.poll(() => more('ltr')).toBe('start end');
+    await page.locator('[data-testid=ltr] .aura-tabs__list').evaluate((e) => (e.scrollLeft = e.scrollWidth));
+    await expect.poll(() => more('ltr')).toBe('start');
+    /* keys reach the last tab and the fade follows */
+    await page.locator('[data-testid=ltr] [role=tab]').first().focus();
+    await page.keyboard.press('Home');
+    await expect.poll(() => more('ltr')).toBe('end');
+  });
+
+  test('item 25: an empty TimePicker in a narrow column shows its whole placeholder (room for the clear button only with one)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 600 });
+    await story(page, 'aura-new-in-4-3--time-picker-story');
+    const r = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLInputElement>('.aura-time .aura-input__control')].map((i) => {
+        const cs = getComputedStyle(i);
+        const avail = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const c = document.createElement('canvas').getContext('2d')!;
+        c.font = cs.font;
+        return avail >= c.measureText(i.placeholder).width;
+      }),
+    );
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every(Boolean)).toBe(true);
+  });
+
+  test('item 9 (320, sv): long labels take a row each in the edge strip; no button leaves the screen or clips its label', async ({
+    page,
+  }) => {
+    for (const w of [320, 390]) {
+      await page.setViewportSize({ width: w, height: 700 });
+      await story(page, 'aura-new-in-5-78-visual-audit-set-2--edge-long-labels');
+      const r = await page.evaluate(() =>
+        [...document.querySelectorAll('.aura-actionbar .aura-btn')].map((b) => {
+          const rc = b.getBoundingClientRect();
+          return rc.left >= 15.5 && rc.right <= innerWidth - 15.5 && b.scrollWidth <= b.clientWidth + 1;
+        }),
+      );
+      expect([w, r]).toEqual([w, [true, true]]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(w);
+    }
+  });
+
+  test('item 22 (320): a document number longer than a line still breaks — no sideways scroll; item 11: the strip keeps pills', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await story(page, 'aura-new-in-5-78-visual-audit-set-2--long-number-and-strip');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+    const r = await page.evaluate(() => {
+      const md = getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim();
+      return [...document.querySelectorAll('.aura-page-header__actions .aura-btn')].map(
+        (b) => getComputedStyle(b).borderTopLeftRadius !== md,
+      );
+    });
+    expect(r).toEqual([true, true]);
+  });
+
+  test('item 11 with actionsBar (5.71 pay bar): the header own full-width actions are radius-md, the strip Pay now a pill', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-71-chamber-os-191--pay-bar');
+    const r = await page.evaluate(() => {
+      const md = getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim();
+      const own = [...document.querySelectorAll('.aura-page-header__actions.is-split > .aura-btn')].map(
+        (b) => getComputedStyle(b).borderTopLeftRadius === md,
+      );
+      const bar = [...document.querySelectorAll('.aura-page-header__bar .aura-btn')].map(
+        (b) => getComputedStyle(b).borderTopLeftRadius === md,
+      );
+      return [own.length > 0 && own.every(Boolean), bar.length > 0 && !bar.some(Boolean)];
+    });
+    expect(r).toEqual([true, true]);
+  });
+
+  test('item 24: a tab reached by keys scrolls fully into view, clear of the fade', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 600 });
+    await story(page, 'aura-new-in-5-78-visual-audit-set-2--tabs-overflow');
+    await page.locator('[data-testid=ltr] [role=tab]').first().focus();
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+    const r = await page.evaluate(() => {
+      const l = document.querySelector('[data-testid=ltr] .aura-tabs__list')!.getBoundingClientRect();
+      const t = document.activeElement!.getBoundingClientRect();
+      return [document.activeElement!.textContent, t.left >= l.left - 0.5 && t.right <= l.right + 0.5];
+    });
+    expect(r).toEqual(['Events', true]);
+  });
+
+  test('story fixes: no story scrolls the page sideways at 390px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const id of [
+      'aura-fixed-in-5-1-1--overlays',
+      'aura-new-in-4-20--tooltip-sides',
+      'aura-new-in-5-1--nav-no-header',
+      'aura-new-in-5-15--touch-height',
+      'aura-new-in-5-30--visual-polish',
+      'aura-new-in-5-30-polish--polish',
+      'aura-new-in-5-32-dxt-monitor--parts',
+      'aura-new-in-5-34-status-tiles--sparklines',
+      'aura-new-in-5-70-chamber-os-186-190--spinners',
+      'aura-new-in-5-75-visual-audit-set-1--set-one-misc',
+    ]) {
+      await story(page, id);
+      expect([id, await page.evaluate(() => document.documentElement.scrollWidth)]).toEqual([id, 390]);
+    }
+  });
+});

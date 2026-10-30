@@ -117,7 +117,7 @@ export const TooltipSides: StoryObj = {
           },
         ]}
       />
-      <Aura.Stack direction="row" gap={3} justify="space-between">
+      <Aura.Stack direction="row" gap={3} justify="space-between" wrap>
         <Aura.Tooltip content="Opens on the left" side="left">
           <Aura.Button variant="secondary">side="left" at the left edge</Aura.Button>
         </Aura.Tooltip>
