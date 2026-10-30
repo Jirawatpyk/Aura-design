@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.71.0
+
+### Minor Changes
+
+- 83e3629: PageHeader `actionsBar`: with `actionsBarBelow`, only these actions become the phone edge strip (with `actionsStatus`); `actions` stay in the header. Above the breakpoint they share the header row; each node is rendered once (Chamber-OS 191).
+
 ## 5.70.0
 
 ### Minor Changes
