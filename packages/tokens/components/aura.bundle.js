@@ -8113,7 +8113,10 @@ window.Aura = (() => {
       props.title
     );
     const hasActions = props.actions != null && props.actions !== false;
-    const bar = hasActions && (props.actionsBarBelow === "sm" || props.actionsBarBelow === "md") ? props.actionsBarBelow : null;
+    const hasBarActions = props.actionsBar != null && props.actionsBar !== false;
+    const bar = (hasActions || hasBarActions) && (props.actionsBarBelow === "sm" || props.actionsBarBelow === "md") ? props.actionsBarBelow : null;
+    const split = !!bar && hasBarActions;
+    const status = bar && props.actionsStatus != null && props.actionsStatus !== false ? h8("div", { className: "aura-page-header__status", role: "status" }, props.actionsStatus) : null;
     return h8(
       "div",
       Object.assign(attrs2, {
@@ -8145,12 +8148,12 @@ window.Aura = (() => {
         shown(props.subtitle) ? h8("div", { className: "aura-page-header__subtitle" }, props.subtitle) : null,
         props.meta != null && props.meta !== false ? h8("div", { className: cx("aura-page-header__meta", richMeta && "aura-page-header__meta--rich") }, props.meta) : null
       ),
-      props.actions != null && props.actions !== false ? h8(
+      hasActions || hasBarActions ? split ? h8(
         "div",
-        { className: "aura-page-header__actions" },
-        bar && props.actionsStatus != null && props.actionsStatus !== false ? h8("div", { className: "aura-page-header__status", role: "status" }, props.actionsStatus) : null,
-        props.actions
-      ) : null
+        { className: "aura-page-header__actions is-split" },
+        props.actions,
+        h8("div", { className: "aura-page-header__bar" }, status, props.actionsBar)
+      ) : h8("div", { className: "aura-page-header__actions" }, status, props.actions, props.actionsBar) : null
     );
   });
 
@@ -8161,11 +8164,14 @@ window.Aura = (() => {
     const own = React45.useRef(null);
     const merged = useMergedRef(ref, own);
     const bar = props.actionsBarBelow;
-    const hasActions = props.actions != null && props.actions !== false;
+    const hasActions = props.actions != null && props.actions !== false || props.actionsBar != null && props.actionsBar !== false;
+    const split = props.actionsBar != null && props.actionsBar !== false;
     React45.useEffect(
       function() {
         if (bar !== "sm" && bar !== "md" || !hasActions || !own.current) return;
-        const el = own.current.querySelector(":scope > .aura-page-header__actions");
+        const el = own.current.querySelector(
+          split ? ":scope > .aura-page-header__actions > .aura-page-header__bar" : ":scope > .aura-page-header__actions"
+        );
         if (!el) return;
         const root = document.documentElement;
         let checked = false;
@@ -8198,7 +8204,7 @@ window.Aura = (() => {
           else root.style.removeProperty(NAME);
         };
       },
-      [bar, hasActions]
+      [bar, hasActions, split]
     );
     const focusTitle = !!props.focusTitleOnMount;
     React45.useEffect(function() {

@@ -305,6 +305,16 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       if (!/<span class="aura-sr-only"> \(required\)<\/span>/.test(req) || /required=""/.test(req)) { console.log(label, 'CheckboxGroup required:', req); fail++; }
       if (!/<fieldset class="aura-field aura-radio-group aura-checkbox-group" aria-describedby="cg-hint"/.test(cg) || (cg.match(/name="cats"/g) || []).length !== 2 || !/<input[^>]*checked=""[^>]*value="b"/.test(cg) || /<input[^>]*checked=""[^>]*value="a"/.test(cg)) { console.log(label, 'CheckboxGroup:', cg); fail++; }
     }
+    /* 5.71 (Chamber-OS 191): actionsBar — split off into the bar box with the status; without actionsBarBelow, more
+     * actions after the others; without actionsBar, as before. */
+    {
+      const ph = (p: Record<string, unknown>) => m(e(A.PageHeader, Object.assign({ title: 'Invoice' }, p)));
+      const sp = ph({ actions: e('button', null, 'PDF'), actionsBar: e('button', { 'data-testid': 'pay' }, 'Pay now'), actionsBarBelow: 'sm', actionsStatus: 'Due', actionsFullWidthBelow: 'sm' });
+      const plain = ph({ actions: e('button', null, 'PDF'), actionsBar: e('button', null, 'Pay now') });
+      const old = ph({ actions: e('button', null, 'PDF'), actionsBarBelow: 'sm', actionsStatus: 'Due' });
+      const only = ph({ actionsBar: e('button', null, 'Pay now'), actionsBarBelow: 'md' });
+      if (!/class="aura-page-header aura-page-header--actions-full-below-sm aura-page-header--actions-bar-below-sm"/.test(sp) || !/<div class="aura-page-header__actions is-split"><button>PDF<\/button><div class="aura-page-header__bar"><div class="aura-page-header__status" role="status">Due<\/div><button data-testid="pay">Pay now<\/button><\/div><\/div>/.test(sp) || (sp.match(/data-testid="pay"/g) || []).length !== 1 || !/<div class="aura-page-header__actions"><button>PDF<\/button><button>Pay now<\/button><\/div>/.test(plain) || /bar-below|__bar|is-split|__status/.test(plain) || !/<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Due<\/div><button>PDF<\/button><\/div>/.test(old) || !/actions-bar-below-md"[^]*is-split"><div class="aura-page-header__bar"><button>Pay now/.test(only)) bad('191 PageHeader actionsBar:', sp, plain, old, only);
+    }
     /* 5.70 (Chamber-OS 186–190) */
     {
       const btn = m(e(A.Button, { 'aria-busy': true }, 'Refreshing')) + m(e(A.Button, { loading: true, 'aria-disabled': false, 'aria-busy': false }, 'Send')) + m(e(A.IconButton, { icon: 'pencil', label: 'Resend', 'aria-disabled': true }));

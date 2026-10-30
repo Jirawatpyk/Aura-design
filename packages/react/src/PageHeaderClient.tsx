@@ -15,11 +15,16 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
   const own = React.useRef<HTMLDivElement | null>(null);
   const merged = useMergedRef(ref, own);
   const bar = props.actionsBarBelow;
-  const hasActions = props.actions != null && props.actions !== false;
+  const hasActions =
+    (props.actions != null && props.actions !== false) || (props.actionsBar != null && props.actionsBar !== false);
+  /* 5.71: with actionsBar only that part is the bar. */
+  const split = props.actionsBar != null && props.actionsBar !== false;
   React.useEffect(
     function () {
       if ((bar !== 'sm' && bar !== 'md') || !hasActions || !own.current) return;
-      const el = own.current.querySelector<HTMLElement>(':scope > .aura-page-header__actions');
+      const el = own.current.querySelector<HTMLElement>(
+        split ? ':scope > .aura-page-header__actions > .aura-page-header__bar' : ':scope > .aura-page-header__actions',
+      );
       if (!el) return;
       const root = document.documentElement;
       let checked = false;
@@ -54,7 +59,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
         else root.style.removeProperty(NAME);
       };
     },
-    [bar, hasActions],
+    [bar, hasActions, split],
   );
   /* 5.46 (Chamber-OS 151): focusTitleOnMount — the heading takes focus once, when the header mounts, without scrolling. */
   const focusTitle = !!props.focusTitleOnMount;

@@ -11854,3 +11854,171 @@ test.describe('5.70: Chamber-OS 186–190', () => {
     await expect(page.getByTestId('zone').locator('.aura-upload')).toHaveCount(1);
   });
 });
+
+test.describe('5.71: Chamber-OS 191 — PageHeader actionsBar', () => {
+  const ID = (s: string) => 'aura-new-in-5-71-chamber-os-191--' + s;
+  const where = (page: Page) =>
+    page.evaluate(() => {
+      const box = (id: string) => {
+        const el = document.querySelector<HTMLElement>(`[data-testid=${id}]`)!;
+        const r = el.getBoundingClientRect();
+        return {
+          n: document.querySelectorAll(`[data-testid=${id}]`).length,
+          inBar: !!el.closest('.aura-page-header__bar'),
+          fixed:
+            !!el.closest('.aura-page-header__bar') &&
+            getComputedStyle(el.closest('.aura-page-header__bar')!).position === 'fixed',
+          top: Math.round(r.top),
+          left: Math.round(r.left),
+          width: Math.round(r.width),
+          height: Math.round(r.height),
+        };
+      };
+      const bar = document.querySelector<HTMLElement>('.aura-page-header__bar')!;
+      const b = bar.getBoundingClientRect();
+      const st = bar.querySelector('.aura-page-header__status');
+      return {
+        pdf: box('pdf'),
+        receipt: box('receipt'),
+        email: box('email'),
+        pay: box('pay'),
+        bar: {
+          position: getComputedStyle(bar).position,
+          left: Math.round(b.left),
+          right: Math.round(b.right),
+          fromBottom: Math.round(innerHeight - b.bottom),
+          top: b.top,
+          height: bar.offsetHeight,
+          status: st ? [st.getAttribute('role'), st.textContent, getComputedStyle(st).display] : null,
+          border: getComputedStyle(bar).borderTopWidth,
+        },
+        actionsFixed: getComputedStyle(document.querySelector('.aura-page-header__actions')!).position,
+        measured: document.documentElement.style.getPropertyValue('--aura-page-actions-height'),
+      };
+    });
+
+  test('191: at 390 only actionsBar is the fixed strip, with the status; the other actions stay in the header, full width', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('pay-bar'));
+    await settle(page);
+    const w = await where(page);
+    expect(w.bar).toMatchObject({
+      position: 'fixed',
+      left: 0,
+      right: 390,
+      fromBottom: 0,
+      status: ['status', 'Amount due ฿10,700.00 · due 22 Oct 2026', 'block'],
+      border: '1px',
+    });
+    expect(w.measured).toBe(w.bar.height + 'px');
+    expect(w.actionsFixed).toBe('static');
+    expect([w.pay.inBar, w.pay.fixed, w.pay.height >= 44]).toEqual([true, true, true]);
+    for (const k of ['pdf', 'receipt', 'email'] as const) {
+      expect([w[k].n, w[k].inBar], k).toEqual([1, false]);
+      expect(w[k].top, k).toBeLessThan(w.bar.top);
+    }
+    expect(w.pay.n).toBe(1);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    ).toBeLessThanOrEqual(0);
+    /* full width in the page (5.61's rule): the three share one row, edge to edge of the actions box */
+    const row = await page.evaluate(() => {
+      const a = document.querySelector('.aura-page-header__actions')!.getBoundingClientRect();
+      const r = (id: string) => document.querySelector(`[data-testid=${id}]`)!.getBoundingClientRect();
+      return [Math.round(r('pdf').left - a.left), Math.round(a.right - r('email').right), Math.round(a.width)];
+    });
+    expect(row[0]).toBe(0);
+    expect(row[1]).toBe(0);
+    expect(row[2]).toBeGreaterThan(300);
+    /* the page's end clears the strip */
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const last = (await page.getByTestId('last').boundingBox())!;
+    expect(last.y + last.height).toBeLessThanOrEqual((await where(page)).bar.top);
+    /* the trigger still opens its dialog */
+    await page.getByTestId('pay').click();
+    await expect(page.getByRole('dialog', { name: 'Pay invoice SC-2026-900001' })).toBeVisible();
+  });
+
+  test('191: on a BottomNav the strip sits on the nav', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('pay-bar-above-bottom-nav'));
+    await settle(page);
+    const nav = (await page.locator('nav.aura-bottomnav').boundingBox())!;
+    const w = await where(page);
+    expect(Math.abs(800 - w.bar.fromBottom - nav.y)).toBeLessThanOrEqual(1);
+  });
+
+  test('191: at 1280 and on a short screen all four are in the header row, in order; each node once', async ({
+    page,
+  }) => {
+    for (const [width, height] of [
+      [1280, 800],
+      [320, 180],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await story(page, ID('pay-bar'));
+      await settle(page);
+      const w = await where(page);
+      const k = width + 'x' + height;
+      expect(w.bar.position, k).not.toBe('fixed');
+      expect(w.bar.status![2], k).toBe('none');
+      expect(w.measured, k).toBe('');
+      for (const id of ['pdf', 'receipt', 'email', 'pay'] as const) expect(w[id].n, k + id).toBe(1);
+      if (width === 1280) {
+        expect(
+          [w.pdf.top, w.receipt.top, w.email.top, w.pay.top].every((t) => Math.abs(t - w.pdf.top) <= 1),
+          k,
+        ).toBe(true);
+        expect(w.pdf.left < w.receipt.left && w.receipt.left < w.email.left && w.email.left < w.pay.left, k).toBe(true);
+      }
+    }
+  });
+
+  test('191: floating look on the split bar; a hidden note and an IconButton in actionsBar keep the full-width rules; reduced motion', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('pay-bar-floating'));
+    await settle(page);
+    const f = await where(page);
+    expect([f.bar.position, f.bar.left, f.bar.right, f.bar.fromBottom]).toEqual(['fixed', 16, 374, 12]);
+    expect(
+      await page.evaluate(
+        () => getComputedStyle(document.querySelector('.aura-page-header__bar')!).borderTopLeftRadius,
+      ),
+    ).not.toBe('0px');
+    for (const [width, height] of [
+      [320, 180],
+      [390, 800],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await story(page, ID('pay-bar-extras'));
+      await settle(page);
+      const x = await page.evaluate(() => ({
+        scroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        note: Math.round(document.getElementById('pay-note')!.getBoundingClientRect().width),
+        icon: Math.round(document.querySelector('[data-testid=share]')!.getBoundingClientRect().width),
+      }));
+      expect(x.scroll, width + '').toBeLessThanOrEqual(0);
+      expect(x.note, width + '').toBeLessThanOrEqual(1);
+      expect(x.icon, width + '').toBe(44);
+    }
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect(
+      await page.evaluate(() => getComputedStyle(document.querySelector('.aura-page-header__bar')!).transitionDuration),
+    ).toMatch(/^0s/);
+  });
+
+  test('191: without actionsBar the header is as before (no split, no bar box)', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 727 });
+    await story(page, 'aura-new-in-5-48-chamber-os-153--primary-and-menu&args=lang:en');
+    expect(
+      await page.evaluate(() => [
+        document.querySelectorAll('.aura-page-header__actions.is-split, .aura-page-header__bar').length,
+        getComputedStyle(document.querySelector('.aura-page-header__actions')!).position,
+      ]),
+    ).toEqual([0, 'fixed']);
+  });
+});

@@ -105,6 +105,8 @@ for (const [name, A] of [
       tree(A.PageHeader.render({ title: 'Benefits', subtitle: 'What your plan includes', titleAddon: 'New', size: 'hero-lg' }, null)),
       /* 5.45 (Chamber-OS 150): actionsBarBelow is a class and a status node, still stateless. */
       tree(A.PageHeader.render({ title: 'Invoice', actions: 'Issue', actionsBarBelow: 'sm', actionsStatus: 'Total 10,700.00 THB' }, null)),
+      /* 5.71 (Chamber-OS 191): actionsBar splits the bar off, still stateless. */
+      tree(A.PageHeader.render({ title: 'Pay', actions: 'PDF', actionsBar: 'Pay now', actionsBarBelow: 'sm', actionsStatus: 'Due' }, null)),
       /* 5.27 (Chamber-OS 131): Container, a forwardRef component, rendered through its render function. */
       tree(
         A.Container.render(
@@ -153,6 +155,7 @@ for (const [name, A] of [
       '<div class="aura-page-header aura-page-header--actions-bar-below-sm">',
       '<div class="aura-page-header aura-page-header--hero-lg"><div class="aura-page-header__text"><div class="aura-page-header__title-row"><h1 class="aura-page-header__title">Benefits</h1><div class="aura-page-header__title-addon">New</div></div><div class="aura-page-header__subtitle">What your plan includes</div>',
       '<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Total 10,700.00 THB</div>Issue</div>',
+      '<div class="aura-page-header__actions is-split">PDF<div class="aura-page-header__bar"><div class="aura-page-header__status" role="status">Due</div>Pay now</div></div>',
     ])
       if (html.indexOf(want) < 0) fails.push(`${name}: display components: missing ${want} in ${html}`);
     /* 5.53 (Chamber-OS 165): full width on phones only. */

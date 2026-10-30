@@ -233,6 +233,13 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.71 (#191): only actionsBar is the phone strip; the other actions stay in the header. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-71-chamber-os-191--pay-bar');
+  await sleep(300);
+  x = await ex(`const b = document.querySelector('.aura-page-header__bar'), r = b.getBoundingClientRect(); return [getComputedStyle(b).position, Math.round(r.left), Math.round(r.right) === innerWidth, !!document.querySelector('[data-testid=pay]').closest('.aura-page-header__bar'), !!document.querySelector('[data-testid=pdf]').closest('.aura-page-header__bar'), document.documentElement.scrollWidth <= document.documentElement.clientWidth]`);
+  check(JSON.stringify(x) === '["fixed",0,true,true,false,true]', 'PageHeader actionsBar strip', x);
+
   /* 5.70 (#186–#190): cursor Pagination, a sortable Th, the Spinner and FileUpload's button. */
   await go('aura-new-in-5-70-chamber-os-186-190--cursor-pagination');
   x = await ex(`const n = document.querySelector('[data-testid=links] nav'); return [n.querySelectorAll('ol').length, n.querySelectorAll('[aria-disabled="true"]').length, n.querySelector('a[rel=next]').getAttribute('href')]`);

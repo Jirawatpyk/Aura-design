@@ -109,6 +109,11 @@ export interface PageHeaderProps
   /** 5.45: the bar's status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026"), shown only while the actions are
    * a bar, in a polite live region. */
   actionsStatus?: React.ReactNode | undefined;
+  /** 5.71 (Chamber-OS 191): with `actionsBarBelow`, only these become the phone bar — `actions` stay in the page (and
+   * `actionsFullWidthBelow` still applies to them). From the breakpoint up, and on a short screen, they sit after
+   * `actions` in the header row. Each node is rendered once at every width, never cloned. Without `actionsBarBelow`
+   * they are simply more actions, after `actions`. */
+  actionsBar?: React.ReactNode | undefined;
   /** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
   headingLevel?: 1 | 2 | 3 | undefined;
   /** The heading's id, for `aria-labelledby` on the page's region. */
@@ -149,9 +154,18 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
     props.title,
   );
   const hasActions = props.actions != null && props.actions !== false;
+  const hasBarActions = props.actionsBar != null && props.actionsBar !== false;
   /* No actions, no bar — and no space reserved for one at the page's end. */
   const bar =
-    hasActions && (props.actionsBarBelow === 'sm' || props.actionsBarBelow === 'md') ? props.actionsBarBelow : null;
+    (hasActions || hasBarActions) && (props.actionsBarBelow === 'sm' || props.actionsBarBelow === 'md')
+      ? props.actionsBarBelow
+      : null;
+  /* 5.71 (Chamber-OS 191): only actionsBar (with the status) goes in the bar; the rest stay in the header. */
+  const split = !!bar && hasBarActions;
+  const status =
+    bar && props.actionsStatus != null && props.actionsStatus !== false
+      ? h('div', { className: 'aura-page-header__status', role: 'status' }, props.actionsStatus)
+      : null;
   return h(
     'div',
     Object.assign(attrs, {
@@ -193,15 +207,15 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
         ? h('div', { className: cx('aura-page-header__meta', richMeta && 'aura-page-header__meta--rich') }, props.meta)
         : null,
     ),
-    props.actions != null && props.actions !== false
-      ? h(
-          'div',
-          { className: 'aura-page-header__actions' },
-          bar && props.actionsStatus != null && props.actionsStatus !== false
-            ? h('div', { className: 'aura-page-header__status', role: 'status' }, props.actionsStatus)
-            : null,
-          props.actions,
-        )
+    hasActions || hasBarActions
+      ? split
+        ? h(
+            'div',
+            { className: 'aura-page-header__actions is-split' },
+            props.actions,
+            h('div', { className: 'aura-page-header__bar' }, status, props.actionsBar),
+          )
+        : h('div', { className: 'aura-page-header__actions' }, status, props.actions, props.actionsBar)
       : null,
   );
 });

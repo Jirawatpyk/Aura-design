@@ -2245,6 +2245,11 @@ export interface PageHeaderProps extends Pick<React$1.HTMLAttributes<HTMLElement
 	/** 5.45: the bar's status line ("Total 10,700.00 THB incl. VAT · due 22 Oct 2026"), shown only while the actions are
 	 * a bar, in a polite live region. */
 	actionsStatus?: React$1.ReactNode | undefined;
+	/** 5.71 (Chamber-OS 191): with `actionsBarBelow`, only these become the phone bar — `actions` stay in the page (and
+	 * `actionsFullWidthBelow` still applies to them). From the breakpoint up, and on a short screen, they sit after
+	 * `actions` in the header row. Each node is rendered once at every width, never cloned. Without `actionsBarBelow`
+	 * they are simply more actions, after `actions`. */
+	actionsBar?: React$1.ReactNode | undefined;
 	/** Default 1. Use 2 when the page already has an h1 (e.g. in the AppShell bar). */
 	headingLevel?: 1 | 2 | 3 | undefined;
 	/** The heading's id, for `aria-labelledby` on the page's region. */
