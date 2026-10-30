@@ -451,11 +451,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       ) bad('Chamber-OS 156:', ti, ta, te, tn);
     }
     /* 5.49 (Chamber-OS 155): every short-screen height threshold in the shipped CSS is in rem (follows the browser's
-     * text size); none is left in px. 5.69: three more, ActionBar's edge strip (edge, edge-below-sm, -md). */
+     * text size); none is left in px. 5.69: three more, ActionBar's edge strip (edge, edge-below-sm, -md). 5.76: one
+     * more, the Dialog that scrolls as one box (Chamber-OS 194). */
     {
       const css = readFileSync(new URL('../dist/styles.css', import.meta.url), 'utf8');
       const rem = css.match(/(?:max|min)-height:\s*30(?:\.00125)?rem/g) || [];
-      if (rem.length !== 7 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
+      if (rem.length !== 8 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
     }
     /* 5.48 (Chamber-OS 153): actionsBarLook="floating" is a class beside the bar class; edge (default) adds none. */
     {

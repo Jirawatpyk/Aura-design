@@ -233,6 +233,14 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.76 (#194): on a screen 30rem tall or less a Dialog scrolls as one box, the footer at the end. */
+  await call('POST', S('/window/rect'), { width: 568, height: 320 });
+  await go('aura-new-in-5-76-chamber-os-194--short-screen');
+  await sleep(300);
+  x = await ex(`const d = document.querySelector('.aura-dialog'), b = document.querySelector('.aura-dialog__body'); return [innerHeight <= 480, getComputedStyle(d).overflowY, getComputedStyle(b).overflowX, d.scrollHeight > d.clientHeight, b.scrollHeight <= b.clientHeight + 1]`);
+  check(JSON.stringify(x) === '[true,"auto","auto",true,true]', 'Dialog on a short screen scrolls as one box', x);
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+
   /* 5.75 (visual audit set 1): a sortable header label on the line of a plain one; Blocked is a soft pill. */
   await go('aura-new-in-5-75-visual-audit-set-1--sortable-header');
   x = await ex(`const top = (s) => { const th = document.querySelector(s); const w = document.createTreeWalker(th, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) if (n.textContent.trim()) break; const r = document.createRange(); r.selectNodeContents(n); return r.getBoundingClientRect().top; }; return [Math.abs(top('[data-testid=sorted]') - top('[data-testid=plain]')) <= 0.5, getComputedStyle(document.querySelector('.aura-pill--blocked')).backgroundColor]`);

@@ -12380,3 +12380,115 @@ test.describe('5.75: visual audit set 1 — soft status pills, list options, lin
     expect(h.find((x) => x[0] === 'touch-tag')![1]).toBe(44);
   });
 });
+
+test.describe('5.76: Chamber-OS 194 — a Dialog scrolls as one box on a short screen', () => {
+  const ID = 'aura-new-in-5-76-chamber-os-194--short-screen';
+  const FIELDS = [
+    'Member',
+    'Invoice no.',
+    'Issue date',
+    'Due date',
+    'Amount',
+    'VAT',
+    'Discount',
+    'Reference',
+    'Contact email',
+    'Note',
+  ];
+  const layout = (page: Page) =>
+    page.evaluate(() => {
+      const d = document.querySelector('.aura-dialog')!,
+        b = document.querySelector('.aura-dialog__body')!;
+      const s = getComputedStyle(d),
+        bs = getComputedStyle(b);
+      return {
+        dOverflow: s.overflowY,
+        dScrolls: d.scrollHeight > d.clientHeight + 1,
+        bOverflow: bs.overflowY,
+        bOverflowX: bs.overflowX,
+        bWide: b.scrollWidth > b.clientWidth + 1,
+        bScrolls: b.scrollHeight > b.clientHeight + 1,
+        bodyH: b.getBoundingClientRect().height,
+        bodyContent: b.firstElementChild!.getBoundingClientRect().height,
+      };
+    });
+  const inView = (page: Page, sel: string) =>
+    page.evaluate((s) => {
+      const d = document.querySelector('.aura-dialog')!.getBoundingClientRect();
+      const r = document.activeElement!.closest(s) ? document.activeElement!.getBoundingClientRect() : null;
+      return !!r && r.top >= d.top - 0.5 && r.bottom <= d.bottom + 0.5 && r.height > 0;
+    }, sel);
+
+  for (const [w, h] of [
+    [320, 256],
+    [568, 320],
+    [1024, 400],
+  ] as const)
+    test(`194 (${w}×${h}): the dialog scrolls as one box; every field and both buttons can be reached and are shown`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await story(page, ID);
+      await expect(page.getByRole('dialog')).toBeVisible();
+      /* the first field gets focus on open, and it is shown */
+      await expect.poll(() => page.evaluate(() => document.activeElement!.tagName)).toBe('INPUT');
+      expect(await inView(page, 'input')).toBe(true);
+      const l = await layout(page);
+      /* one vertical scroller, the panel; the body is as tall as its content, and scrolls only sideways (a long URL) */
+      expect([l.dOverflow, l.dScrolls, l.bScrolls, l.bOverflowX]).toEqual(['auto', true, false, 'auto']);
+      if (w < 1000) {
+        expect(l.bWide).toBe(true);
+        await page.getByTestId('wide').evaluate((e) => (e.parentElement!.parentElement!.scrollLeft = 80));
+        expect(await page.locator('.aura-dialog__body').evaluate((e) => e.scrollLeft)).toBeGreaterThan(0);
+      }
+      /* the body has its full height, not 0: it holds all ten fields */
+      expect(l.bodyH).toBeGreaterThanOrEqual(l.bodyContent);
+      for (const f of FIELDS) {
+        await page.getByLabel(f, { exact: true }).focus();
+        expect(await inView(page, 'input')).toBe(true);
+      }
+      for (const b of ['cancel', 'issue']) {
+        await page.getByTestId(b).focus();
+        expect(await inView(page, 'button')).toBe(true);
+      }
+      /* the footer is at the end of the content: below the last field */
+      const [last, foot] = await page.evaluate(() => [
+        document.querySelector('.aura-dialog__body')!.getBoundingClientRect().bottom,
+        document.querySelector('.aura-dialog__foot')!.getBoundingClientRect().top,
+      ]);
+      expect(foot).toBeGreaterThanOrEqual(last);
+      /* a wheel over the body scrolls the dialog (nothing in the body holds it back): the body brought up to fill the
+       * dialog, the pointer in the middle of it */
+      const start = await page.locator('.aura-dialog').evaluate((d) => {
+        d.scrollTop = (d.querySelector('.aura-dialog__body') as HTMLElement).offsetTop;
+        return d.scrollTop;
+      });
+      const dd = (await page.locator('.aura-dialog').boundingBox())!;
+      expect(
+        await page.evaluate(
+          ([x, y]) => !!document.elementFromPoint(x!, y!)!.closest('.aura-dialog__body'),
+          [dd.x + dd.width / 2, dd.y + dd.height / 2],
+        ),
+      ).toBe(true);
+      await page.mouse.move(dd.x + dd.width / 2, dd.y + dd.height / 2);
+      await page.mouse.wheel(0, 200);
+      await expect.poll(() => page.locator('.aura-dialog').evaluate((d) => d.scrollTop)).toBeGreaterThan(start + 100);
+      await page.getByTestId('issue').focus();
+      /* Tab from the last button wraps inside the dialog (the trap still works) */
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => !!document.activeElement!.closest('.aura-dialog'))).toBe(true);
+    });
+
+  for (const [w, h] of [
+    [390, 844],
+    [1280, 900],
+  ] as const)
+    test(`194 (${w}×${h}): above 30rem the footer stays fixed under a scrolling body, as before`, async ({ page }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await story(page, ID);
+      await expect(page.getByRole('dialog')).toBeVisible();
+      const l = await layout(page);
+      expect([l.dOverflow, l.bOverflow]).toEqual(['hidden', 'auto']);
+      expect(l.dScrolls).toBe(false);
+    });
+});

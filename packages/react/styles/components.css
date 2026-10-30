@@ -2319,6 +2319,13 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @media (max-height: 30rem) { .aura-actionbar:not(.is-idle) { position: static; } }
 /* …and AppShell's top bar scrolls away with the page, so Shift+Tab never lands a field under it. */
 @media (max-height: 30rem) { .aura-shell__bar { position: static; } }
+/* 5.76 (Chamber-OS 194): on a screen 30rem tall or less (400% zoom, a phone on its side with the keyboard up) a Dialog
+ * scrolls as one box — head, body and footer in one flow, the footer at the end of the content — instead of fixing
+ * its head and footer around a body squeezed to nothing. Above that height, as before. */
+@media (max-height: 30rem) {
+  .aura-dialog { overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: var(--aura-space-4); } /* a focused field is shown with room around it */
+  .aura-dialog__body { flex: none; min-height: auto; overflow: auto; overscroll-behavior: auto; } /* as tall as its content, so only wide content (a long <pre> or URL) scrolls here, sideways; a wheel over it goes on to the dialog */
+}
 /* 5.48: wherever a BottomNav shows, a field scrolled into view (Tab) stops above it, not under it. */
 :root { scroll-padding-bottom: var(--aura-bottomnav-offset, 0px); }
 .aura-actionbar__inner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-2) var(--aura-space-3); min-height: 60px; box-sizing: border-box; padding-block: var(--aura-space-2); padding-inline: var(--aura-space-4) var(--aura-space-3); }
