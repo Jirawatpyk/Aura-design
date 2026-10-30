@@ -8727,7 +8727,7 @@ window.Aura = (() => {
   function writeHeight() {
     const root = document.documentElement;
     for (let i = edges.length - 1; i >= 0; i--)
-      if (getComputedStyle(edges[i]).position === "fixed") {
+      if (edges[i].getClientRects().length > 0 && edges[i].offsetHeight > 0 && getComputedStyle(edges[i]).position === "fixed") {
         root.style.setProperty(HEIGHT, edges[i].offsetHeight + "px");
         return;
       }

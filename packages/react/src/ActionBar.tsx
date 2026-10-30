@@ -9,12 +9,19 @@ import type { ActionBarProps } from './types.js';
  * 5.69 (Chamber-OS 185): `look="edge"` / `edgeBelow` make a viewport bar PageHeader's edge strip — fixed, the screen's
  * full width — and the page gains its height at the end, as PageHeader's bar does, so it still never covers it. */
 const HEIGHT = '--aura-actionbar-height';
-/* Edge bars on the page, oldest first: the newest one that is fixed right now writes its height to <html>. */
+/* Edge bars on the page, oldest first: the newest one that is fixed and rendered right now writes its height to
+ * <html>. 5.72 (Chamber-OS 192): a bar in a hidden tab panel (display: none on an ancestor) still computes
+ * position: fixed but has no box — it is skipped, or its 0px would win. Its ResizeObserver fires as it hides and
+ * shows, so the height follows the visible bar. */
 const edges: HTMLElement[] = [];
 function writeHeight() {
   const root = document.documentElement;
   for (let i = edges.length - 1; i >= 0; i--)
-    if (getComputedStyle(edges[i]!).position === 'fixed') {
+    if (
+      edges[i]!.getClientRects().length > 0 &&
+      edges[i]!.offsetHeight > 0 &&
+      getComputedStyle(edges[i]!).position === 'fixed'
+    ) {
       root.style.setProperty(HEIGHT, edges[i]!.offsetHeight + 'px');
       return;
     }

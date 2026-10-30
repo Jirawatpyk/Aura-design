@@ -233,6 +233,13 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.72 (#192): an edge bar in a hidden tab doesn't set the page's clearance; the visible one does. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-72-chamber-os-192--bar-per-tab');
+  await sleep(300);
+  x = await ex(`return [document.documentElement.style.getPropertyValue('--aura-actionbar-height') === document.querySelector('[aria-label="Save tier A"]').offsetHeight + 'px', document.querySelector('[aria-label="Save tier B"]').offsetHeight]`);
+  check(JSON.stringify(x) === '[true,0]', 'ActionBar hidden-tab bar skipped', x);
+
   /* 5.71 (#191): only actionsBar is the phone strip; the other actions stay in the header. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-71-chamber-os-191--pay-bar');

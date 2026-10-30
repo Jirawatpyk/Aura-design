@@ -12022,3 +12022,43 @@ test.describe('5.71: Chamber-OS 191 — PageHeader actionsBar', () => {
     ).toEqual([0, 'fixed']);
   });
 });
+
+test.describe('5.72: Chamber-OS 192 — an edge bar in a hidden tab', () => {
+  test('192: the page clearance follows the visible bar; a hidden one never wins; none visible removes it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, 'aura-new-in-5-72-chamber-os-192--bar-per-tab');
+    await settle(page);
+    const state = () =>
+      page.evaluate(() => {
+        const h = (name: string) => (document.querySelector(`[aria-label="${name}"]`) as HTMLElement).offsetHeight;
+        return {
+          v: document.documentElement.style.getPropertyValue('--aura-actionbar-height'),
+          a: h('Save tier A'),
+          b: h('Save tier B'),
+        };
+      });
+    let s = await state();
+    expect(s.a).toBeGreaterThan(0);
+    expect(s.b).toBe(0);
+    expect(s.v).toBe(s.a + 'px');
+    await page.getByTestId('show-b').click();
+    await page.waitForTimeout(150);
+    s = await state();
+    expect(s.a).toBe(0);
+    expect(s.b).toBeGreaterThan(0);
+    expect(s.v).toBe(s.b + 'px');
+    await page.getByTestId('show-none').click();
+    await page.waitForTimeout(150);
+    expect((await state()).v).toBe('');
+    await page.getByTestId('show-a').click();
+    await page.waitForTimeout(150);
+    s = await state();
+    expect(s.v).toBe(s.a + 'px');
+    /* a focused control near the end clears the visible strip */
+    expect(
+      await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).scrollPaddingBottom)),
+    ).toBeGreaterThanOrEqual(s.a);
+  });
+});
