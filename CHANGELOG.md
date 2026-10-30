@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.74.0 — 2026-10-30
+
+### Minor changes
+
+- 8295f8d: PageHeader: a phone bar whose content is all hidden (only the status left) takes no box and no page padding, and comes back when its content does (Chamber-OS 193).
+
 ## 5.73.0 — 2026-10-30
 
 ### Minor changes
