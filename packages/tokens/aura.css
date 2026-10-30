@@ -146,8 +146,11 @@
   --aura-table-head-bg: var(--aura-bg-canvas);
   --aura-progress-warning-fill: var(--aura-amber-700);
   --aura-nav-active-edge: transparent;
-  --aura-button-disabled-bg: var(--aura-zinc-200);
+  --aura-button-disabled-bg: var(--aura-zinc-100);
   --aura-button-disabled-fg: var(--aura-fg-tertiary);
+  --aura-button-disabled-border: var(--aura-border-default);
+  --aura-input-disabled-border: var(--aura-border-default);
+  --aura-calendar-range-bg: var(--aura-violet-100);
   --aura-control-checked-bg: var(--aura-accent-violet);
   --aura-control-checked-fg: var(--aura-white);
   --aura-scroll-shadow: rgba(8,8,10,0.14);
@@ -238,8 +241,11 @@
   --aura-table-head-bg: #1f1f22;
   --aura-progress-warning-fill: var(--aura-amber-300);
   --aura-nav-active-edge: var(--aura-violet-300);
-  --aura-button-disabled-bg: var(--aura-zinc-800);
+  --aura-button-disabled-bg: transparent;
   --aura-button-disabled-fg: var(--aura-fg-tertiary);
+  --aura-button-disabled-border: var(--aura-border-default);
+  --aura-input-disabled-border: var(--aura-zinc-700);
+  --aura-calendar-range-bg: var(--aura-bg-selected);
   --aura-control-checked-bg: var(--aura-violet-300);
   --aura-control-checked-fg: var(--aura-zinc-900);
   --aura-scroll-shadow: rgba(0,0,0,0.6);
@@ -331,8 +337,11 @@
     --aura-table-head-bg: #1f1f22;
     --aura-progress-warning-fill: var(--aura-amber-300);
     --aura-nav-active-edge: var(--aura-violet-300);
-    --aura-button-disabled-bg: var(--aura-zinc-800);
+    --aura-button-disabled-bg: transparent;
     --aura-button-disabled-fg: var(--aura-fg-tertiary);
+    --aura-button-disabled-border: var(--aura-border-default);
+    --aura-input-disabled-border: var(--aura-zinc-700);
+    --aura-calendar-range-bg: var(--aura-bg-selected);
     --aura-control-checked-bg: var(--aura-violet-300);
     --aura-control-checked-fg: var(--aura-zinc-900);
     --aura-scroll-shadow: rgba(0,0,0,0.6);

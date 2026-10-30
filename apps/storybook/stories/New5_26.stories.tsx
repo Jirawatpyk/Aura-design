@@ -25,10 +25,12 @@ export const ChoiceDescriptions: StoryObj = {
           { value: 'bill_first', label: 'Bill first', description: 'Needs a tax ID', disabled: true },
         ]}
       />
-      <Aura.RadioGroup
-        label="ใบแจ้งหนี้นี้สำหรับ"
-        options={[{ value: 'm', label: 'ค่าสมาชิก', description: 'ค่าสมาชิกรายปีของสมาชิก' }]}
-      />
+      <div lang="th">
+        <Aura.RadioGroup
+          label="ใบแจ้งหนี้นี้สำหรับ"
+          options={[{ value: 'm', label: 'ค่าสมาชิก', description: 'ค่าสมาชิกรายปีของสมาชิก' }]}
+        />
+      </div>
       <Aura.Checkbox description="Sent with the next invoice run.">Email the member</Aura.Checkbox>
     </div>
   ),

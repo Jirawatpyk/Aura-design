@@ -186,6 +186,7 @@ export function createTheme(opts: ThemeOptions): Theme {
   L['accent-violet'] = L['fg-accent'];
   L['focus-ring'] = fit(b[700], lightGrounds.concat([b[50]]), 3, -1);
   L['bg-selected'] = b[50];
+  L['calendar-range-bg'] = b[100]; // 5.79: a date range in the brand, a step above the selected fill
   L['status-progress-bg'] = b[100];
   L['status-progress-fg'] = fit(b[800], [b[100]], 4.5, -1);
   L['alert-info-bg'] = b[50];
@@ -233,6 +234,7 @@ export function createTheme(opts: ThemeOptions): Theme {
   D['control-checked-fg'] = onFill(D['control-checked-bg']);
   /* 5.75 (visual audit): the dark SideNav's active edge in the brand, not AURA's violet. */
   D['nav-active-edge'] = D['control-checked-bg'];
+  D['calendar-range-bg'] = D['bg-selected'];
   const shadowLight = INK,
     shadowDark = D['accent-violet'];
   if (o.primary === 'brand') {
@@ -302,6 +304,7 @@ export function createTheme(opts: ThemeOptions): Theme {
   check('dark', 'chart-1', 'chart-2 (lightness step)', 1.8, D['chart-1'], CHART_2);
   check('light', 'fg-primary', 'bg-selected', 4.5, INK, L['bg-selected']);
   check('dark', 'fg-primary', 'bg-selected', 4.5, '#ffffff', D['bg-selected']);
+  check('light', 'fg-primary', 'calendar-range-bg', 4.5, INK, L['calendar-range-bg']); // 5.79
   check('light', 'status-progress-fg', 'status-progress-bg', 4.5, L['status-progress-fg'], L['status-progress-bg']);
   check('dark', 'status-progress-fg', 'status-progress-bg', 4.5, D['status-progress-fg'], D['status-progress-bg']);
   check('light', 'alert-info-fg', 'alert-info-bg', 4.5, L['alert-info-fg'], L['alert-info-bg']);

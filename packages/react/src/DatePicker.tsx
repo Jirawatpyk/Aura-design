@@ -290,7 +290,7 @@ export const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(function
           }}
         />
       </div>
-      <table role="grid" className="aura-cal__grid" aria-label={monthTitle}>
+      <table role="grid" className="aura-cal__grid" aria-label={monthTitle} lang={th ? 'th' : undefined}>
         <thead>
           <tr>
             {weekdayNames.map(function (n: { short: string; long: string }, i: number) {

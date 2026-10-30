@@ -23,7 +23,7 @@ export const HeaderBar: StoryObj<{ withMenu: boolean }> = {
               <>
                 <Aura.Button variant="secondary">Issue credit note…</Aura.Button>
                 <Aura.Button size="sm">Record payment</Aura.Button>
-                <Aura.IconButton icon="ellipsis" label="More actions" />
+                <Aura.IconButton icon="ellipsis" variant="outline" label="More actions" />
               </>
             ) : (
               <>
@@ -55,7 +55,7 @@ export const BarButtons: StoryObj = {
                 Save draft
               </Aura.Button>
               <Aura.Button>Next</Aura.Button>
-              <Aura.IconButton icon="ellipsis" label="More actions" />
+              <Aura.IconButton icon="ellipsis" variant="outline" label="More actions" />
             </Aura.ActionBar>
           </div>
           {/* a field in a bar keeps its own size: its suffix IconButton isn't a bar button */}

@@ -4,7 +4,7 @@
   "DataTable only": 24576,
   "DatePicker only": 16384,
   "createTheme only": 3072,
-  "styles.css": 49152,
+  "styles.css": 50176,
   "aura.css (tokens)": 3584,
   "aura.bundle.js (window.Aura, minified)": 79872,
   "Card only": 1024,

@@ -4353,12 +4353,14 @@ test.describe('5.19: Chamber-OS addendum 20', () => {
       const news = page.getByRole('switch', { name: 'Newsletter' });
       await news.click();
       await expect(news).toHaveAttribute('aria-checked', 'false');
-      /* The lock sits at the row's end, the field icon's size and colour; the state keeps full colour (no fade). */
+      /* The lock sits 8px after the label (5.79, visual audit 17: it was at the row's end), the field icon's size and
+       * colour; the state keeps full colour (no fade). */
       const icon = row.locator('.aura-switch-row__icon');
       const ib = (await icon.boundingBox())!;
+      const lb = (await row.locator('.aura-choice__text').boundingBox())!;
       const fieldIcon = (await page.locator('.aura-input__icon').first().boundingBox())!;
       expect(Math.round(ib.width)).toBe(Math.round(fieldIcon.width));
-      expect(Math.abs(rb.x + rb.width - (ib.x + ib.width))).toBeLessThanOrEqual(1);
+      expect(Math.round(ib.x - (lb.x + lb.width))).toBe(8);
       const colours = await icon.evaluate((e) => {
         const probe = document.createElement('span');
         probe.style.color = 'var(--aura-fg-secondary)';
@@ -5740,20 +5742,21 @@ test.describe('5.30: visual polish', () => {
     expect(await css(page.locator('.aura-table__head').first(), 'background-color')).toBe('rgb(250, 250, 250)');
   });
 
-  test('a disabled filled button is a grey fill at full opacity; outline buttons keep the fade', async ({ page }) => {
+  test('a disabled button is one faint look at full opacity, whatever its variant (5.79: it was a grey fill for filled ones and a fade for outline ones)', async ({
+    page,
+  }) => {
     for (const theme of ['light', 'dark'] as const) {
       await story(page, ID, theme);
-      for (const name of ['Disabled primary', 'Disabled danger', 'Disabled creative']) {
+      const fill = theme === 'light' ? 'rgb(244, 244, 245)' : 'rgba(0, 0, 0, 0)';
+      for (const name of ['Disabled primary', 'Disabled danger', 'Disabled creative', 'Disabled secondary']) {
         const b = page.getByRole('button', { name });
         expect(await css(b, 'opacity')).toBe('1');
-        expect(await css(b, 'background-color')).toBe(theme === 'light' ? 'rgb(228, 228, 231)' : 'rgb(39, 39, 42)');
-        expect(await css(b, 'box-shadow')).toBe('none');
+        expect(await css(b, 'background-color')).toBe(fill);
       }
-      expect(await css(page.getByRole('button', { name: 'Disabled secondary' }), 'opacity')).toBe('0.5');
-      /* An aria-disabled (focusable, gated) primary gets the same grey fill, also on hover. */
+      /* An aria-disabled (focusable, gated) primary looks the same, also on hover. */
       const gated = page.getByRole('button', { name: 'Gated primary' });
       await gated.hover();
-      expect(await css(gated, 'background-color')).toBe(theme === 'light' ? 'rgb(228, 228, 231)' : 'rgb(39, 39, 42)');
+      expect(await css(gated, 'background-color')).toBe(fill);
       expect(await css(gated, 'opacity')).toBe('1');
     }
   });
@@ -12819,5 +12822,202 @@ test.describe('5.78: visual audit set 2 — phones', () => {
       await story(page, id);
       expect([id, await page.evaluate(() => document.documentElement.scrollWidth)]).toEqual([id, 390]);
     }
+  });
+});
+
+test.describe('5.79: visual audit set 3 — component by component', () => {
+  const ID = (s: string) => 'aura-new-in-5-79-visual-audit-set-3--' + s;
+
+  test('item 6: one disabled look for every variant (a faint fill, edge and label at full opacity); ghost has neither fill nor edge', async ({
+    page,
+  }) => {
+    for (const theme of ['light', 'dark'] as const) {
+      await story(page, ID('set-three'), theme);
+      const r = await page.evaluate(() => {
+        const edge = getComputedStyle(document.documentElement)
+          .getPropertyValue('--aura-button-disabled-border')
+          .trim();
+        const probe = document.createElement('i');
+        probe.style.color = edge;
+        document.body.appendChild(probe);
+        const edgeRgb = getComputedStyle(probe).color;
+        probe.remove();
+        return Object.fromEntries(
+          [...document.querySelectorAll<HTMLElement>('[data-testid=disabled] .aura-btn')].map((b) => {
+            const s = getComputedStyle(b);
+            const hasEdge =
+              (parseFloat(s.borderTopWidth) > 0 && s.borderTopColor === edgeRgb) ||
+              (/inset/.test(s.boxShadow) && s.boxShadow.indexOf(edgeRgb) >= 0);
+            return [
+              b.dataset.variant!,
+              {
+                look: [s.backgroundColor, s.color, s.opacity].join(' | '),
+                hasEdge,
+                shadow: s.boxShadow,
+                border: s.borderTopColor,
+              },
+            ];
+          }),
+        );
+      });
+      const same = r.primary.look;
+      expect([r.secondary.look, r.danger.look, r.creative.look, r.gated.look]).toEqual([same, same, same, same]);
+      expect(same.endsWith('| 1')).toBe(true);
+      expect([r.primary.hasEdge, r.secondary.hasEdge, r.danger.hasEdge, r.creative.hasEdge, r.gated.hasEdge]).toEqual([
+        true,
+        true,
+        true,
+        true,
+        true,
+      ]);
+      expect([r.ghost.look.startsWith('rgba(0, 0, 0, 0)'), r.ghost.shadow]).toEqual([true, 'none']);
+      /* not the neutral To Do pill's fill */
+      const pill = await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--aura-status-neutral-bg').trim(),
+      );
+      expect(same.split(' | ')[0]).not.toBe(pill);
+    }
+  });
+
+  test('item 10: in an AppShell on a desktop the edge strip starts after the sidebar (rail when collapsed, the right in RTL), its contents on the content padding', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const read = () =>
+      page.evaluate(() => {
+        const bar = document.querySelector('.aura-actionbar')!.getBoundingClientRect();
+        const nav = document.querySelector('.aura-shell__nav')!.getBoundingClientRect();
+        const inner = getComputedStyle(document.querySelector('.aura-actionbar__inner')!);
+        const head = document.querySelector('[data-testid=heading]')!.getBoundingClientRect();
+        const status = document.querySelector('.aura-actionbar__status')!.getBoundingClientRect();
+        return {
+          barL: Math.round(bar.left),
+          barR: Math.round(bar.right),
+          navL: Math.round(nav.left),
+          navR: Math.round(nav.right),
+          pad: inner.paddingLeft,
+          headL: Math.round(head.left),
+          headR: Math.round(head.right),
+          statusL: Math.round(status.left),
+          statusR: Math.round(status.right),
+        };
+      });
+    await story(page, ID('shell-edge'));
+    let r = await read();
+    expect([r.barL, r.barR, r.pad, r.statusL]).toEqual([r.navR, 1280, '32px', r.headL]);
+    await story(page, ID('shell-edge-collapsed'));
+    r = await read();
+    expect([r.barL, r.statusL]).toEqual([r.navR, r.headL]);
+    expect(r.navR).toBeLessThan(120);
+    await story(page, ID('shell-edge-rtl'));
+    r = await read();
+    expect([r.barL, r.barR, r.statusR]).toEqual([0, r.navL, r.headR]);
+    /* below lg (no sidebar) the strip is the screen's width, as before */
+    await page.setViewportSize({ width: 800, height: 800 });
+    await story(page, ID('shell-edge'));
+    r = await read();
+    expect([r.barL, r.barR]).toEqual([0, 800]);
+  });
+
+  test('items 15–17: a list box shows its rows; wide chips keep their labels; a locked switch has its lock by the label', async ({
+    page,
+  }) => {
+    await story(page, ID('set-three'));
+    const r = await page.evaluate(() => {
+      const sel = document.querySelector<HTMLSelectElement>('[data-testid=listbox] select')!;
+      const chips = [...document.querySelectorAll<HTMLElement>('[data-testid=chips] .aura-combo__chip-label')].map(
+        (l) => l.clientWidth >= Math.min(l.scrollWidth, 100), // whole, or about 12 characters — not "V.."
+      );
+      const label = document.querySelector('[data-testid=locked] .aura-choice__text')!.getBoundingClientRect();
+      const lock = document.querySelector('[data-testid=locked] .aura-switch-row__icon')!.getBoundingClientRect();
+      return {
+        rows: sel.scrollHeight <= sel.clientHeight + 1 && sel.clientHeight > 80,
+        chevron: getComputedStyle(document.querySelector('[data-testid=listbox] .aura-select__chevron')!).display,
+        chips,
+        lockGap: Math.round(lock.left - label.right),
+      };
+    });
+    expect(r.rows).toBe(true);
+    expect(r.chevron).toBe('none');
+    expect(r.chips).toEqual([true, true]);
+    expect(r.lockGap).toBeLessThanOrEqual(12);
+  });
+
+  test('item 18: a menu of plain labels has no icon gap, and opens on its trigger start when ending on it would cross the screen', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID('set-three'));
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await expect(page.getByRole('menu')).toBeVisible();
+    const r = await page.evaluate(() => {
+      const t = document.querySelector('[data-testid=menu] .aura-btn')!.getBoundingClientRect();
+      const m = document.querySelector('.aura-menu')!.getBoundingClientRect();
+      const item = document.querySelector('.aura-menu__item')!;
+      const lab = item.querySelector('.aura-menu__label')!.getBoundingClientRect();
+      return {
+        blanks: document.querySelectorAll('.aura-menu .aura-menu__blank').length,
+        menuL: Math.round(m.left),
+        trigL: Math.round(t.left),
+        labelPad: Math.round(lab.left - item.getBoundingClientRect().left),
+      };
+    });
+    expect(r.blanks).toBe(0);
+    expect(r.menuL).toBe(r.trigL);
+    expect(r.labelPad).toBe(8);
+  });
+
+  test('item 19: file types read as formats; an outline badge has a quieter edge; a date range is a visible band', async ({
+    page,
+  }) => {
+    await story(page, ID('set-three'));
+    const r = await page.evaluate(() => {
+      const hint = document.querySelector('[data-testid=upload]')!.textContent!;
+      const b = getComputedStyle(document.querySelector('[data-testid=badges] .aura-badge')!);
+      const day = document.querySelector('[data-testid=range] td.is-in-range')!;
+      return { hint, badge: [b.color, b.borderTopColor], range: getComputedStyle(day).backgroundColor };
+    });
+    expect(r.hint).toContain('PNG, JPEG, SVG, PDF');
+    expect(r.hint).not.toMatch(/IMAGE\//);
+    expect(r.badge[1]).not.toBe(r.badge[0]);
+    expect(r.range).toBe('rgb(237, 233, 254)');
+  });
+
+  test('Thai: the calendar is lang="th" with a Thai locale and its weekday row is 13px', async ({ page }) => {
+    await story(page, ID('set-three'));
+    const r = await page.evaluate(() => {
+      const g = document.querySelector('[data-testid=th] .aura-cal__grid')!;
+      return [
+        g.getAttribute('lang'),
+        getComputedStyle(g.querySelector('th')!).fontSize,
+        document.querySelector('[data-testid=range] .aura-cal__grid')!.getAttribute('lang'),
+      ];
+    });
+    expect(r).toEqual(['th', '13px', null]);
+  });
+
+  test('5.78 carry-over: between the bar and full-width breakpoints every button in the row is radius-md', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 700, height: 700 });
+    await story(page, ID('mixed-radius'));
+    const r = await page.evaluate(() => {
+      const md = getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim();
+      return [...document.querySelectorAll('.aura-page-header__actions .aura-btn')].map(
+        (b) => getComputedStyle(b).borderTopLeftRadius === md,
+      );
+    });
+    expect(r).toEqual([true, true]);
+  });
+
+  test('landing: the launch page shows with its own styles (an icon 8px from its card title)', async ({ page }) => {
+    await story(page, 'aura-new-in-4-4--landing');
+    expect(
+      await page
+        .locator('.lp-card-title')
+        .first()
+        .evaluate((e) => getComputedStyle(e).columnGap),
+    ).toBe('8px');
+    expect(await page.evaluate(() => getComputedStyle(document.body).fontSize)).not.toBe('15px');
   });
 });

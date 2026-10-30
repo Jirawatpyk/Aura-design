@@ -186,6 +186,19 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.79 — visual audit, set 3 (component by component)
+
+- **One disabled look for every Button variant:** a faint fill (`--aura-button-disabled-bg`: zinc-100 light, none in dark), a faint edge (`--aura-button-disabled-border` — the variant's own border, or 1px inside for primary and danger) and the tertiary label, at full opacity — primary, secondary, danger, creative and `aria-disabled` alike; a ghost button has neither fill nor edge. (5.30 gave filled buttons a grey fill that read as a To Do pill and faded outline ones.)
+- **ActionBar `look="edge"` in an AppShell on a desktop** starts after the sidebar (the rail width when collapsed; the right edge in RTL) and lines its contents up with the content's 32px padding (not with `contentPadding={false}`), instead of running under the sidebar. It reads the sidebar's width from `--aura-sidenav-width` / `--aura-sidenav-rail-width`: to change it, set the token on `.aura-shell` or `:root`, not on the nav — and a custom `nav` set them to its width. Outside an AppShell it keeps the screen's width; `edgeBelow` is unchanged (no sidebar there).
+- **A list box** (`<Select multiple>` or `size` > 1) shows its rows, as tall as they need, without the chevron.
+- **Combobox `multiple`:** a chip no longer shrinks to "V.."; it keeps its label and moves to the next line (a label wider than the field still ends in "…").
+- **Switch with an `icon`** (a locked, read-only switch): the lock sits 8px after the label, not at the row's far end. Its colours stay as 5.19 set them.
+- **Menu / DropdownMenu:** a menu whose items have no icon, check box or radio has no empty icon column; it opens on its trigger's left edge when ending on its right would cross the screen (LTR; positioning stays physical, as before); and it is lifted with `--aura-shadow-overlay`, as Popover and the list boxes.
+- **Small fixes:** FileUpload's hint names formats (PNG, JPEG, SVG, DOCX, XLSX), not "IMAGE/PNG"; an outline Badge has a quieter edge (its colour at 45%), so it doesn't read as a secondary Button; a date range is a violet-100 band in light (`--aura-calendar-range-bg`, the brand's 100 step in `createTheme`), visible on white; a disabled field's edge shows in dark (`--aura-input-disabled-border`, zinc-700).
+- **Thai:** a Calendar with a Thai locale carries `lang="th"` and its weekday row is 13px; two-line Thai SideNav labels get room between lines; Combobox options have fixed line heights, so Thai and English rows are spaced alike.
+- **PageHeader:** where `actionsFullWidthBelow` reaches wider than `actionsBarBelow`, every button in the row is `radius-md` between the two breakpoints (5.78 left the bar's buttons as pills there).
+- **Stories:** the ⋯ beside outline buttons in action rows is `variant="outline"` (keep it so in an action row); the launch page shows with its own styles.
+
 ## 5.78 — visual audit, set 2 (phones)
 
 - **Bottom strips on a phone follow one rule:** ActionBar's edge strip (`look="edge"`, `edgeBelow`) now lays out as PageHeader's bar (5.48) — the status on its own row at the top, the actions sharing the row under it (an IconButton keeps its square; labels too long to share take a row each, as PageHeader's) — and both strips are 16px from either side, the page's phone gutter (they were 16 and 12). `edgeBelow="md"` follows it up to 768px. A single label wider than the screen still overflows, as in PageHeader's strip — keep bar labels short.

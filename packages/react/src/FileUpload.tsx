@@ -32,6 +32,24 @@ function describeAccept(accept: string | undefined, t: AuraStrings): string {
       a = a.trim();
       if (a === 'image/*') return t.images;
       if (a === 'application/pdf') return 'PDF';
+      /* 5.79 (visual audit 19): a media type reads as its format — image/png → PNG, image/svg+xml → SVG, text/csv →
+       * CSV — not "IMAGE/PNG". */
+      const known: Record<string, string> = {
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPTX',
+        'application/msword': 'DOC',
+        'application/vnd.ms-excel': 'XLS',
+        'application/vnd.ms-powerpoint': 'PPT',
+        'text/plain': 'TXT',
+      };
+      if (known[a]) return known[a]!;
+      const slash = a.indexOf('/');
+      if (slash > 0 && a.slice(slash + 1) !== '*')
+        a = a
+          .slice(slash + 1)
+          .replace(/^(?:vnd\.|x-)/, '')
+          .replace(/\+xml$/, '');
       return a.replace(/^\./, '').toUpperCase();
     })
     .filter(function (x: string, i: number, arr: string[]) {

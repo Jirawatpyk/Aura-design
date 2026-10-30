@@ -96,7 +96,10 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
         top = r.top - above - 4;
       } else maxHeight = below;
     }
-    const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+    /* End-aligned with the trigger; where that would cross the screen's start, start-aligned with it instead (5.79,
+     * visual audit 18: it sat 8px off a trigger at the left edge), still 8px inside the screen. */
+    const endAligned = r.right - mw;
+    const left = Math.max(8, Math.min(endAligned >= 8 ? endAligned : r.left, window.innerWidth - mw - 8));
     setPos(function (p) {
       return p && p.top === top && p.left === left && p.maxHeight === maxHeight
         ? p
@@ -211,6 +214,11 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
     });
     return out;
   }
+  /* 5.79 (visual audit 18): the icon column is kept only when some item has something in it (an icon, a check box, a
+   * radio); a menu of plain labels starts them at the item's padding. */
+  const anyLead = items.some(function (it: MenuItem) {
+    return !it.separator && (!!it.icon || it.type === 'radio' || it.checked !== undefined);
+  });
   function renderItem(it: MenuItem, i: number) {
     if (it.separator) return <div key={'s' + i} role="separator" className="aura-menu__sep" />;
     const isRadio = it.type === 'radio';
@@ -225,9 +233,9 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(function Menu(pr
       </span>
     ) : it.icon ? (
       <Icon name={it.icon} />
-    ) : (
+    ) : anyLead ? (
       <span className="aura-menu__blank" />
-    );
+    ) : null;
     const body = [
       <React.Fragment key="l">{lead}</React.Fragment>,
       <span key="t" className="aura-menu__label">

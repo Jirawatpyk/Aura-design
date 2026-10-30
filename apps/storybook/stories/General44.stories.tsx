@@ -5,6 +5,9 @@ import { Aura } from './aura';
 import { App as SettingsPage } from '../../../packages/react/examples/settings/App.js';
 import { App as LandingPage } from '../../../packages/react/examples/landing/App.js';
 import '../../../packages/react/examples/settings/pilot.css';
+/* 5.79 (visual audit, landing): the launch page's own styles, loaded only while its story shows (its `body` rule left
+ * out, so other stories keep theirs) — the page was shown without them (icons on the card titles, the sections). */
+import landingCss from '../../../packages/react/examples/landing/landing.css?raw';
 
 const meta: Meta = { title: 'AURA/New in 4.4' };
 export default meta;
@@ -69,4 +72,4 @@ export const ThemedStory: StoryObj = {
   ),
 };
 export const Settings: StoryObj = { name: 'Pilot: settings page', parameters: { layout: 'fullscreen' }, decorators: [(S) => <div style={{ margin: -24 }}><S /></div>], render: () => <SettingsPage /> };
-export const Landing: StoryObj = { name: 'Pilot: launch page', parameters: { layout: 'fullscreen' }, decorators: [(S) => <div style={{ margin: -24 }}><S /></div>], render: () => <LandingPage /> };
+export const Landing: StoryObj = { name: 'Pilot: launch page', parameters: { layout: 'fullscreen' }, decorators: [(S) => <div style={{ margin: -24 }}><S /></div>], render: () => (<><style>{landingCss.replace(/^body \{[^}]*\}\n?/m, '')}</style><LandingPage /></>) };

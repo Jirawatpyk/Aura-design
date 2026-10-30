@@ -50,18 +50,28 @@ button.aura-btn--secondary[aria-disabled='true']:hover, button.aura-btn--ghost[a
 button.aura-btn--danger-secondary[aria-disabled='true']:hover { background: transparent; }
 button.aura-btn--danger[aria-disabled='true']:hover { background: var(--aura-button-danger-bg); }
 button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-shadow-creative); transform: none; }
-/* 5.30: a disabled filled button (primary, danger, creative) is a quiet grey fill with muted text, not a faded copy of
- * itself — faded ink read as a separate grey button, faded red as pink. Outline and ghost buttons keep the fade. */
-.aura-btn:is(.aura-btn--primary, .aura-btn--danger, .aura-btn--creative):is(:disabled, [aria-disabled='true']:not(.is-loading)),
-.aura-btn:is(.aura-btn--primary, .aura-btn--danger, .aura-btn--creative):is(:disabled, [aria-disabled='true']:not(.is-loading)):hover {
-  opacity: 1; background: var(--aura-button-disabled-bg); color: var(--aura-button-disabled-fg); border-color: transparent; box-shadow: none;
+/* 5.30: a disabled button is not a faded copy of itself (faded ink read as a separate grey button, faded red as pink).
+ * 5.79: one look for every variant — see below. */
+.aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)),
+.aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)):hover {
+  opacity: 1; background: var(--aura-button-disabled-bg); color: var(--aura-button-disabled-fg); border-color: var(--aura-button-disabled-border); box-shadow: none;
 }
+/* …a variant without a border of its own (primary, danger) draws the same edge inside, so none is edgeless */
+.aura-btn.aura-btn:is(.aura-btn--primary, .aura-btn--danger):is(:disabled, [aria-disabled='true']:not(.is-loading)),
+.aura-btn.aura-btn:is(.aura-btn--primary, .aura-btn--danger):is(:disabled, [aria-disabled='true']:not(.is-loading)):hover {
+  box-shadow: inset 0 0 0 1px var(--aura-button-disabled-border);
+}
+/* 5.79 (visual audit 6): one disabled look for every variant — a faint fill, a faint edge, the tertiary label — so a
+ * disabled primary doesn't read as a To Do pill and a disabled outline button isn't a crisp white one in dark. A ghost
+ * button stays without fill or edge. */
+.aura-btn.aura-btn.aura-btn--ghost:is(:disabled, [aria-disabled='true']:not(.is-loading)),
+.aura-btn.aura-btn.aura-btn--ghost:is(:disabled, [aria-disabled='true']:not(.is-loading)):hover { background: transparent; border-color: transparent; box-shadow: none; }
 /* Forced colours drop the fills: filled buttons get a 1px edge (as outline buttons have), and a disabled or gated one
  * (still focusable) shows GrayText and keeps the fade, without changing size. */
 @media (forced-colors: active) {
   .aura-btn:is(.aura-btn--primary, .aura-btn--danger) { border: 1px solid ButtonText; }
-  .aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)),
-  .aura-btn.aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)):hover { color: GrayText; border-color: GrayText; opacity: var(--aura-disabled-opacity); }
+  .aura-btn.aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)),
+  .aura-btn.aura-btn.aura-btn:is(:disabled, [aria-disabled='true']:not(.is-loading)):hover { color: GrayText; border-color: GrayText; opacity: var(--aura-disabled-opacity); } /* 5.79: one class more, over the ghost rule */
 }
 .aura-btn.is-loading:active { transform: none; }
 
@@ -295,7 +305,7 @@ a.aura-table__sort { text-decoration: none; }
   position: fixed; z-index: var(--aura-z-menu); min-width: 200px; padding: var(--aura-space-1); overflow-y: auto; overscroll-behavior: contain;
   background: var(--aura-bg-surface); color: var(--aura-fg-primary);
   border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-md);
-  box-shadow: var(--aura-shadow-enterprise);
+  box-shadow: var(--aura-shadow-overlay); /* 5.79 (visual audit 18): lifted as Popover and the list boxes are; its light edge alone was faint */
   font-family: var(--font-sans); font-size: max(13px, .8125rem);
 }
 .aura-menu__item {
@@ -583,7 +593,7 @@ a.aura-icon-btn { text-decoration: none; }
  * Field). */
 .aura-field:not(.is-disabled) .aura-input:has(> .aura-input__control[aria-invalid="true"]:not(:disabled)),
 .aura-field:not(.is-disabled) .aura-textarea[aria-invalid="true"]:not(:disabled) { border-color: var(--aura-border-danger); }
-.aura-field.is-disabled .aura-input { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); }
+.aura-field.is-disabled .aura-input { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-input-disabled-border); }
 .aura-field.is-disabled .aura-input__control { cursor: not-allowed; }
 /* A read-only text field. Only an input: `:read-only` also matches any element that isn't editable — a
  * Select's trigger <button> — which painted every custom Select with the disabled ground (5.16.1, Chamber-OS 109). */
@@ -593,13 +603,18 @@ a.aura-icon-btn { text-decoration: none; }
 
 .aura-textarea { display: block; padding: 10px var(--aura-space-3); min-height: 96px; line-height: 1.6; resize: vertical; outline: none; }
 .aura-textarea:focus { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; border-color: var(--aura-border-strong); }
-.aura-field.is-disabled .aura-textarea { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); }
+.aura-field.is-disabled .aura-textarea { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-input-disabled-border); }
 
 .aura-select .aura-input__control { padding-right: calc(var(--aura-space-3) + var(--aura-icon-sm) + var(--aura-space-2)); cursor: pointer; }
 .aura-select__chevron { position: absolute; right: var(--aura-space-3); color: var(--aura-fg-secondary); pointer-events: none; }
 .aura-select select:invalid, .aura-select select:has(option[value=""]:checked) { color: var(--aura-fg-tertiary); }
 /* 5.3: the field is a button over an invisible <select> (forms, refs, events); the list is AURA's, like Combobox. */
 .aura-select option { color: var(--aura-fg-primary); background: var(--aura-bg-input); }
+/* 5.79 (visual audit 15): a list box (multiple, or size > 1) shows its rows — as tall as they need, no chevron — instead
+ * of being squeezed into a one-line field with its third option cut in half. */
+.aura-select .aura-input__control:is([multiple], [size]:not([size='0'], [size='1'])) { height: auto; padding: var(--aura-space-1) var(--aura-space-2); overflow-y: auto; cursor: default; }
+.aura-select:has(> .aura-input__control:is([multiple], [size]:not([size='0'], [size='1']))) .aura-select__chevron { display: none; }
+.aura-select .aura-input__control:is([multiple], [size]:not([size='0'], [size='1'])) option { padding: var(--aura-space-1) var(--aura-space-2); border-radius: var(--aura-radius-xs); }
 .aura-select--custom { position: relative; }
 .aura-select__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; pointer-events: none; appearance: none; }
 .aura-select__trigger { display: flex; align-items: center; text-align: start; background: none; border: 0; color: inherit; font: inherit; width: 100%; min-width: 0; }
@@ -659,7 +674,7 @@ a.aura-icon-btn { text-decoration: none; }
 /* 5.19 (Chamber-OS 113): a read-only switch keeps its colours (a locked "on" reads as on at full contrast) and stays
  * focusable; only the pointer says it won't change. The row's icon (a lock) sits at its end, like a field's icon. */
 .aura-switch-row.is-readonly, .aura-switch-row.is-readonly .aura-switch, .aura-switch-row.is-readonly .aura-choice__label { cursor: default; }
-.aura-switch-row__icon { flex: none; margin-inline-start: auto; margin-top: 2px; width: var(--aura-icon-sm); height: var(--aura-icon-sm); color: var(--aura-fg-secondary); }
+.aura-switch-row__icon { flex: none; margin-inline-start: calc(-1 * var(--aura-space-1)); margin-top: 2px; /* 5.79 (visual audit 17): beside the label it belongs to, 8px after it, not at the row's far end */  width: var(--aura-icon-sm); height: var(--aura-icon-sm); color: var(--aura-fg-secondary); }
 
 /* ---------- Alerts & toasts ---------- */
 .aura-alert {
@@ -1051,8 +1066,8 @@ a.aura-tab { text-decoration: none; }
 .aura-combo__option.is-selected { font-weight: 500; }
 .aura-combo__option.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-combo__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.aura-combo__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aura-combo__desc { font-size: max(12px, .75rem); line-height: 1.5; color: var(--aura-fg-secondary); }
+.aura-combo__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: max(20px, 1.25rem); }
+.aura-combo__desc { font-size: max(12px, .75rem); line-height: max(18px, 1.125rem); color: var(--aura-fg-secondary); } /* 5.79: fixed line heights, so a Thai row and an English row are spaced alike (normal follows each font) */
 /* Same specificity as `.aura-combo__option > .aura-icon` above and later in the file, so it wins by order (4.18). */
 .aura-combo__option > .aura-combo__check { color: var(--aura-fg-accent); }
 /* 5.16 (Chamber-OS 105): option groups under a heading. */
@@ -1095,9 +1110,9 @@ a.aura-tab { text-decoration: none; }
 .aura-cal__day.is-selected { background: var(--aura-control-checked-bg); color: var(--aura-control-checked-fg); box-shadow: none; }
 .aura-cal__day:disabled, .aura-cal__day[aria-disabled='true'] { opacity: var(--aura-disabled-opacity); cursor: not-allowed; background: transparent; text-decoration: line-through; }
 .aura-cal__day:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: 1px; }
-.aura-cal__grid td.is-in-range { background: var(--aura-bg-selected); }
-.aura-cal__grid td.is-range-start { background: linear-gradient(to right, transparent 50%, var(--aura-bg-selected) 50%); }
-.aura-cal__grid td.is-range-end { background: linear-gradient(to left, transparent 50%, var(--aura-bg-selected) 50%); }
+.aura-cal__grid td.is-in-range { background: var(--aura-calendar-range-bg); } /* 5.79 (visual audit 19) */
+.aura-cal__grid td.is-range-start { background: linear-gradient(to right, transparent 50%, var(--aura-calendar-range-bg) 50%); }
+.aura-cal__grid td.is-range-end { background: linear-gradient(to left, transparent 50%, var(--aura-calendar-range-bg) 50%); }
 .aura-cal__grid td.is-range-start.is-range-end { background: none; }
 .aura-cal__years { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--aura-space-1); }
 .aura-cal__year {
@@ -1652,7 +1667,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-badge--success { background: var(--aura-alert-success-bg); color: var(--aura-alert-success-fg); }
 .aura-badge--warning { background: var(--aura-alert-warning-bg); color: var(--aura-alert-warning-fg); }
 .aura-badge--danger { background: var(--aura-alert-danger-bg); color: var(--aura-alert-danger-fg); }
-.aura-badge.is-outline { background: transparent; border-color: currentColor; }
+.aura-badge.is-outline { background: transparent; border-color: currentColor; border-color: color-mix(in srgb, currentColor 45%, transparent); } /* 5.79 (visual audit 19): a quieter edge, so an outline badge doesn't read as a secondary button */
 .aura-badge--neutral.is-outline { border-color: var(--aura-border-control); }
 .aura-badge.is-solid { background: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); }
 .aura-badge--danger.is-solid { background: var(--aura-status-blocked-solid-bg); color: var(--aura-status-blocked-solid-fg); }
@@ -1791,6 +1806,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-combo__chips { display: contents; }
 .aura-combo__chip {
   display: inline-flex; align-items: center; gap: 2px; max-width: 100%; height: 28px; box-sizing: border-box;
+  flex: none; /* 5.79 (visual audit 16): a chip keeps its label and goes to the next line, not shrunk to "V.." */
   padding: 0 2px 0 var(--aura-space-2); border-radius: var(--aura-radius-full);
   background: var(--aura-bg-selected); color: var(--aura-fg-primary); font-size: max(13px, .8125rem); font-weight: 500;
 }
@@ -2193,7 +2209,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterselect__face:focus-visible { outline-style: solid; }
 /* Before hydration: the real <select>, invisible, over the face (16px so iOS doesn't zoom when it opens). */
 .aura-filterselect__native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; font-size: max(16px, 1rem); cursor: pointer; appearance: none; }
-.aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-border-default); cursor: not-allowed; }
+.aura-filterselect.is-disabled .aura-filterselect__face { background: var(--aura-bg-input-disabled); color: var(--aura-fg-secondary); border-color: var(--aura-input-disabled-border); cursor: not-allowed; }
 .aura-filterselect.is-disabled .aura-filterselect__native { cursor: not-allowed; }
 /* 5.38 (Chamber-OS 140): touchHeight on FilterBar (its search and field-height controls) or on one FilterSelect —
  * 44px below 640px or on a coarse pointer (is-touch), or always. */
@@ -2392,6 +2408,25 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   :root:has(.aura-actionbar--edge:not(.is-idle)) { --aura-actionbar-space: calc(var(--aura-actionbar-height, 60px) + var(--aura-bottomnav-offset, 0px) + var(--aura-space-3)); scroll-padding-bottom: var(--aura-actionbar-space); }
   :root:has(.aura-actionbar--edge:not(.is-idle)) .aura-shell__content { padding-bottom: calc(var(--aura-space-6) + var(--aura-actionbar-space)); }
   :root:has(.aura-actionbar--edge:not(.is-idle)):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-actionbar-space); }
+}
+/* 5.79 (5.78 carry-over): where actionsFullWidthBelow reaches wider than actionsBarBelow, the bar isn't pinned between
+ * the two breakpoints and its buttons sit in the same full-width row — every button there is radius-md, not some. */
+@media (min-width: 640px) and (max-width: 767.98px) {
+  .aura-page-header--actions-full-below-md.aura-page-header--actions-bar-below-sm > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+}
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .aura-page-header--actions-full-below-lg.aura-page-header--actions-bar-below-sm > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .aura-page-header--actions-full-below-lg.aura-page-header--actions-bar-below-md > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+}
+/* 5.79 (visual audit 10): in an AppShell on a desktop the edge strip starts where the content does — after the
+ * sidebar (its rail width when collapsed; the right edge in RTL) — and its contents line up with the content's 32px
+ * padding, instead of running under the sidebar. Outside an AppShell it keeps the screen's full width. */
+@media (min-width: 1024px) and (min-height: 30.00125rem) {
+  .aura-shell:has(> .aura-shell__nav) .aura-actionbar--edge:not(.is-idle) { inset-inline-start: var(--aura-sidenav-width); }
+  .aura-shell:has(> .aura-shell__nav .aura-nav--collapsed) .aura-actionbar--edge:not(.is-idle) { inset-inline-start: var(--aura-sidenav-rail-width); }
+  .aura-shell:not(:has(.aura-shell__content.is-flush)) .aura-actionbar--edge:not(.is-idle) > .aura-actionbar__inner { padding-inline: var(--aura-space-8); } /* not with contentPadding={false} */
 }
 /* 5.78 (visual audit 9): one rule for the bottom strips on a phone, as PageHeader's (5.48) — the status on its own row
  * at the top, the actions sharing the row under it (an IconButton keeps its square; labels too long to share take a row
@@ -2753,6 +2788,10 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
  * 1.6 line, so a loading card (its bars follow 1lh) is as tall as one with Thai text. */
 .aura-field__label:lang(th), .aura-field__hint:lang(th), .aura-field__error:lang(th), .aura-field__addon:lang(th) { line-height: 1.6; }
 .aura-choice__desc:lang(th), .aura-check__desc:lang(th) { font-size: max(13px, .8125rem); line-height: 1.6; }
+/* 5.79 (visual audit, Thai): the calendar's weekday row in Thai (อา จ อ …) at 13px — 12px was the hardest text on the
+ * page to read; the grid carries lang="th" with a Thai locale. Two-line Thai nav labels get room between lines. */
+.aura-cal__grid:lang(th) th { font-size: max(13px, .8125rem); }
+.aura-nav__label:lang(th) { line-height: 1.5; }
 .aura-tbl__row > .aura-tbl__td[data-label]:lang(th)::before, .aura-table__td[data-label]:lang(th)::before { font-family: var(--font-sans); font-size: max(12px, .75rem); line-height: max(18px, 1.125rem); }
 .aura-table--stacked .aura-table__td[data-label]:lang(th) { line-height: 1.6; }
 

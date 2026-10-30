@@ -233,6 +233,12 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.79 (visual audit set 3): in an AppShell on a desktop the edge strip starts after the sidebar. */
+  await call('POST', S('/window/rect'), { width: 1280, height: 800 });
+  await go('aura-new-in-5-79-visual-audit-set-3--shell-edge');
+  x = await ex(`return [Math.round(document.querySelector('.aura-actionbar').getBoundingClientRect().left), Math.round(document.querySelector('.aura-shell__nav').getBoundingClientRect().right)]`);
+  check(x[0] === x[1] && x[0] > 100, 'Edge ActionBar in an AppShell starts after the sidebar', x);
+
   /* 5.78 (visual audit set 2): an overflowing tab list fades its end; the edge strip stacks its status above its button. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-78-visual-audit-set-2--tabs-overflow');

@@ -61,7 +61,7 @@ function Page(props: { lang: Lang; set: Set; floating?: boolean; nav?: boolean }
     <Aura.DropdownMenu
       label={t.more}
       items={[{ label: 'Download PDF', onSelect: () => {} }]}
-      trigger={<Aura.IconButton data-testid="more" icon="ellipsis" label={t.more} touchHeight />}
+      trigger={<Aura.IconButton data-testid="more" icon="ellipsis" variant="outline" label={t.more} touchHeight />}
     />
   );
   const actions = {
@@ -162,7 +162,7 @@ export const ShortScreen: StoryObj<{ lang: Lang }> = {
                 <Aura.DropdownMenu
                   label={t.more}
                   items={[{ label: 'Download PDF', onSelect: () => {} }]}
-                  trigger={<Aura.IconButton icon="ellipsis" label={t.more} touchHeight />}
+                  trigger={<Aura.IconButton icon="ellipsis" variant="outline" label={t.more} touchHeight />}
                 />
               </>
             }

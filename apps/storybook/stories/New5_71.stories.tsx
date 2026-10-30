@@ -47,7 +47,7 @@ function Invoice(props: { nav?: boolean; floating?: boolean; extras?: boolean })
                 <span className="aura-sr-only" id="pay-note">
                   Card, PromptPay or bank transfer
                 </span>
-                <Aura.IconButton data-testid="share" icon="ellipsis" label="Share invoice" touchHeight />
+                <Aura.IconButton data-testid="share" icon="ellipsis" variant="outline" label="Share invoice" touchHeight />
               </>
             ) : null}
             <Aura.Dialog

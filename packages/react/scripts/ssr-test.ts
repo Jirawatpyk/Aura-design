@@ -315,6 +315,12 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const only = ph({ actionsBar: e('button', null, 'Pay now'), actionsBarBelow: 'md' });
       if (!/class="aura-page-header aura-page-header--actions-full-below-sm aura-page-header--actions-bar-below-sm"/.test(sp) || !/<div class="aura-page-header__actions is-split"><button>PDF<\/button><div class="aura-page-header__bar"><div class="aura-page-header__status" role="status">Due<\/div><button data-testid="pay">Pay now<\/button><\/div><\/div>/.test(sp) || (sp.match(/data-testid="pay"/g) || []).length !== 1 || !/<div class="aura-page-header__actions"><button>PDF<\/button><button>Pay now<\/button><\/div>/.test(plain) || /bar-below|__bar|is-split|__status/.test(plain) || !/<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Due<\/div><button>PDF<\/button><\/div>/.test(old) || !/actions-bar-below-md"[^]*is-split"><div class="aura-page-header__bar"><button>Pay now/.test(only)) bad('191 PageHeader actionsBar:', sp, plain, old, only);
     }
+    /* 5.79 (visual audit set 3): a Thai calendar is lang="th"; FileUpload names formats; a Switch's icon stays. */
+    {
+      const thc = m(e(A.AuraProvider, { locale: 'th' }, e(A.Calendar, { start: '2026-09-18', focus: '2026-09-18' }))), enc = m(e(A.Calendar, { start: '2026-09-18', focus: '2026-09-18' }));
+      const up = m(e(A.FileUpload, { label: 'Logo', id: 'lg2', accept: 'image/png,image/svg+xml,application/pdf,.csv' }));
+      if (!/class="aura-cal__grid"[^>]*lang="th"/.test(thc) || /lang="th"/.test(enc) || !/PNG, SVG, PDF, CSV/.test(up) || /IMAGE\//.test(up)) bad('5.79 calendar lang / upload formats:', thc.slice(0, 200), up);
+    }
     /* 5.78 (visual audit set 2): a document number in a PageHeader title stays whole; a host in a StatusTile title
      * breaks after its dots; other titles are untouched. */
     {
@@ -460,11 +466,11 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
     }
     /* 5.49 (Chamber-OS 155): every short-screen height threshold in the shipped CSS is in rem (follows the browser's
      * text size); none is left in px. 5.69: three more, ActionBar's edge strip (edge, edge-below-sm, -md). 5.76: one
-     * more, the Dialog that scrolls as one box (Chamber-OS 194). */
+     * more, the Dialog that scrolls as one box (Chamber-OS 194). 5.79: one more, the edge strip in an AppShell. */
     {
       const css = readFileSync(new URL('../dist/styles.css', import.meta.url), 'utf8');
       const rem = css.match(/(?:max|min)-height:\s*30(?:\.00125)?rem/g) || [];
-      if (rem.length !== 8 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
+      if (rem.length !== 9 || /(?:max|min)-height:\s*480(?:\.02)?px/.test(css)) bad('Chamber-OS 155: height thresholds', rem);
     }
     /* 5.48 (Chamber-OS 153): actionsBarLook="floating" is a class beside the bar class; edge (default) adds none. */
     {

@@ -1929,7 +1929,8 @@ window.Aura = (() => {
           top = r2.top - above - 4;
         } else maxHeight = below2;
       }
-      const left = Math.max(8, Math.min(r2.right - mw, window.innerWidth - mw - 8));
+      const endAligned = r2.right - mw;
+      const left = Math.max(8, Math.min(endAligned >= 8 ? endAligned : r2.left, window.innerWidth - mw - 8));
       setPos(function(p) {
         return p && p.top === top && p.left === left && p.maxHeight === maxHeight ? p : { top, left, maxHeight };
       });
@@ -2028,12 +2029,15 @@ window.Aura = (() => {
       });
       return out;
     }
+    const anyLead = items2.some(function(it) {
+      return !it.separator && (!!it.icon || it.type === "radio" || it.checked !== void 0);
+    });
     function renderItem(it, i) {
       if (it.separator) return /* @__PURE__ */ React9.createElement("div", { key: "s" + i, role: "separator", className: "aura-menu__sep" });
       const isRadio = it.type === "radio";
       const isCheck = !isRadio && it.checked !== void 0;
       const checkAtEnd = isCheck && !!it.icon && it.checkPlacement !== "start";
-      const lead = isRadio ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__radio", it.checked && "is-on") }) : isCheck && !checkAtEnd ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__check", it.checked && "is-on") }, it.checked ? /* @__PURE__ */ React9.createElement(Icon, { name: /* @__PURE__ */ React9.createElement(IconCheck, null), size: 12, strokeWidth: 3 }) : null) : it.icon ? /* @__PURE__ */ React9.createElement(Icon, { name: it.icon }) : /* @__PURE__ */ React9.createElement("span", { className: "aura-menu__blank" });
+      const lead = isRadio ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__radio", it.checked && "is-on") }) : isCheck && !checkAtEnd ? /* @__PURE__ */ React9.createElement("span", { className: cx("aura-menu__check", it.checked && "is-on") }, it.checked ? /* @__PURE__ */ React9.createElement(Icon, { name: /* @__PURE__ */ React9.createElement(IconCheck, null), size: 12, strokeWidth: 3 }) : null) : it.icon ? /* @__PURE__ */ React9.createElement(Icon, { name: it.icon }) : anyLead ? /* @__PURE__ */ React9.createElement("span", { className: "aura-menu__blank" }) : null;
       const body = [
         /* @__PURE__ */ React9.createElement(React9.Fragment, { key: "l" }, lead),
         /* @__PURE__ */ React9.createElement("span", { key: "t", className: "aura-menu__label" }, it.label),
@@ -3444,7 +3448,7 @@ window.Aura = (() => {
           setFocus(addMonths(focusDate, 1));
         }
       }
-    )), /* @__PURE__ */ React18.createElement("table", { role: "grid", className: "aura-cal__grid", "aria-label": monthTitle }, /* @__PURE__ */ React18.createElement("thead", null, /* @__PURE__ */ React18.createElement("tr", null, weekdayNames.map(function(n3, i) {
+    )), /* @__PURE__ */ React18.createElement("table", { role: "grid", className: "aura-cal__grid", "aria-label": monthTitle, lang: th2 ? "th" : void 0 }, /* @__PURE__ */ React18.createElement("thead", null, /* @__PURE__ */ React18.createElement("tr", null, weekdayNames.map(function(n3, i) {
       return /* @__PURE__ */ React18.createElement("th", { key: i, scope: "col", abbr: n3.long }, /* @__PURE__ */ React18.createElement("span", { "aria-hidden": true }, n3.short));
     }))), /* @__PURE__ */ React18.createElement(
       "tbody",
@@ -10074,6 +10078,19 @@ window.Aura = (() => {
       a = a.trim();
       if (a === "image/*") return t.images;
       if (a === "application/pdf") return "PDF";
+      const known = {
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PPTX",
+        "application/msword": "DOC",
+        "application/vnd.ms-excel": "XLS",
+        "application/vnd.ms-powerpoint": "PPT",
+        "text/plain": "TXT"
+      };
+      if (known[a]) return known[a];
+      const slash = a.indexOf("/");
+      if (slash > 0 && a.slice(slash + 1) !== "*")
+        a = a.slice(slash + 1).replace(/^(?:vnd\.|x-)/, "").replace(/\+xml$/, "");
       return a.replace(/^\./, "").toUpperCase();
     }).filter(function(x, i, arr) {
       return arr.indexOf(x) === i;
@@ -10482,6 +10499,7 @@ window.Aura = (() => {
     L["accent-violet"] = L["fg-accent"];
     L["focus-ring"] = fit(b[700], lightGrounds.concat([b[50]]), 3, -1);
     L["bg-selected"] = b[50];
+    L["calendar-range-bg"] = b[100];
     L["status-progress-bg"] = b[100];
     L["status-progress-fg"] = fit(b[800], [b[100]], 4.5, -1);
     L["alert-info-bg"] = b[50];
@@ -10521,6 +10539,7 @@ window.Aura = (() => {
     D["control-checked-bg"] = fit(b[300], darkGrounds, 3, 1);
     D["control-checked-fg"] = onFill(D["control-checked-bg"]);
     D["nav-active-edge"] = D["control-checked-bg"];
+    D["calendar-range-bg"] = D["bg-selected"];
     const shadowLight = INK, shadowDark = D["accent-violet"];
     if (o.primary === "brand") {
       L["button-primary-bg"] = fit(b[600], [ZINC[0]], 4.5, -1);
@@ -10578,6 +10597,7 @@ window.Aura = (() => {
     check("dark", "chart-1", "chart-2 (lightness step)", 1.8, D["chart-1"], CHART_2);
     check("light", "fg-primary", "bg-selected", 4.5, INK, L["bg-selected"]);
     check("dark", "fg-primary", "bg-selected", 4.5, "#ffffff", D["bg-selected"]);
+    check("light", "fg-primary", "calendar-range-bg", 4.5, INK, L["calendar-range-bg"]);
     check("light", "status-progress-fg", "status-progress-bg", 4.5, L["status-progress-fg"], L["status-progress-bg"]);
     check("dark", "status-progress-fg", "status-progress-bg", 4.5, D["status-progress-fg"], D["status-progress-bg"]);
     check("light", "alert-info-fg", "alert-info-bg", 4.5, L["alert-info-fg"], L["alert-info-bg"]);
