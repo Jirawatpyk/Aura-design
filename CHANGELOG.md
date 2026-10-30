@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.73.0 — 2026-10-30
+
+### Minor changes
+
+- 15c2b6c: Fixed bottom bars (ActionBar edge, PageHeader actionsBarBelow) skip a bar hidden by display, visibility or content-visibility and follow tab switches; with every pinned bar hidden the clearance variable is 0px (Chamber-OS 192 follow-up).
+
 ## 5.72.0 — 2026-10-30
 
 ### Minor changes
