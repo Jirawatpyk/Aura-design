@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.72.0
+
+### Minor Changes
+
+- 69ca5a1: ActionBar edge strip: a bar in a hidden tab panel (no box) no longer sets `--aura-actionbar-height` to 0; the visible bar's height is used, and it follows tab switches (Chamber-OS 192).
+
 ## 5.71.0
 
 ### Minor Changes
