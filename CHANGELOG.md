@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.77.0 — 2026-10-30
+
+### Minor changes
+
+- 66a1ce8: Dialog: on a short screen, where the dialog scrolls as one box, a first focus in the footer (data-autofocus on Cancel) no longer scrolls it to its end on open; the title and what is being confirmed show first (Chamber-OS 194 follow-up).
+
 ## 5.76.0 — 2026-10-30
 
 ### Minor changes

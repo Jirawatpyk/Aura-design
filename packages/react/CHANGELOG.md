@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.77.0
+
+### Minor Changes
+
+- 66a1ce8: Dialog: on a short screen, where the dialog scrolls as one box, a first focus in the footer (data-autofocus on Cancel) no longer scrolls it to its end on open; the title and what is being confirmed show first (Chamber-OS 194 follow-up).
+
 ## 5.76.0
 
 ### Minor Changes
