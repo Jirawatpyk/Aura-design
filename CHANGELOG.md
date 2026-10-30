@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.71.0 — 2026-10-30
+
+### Minor changes
+
+- 83e3629: PageHeader `actionsBar`: with `actionsBarBelow`, only these actions become the phone edge strip (with `actionsStatus`); `actions` stay in the header. Above the breakpoint they share the header row; each node is rendered once (Chamber-OS 191).
+
 ## 5.70.0 — 2026-10-29
 
 ### Minor changes
