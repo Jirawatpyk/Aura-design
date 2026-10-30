@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.73.0
+
+### Minor Changes
+
+- 15c2b6c: Fixed bottom bars (ActionBar edge, PageHeader actionsBarBelow) skip a bar hidden by display, visibility or content-visibility and follow tab switches; with every pinned bar hidden the clearance variable is 0px (Chamber-OS 192 follow-up).
+
 ## 5.72.0
 
 ### Minor Changes
