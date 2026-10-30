@@ -239,6 +239,11 @@ try {
   await sleep(300);
   x = await ex(`const d = document.querySelector('.aura-dialog'), b = document.querySelector('.aura-dialog__body'); return [innerHeight <= 480, getComputedStyle(d).overflowY, getComputedStyle(b).overflowX, d.scrollHeight > d.clientHeight, b.scrollHeight <= b.clientHeight + 1]`);
   check(JSON.stringify(x) === '[true,"auto","auto",true,true]', 'Dialog on a short screen scrolls as one box', x);
+  /* 5.77: a confirmation focused on its footer's Cancel opens at the top. */
+  await go('aura-new-in-5-76-chamber-os-194--confirm-opens-at-top');
+  await sleep(300);
+  x = await ex(`const d = document.querySelector('.aura-dialog'); return [document.activeElement.getAttribute('data-testid'), d.scrollHeight > d.clientHeight, d.scrollTop]`);
+  check(JSON.stringify(x) === '["cancel",true,0]', 'Dialog confirmation opens at the top', x);
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
 
   /* 5.75 (visual audit set 1): a sortable header label on the line of a plain one; Blocked is a soft pill. */

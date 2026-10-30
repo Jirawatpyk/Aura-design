@@ -5123,6 +5123,7 @@ window.Aura = (() => {
         prev.current = document.activeElement;
         const unlock = lockScroll();
         const el = ref.current;
+        let raf = 0;
         const inPart = function(scope) {
           if (!scope || !el) return [];
           const sel = TAB_STOPS.split(",").map(function(s) {
@@ -5133,8 +5134,20 @@ window.Aura = (() => {
         if (el && o.autoFocus !== false) {
           const auto = el.querySelector("[data-autofocus]");
           if (!focusFirst(el, auto, [inPart(o.bodySelector), inPart(o.footSelector)])) el.focus();
+          const foot = o.footSelector ? el.querySelector(o.footSelector) : null, head = el.firstElementChild, first = document.activeElement, panel = el;
+          const toTop = function() {
+            if (foot && foot.contains(first) && document.activeElement === first && panel.scrollTop > 0 && /auto|scroll/.test(getComputedStyle(panel).overflowY) && head && head.getBoundingClientRect().top < panel.getBoundingClientRect().top)
+              panel.scrollTop = 0;
+          };
+          toTop();
+          if (foot && foot.contains(first))
+            raf = requestAnimationFrame(function() {
+              toTop();
+              raf = requestAnimationFrame(toTop);
+            });
         }
         return function() {
+          cancelAnimationFrame(raf);
           unlock();
           const l = latest.current;
           const ff = l.finalFocus;

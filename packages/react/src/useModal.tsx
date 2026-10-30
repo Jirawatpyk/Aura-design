@@ -61,6 +61,7 @@ export function useModal(
       prev.current = document.activeElement as HTMLElement | null;
       const unlock = lockScroll();
       const el = ref.current;
+      let raf = 0;
       /* The Tab stops inside a part. TAB_STOPS is a selector list, so every part is scoped (5.1: before, `button`
        * alone matched the header's close button). focusFirst skips tabindex=-1 (roving tabs, segments), anything
        * hidden and (5.57) anything in a closed <details>, and stops at the first that takes focus; else the panel
@@ -77,8 +78,38 @@ export function useModal(
       if (el && o.autoFocus !== false) {
         const auto = el.querySelector<HTMLElement>('[data-autofocus]');
         if (!focusFirst(el, auto, [inPart(o.bodySelector), inPart(o.footSelector)])) el.focus();
+        /* 5.77 (Chamber-OS 194): on a short screen the Dialog scrolls as one box (5.76), and focusing a footer button
+         * (data-autofocus on Cancel, or a dialog with nothing to fill in) scrolled it to its end — the title and what
+         * is being confirmed started out of view. Open at the top instead; Tab or a scroll reaches the button. A
+         * field in the body keeps the browser's scroll: it is what the person types in next, and it is shown. Only
+         * when the person can scroll the panel (not a clipped overflow: hidden one, where the focused button must stay
+         * where the browser put it) and only when the head has actually left view. WebKit scrolls to the focused
+         * element a frame later, so it is checked again over the next two frames — while that element still has focus. */
+        const foot = o.footSelector ? el.querySelector(o.footSelector) : null,
+          head = el.firstElementChild,
+          first = document.activeElement,
+          panel = el;
+        const toTop = function () {
+          if (
+            foot &&
+            foot.contains(first) &&
+            document.activeElement === first &&
+            panel.scrollTop > 0 &&
+            /auto|scroll/.test(getComputedStyle(panel).overflowY) &&
+            head &&
+            head.getBoundingClientRect().top < panel.getBoundingClientRect().top
+          )
+            panel.scrollTop = 0;
+        };
+        toTop();
+        if (foot && foot.contains(first))
+          raf = requestAnimationFrame(function () {
+            toTop();
+            raf = requestAnimationFrame(toTop); // reassigned, so the cleanup cancels whichever frame is pending
+          });
       }
       return function () {
+        cancelAnimationFrame(raf);
         unlock();
         const l = latest.current;
         const ff = l.finalFocus;

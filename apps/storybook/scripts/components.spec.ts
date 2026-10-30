@@ -12492,3 +12492,101 @@ test.describe('5.76: Chamber-OS 194 — a Dialog scrolls as one box on a short s
       expect(l.dScrolls).toBe(false);
     });
 });
+
+test.describe('5.77: Chamber-OS 194 follow-up — a confirmation opens at the top on a short screen', () => {
+  const ID = 'aura-new-in-5-76-chamber-os-194--confirm-opens-at-top';
+  const state = (page: Page) =>
+    page.evaluate(() => {
+      const d = document.querySelector('.aura-dialog')!;
+      const t = document.querySelector('.aura-dialog__title')!.getBoundingClientRect(),
+        r = d.getBoundingClientRect();
+      return {
+        top: d.scrollTop,
+        scrolls: d.scrollHeight > d.clientHeight + 1,
+        focus: document.activeElement!.getAttribute('data-testid'),
+        titleShown: t.top >= r.top - 0.5 && t.bottom <= r.bottom + 0.5,
+      };
+    });
+
+  for (const [w, h] of [
+    [320, 256],
+    [568, 320],
+    [1024, 400],
+  ] as const)
+    test(`194 (${w}×${h}): Cancel has focus, the dialog starts at its top with the title shown; Tab and a scroll reach the buttons`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await story(page, ID);
+      await expect.poll(async () => (await state(page)).focus).toBe('cancel');
+      const s = await state(page);
+      expect([s.scrolls, s.titleShown]).toEqual([true, true]);
+      /* where the head would have left view it opens at the top (320, 568); where both fit after the browser's small
+       * scroll (1024×400: 7px) that scroll stays, so Cancel is shown too */
+      if (w < 1000) expect(s.top).toBe(0);
+      else
+        expect(
+          await page.evaluate(() => {
+            const d = document.querySelector('.aura-dialog')!.getBoundingClientRect(),
+              c = document.activeElement!.getBoundingClientRect();
+            return c.top >= d.top - 0.5 && c.bottom <= d.bottom + 0.5;
+          }),
+        ).toBe(true);
+      /* the buttons are still reached: Tab moves to Refund and brings it into view */
+      await page.keyboard.press('Tab');
+      await expect(page.getByTestId('refund')).toBeFocused();
+      expect(
+        await page.evaluate(() => {
+          const d = document.querySelector('.aura-dialog')!.getBoundingClientRect(),
+            r = document.activeElement!.getBoundingClientRect();
+          return r.top >= d.top - 0.5 && r.bottom <= d.bottom + 0.5;
+        }),
+      ).toBe(true);
+    });
+
+  test('194: a field in the body keeps its scroll into view (5.76 test story), and a tall screen is unchanged', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 256 });
+    await story(page, 'aura-new-in-5-76-chamber-os-194--short-screen');
+    await expect.poll(() => page.evaluate(() => document.activeElement!.tagName)).toBe('INPUT');
+    expect(await page.evaluate(() => document.querySelector('.aura-dialog')!.scrollTop)).toBeGreaterThan(0);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    await expect.poll(async () => (await state(page)).focus).toBe('cancel');
+    const s = await state(page);
+    expect([s.scrolls, s.top, s.titleShown]).toEqual([false, 0, true]);
+  });
+
+  const LONG = 'aura-new-in-5-76-chamber-os-194--long-confirm-no-body';
+  test('194: a long confirmation with no body (focus falls on the footer) opens at the top on a short screen', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 256 });
+    await story(page, LONG);
+    await expect.poll(async () => (await state(page)).focus).toBe('cancel');
+    const s = await state(page);
+    expect([s.scrolls, s.top, s.titleShown]).toEqual([true, 0, true]);
+  });
+
+  for (const [w, h] of [
+    [1024, 520],
+    [390, 520],
+  ] as const)
+    test(`194 (${w}×${h}): above 30rem, where the panel can't scroll, the focused button stays in view`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await story(page, LONG);
+      await expect.poll(async () => (await state(page)).focus).toBe('cancel');
+      const r = await page.evaluate(() => {
+        const d = document.querySelector('.aura-dialog')!.getBoundingClientRect(),
+          c = document.activeElement!.getBoundingClientRect();
+        return [
+          getComputedStyle(document.querySelector('.aura-dialog')!).overflowY,
+          c.top >= d.top - 0.5 && c.bottom <= d.bottom + 0.5,
+        ];
+      });
+      expect(r).toEqual(['hidden', true]);
+    });
+});
