@@ -233,6 +233,15 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.74 (#193): a PageHeader bar whose content is hidden goes, with its height. */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-74-chamber-os-193--pay-bar-hides');
+  await sleep(300);
+  await ex(`document.querySelector('[data-testid=pay]').click()`);
+  await sleep(300);
+  x = await ex(`return [getComputedStyle(document.querySelector('.aura-page-header__bar')).display, document.documentElement.style.getPropertyValue('--aura-page-actions-height'), document.querySelector('[data-testid=header]').getAttribute('data-aura-bar')]`);
+  check(JSON.stringify(x) === '["none","0px","empty"]', 'PageHeader empty bar goes', x);
+
   /* 5.73: a visibility: hidden tab's bar is skipped too, and a switch moves the height (no resize happens). */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-73-chamber-os-192-follow-up--visibility-tabs');

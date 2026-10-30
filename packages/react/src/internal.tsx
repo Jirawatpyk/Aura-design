@@ -197,8 +197,9 @@ function onScreen(el: HTMLElement): boolean {
   const v = getComputedStyle(el).visibility;
   return v !== 'hidden' && v !== 'collapse';
 }
-/** `onMany` runs when two or more bars are on screen at once (they overlap at the bottom). */
-export function barStack(name: string, onMany?: () => void): BarStack {
+/** `onMany` runs when two or more bars are on screen at once (they overlap at the bottom); `onRead` before each
+ * re-read (5.74: PageHeader re-checks whether its bar is empty). */
+export function barStack(name: string, onMany?: () => void, onRead?: () => void): BarStack {
   const els: HTMLElement[] = [];
   let frame = 0;
   const docEvents = ['click', 'keydown', 'focusin', 'transitionend', 'beforematch'];
@@ -206,6 +207,7 @@ export function barStack(name: string, onMany?: () => void): BarStack {
   function write() {
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
+    if (onRead) onRead();
     const root = document.documentElement;
     let shown: HTMLElement | null = null,
       boxed: HTMLElement | null = null,

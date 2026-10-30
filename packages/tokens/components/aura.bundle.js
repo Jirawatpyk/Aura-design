@@ -425,7 +425,7 @@ window.Aura = (() => {
     const v = getComputedStyle(el).visibility;
     return v !== "hidden" && v !== "collapse";
   }
-  function barStack(name, onMany) {
+  function barStack(name, onMany, onRead) {
     const els = [];
     let frame = 0;
     const docEvents = ["click", "keydown", "focusin", "transitionend", "beforematch"];
@@ -433,6 +433,7 @@ window.Aura = (() => {
     function write() {
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
+      if (onRead) onRead();
       const root = document.documentElement;
       let shown = null, boxed = null, pinned2 = false, many = 0;
       for (let i = els.length - 1; i >= 0; i--) {
@@ -8227,12 +8228,41 @@ window.Aura = (() => {
   });
 
   // src/PageHeaderClient.tsx
-  var bars = barStack("--aura-page-actions-height", function() {
-    devWarnOnce(
-      "pageheader-bar-twice",
-      "PageHeader actionsBarBelow: two bars are on screen at once and overlap at the bottom of the screen. Give it to one PageHeader per page (one per tab panel is fine: only the shown one counts)."
-    );
-  });
+  var bars = barStack(
+    "--aura-page-actions-height",
+    function() {
+      devWarnOnce(
+        "pageheader-bar-twice",
+        "PageHeader actionsBarBelow: two bars are on screen at once and overlap at the bottom of the screen. Give it to one PageHeader per page (one per tab panel is fine: only the shown one counts)."
+      );
+    },
+    function() {
+      marks.forEach(function(m) {
+        m();
+      });
+    }
+  );
+  var UNSEEN = ".aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text";
+  function noneShown(el, barVisible) {
+    for (let n3 = el.firstChild; n3; n3 = n3.nextSibling) {
+      if (n3.nodeType === 3) {
+        if ((n3.textContent || "").trim()) return false;
+        continue;
+      }
+      if (n3.nodeType !== 1) continue;
+      const c = n3;
+      if (c.hidden || c.matches(UNSEEN)) continue;
+      const s = getComputedStyle(c);
+      if (s.display === "none") continue;
+      if (barVisible && (s.visibility === "hidden" || s.visibility === "collapse")) continue;
+      const inline = c.getAttribute("style") || "";
+      if (/position:\s*absolute/.test(inline) && /clip/.test(inline)) continue;
+      if (s.display === "contents" && noneShown(c, barVisible)) continue;
+      return false;
+    }
+    return true;
+  }
+  var marks = /* @__PURE__ */ new Set();
   var PageHeader3 = React45.forwardRef(function PageHeader4(props, ref) {
     const own = React45.useRef(null);
     const merged = useMergedRef(ref, own);
@@ -8246,8 +8276,15 @@ window.Aura = (() => {
           split ? ":scope > .aura-page-header__actions > .aura-page-header__bar" : ":scope > .aura-page-header__actions"
         );
         if (!el) return;
+        const head = own.current;
         let checked = false;
+        function mark() {
+          const empty = noneShown(el, getComputedStyle(el).visibility === "visible");
+          const state = empty ? "empty" : "shown";
+          if (head.getAttribute("data-aura-bar") !== state) head.setAttribute("data-aura-bar", state);
+        }
         function sync() {
+          mark();
           bars.write();
           if (!checked && getComputedStyle(el).position === "fixed" && (checked = true, fixedTrapped(el)))
             devWarnOnce(
@@ -8255,14 +8292,35 @@ window.Aura = (() => {
               "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors."
             );
         }
+        mark();
+        marks.add(mark);
         bars.add(el);
+        const mo = typeof MutationObserver === "undefined" ? null : new MutationObserver(function() {
+          if (!frame) frame = requestAnimationFrame(later);
+        });
+        let frame = 0;
+        function later() {
+          frame = 0;
+          sync();
+        }
+        if (mo)
+          mo.observe(el, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["hidden", "class", "style"]
+          });
         const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
         if (ro) ro.observe(el, { box: "border-box" });
         window.addEventListener("resize", sync);
         sync();
         return function() {
           if (ro) ro.disconnect();
+          if (mo) mo.disconnect();
+          if (frame) cancelAnimationFrame(frame);
+          marks.delete(mark);
           window.removeEventListener("resize", sync);
+          head.removeAttribute("data-aura-bar");
           bars.remove(el);
         };
       },

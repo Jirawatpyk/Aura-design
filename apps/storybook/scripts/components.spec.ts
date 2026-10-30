@@ -12119,3 +12119,92 @@ test.describe('5.73: Chamber-OS 192 follow-up — hidden bars by visibility, Pag
     await expect.poll(() => v(page, '--aura-page-actions-height')).toBe(a + 'px');
   });
 });
+
+test.describe('5.74: Chamber-OS 193 — a PageHeader bar with everything hidden goes', () => {
+  const ID = (s: string) => 'aura-new-in-5-74-chamber-os-193--' + s;
+  const read = (page: Page, sel = '.aura-page-header__bar') =>
+    page.evaluate((sel) => {
+      const bar = document.querySelector<HTMLElement>(sel)!;
+      return {
+        display: getComputedStyle(bar).display,
+        height: bar.offsetHeight,
+        v: document.documentElement.style.getPropertyValue('--aura-page-actions-height'),
+        pad: getComputedStyle(document.querySelector('.aura-shell__content')!).paddingBottom,
+        scroll: getComputedStyle(document.documentElement).scrollPaddingBottom,
+        mark: document.querySelector('[data-testid=header]')!.getAttribute('data-aura-bar'),
+      };
+    }, sel);
+  const noBar = async (page: Page, width: number) => {
+    await page.setViewportSize({ width, height: 800 });
+    await story(page, ID('no-bar'));
+    return page.evaluate(() => ({
+      pad: getComputedStyle(document.querySelector('.aura-shell__content')!).paddingBottom,
+      scroll: getComputedStyle(document.documentElement).scrollPaddingBottom,
+    }));
+  };
+
+  for (const [s, sel] of [
+    ['pay-bar-hides', '.aura-page-header__bar'],
+    ['floating-bar-hides', '.aura-page-header__bar'],
+    ['plain-bar-hides', '.aura-page-header__actions'],
+  ] as const)
+    test(`193 (${s}): at 390 the strip goes (no box, 0px, no bar padding) when its content is hidden, and comes back`, async ({
+      page,
+    }) => {
+      const none = await noBar(page, 390);
+      await story(page, ID(s));
+      await settle(page);
+      const on = await read(page, sel);
+      expect(on.display).toBe('flex');
+      expect(on.height).toBeGreaterThan(0);
+      expect(on.v).toBe(on.height + 'px');
+      expect(on.mark).toBe('shown');
+      expect(on.pad).not.toBe(none.pad);
+      /* paying hides the pay section (and, plain, the PDF too); the status alone is not a bar */
+      await page.getByTestId('pay').click();
+      await expect.poll(async () => (await read(page, sel)).display).toBe('none');
+      const off = await read(page, sel);
+      expect([off.height, off.v, off.pad, off.scroll, off.mark]).toEqual([0, '0px', none.pad, none.scroll, 'empty']);
+      /* shown again: the strip and its height are back */
+      await page.getByTestId('toggle').click();
+      await expect.poll(async () => (await read(page, sel)).display).toBe('flex');
+      const back = await read(page, sel);
+      expect([back.v, back.height, back.mark]).toEqual([on.height + 'px', on.height, 'shown']);
+    });
+
+  test('193: before the client looks, the markup alone already drops a strip whose content is hidden', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('pay-bar-hides'));
+    await page.getByTestId('pay').click();
+    await expect.poll(async () => (await read(page)).mark).toBe('empty');
+    /* as the server sent it: no marker */
+    const d = await page.evaluate(() => {
+      document.querySelector('[data-testid=header]')!.removeAttribute('data-aura-bar');
+      return getComputedStyle(document.querySelector('.aura-page-header__bar')!).display;
+    });
+    expect(d).toBe('none');
+  });
+
+  test('193: under a visibility gate lifted with no event the bar is not taken for empty', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('visibility-gate'));
+    await expect(page.getByTestId('gate')).toHaveCSS('visibility', 'visible');
+    const r = await read(page);
+    expect([r.mark, r.display, r.v]).toEqual(['shown', 'flex', r.height + 'px']);
+    expect(r.height).toBeGreaterThan(0);
+  });
+
+  test('193: from 640px nothing changes; without actionsBarBelow there is no marker', async ({ page }) => {
+    const none = await noBar(page, 1024);
+    expect(await page.getByTestId('header').getAttribute('data-aura-bar')).toBeNull();
+    await story(page, ID('pay-bar-hides'));
+    await expect(page.getByTestId('pay')).toBeVisible();
+    await page.getByTestId('pay').click();
+    expect(await page.getByTestId('pdf').isVisible()).toBe(true);
+    expect(
+      await page.evaluate(() => getComputedStyle(document.querySelector('.aura-shell__content')!).paddingBottom),
+    ).toBe(none.pad);
+  });
+});
