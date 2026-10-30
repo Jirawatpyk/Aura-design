@@ -233,6 +233,15 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.73: a visibility: hidden tab's bar is skipped too, and a switch moves the height (no resize happens). */
+  await call('POST', S('/window/rect'), { width: 390, height: 844 });
+  await go('aura-new-in-5-73-chamber-os-192-follow-up--visibility-tabs');
+  await sleep(300);
+  await ex(`document.querySelector('[data-testid=show-b]').click()`);
+  await sleep(300);
+  x = await ex(`return document.documentElement.style.getPropertyValue('--aura-actionbar-height') === document.querySelector('[aria-label="Save tier B"]').offsetHeight + 'px'`);
+  check(x === true, 'ActionBar visibility-hidden tab skipped, follows a switch', x);
+
   /* 5.72 (#192): an edge bar in a hidden tab doesn't set the page's clearance; the visible one does. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-72-chamber-os-192--bar-per-tab');

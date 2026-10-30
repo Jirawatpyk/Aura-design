@@ -186,6 +186,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.73 — Chamber-OS addendum 93 follow-up (#192)
+
+- **Hidden bars, every way a tab panel hides them:** the edge ActionBar and PageHeader's `actionsBarBelow` bar now share one rule. The newest bar that is pinned and on screen sets the page's clearance (`--aura-actionbar-height`, `--aura-page-actions-height`). A bar with no box (`display: none`), `visibility: hidden`, or inside `content-visibility: hidden` (`hidden="until-found"`) is skipped. A visibility switch resizes nothing, so the bars are re-read after any click, key press, focus move, transition, find-in-page reveal (`beforematch`) or history change; a switch made by a timer or a resolved request is caught at the next of those.
+- **When no bar is on screen:** a pinned bar hidden only by `visibility` (a gate that may lift with no event) keeps its room — too much space is cosmetic, too little hides content; with every pinned bar boxless (`display: none` tab panels) the variable is `0px`, so the page keeps no space for a strip that isn't there (5.72 removed it, and the CSS then reserved its 60px / 7rem fallback). With no bar pinned (a wide or short screen) it is removed, as before.
+- **PageHeader in tab panels:** one PageHeader with `actionsBarBelow` per tab panel now works like the ActionBars: the shown one's bar counts, where before the newest one — shown or not — set the height. The development warning now fires only when two bars are on screen at once.
+
 ## 5.72 — Chamber-OS addendum 93 (#192)
 
 - **An edge ActionBar in a hidden tab no longer zeroes the page's clearance:** a bar with `look="edge"` / `edgeBelow` inside a `display: none` parent (an inactive tab panel) still computes `position: fixed` but has no box; it is now skipped, so `--aura-actionbar-height` (and with it the page's end padding and `scroll-padding-bottom`) is the visible bar's height. Switching tabs moves it to the bar now shown; with none shown it is removed. Mounting one bar for the active tab is still the simplest shape.

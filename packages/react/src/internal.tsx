@@ -178,3 +178,92 @@ export function fixedTrapped(el: HTMLElement): boolean {
   }
   return false;
 }
+
+/* 5.73 (Chamber-OS 192 follow-up): the fixed bottom bars (ActionBar's edge strip, PageHeader's actionsBarBelow) on
+ * the page, oldest first. The newest one that is pinned and on screen writes its height to a variable on <html>, which
+ * pads the page's end and scroll-padding-bottom. One with no box (a display: none tab panel), visibility: hidden, or
+ * inside content-visibility: hidden (hidden="until-found") loses to it; see write() for when none is on screen. A
+ * ResizeObserver per bar catches display and size changes; a visibility change resizes nothing, so the stack is also
+ * re-read after any click, key press, focus move, transition, find-in-page reveal or history change. */
+export interface BarStack {
+  add(el: HTMLElement): void;
+  remove(el: HTMLElement): void;
+  write(): void;
+}
+function onScreen(el: HTMLElement): boolean {
+  if (el.offsetHeight <= 0 || el.getClientRects().length === 0) return false;
+  const check = (el as unknown as { checkVisibility?: (o?: Record<string, boolean>) => boolean }).checkVisibility;
+  if (typeof check === 'function') return check.call(el, { visibilityProperty: true });
+  const v = getComputedStyle(el).visibility;
+  return v !== 'hidden' && v !== 'collapse';
+}
+/** `onMany` runs when two or more bars are on screen at once (they overlap at the bottom). */
+export function barStack(name: string, onMany?: () => void): BarStack {
+  const els: HTMLElement[] = [];
+  let frame = 0;
+  const docEvents = ['click', 'keydown', 'focusin', 'transitionend', 'beforematch'];
+  const winEvents = ['hashchange', 'popstate'];
+  function write() {
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    const root = document.documentElement;
+    let shown: HTMLElement | null = null,
+      boxed: HTMLElement | null = null,
+      pinned = false,
+      many = 0;
+    for (let i = els.length - 1; i >= 0; i--) {
+      const el = els[i]!;
+      if (getComputedStyle(el).position !== 'fixed') continue;
+      pinned = true;
+      if (onScreen(el)) {
+        many++;
+        if (!shown) shown = el;
+      } else if (!boxed && el.offsetHeight > 0) boxed = el;
+    }
+    if (many > 1 && onMany) onMany();
+    /* On screen first; else a pinned bar that still has a box (hidden by visibility — a gate that may lift with no
+     * event, so keep its room: too much space is cosmetic, too little hides content); else, every pinned bar has no
+     * box (display: none tab panels): no room. No bar pinned (a wide or short screen): no variable, as before. */
+    const use = shown || boxed;
+    if (use) root.style.setProperty(name, use.offsetHeight + 'px');
+    else if (pinned) root.style.setProperty(name, '0px');
+    else root.style.removeProperty(name);
+  }
+  function later() {
+    if (!frame) frame = requestAnimationFrame(write);
+  }
+  /* A focus move reads scroll-padding at once: write now (keyboard focus lands after this), and again next frame. */
+  function now() {
+    write();
+    later();
+  }
+  function listen(on: boolean) {
+    docEvents.forEach(function (t: string) {
+      const f = t === 'focusin' ? now : later;
+      if (on) document.addEventListener(t, f, true);
+      else document.removeEventListener(t, f, true);
+    });
+    winEvents.forEach(function (t: string) {
+      if (on) window.addEventListener(t, later);
+      else window.removeEventListener(t, later);
+    });
+  }
+  return {
+    add: function (el: HTMLElement) {
+      els.push(el);
+      if (els.length === 1) listen(true);
+      write();
+    },
+    remove: function (el: HTMLElement) {
+      const i = els.indexOf(el);
+      if (i >= 0) els.splice(i, 1);
+      if (!els.length) {
+        listen(false);
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      write();
+    },
+    write: write,
+  };
+}

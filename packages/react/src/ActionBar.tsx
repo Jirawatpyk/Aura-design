@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button } from './Button.js';
-import { cx, devWarnOnce, fixedTrapped } from './internal.js';
+import { barStack, cx, devWarnOnce, fixedTrapped } from './internal.js';
 import { useStrings } from './locale.js';
 import type { ActionBarProps } from './types.js';
 
@@ -8,25 +8,9 @@ import type { ActionBarProps } from './types.js';
  * actions. It is `position: sticky`, so it stays in the flow at the end of its parent and never covers the last field.
  * 5.69 (Chamber-OS 185): `look="edge"` / `edgeBelow` make a viewport bar PageHeader's edge strip — fixed, the screen's
  * full width — and the page gains its height at the end, as PageHeader's bar does, so it still never covers it. */
-const HEIGHT = '--aura-actionbar-height';
-/* Edge bars on the page, oldest first: the newest one that is fixed and rendered right now writes its height to
- * <html>. 5.72 (Chamber-OS 192): a bar in a hidden tab panel (display: none on an ancestor) still computes
- * position: fixed but has no box — it is skipped, or its 0px would win. Its ResizeObserver fires as it hides and
- * shows, so the height follows the visible bar. */
-const edges: HTMLElement[] = [];
-function writeHeight() {
-  const root = document.documentElement;
-  for (let i = edges.length - 1; i >= 0; i--)
-    if (
-      edges[i]!.getClientRects().length > 0 &&
-      edges[i]!.offsetHeight > 0 &&
-      getComputedStyle(edges[i]!).position === 'fixed'
-    ) {
-      root.style.setProperty(HEIGHT, edges[i]!.offsetHeight + 'px');
-      return;
-    }
-  root.style.removeProperty(HEIGHT);
-}
+/* Edge bars on the page: the newest one fixed and on screen writes its height (5.72, 5.73: a bar in a hidden tab is
+ * skipped — display: none, visibility: hidden or content-visibility: hidden). */
+const edges = barStack('--aura-actionbar-height');
 export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(props, ref) {
   const t = useStrings();
   const bulk = props.selected != null;
@@ -55,14 +39,14 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
       if (!edge || !el) return;
       let checked = false;
       function sync() {
-        writeHeight();
+        edges.write();
         if (!checked && getComputedStyle(el!).position === 'fixed' && ((checked = true), fixedTrapped(el!)))
           devWarnOnce(
             'actionbar-edge-trapped',
             'ActionBar look="edge": an ancestor has a transform, filter, will-change or paint containment, so the fixed strip is placed against it instead of the screen. Remove it from the bar\'s ancestors.',
           );
       }
-      edges.push(el);
+      edges.add(el);
       /* border-box: the home-indicator padding changes with the BottomNav (hideOnScroll, data-aura-hide-bottomnav)
        * while the content box stays the same. */
       const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
@@ -72,8 +56,7 @@ export const ActionBar = React.forwardRef<HTMLDivElement, ActionBarProps>(functi
       return function () {
         if (ro) ro.disconnect();
         window.removeEventListener('resize', sync);
-        edges.splice(edges.indexOf(el), 1);
-        writeHeight();
+        edges.remove(el);
       };
     },
     [edge, idle],

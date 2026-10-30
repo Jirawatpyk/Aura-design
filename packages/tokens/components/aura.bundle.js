@@ -418,6 +418,75 @@ window.Aura = (() => {
     }
     return false;
   }
+  function onScreen(el) {
+    if (el.offsetHeight <= 0 || el.getClientRects().length === 0) return false;
+    const check = el.checkVisibility;
+    if (typeof check === "function") return check.call(el, { visibilityProperty: true });
+    const v = getComputedStyle(el).visibility;
+    return v !== "hidden" && v !== "collapse";
+  }
+  function barStack(name, onMany) {
+    const els = [];
+    let frame = 0;
+    const docEvents = ["click", "keydown", "focusin", "transitionend", "beforematch"];
+    const winEvents = ["hashchange", "popstate"];
+    function write() {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      const root = document.documentElement;
+      let shown = null, boxed = null, pinned2 = false, many = 0;
+      for (let i = els.length - 1; i >= 0; i--) {
+        const el = els[i];
+        if (getComputedStyle(el).position !== "fixed") continue;
+        pinned2 = true;
+        if (onScreen(el)) {
+          many++;
+          if (!shown) shown = el;
+        } else if (!boxed && el.offsetHeight > 0) boxed = el;
+      }
+      if (many > 1 && onMany) onMany();
+      const use = shown || boxed;
+      if (use) root.style.setProperty(name, use.offsetHeight + "px");
+      else if (pinned2) root.style.setProperty(name, "0px");
+      else root.style.removeProperty(name);
+    }
+    function later() {
+      if (!frame) frame = requestAnimationFrame(write);
+    }
+    function now() {
+      write();
+      later();
+    }
+    function listen(on) {
+      docEvents.forEach(function(t) {
+        const f = t === "focusin" ? now : later;
+        if (on) document.addEventListener(t, f, true);
+        else document.removeEventListener(t, f, true);
+      });
+      winEvents.forEach(function(t) {
+        if (on) window.addEventListener(t, later);
+        else window.removeEventListener(t, later);
+      });
+    }
+    return {
+      add: function(el) {
+        els.push(el);
+        if (els.length === 1) listen(true);
+        write();
+      },
+      remove: function(el) {
+        const i = els.indexOf(el);
+        if (i >= 0) els.splice(i, 1);
+        if (!els.length) {
+          listen(false);
+          if (frame) cancelAnimationFrame(frame);
+          frame = 0;
+        }
+        write();
+      },
+      write
+    };
+  }
 
   // src/display.tsx
   var React4 = __toESM(require_react(), 1);
@@ -8158,8 +8227,12 @@ window.Aura = (() => {
   });
 
   // src/PageHeaderClient.tsx
-  var NAME = "--aura-page-actions-height";
-  var bars = [];
+  var bars = barStack("--aura-page-actions-height", function() {
+    devWarnOnce(
+      "pageheader-bar-twice",
+      "PageHeader actionsBarBelow: two bars are on screen at once and overlap at the bottom of the screen. Give it to one PageHeader per page (one per tab panel is fine: only the shown one counts)."
+    );
+  });
   var PageHeader3 = React45.forwardRef(function PageHeader4(props, ref) {
     const own = React45.useRef(null);
     const merged = useMergedRef(ref, own);
@@ -8173,35 +8246,24 @@ window.Aura = (() => {
           split ? ":scope > .aura-page-header__actions > .aura-page-header__bar" : ":scope > .aura-page-header__actions"
         );
         if (!el) return;
-        const root = document.documentElement;
         let checked = false;
         function sync() {
-          if (bars[bars.length - 1] !== sync) return;
-          if (getComputedStyle(el).position === "fixed") {
-            root.style.setProperty(NAME, el.offsetHeight + "px");
-            if (!checked && (checked = true, fixedTrapped(el)))
-              devWarnOnce(
-                "pageheader-bar-trapped",
-                "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors."
-              );
-          } else root.style.removeProperty(NAME);
+          bars.write();
+          if (!checked && getComputedStyle(el).position === "fixed" && (checked = true, fixedTrapped(el)))
+            devWarnOnce(
+              "pageheader-bar-trapped",
+              "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors."
+            );
         }
-        if (bars.length)
-          devWarnOnce(
-            "pageheader-bar-twice",
-            "PageHeader actionsBarBelow: two bars on one page overlap at the bottom of the screen. Give it to one PageHeader per page."
-          );
-        bars.push(sync);
+        bars.add(el);
         const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
-        if (ro) ro.observe(el);
+        if (ro) ro.observe(el, { box: "border-box" });
         window.addEventListener("resize", sync);
         sync();
         return function() {
           if (ro) ro.disconnect();
           window.removeEventListener("resize", sync);
-          bars.splice(bars.indexOf(sync), 1);
-          if (bars.length) bars[bars.length - 1]();
-          else root.style.removeProperty(NAME);
+          bars.remove(el);
         };
       },
       [bar, hasActions, split]
@@ -8722,17 +8784,7 @@ window.Aura = (() => {
 
   // src/ActionBar.tsx
   var React50 = __toESM(require_react(), 1);
-  var HEIGHT = "--aura-actionbar-height";
-  var edges = [];
-  function writeHeight() {
-    const root = document.documentElement;
-    for (let i = edges.length - 1; i >= 0; i--)
-      if (edges[i].getClientRects().length > 0 && edges[i].offsetHeight > 0 && getComputedStyle(edges[i]).position === "fixed") {
-        root.style.setProperty(HEIGHT, edges[i].offsetHeight + "px");
-        return;
-      }
-    root.style.removeProperty(HEIGHT);
-  }
+  var edges = barStack("--aura-actionbar-height");
   var ActionBar = React50.forwardRef(function ActionBar2(props, ref) {
     const t = useStrings();
     const bulk = props.selected != null;
@@ -8756,14 +8808,14 @@ window.Aura = (() => {
         if (!edge || !el) return;
         let checked = false;
         function sync() {
-          writeHeight();
+          edges.write();
           if (!checked && getComputedStyle(el).position === "fixed" && (checked = true, fixedTrapped(el)))
             devWarnOnce(
               "actionbar-edge-trapped",
               `ActionBar look="edge": an ancestor has a transform, filter, will-change or paint containment, so the fixed strip is placed against it instead of the screen. Remove it from the bar's ancestors.`
             );
         }
-        edges.push(el);
+        edges.add(el);
         const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(sync);
         if (ro) ro.observe(el, { box: "border-box" });
         window.addEventListener("resize", sync);
@@ -8771,8 +8823,7 @@ window.Aura = (() => {
         return function() {
           if (ro) ro.disconnect();
           window.removeEventListener("resize", sync);
-          edges.splice(edges.indexOf(el), 1);
-          writeHeight();
+          edges.remove(el);
         };
       },
       [edge, idle]

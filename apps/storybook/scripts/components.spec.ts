@@ -12024,7 +12024,7 @@ test.describe('5.71: Chamber-OS 191 — PageHeader actionsBar', () => {
 });
 
 test.describe('5.72: Chamber-OS 192 — an edge bar in a hidden tab', () => {
-  test('192: the page clearance follows the visible bar; a hidden one never wins; none visible removes it', async ({
+  test('192: the page clearance follows the visible bar; a hidden one never wins; none shown keeps no room (0px, 5.73)', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 800 });
@@ -12051,7 +12051,8 @@ test.describe('5.72: Chamber-OS 192 — an edge bar in a hidden tab', () => {
     expect(s.v).toBe(s.b + 'px');
     await page.getByTestId('show-none').click();
     await page.waitForTimeout(150);
-    expect((await state()).v).toBe('');
+    /* 5.73: bars on the page but none shown — no room kept (0px), not the CSS's 60px fallback */
+    expect((await state()).v).toBe('0px');
     await page.getByTestId('show-a').click();
     await page.waitForTimeout(150);
     s = await state();
@@ -12060,5 +12061,61 @@ test.describe('5.72: Chamber-OS 192 — an edge bar in a hidden tab', () => {
     expect(
       await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).scrollPaddingBottom)),
     ).toBeGreaterThanOrEqual(s.a);
+  });
+});
+
+test.describe('5.73: Chamber-OS 192 follow-up — hidden bars by visibility, PageHeader bars in tabs', () => {
+  const ID = (s: string) => 'aura-new-in-5-73-chamber-os-192-follow-up--' + s;
+  const v = (page: Page, name: string) =>
+    page.evaluate((n) => document.documentElement.style.getPropertyValue(n), name);
+
+  test('visibility: hidden panels — the shown bar sets --aura-actionbar-height, and it follows a switch', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('visibility-tabs'));
+    await settle(page);
+    const h = (name: string) =>
+      page.evaluate((n) => (document.querySelector(`[aria-label="${n}"]`) as HTMLElement).offsetHeight, name);
+    const a = await h('Save tier A'),
+      b = await h('Save tier B');
+    expect(a).toBeGreaterThan(b);
+    expect(await v(page, '--aura-actionbar-height')).toBe(a + 'px');
+    await page.getByTestId('show-b').click();
+    await expect.poll(() => v(page, '--aura-actionbar-height')).toBe(b + 'px');
+    await page.getByTestId('show-a').click();
+    await expect.poll(() => v(page, '--aura-actionbar-height')).toBe(a + 'px');
+  });
+
+  test('a single bar under a visibility gate that lifts with no event keeps its room', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('visibility-gate'));
+    await expect(page.getByTestId('gate')).toHaveCSS('visibility', 'visible');
+    const h = await page.evaluate(() => (document.querySelector('[aria-label="Save"]') as HTMLElement).offsetHeight);
+    expect(h).toBeGreaterThan(0);
+    expect(await v(page, '--aura-actionbar-height')).toBe(h + 'px');
+  });
+
+  test('PageHeader bars in display: none panels — the shown one sets --aura-page-actions-height; none shown is 0px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('page-header-tabs'));
+    await settle(page);
+    const h = (k: string) =>
+      page.evaluate(
+        (k) =>
+          (document.querySelector(`[data-testid=header-${k}] .aura-page-header__actions`) as HTMLElement).offsetHeight,
+        k,
+      );
+    const a = await h('a');
+    expect(a).toBeGreaterThan(0);
+    expect(await v(page, '--aura-page-actions-height')).toBe(a + 'px');
+    await page.getByTestId('show-b').click();
+    await expect.poll(() => v(page, '--aura-page-actions-height')).toBe((await h('b')) + 'px');
+    await page.getByTestId('show-none').click();
+    await expect.poll(() => v(page, '--aura-page-actions-height')).toBe('0px');
+    await page.getByTestId('show-a').click();
+    await expect.poll(() => v(page, '--aura-page-actions-height')).toBe(a + 'px');
   });
 });

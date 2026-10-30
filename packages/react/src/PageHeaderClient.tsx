@@ -1,15 +1,20 @@
 import * as React from 'react';
 import { PageHeader as StaticPageHeader } from './PageHeader.js';
 import type { PageHeaderProps } from './PageHeader.js';
-import { devWarnOnce, fixedTrapped as trapped, useMergedRef } from './internal.js';
+import { barStack, devWarnOnce, fixedTrapped as trapped, useMergedRef } from './internal.js';
 
 /* 5.45 (Chamber-OS 150): the main entry's PageHeader is the stateless one plus one effect — while `actionsBarBelow`
  * has made the actions a fixed bar, their height goes to --aura-page-actions-height on <html>, so the page's end and a
  * focused field scroll clear of the bar whatever it holds. The server entry's PageHeader renders the same markup and
  * keeps the CSS's 7rem until a client one takes over. */
-const NAME = '--aura-page-actions-height';
-/* Bars on the page, newest last: the newest one's height is the one written; when it goes, the one before takes over. */
-const bars: Array<() => void> = [];
+/* Bars on the page, newest last: the newest one fixed and on screen writes its height; when it goes or is hidden (a
+ * tab panel, 5.73), the one before takes over. */
+const bars = barStack('--aura-page-actions-height', function () {
+  devWarnOnce(
+    'pageheader-bar-twice',
+    'PageHeader actionsBarBelow: two bars are on screen at once and overlap at the bottom of the screen. Give it to one PageHeader per page (one per tab panel is fine: only the shown one counts).',
+  );
+});
 
 export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(function PageHeader(props, ref) {
   const own = React.useRef<HTMLDivElement | null>(null);
@@ -26,27 +31,18 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
         split ? ':scope > .aura-page-header__actions > .aura-page-header__bar' : ':scope > .aura-page-header__actions',
       );
       if (!el) return;
-      const root = document.documentElement;
       let checked = false;
       function sync() {
-        if (bars[bars.length - 1] !== sync) return;
-        if (getComputedStyle(el!).position === 'fixed') {
-          root.style.setProperty(NAME, el!.offsetHeight + 'px');
-          if (!checked && ((checked = true), trapped(el!)))
-            devWarnOnce(
-              'pageheader-bar-trapped',
-              "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors.",
-            );
-        } else root.style.removeProperty(NAME);
+        bars.write();
+        if (!checked && getComputedStyle(el!).position === 'fixed' && ((checked = true), trapped(el!)))
+          devWarnOnce(
+            'pageheader-bar-trapped',
+            "PageHeader actionsBarBelow: an ancestor has a transform, filter, will-change or paint containment, so the fixed bar is placed against it instead of the screen. Remove it from the page header's ancestors.",
+          );
       }
-      if (bars.length)
-        devWarnOnce(
-          'pageheader-bar-twice',
-          'PageHeader actionsBarBelow: two bars on one page overlap at the bottom of the screen. Give it to one PageHeader per page.',
-        );
-      bars.push(sync);
+      bars.add(el);
       const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(sync);
-      if (ro) ro.observe(el);
+      if (ro) ro.observe(el, { box: 'border-box' });
       window.addEventListener('resize', sync);
       /* 5.49 (Chamber-OS 155): a change of the browser's text size can pin or release the bar with no resize event;
        * the bar's own size changes then, so the observer above catches it. */
@@ -54,9 +50,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(func
       return function () {
         if (ro) ro.disconnect();
         window.removeEventListener('resize', sync);
-        bars.splice(bars.indexOf(sync), 1);
-        if (bars.length) bars[bars.length - 1]!();
-        else root.style.removeProperty(NAME);
+        bars.remove(el);
       };
     },
     [bar, hasActions, split],
