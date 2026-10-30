@@ -412,7 +412,11 @@ export interface StatusPillProps extends Omit<React.HTMLAttributes<HTMLSpanEleme
   /** 5.70 (Chamber-OS 189): the spinner in the icon slot, for a state still in progress ("Waiting for payment").
    * The words still say it; the tone is unchanged. */
   busy?: boolean | undefined;
-  /** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked, anything else → neutral). */
+  /** 5.75 (visual audit): `"soft"` (default) is a tint with a darker word, like Alert and Badge, so a column of statuses
+   * reads evenly. `"solid"` is the strong fill — for the one status on a screen that must catch the eye (an overdue
+   * total, a failed payment), not for every row. */
+  variant?: 'soft' | 'solid' | undefined;
+  /** Force a tone. Default: matched from the word (Ready/Done → ready, In Progress/In Review → progress, Warning/Problem/Degraded/At risk → warning (5.1), Blocked/Failed → blocked; 5.75: Active/Up/Online/Resolved → ready, Down/Offline/Outage → blocked; anything else → neutral). */
   tone?: StatusTone | undefined;
   className?: string | undefined;
 }

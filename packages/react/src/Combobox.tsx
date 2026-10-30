@@ -1,7 +1,17 @@
 import * as React from 'react';
 import { useStrings, useAuraLocale, useDensity } from './locale.js';
 import { createPortal } from 'react-dom';
-import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef, touchClass } from './internal.js';
+import {
+  cx,
+  uid,
+  useMaybeControlled,
+  useMounted,
+  useIsoLayoutEffect,
+  useMergedRef,
+  touchClass,
+  useInputModality,
+  pointerModality,
+} from './internal.js';
 import { Icon } from './Icon.js';
 import { Field } from './Field.js';
 import type { ComboboxMultipleProps, ComboboxOption, ComboboxProps } from './types.js';
@@ -115,6 +125,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
       boxRef = React.useRef<HTMLDivElement | null>(null),
       listRef = React.useRef<HTMLDivElement | null>(null);
     const mounted = useMounted();
+    useInputModality();
     const limit = props.limit || 200;
 
     const filter = props.filter || defaultFilter;
@@ -323,6 +334,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
             if (!blocked || isSel) choose(o);
           }}
           onPointerMove={function () {
+            pointerModality();
             if (activeIdx !== i) setActive(i);
           }}
         >

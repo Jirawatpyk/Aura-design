@@ -204,7 +204,7 @@ export function createTheme(opts: ThemeOptions): Theme {
   D['fg-accent'] = fit(b[300], darkGrounds, 4.5, 1);
   D['accent-violet'] = fit(b[400], darkGrounds, 3, 1);
   D['focus-ring'] = fit(b[400], darkGrounds, 3, 1);
-  D['bg-selected'] = mix(ZINC[900], b[500], 0.16);
+  D['bg-selected'] = mix(ZINC[900], b[500], 0.2); // 5.75: 0.16 sat too close to the hover
   D['alert-info-bg'] = D['bg-selected'];
   D['alert-info-fg'] = fit(b[300], [D['alert-info-bg']], 4.5, 1);
   D['alert-info-border'] = mix(ZINC[900], b[400], 0.4);
@@ -231,6 +231,8 @@ export function createTheme(opts: ThemeOptions): Theme {
   L['control-checked-fg'] = onFill(L['control-checked-bg']);
   D['control-checked-bg'] = fit(b[300], darkGrounds, 3, 1);
   D['control-checked-fg'] = onFill(D['control-checked-bg']);
+  /* 5.75 (visual audit): the dark SideNav's active edge in the brand, not AURA's violet. */
+  D['nav-active-edge'] = D['control-checked-bg'];
   const shadowLight = INK,
     shadowDark = D['accent-violet'];
   if (o.primary === 'brand') {

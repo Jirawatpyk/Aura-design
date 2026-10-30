@@ -315,6 +315,16 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const only = ph({ actionsBar: e('button', null, 'Pay now'), actionsBarBelow: 'md' });
       if (!/class="aura-page-header aura-page-header--actions-full-below-sm aura-page-header--actions-bar-below-sm"/.test(sp) || !/<div class="aura-page-header__actions is-split"><button>PDF<\/button><div class="aura-page-header__bar"><div class="aura-page-header__status" role="status">Due<\/div><button data-testid="pay">Pay now<\/button><\/div><\/div>/.test(sp) || (sp.match(/data-testid="pay"/g) || []).length !== 1 || !/<div class="aura-page-header__actions"><button>PDF<\/button><button>Pay now<\/button><\/div>/.test(plain) || /bar-below|__bar|is-split|__status/.test(plain) || !/<div class="aura-page-header__actions"><div class="aura-page-header__status" role="status">Due<\/div><button>PDF<\/button><\/div>/.test(old) || !/actions-bar-below-md"[^]*is-split"><div class="aura-page-header__bar"><button>Pay now/.test(only)) bad('191 PageHeader actionsBar:', sp, plain, old, only);
     }
+    /* 5.75 (visual audit set 1): StatusPill variant="solid", Down/Active words, createTheme's dark nav edge */
+    {
+      const pills = m(e(A.StatusPill, { variant: 'solid', children: 'Blocked' })) + m(e(A.StatusPill, { children: 'Down' })) + m(e(A.StatusPill, { children: 'Active' })) + m(e(A.StatusPill, { variant: 'soft', children: 'Ready' }));
+      if (!/^<span class="aura-pill aura-pill--blocked is-solid">/.test(pills) || !/<span class="aura-pill aura-pill--blocked">[^]*Down<\/span>/.test(pills) || !/<span class="aura-pill aura-pill--ready">[^]*Active<\/span>/.test(pills) || /variant=/.test(pills) || (pills.match(/is-solid/g) || []).length !== 1) bad('5.75 StatusPill solid / words:', pills);
+      if (A.statusTone('Down') !== 'blocked' || A.statusTone('Resolved') !== 'ready' || A.statusTone('Offline') !== 'blocked' || A.statusTone('Pending') !== 'progress') bad('5.75 statusTone:', A.statusTone('Down'), A.statusTone('Resolved'));
+      if (A.createTheme) {
+        const th = A.createTheme({ brand: '#10487A' });
+        if (th.dark['nav-active-edge'] !== th.dark['control-checked-bg'] || th.light['nav-active-edge'] !== undefined) bad('5.75 theme nav edge:', th.dark['nav-active-edge']);
+      }
+    }
     /* 5.70 (Chamber-OS 186–190) */
     {
       const btn = m(e(A.Button, { 'aria-busy': true }, 'Refreshing')) + m(e(A.Button, { loading: true, 'aria-disabled': false, 'aria-busy': false }, 'Send')) + m(e(A.IconButton, { icon: 'pencil', label: 'Resend', 'aria-disabled': true }));

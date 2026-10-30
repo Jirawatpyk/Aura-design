@@ -245,7 +245,7 @@ button.aura-btn--creative[aria-disabled='true']:hover { box-shadow: var(--aura-s
 /* Sortable header */
 .aura-table__sort {
   display: inline-flex; align-items: center; gap: var(--aura-space-1); min-width: 0;
-  margin: 0 calc(-1 * var(--aura-space-1)); padding: var(--aura-space-1);
+  margin: calc(-1 * var(--aura-space-1)); padding: var(--aura-space-1); /* 5.75: negative on all sides, so a sortable label sits on the line of a plain one */
   border: 0; border-radius: var(--aura-radius-xs); background: transparent;
   font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; white-space: nowrap;
   transition: color var(--aura-duration-fast) var(--aura-ease);
@@ -481,6 +481,14 @@ a.aura-icon-btn { text-decoration: none; }
 .aura-pill--ready { background: var(--aura-status-ready-bg); color: var(--aura-status-ready-fg); }
 .aura-pill--warning { background: var(--aura-status-warning-bg); color: var(--aura-status-warning-fg); }
 .aura-pill--blocked { background: var(--aura-status-blocked-bg); color: var(--aura-status-blocked-fg); }
+/* 5.75 (visual audit): every pill is soft — a tint and its own darker word, as Alert and Badge — so a table of
+ * statuses reads evenly and Blocked or Warning don't shout in every row. variant="solid" is the strong fill, for the
+ * one status on a screen that must catch the eye. */
+.aura-pill--neutral.is-solid { background: var(--aura-status-neutral-solid-bg); color: var(--aura-status-neutral-solid-fg); }
+.aura-pill--progress.is-solid { background: var(--aura-status-progress-solid-bg); color: var(--aura-status-progress-solid-fg); }
+.aura-pill--ready.is-solid { background: var(--aura-status-ready-solid-bg); color: var(--aura-status-ready-solid-fg); }
+.aura-pill--warning.is-solid { background: var(--aura-status-warning-solid-bg); color: var(--aura-status-warning-solid-fg); }
+.aura-pill--blocked.is-solid { background: var(--aura-status-blocked-solid-bg); color: var(--aura-status-blocked-solid-fg); }
 
 /* Icon — Lucide, 24-grid, stroke in currentColor */
 .aura-icon { flex: none; display: inline-block; vertical-align: middle; }
@@ -878,7 +886,8 @@ a.aura-tab { text-decoration: none; }
 .aura-cal__popover, .aura-menu, .aura-toast, .aura-command { --aura-hover: var(--aura-bg-surface-hover); }
 /* Canvas-coloured bands inside those surfaces: SideNav in the drawer, the DataTable header, picker corner and totals. */
 .aura-drawer .aura-nav, .aura-table__head, .aura-table__picker, .aura-table__total { --aura-hover: var(--aura-bg-canvas-hover); }
-.aura-nav__item.is-active { background: var(--aura-bg-selected); color: var(--aura-fg-primary); }
+.aura-nav__item.is-active { background: var(--aura-bg-selected); color: var(--aura-fg-primary); box-shadow: inset 3px 0 0 var(--aura-nav-active-edge); } /* 5.75: the edge, in dark */
+[dir='rtl'] .aura-nav__item.is-active, .aura-nav[dir='rtl'] .aura-nav__item.is-active { box-shadow: inset -3px 0 0 var(--aura-nav-active-edge); }
 .aura-nav__item.is-active .aura-icon { color: var(--aura-fg-accent); }
 .aura-nav__item:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: -2px; }
 /* Touch (5.7): rows are 44px on coarse pointers (AppShell's phone drawer); desktop keeps 36px. */
@@ -918,7 +927,8 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-nav--collapsed .aura-nav__chevron { display: none; }
 .aura-nav--collapsed .aura-nav__section + .aura-nav__section { margin-top: var(--aura-space-3); padding-top: var(--aura-space-3); border-top: 1px solid var(--aura-border-default); }
-.aura-nav--collapsed .aura-nav__item--group.has-active { background: var(--aura-bg-selected); }
+.aura-nav--collapsed .aura-nav__item--group.has-active { background: var(--aura-bg-selected); box-shadow: inset 3px 0 0 var(--aura-nav-active-edge); } /* 5.75: as the expanded item */
+[dir='rtl'] .aura-nav--collapsed .aura-nav__item--group.has-active, .aura-nav--collapsed[dir='rtl'] .aura-nav__item--group.has-active { box-shadow: inset -3px 0 0 var(--aura-nav-active-edge); }
 .aura-nav--collapsed .aura-nav__item--group.has-active .aura-icon { color: var(--aura-fg-accent); }
 .aura-nav__initial {
   display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--aura-radius-sm);
@@ -1013,6 +1023,14 @@ a.aura-tab { text-decoration: none; }
 }
 .aura-combo__option > .aura-icon { color: var(--aura-fg-secondary); }
 .aura-combo__option.is-active { background: var(--aura-hover, var(--aura-bg-surface-hover)); outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: calc(-1 * var(--aura-focus-ring-width)); }
+/* 5.75 (visual audit): under the pointer the option is only shaded, as a Menu item, so the list doesn't show a second
+ * ring under the field's. Moving by keys brings the ring back (the field keeps focus; the option is aria-activedescendant,
+ * which :focus-visible can't see). */
+:root[data-aura-modality='pointer'] .aura-combo__option.is-active { outline: none; }
+@media (forced-colors: active) {
+  /* the shade is dropped in forced colours: keep a thin mark on the row under the pointer */
+  :root[data-aura-modality='pointer'] .aura-combo__option.is-active { outline: 1px solid Highlight; }
+}
 .aura-combo__option.is-selected { font-weight: 500; }
 .aura-combo__option.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-combo__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -1605,7 +1623,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-badge.is-outline { background: transparent; border-color: currentColor; }
 .aura-badge--neutral.is-outline { border-color: var(--aura-border-control); }
 .aura-badge.is-solid { background: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); }
-.aura-badge--danger.is-solid { background: var(--aura-status-blocked-bg); color: var(--aura-status-blocked-fg); }
+.aura-badge--danger.is-solid { background: var(--aura-status-blocked-solid-bg); color: var(--aura-status-blocked-solid-fg); }
 
 /* ---------- Tag ---------- */
 .aura-tag {
@@ -1620,7 +1638,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-tag.is-selectable:focus-visible, .aura-tag__remove:focus-visible { outline: var(--aura-focus-ring-width) solid var(--aura-focus-ring); outline-offset: var(--aura-focus-ring-offset); }
 .aura-tag.is-selectable:disabled, .aura-tag.is-disabled { opacity: var(--aura-disabled-opacity); cursor: default; }
 .aura-tag__remove {
-  display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: -6px; padding: 0; border: 0; border-radius: var(--aura-radius-full);
+  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-inline-end: -8px; /* 5.75: a 16px × in a 24px button (was 14 in 20) */ padding: 0; border: 0; border-radius: var(--aura-radius-full);
   background: transparent; color: var(--aura-fg-secondary); cursor: pointer;
 }
 .aura-tag__remove:hover { background: var(--aura-hover, var(--aura-bg-surface-hover)); color: var(--aura-fg-primary); }
@@ -1638,7 +1656,7 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-progress__key { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
 .aura-progress__swatch { flex: none; width: 12px; height: 8px; border-radius: 2px; background: var(--aura-fg-accent); }
 .aura-progress--success :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-fg-positive); }
-.aura-progress--warning :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-alert-warning-fg); }
+.aura-progress--warning :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-progress-warning-fill); } /* 5.75: amber, not rust */
 .aura-progress--danger :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-fg-danger); }
 .aura-progress--neutral :is(.aura-progress__bar, .aura-progress__swatch) { background: var(--aura-fg-secondary); }
 /* 5.15 (Chamber-OS 89): a reserved amount after the value — the same tone, striped, so it reads without colour. */
@@ -2034,6 +2052,11 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterbar__search .aura-input__control::-webkit-search-cancel-button { display: none; }
 .aura-filterbar__clear-search { margin-right: 6px; }
 .aura-filterbar__controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aura-space-3); }
+/* 5.75 (visual audit): a toggle Tag among the controls is as tall as the search and selects beside it. */
+.aura-filterbar__controls .aura-tag.is-selectable { min-height: var(--aura-input-height); }
+@media (max-width: 639.98px), (pointer: coarse) {
+  .aura-filterbar__controls .aura-tag.aura-tag--touch { min-height: max(var(--aura-input-height), var(--aura-touch-target)); } /* a touchHeight Tag keeps 44px (5.25) */
+}
 .aura-filterbar__spacer { flex: 1 1 0; }
 .aura-filterbar__count { font-size: max(13px, .8125rem); color: var(--aura-fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .aura-filterbar__actions { display: flex; align-items: center; gap: var(--aura-space-2); }
@@ -2674,6 +2697,6 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 
 /* 5.30: a plain link (no class) inside AURA's surfaces takes the accent colour instead of the browser's blue. Zero
  * specificity, so any rule of yours for links wins. */
-:where(.aura-card, .aura-stat, .aura-alert, .aura-empty, .aura-field, .aura-tabs__panel, .aura-shell__main, .aura-tbl, .aura-table, .aura-dialog) :where(a:not([class])) {
-  color: var(--aura-fg-accent); text-underline-offset: 2px;
+:where(.aura-card, .aura-stat, .aura-alert, .aura-empty, .aura-field, .aura-tabs__panel, .aura-shell__main, .aura-tbl, .aura-table, .aura-dialog, .aura-page-header, .aura-popover, .aura-drawer, .aura-prose, .aura-text-body, .aura-text-caption) :where(a:not([class])) {
+  color: var(--aura-fg-accent); text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; /* 5.75: more surfaces, and always underlined */
 }

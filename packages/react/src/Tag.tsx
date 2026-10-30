@@ -110,7 +110,7 @@ export const Tag = React.forwardRef<HTMLElement, TagProps>(function Tag(props, r
                 aria-label={props.removeLabel || t.remove(name)}
                 onClick={props.onRemove}
               >
-                <Icon name={<IconX />} size={14} />
+                <Icon name={<IconX />} size={16} />
               </button>
             );
             /* Always wrapped, so the button keeps focus when the text starts or stops being cut. */

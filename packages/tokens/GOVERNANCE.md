@@ -86,3 +86,10 @@ Made by the design-system owner in one pass, instead of separate Proposals. Each
 - **Textures are always light**: Surface forces light-theme tokens inside.
 - **Distribution**: one GitHub repository (Jirawatpyk/Aura-design) publishing `@jirawatpyk/aura-tokens` and `@jirawatpyk/aura-react` to GitHub Packages; projects install a version, never copy files.
 
+## Decisions (5.75)
+
+From the visual audit of 5.74 (every story, light, dark and 390px).
+
+- **Status pills are soft.** Every tone is a tint with its own darker word, as Alert and Badge, so a column of statuses reads evenly. Blocked and Warning were solid and shouted in every row; dark Warning had no value of its own and outshone Blocked. The meaning is in the word and the icon. The strong fill stays as `variant="solid"` (`aura-status-*-solid-*`), for the one status on a screen that must catch the eye. Neighbouring solid fills still differ by lightness.
+- **Dark selected and header band move off their neighbours.** `aura-bg-selected` dark is a 20% violet wash (#352f48); the active SideNav item also gets a violet edge in dark (`aura-nav-active-edge`, the brand's in `createTheme`). `aura-table-head-bg` dark is #1f1f22, between the card and its hover.
+- **Warning is amber in both themes.** Progress `tone="warning"` fills amber-700 in light (`aura-progress-warning-fill`), not the rust amber-800.

@@ -41,6 +41,7 @@ module.exports = {
       },
       "red": {
         "50": "var(--aura-red-50)",
+        "100": "var(--aura-red-100)",
         "200": "var(--aura-red-200)",
         "300": "var(--aura-red-300)",
         "400": "var(--aura-red-400)",
@@ -50,10 +51,12 @@ module.exports = {
       },
       "amber": {
         "50": "var(--aura-amber-50)",
+        "100": "var(--aura-amber-100)",
         "200": "var(--aura-amber-200)",
         "300": "var(--aura-amber-300)",
         "500": "var(--aura-amber-500)",
         "600": "var(--aura-amber-600)",
+        "700": "var(--aura-amber-700)",
         "800": "var(--aura-amber-800)"
       },
       "ink": "var(--aura-ink)",
@@ -107,7 +110,17 @@ module.exports = {
       "blocked-bg": "var(--aura-status-blocked-bg)",
       "blocked-fg": "var(--aura-status-blocked-fg)",
       "warning-bg": "var(--aura-status-warning-bg)",
-      "warning-fg": "var(--aura-status-warning-fg)"
+      "warning-fg": "var(--aura-status-warning-fg)",
+      "neutral-solid-bg": "var(--aura-status-neutral-solid-bg)",
+      "neutral-solid-fg": "var(--aura-status-neutral-solid-fg)",
+      "progress-solid-bg": "var(--aura-status-progress-solid-bg)",
+      "progress-solid-fg": "var(--aura-status-progress-solid-fg)",
+      "ready-solid-bg": "var(--aura-status-ready-solid-bg)",
+      "ready-solid-fg": "var(--aura-status-ready-solid-fg)",
+      "blocked-solid-bg": "var(--aura-status-blocked-solid-bg)",
+      "blocked-solid-fg": "var(--aura-status-blocked-solid-fg)",
+      "warning-solid-bg": "var(--aura-status-warning-solid-bg)",
+      "warning-solid-fg": "var(--aura-status-warning-solid-fg)"
     },
     "chart": {
       "1": "var(--aura-chart-1)",

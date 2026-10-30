@@ -2,10 +2,10 @@
 import type { StatusTone } from './types.js';
 
 const TONE_WORDS: Record<Exclude<StatusTone, 'neutral'>, string[]> = {
-  ready: ['ready', 'done', 'complete', 'completed', 'approved', 'live', 'passed'],
+  ready: ['ready', 'done', 'complete', 'completed', 'approved', 'live', 'passed', 'active', 'up', 'online', 'resolved'],
   progress: ['in progress', 'in review', 'review', 'syncing', 'running', 'pending'],
   warning: ['warning', 'problem', 'degraded', 'at risk'],
-  blocked: ['blocked', 'failed', 'error', 'rejected', 'on hold', 'cancelled'],
+  blocked: ['blocked', 'failed', 'error', 'rejected', 'on hold', 'cancelled', 'down', 'offline', 'outage'],
 };
 /** The tone the pill would pick for a status word. */
 export function toneFor(status: unknown): StatusTone {

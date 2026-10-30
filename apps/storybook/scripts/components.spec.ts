@@ -4930,7 +4930,7 @@ test.describe('5.25: Chamber-OS addendum 27', () => {
       expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(touch);
       const h = await heights(page);
       expect(h.chips).toEqual(chips.map(() => 44));
-      expect([h.compact, h.plain, h.remove]).toEqual([32, 32, 20]);
+      expect([h.compact, h.plain, h.remove]).toEqual([32, 32, 24]); // 5.75: the × button is 24px
       /* The label stays centred and pressing still toggles. */
       const done = page.getByRole('button', { name: 'Done', exact: true });
       const [b, l] = [await box(done), await box(done.locator('.aura-tag__text'))];
@@ -5518,7 +5518,7 @@ test.describe('5.28: Chamber-OS addenda 35–36', () => {
     expect(box.x + box.width).toBeLessThanOrEqual(row.x + row.width + 0.5);
     expect(await cutOf(c)).toEqual([true, LONG]);
     /* Its × stays whole and in the row. */
-    expect(Math.round((await c.locator('.aura-tag__remove').boundingBox())!.width)).toBe(20);
+    expect(Math.round((await c.locator('.aura-tag__remove').boundingBox())!.width)).toBe(24); // 5.75: 24px button
     const remove = page.getByRole('button', { name: 'Remove ' + LONG }).first();
     await remove.focus();
     await expect(page.getByRole('tooltip')).toHaveText(LONG);
@@ -5717,20 +5717,21 @@ test.describe('5.30: visual polish', () => {
   }) => {
     await story(page, ID, 'dark');
     expect(await css(page.getByRole('button', { name: 'Save' }), 'background-color')).toBe('rgb(228, 228, 231)');
+    /* 5.75 (visual audit): #1f1f22, between the card and its hover (#111114 read as a hole) */
     const head = page.locator('.aura-table__head').first();
-    expect(await css(head, 'background-color')).toBe('rgb(17, 17, 20)');
+    expect(await css(head, 'background-color')).toBe('rgb(31, 31, 34)');
     expect(await css(page.locator('.aura-tbl__head .aura-tbl__th').first(), 'background-color')).toBe(
-      'rgb(17, 17, 20)',
+      'rgb(31, 31, 34)',
     );
   });
 
-  test('light: Blocked is red-800, the neutral pill and badge show on the canvas, the header band is the canvas', async ({
+  test('light: Blocked is soft red-100 (5.75), the neutral pill and badge show on the canvas, the header band is the canvas', async ({
     page,
   }) => {
     await story(page, ID);
     const pills = page.getByTestId('pills');
     expect(await css(pills.locator('.aura-pill').filter({ hasText: 'Overdue' }), 'background-color')).toBe(
-      'rgb(153, 27, 27)',
+      'rgb(254, 226, 226)',
     );
     expect(await css(pills.locator('.aura-pill').filter({ hasText: 'Lapsed' }), 'background-color')).toBe(
       'rgb(228, 228, 231)',
@@ -5963,7 +5964,9 @@ test.describe('5.30: audit items 4 and 8–20', () => {
     expect([await css(face, 'padding-left'), await css(face, 'font-size')]).toEqual(['8px', '13px']);
   });
 
-  test('14, 17, 18: quiet show-password icon, a 14px chip ×, plain links in the accent colour', async ({ page }) => {
+  test('14, 17, 18: quiet show-password icon, a 16px chip × (5.75), plain links in the accent colour', async ({
+    page,
+  }) => {
     for (const theme of ['light', 'dark'] as const) {
       await story(page, ID, theme);
       const eye = page.locator('.aura-password .aura-icon-btn');
@@ -5977,7 +5980,7 @@ test.describe('5.30: audit items 4 and 8–20', () => {
       });
       expect(await css(eye, 'color')).toBe(secondary);
       const x = page.getByTestId('tags').locator('.aura-tag__remove svg').first();
-      expect(Math.round((await x.boundingBox())!.width)).toBe(14);
+      expect(Math.round((await x.boundingBox())!.width)).toBe(16); // 5.75: a 16px ×
       expect(await css(page.getByTestId('prose').getByRole('link'), 'color')).toBe(
         theme === 'light' ? 'rgb(109, 40, 217)' : 'rgb(196, 181, 253)',
       );
@@ -12206,5 +12209,174 @@ test.describe('5.74: Chamber-OS 193 — a PageHeader bar with everything hidden 
     expect(
       await page.evaluate(() => getComputedStyle(document.querySelector('.aura-shell__content')!).paddingBottom),
     ).toBe(none.pad);
+  });
+});
+
+test.describe('5.75: visual audit set 1 — soft status pills, list options, links, header band', () => {
+  const ID = (s: string) => 'aura-new-in-5-75-visual-audit-set-1--' + s;
+  const css = (page: Page, sel: string, prop: string) =>
+    page.evaluate(([s, p]) => getComputedStyle(document.querySelector(s!)!).getPropertyValue(p!), [sel, prop]);
+
+  for (const [theme, soft, solid] of [
+    [
+      'light',
+      ['rgb(254, 226, 226)', 'rgb(153, 27, 27)', 'rgb(254, 243, 199)', 'rgb(146, 64, 14)'],
+      ['rgb(153, 27, 27)', 'rgb(217, 119, 6)'],
+    ],
+    [
+      'dark',
+      ['rgb(69, 42, 44)', 'rgb(252, 165, 165)', 'rgb(68, 51, 24)', 'rgb(252, 211, 77)'],
+      ['rgb(185, 28, 28)', 'rgb(217, 119, 6)'],
+    ],
+  ] as const)
+    test(`item 1 (${theme}): Blocked and Warning are soft like the rest; variant="solid" is the strong fill`, async ({
+      page,
+    }) => {
+      await story(page, ID('status-pills'), theme);
+      const pill = (box: string, word: string) =>
+        page.evaluate(
+          ([b, w]) => {
+            const el = [...document.querySelectorAll(`[data-testid=${b}] .aura-pill`)].find(
+              (p) => p.textContent === w,
+            )!;
+            const s = getComputedStyle(el);
+            return [s.backgroundColor, s.color, el.className];
+          },
+          [box, word],
+        );
+      const b = await pill('soft', 'Blocked'),
+        w = await pill('soft', 'Warning');
+      expect([b[0], b[1], w[0], w[1]]).toEqual(soft);
+      expect((await pill('solid', 'Blocked'))[0]).toBe(solid[0]);
+      expect((await pill('solid', 'Warning'))[0]).toBe(solid[1]);
+      expect((await pill('solid', 'Blocked'))[2]).toContain('is-solid');
+      /* Badge danger solid keeps the 5.30 fill */
+      expect(await css(page, '[data-testid=badge-solid]', 'background-color')).toBe(solid[0]);
+    });
+
+  test('item 2: Active and Resolved read as ready, Down as blocked', async ({ page }) => {
+    await story(page, ID('status-pills'));
+    const cls = (w: string) =>
+      page.evaluate(
+        (x) =>
+          [...document.querySelectorAll('[data-testid=soft] .aura-pill')].find((p) => p.textContent === x)!.className,
+        w,
+      );
+    expect(await cls('Active')).toContain('aura-pill--ready');
+    expect(await cls('Resolved')).toContain('aura-pill--ready');
+    expect(await cls('Down')).toContain('aura-pill--blocked');
+  });
+
+  test('items 4 and 12: the dark header band is lighter than the card; a sortable label sits on the line of a plain one', async ({
+    page,
+  }) => {
+    for (const theme of ['light', 'dark']) {
+      await story(page, ID('sortable-header'), theme);
+      const r = await page.evaluate(() => {
+        const top = (s: string) => {
+          const r = document.createRange();
+          const th = document.querySelector(s)!;
+          const walker = document.createTreeWalker(th, NodeFilter.SHOW_TEXT);
+          let n: Node | null;
+          while ((n = walker.nextNode())) if (n.textContent!.trim()) break;
+          r.selectNodeContents(n!);
+          return r.getBoundingClientRect().top;
+        };
+        return {
+          sorted: top('[data-testid=sorted]'),
+          plain: top('[data-testid=plain]'),
+          amount: top('[data-testid=amount]'),
+        };
+      });
+      expect(Math.abs(r.sorted - r.plain)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(r.amount - r.plain)).toBeLessThanOrEqual(0.5);
+    }
+    expect(await css(page, '[data-testid=plain]', 'background-color')).toBe('rgb(31, 31, 34)');
+  });
+
+  test('item 3: under the pointer the active option is shaded only; after a key it has the ring', async ({ page }) => {
+    await story(page, ID('list-options'));
+    const ring = () =>
+      page.evaluate(() => {
+        const o = document.querySelector('.aura-combo__option.is-active');
+        return o ? getComputedStyle(o).outlineStyle : 'no active option';
+      });
+    /* Select first: the very first click on the page opens it (the selected option is active) */
+    const plan = page.getByRole('combobox', { name: 'Plan' });
+    await plan.click();
+    await expect(page.getByRole('option', { name: 'Pro' })).toBeVisible();
+    await expect.poll(ring).toBe('none');
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(ring).toBe('solid');
+    /* the pointer on the last option, then a key that moves nothing: the ring is back all the same */
+    await page.getByRole('option', { name: 'Team' }).hover();
+    await expect.poll(ring).toBe('none');
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(ring).toBe('solid');
+    await page.keyboard.press('Escape');
+    /* Combobox: clicked open, hovered, then keys */
+    await page.getByRole('combobox', { name: 'Member' }).click();
+    await page.getByRole('option', { name: 'Nordic Timber Oy' }).hover();
+    await expect.poll(ring).toBe('none');
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(ring).toBe('solid');
+    await page.keyboard.press('Escape');
+    /* opened with keys: the ring is there from the start */
+    await plan.focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('option', { name: 'Pro' })).toBeVisible();
+    await expect.poll(ring).toBe('solid');
+  });
+
+  test('item 5: a plain link in a PageHeader and in body text takes the accent and is underlined', async ({ page }) => {
+    for (const [theme, accent] of [
+      ['light', 'rgb(109, 40, 217)'],
+      ['dark', 'rgb(196, 181, 253)'],
+    ]) {
+      await story(page, ID('plain-links'), theme);
+      for (const sel of ['.aura-page-header a', '[data-testid=body-link]']) {
+        expect(await css(page, sel, 'color')).toBe(accent);
+        expect(await css(page, sel, 'text-decoration-line')).toBe('underline');
+      }
+    }
+  });
+
+  test('items 7, 8, 13 and Tag ×: nav edge in dark, amber warning bar, toggles as tall as the search, a 16px ×', async ({
+    page,
+  }) => {
+    await story(page, ID('set-one-misc'));
+    expect(await css(page, '.aura-nav__item.is-active', 'box-shadow')).toMatch(/^(none|rgba\(0, 0, 0, 0\))/);
+    expect(await css(page, '[data-testid=progress] .aura-progress__bar', 'background-color')).toBe('rgb(180, 83, 9)');
+    const h = await page.evaluate(() => ({
+      search: document.querySelector('.aura-filterbar__search')!.getBoundingClientRect().height,
+      tags: [...document.querySelectorAll('.aura-filterbar__controls .aura-tag')].map(
+        (t) => t.getBoundingClientRect().height,
+      ),
+      remove: document.querySelector('[data-testid=tag] .aura-tag__remove')!.getBoundingClientRect().width,
+      x: document.querySelector('[data-testid=tag] .aura-tag__remove svg')!.getBoundingClientRect().width,
+    }));
+    expect(h.tags).toEqual([h.search, h.search, h.search]);
+    expect([h.remove, h.x]).toEqual([24, 16]);
+    await story(page, ID('set-one-misc'), 'dark');
+    expect(await css(page, '.aura-nav__item.is-active', 'box-shadow')).toBe('rgb(196, 181, 253) 3px 0px 0px 0px inset');
+    expect(await css(page, '.aura-nav__item.is-active', 'background-color')).toBe('rgb(53, 47, 72)');
+    expect(await css(page, '[data-testid=progress] .aura-progress__bar', 'background-color')).toBe('rgb(252, 211, 77)');
+  });
+
+  test('item 13 at 390: a touchHeight Tag among the controls keeps 44px, whatever the field height', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID('set-one-misc'));
+    await page.evaluate(() =>
+      document.querySelector<HTMLElement>('[data-testid=filters]')!.setAttribute('data-density', 'compact'),
+    );
+    const h = await page.evaluate(() =>
+      [...document.querySelectorAll('.aura-filterbar .aura-tag')].map((t) => [
+        t.getAttribute('data-testid'),
+        t.getBoundingClientRect().height,
+      ]),
+    );
+    expect(h.find((x) => x[0] === 'touch-tag')![1]).toBe(44);
   });
 });

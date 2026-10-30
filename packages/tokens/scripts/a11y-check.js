@@ -73,7 +73,8 @@ pairs.push(['fg-inverted', 'bg-surface-strong', TEXT], ['fg-inverted', 'bg-inver
 pairs.push(['button-primary-fg', 'button-primary-bg', TEXT], ['button-primary-fg', 'button-primary-bg-hover', TEXT]);
 pairs.push(['control-checked-fg', 'control-checked-bg', TEXT]);
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['control-checked-bg', bg, UI]);
-for (const t of ['neutral', 'progress', 'ready', 'warning', 'blocked']) pairs.push([`status-${t}-fg`, `status-${t}-bg`, TEXT]);
+for (const t of ['neutral', 'progress', 'ready', 'warning', 'blocked'])
+  pairs.push([`status-${t}-fg`, `status-${t}-bg`, TEXT], [`status-${t}-solid-fg`, `status-${t}-solid-bg`, TEXT]);
 for (const t of ['info', 'success', 'warning', 'danger']) pairs.push([`alert-${t}-fg`, `alert-${t}-bg`, TEXT], ['fg-primary', `alert-${t}-bg`, TEXT]);
 pairs.push(['on-texture', 'mesh-from', TEXT], ['on-texture', 'mesh-to', TEXT]);
 for (const bg of ['bg-surface', 'bg-canvas', 'bg-input', 'bg-selected']) pairs.push(['border-control', bg, UI]);
@@ -97,14 +98,17 @@ for (const bg of ['bg-surface', 'bg-canvas']) {
   pairs.push(['chart-axis', bg, TEXT]);
 }
 for (let i = 1; i < 8; i++) pairs.push([`chart-${i}`, `chart-${i + 1}`, NEIGHBOUR]);
-/* Status fills that sit side by side in a column must also differ in lightness, not only hue (5.1: warning). */
-pairs.push(['status-warning-bg', 'status-ready-bg', NEIGHBOUR], ['status-warning-bg', 'status-blocked-bg', NEIGHBOUR]);
+/* Solid status fills that sit side by side in a column must also differ in lightness, not only hue (5.1: warning).
+ * 5.75: the soft pills are told apart by their word and icon, as Alert and Badge are. */
+pairs.push(['status-warning-solid-bg', 'status-ready-solid-bg', NEIGHBOUR], ['status-warning-solid-bg', 'status-blocked-solid-bg', NEIGHBOUR]);
 /* 5.2: state marks that were fill-only — the Avatar online dot's edge on its ring, the selected segment's edge on the
  * track and on its own fill. */
 pairs.push(['fg-positive', 'bg-surface', UI], ['border-control', 'bg-surface-hover', UI], ['border-control', 'bg-surface', UI]);
 /* Progress / upload tracks: the edge shows the empty part at 3:1; the bar colours also clear 3:1 on the track fill. */
 for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['progress-track-edge', bg, UI]);
-for (const fg of ['fg-accent', 'fg-positive', 'fg-danger', 'fg-secondary']) pairs.push([fg, 'progress-track', UI]);
+for (const fg of ['fg-accent', 'fg-positive', 'fg-danger', 'fg-secondary', 'progress-warning-fill']) pairs.push([fg, 'progress-track', UI]);
+/* 5.75: the warning bar on the page too. */
+for (const bg of ['bg-surface', 'bg-canvas']) pairs.push(['progress-warning-fill', bg, UI]);
 
 const results = [], fails = [];
 for (const theme of ['light', 'dark']) for (const [fg, bg, min] of pairs) {

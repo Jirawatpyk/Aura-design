@@ -156,12 +156,18 @@ export function statusPillElement(
   ref: React.Ref<HTMLSpanElement> | undefined,
 ): React.ReactElement {
   const tone = props.tone || toneFor(props.children);
-  const rest = omit(props, ['tone', 'className', 'children', 'wrap', 'busy']);
+  const rest = omit(props, ['tone', 'className', 'children', 'wrap', 'busy', 'variant']);
   return (
     <span
       {...rest}
       ref={ref}
-      className={cx('aura-pill', 'aura-pill--' + tone, props.wrap && 'is-wrap', props.className)}
+      className={cx(
+        'aura-pill',
+        'aura-pill--' + tone,
+        props.variant === 'solid' && 'is-solid',
+        props.wrap && 'is-wrap',
+        props.className,
+      )}
     >
       {/* 5.70 (Chamber-OS 189): busy puts the spinner in the icon slot ("Waiting for payment"). */}
       {props.busy ? (

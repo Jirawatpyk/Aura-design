@@ -269,3 +269,40 @@ export function barStack(name: string, onMany?: () => void, onRead?: () => void)
     write: write,
   };
 }
+
+/* 5.75 (visual audit): how the user last moved — keys or a pointer — for listbox options, whose active row is
+ * aria-activedescendant (focus stays in the field, so :focus-visible can't tell). The page's <html> carries
+ * data-aura-modality="pointer" after a pointer press or a hover over an option, and loses it at the next key, so an
+ * open list follows at once (no re-render needed). One pair of capture listeners for the page, added when the first
+ * Select, Combobox or TimePicker mounts — before anyone can click it open. */
+let modalityOn = false;
+function setModality(m: 'key' | 'pointer'): void {
+  const root = document.documentElement;
+  if (m === 'pointer') {
+    if (root.getAttribute('data-aura-modality') !== 'pointer') root.setAttribute('data-aura-modality', 'pointer');
+  } else if (root.hasAttribute('data-aura-modality')) root.removeAttribute('data-aura-modality');
+}
+export function useInputModality(): void {
+  React.useEffect(function () {
+    if (modalityOn) return;
+    modalityOn = true;
+    document.addEventListener(
+      'keydown',
+      function () {
+        setModality('key');
+      },
+      true,
+    );
+    document.addEventListener(
+      'pointerdown',
+      function () {
+        setModality('pointer');
+      },
+      true,
+    );
+  }, []);
+}
+/** An option hovered by the pointer: the list is under the pointer now, until the next key. */
+export function pointerModality(): void {
+  setModality('pointer');
+}

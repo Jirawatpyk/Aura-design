@@ -54,6 +54,7 @@
   --color-aura-lime-600: var(--aura-lime-600);
   --color-aura-lime-800: var(--aura-lime-800);
   --color-aura-red-50: var(--aura-red-50);
+  --color-aura-red-100: var(--aura-red-100);
   --color-aura-red-200: var(--aura-red-200);
   --color-aura-red-300: var(--aura-red-300);
   --color-aura-red-400: var(--aura-red-400);
@@ -61,10 +62,12 @@
   --color-aura-red-700: var(--aura-red-700);
   --color-aura-red-800: var(--aura-red-800);
   --color-aura-amber-50: var(--aura-amber-50);
+  --color-aura-amber-100: var(--aura-amber-100);
   --color-aura-amber-200: var(--aura-amber-200);
   --color-aura-amber-300: var(--aura-amber-300);
   --color-aura-amber-500: var(--aura-amber-500);
   --color-aura-amber-600: var(--aura-amber-600);
+  --color-aura-amber-700: var(--aura-amber-700);
   --color-aura-amber-800: var(--aura-amber-800);
   --color-aura-ink: var(--aura-ink);
   --color-aura-white: var(--aura-white);
@@ -108,6 +111,16 @@
   --color-status-blocked-fg: var(--aura-status-blocked-fg);
   --color-status-warning-bg: var(--aura-status-warning-bg);
   --color-status-warning-fg: var(--aura-status-warning-fg);
+  --color-status-neutral-solid-bg: var(--aura-status-neutral-solid-bg);
+  --color-status-neutral-solid-fg: var(--aura-status-neutral-solid-fg);
+  --color-status-progress-solid-bg: var(--aura-status-progress-solid-bg);
+  --color-status-progress-solid-fg: var(--aura-status-progress-solid-fg);
+  --color-status-ready-solid-bg: var(--aura-status-ready-solid-bg);
+  --color-status-ready-solid-fg: var(--aura-status-ready-solid-fg);
+  --color-status-blocked-solid-bg: var(--aura-status-blocked-solid-bg);
+  --color-status-blocked-solid-fg: var(--aura-status-blocked-solid-fg);
+  --color-status-warning-solid-bg: var(--aura-status-warning-solid-bg);
+  --color-status-warning-solid-fg: var(--aura-status-warning-solid-fg);
   --color-chart-1: var(--aura-chart-1);
   --color-chart-2: var(--aura-chart-2);
   --color-chart-3: var(--aura-chart-3);

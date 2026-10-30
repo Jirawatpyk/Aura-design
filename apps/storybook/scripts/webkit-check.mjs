@@ -233,6 +233,11 @@ try {
   x = await ex(`const b = document.querySelector('[data-testid=narrow] > .aura-btn'); return [Math.round(b.getBoundingClientRect().width), b.getBoundingClientRect().height >= 44]`);
   check(JSON.stringify(x) === '[200,true]', 'Button fullWidth="below-sm": full width, ≥44px', x);
 
+  /* 5.75 (visual audit set 1): a sortable header label on the line of a plain one; Blocked is a soft pill. */
+  await go('aura-new-in-5-75-visual-audit-set-1--sortable-header');
+  x = await ex(`const top = (s) => { const th = document.querySelector(s); const w = document.createTreeWalker(th, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) if (n.textContent.trim()) break; const r = document.createRange(); r.selectNodeContents(n); return r.getBoundingClientRect().top; }; return [Math.abs(top('[data-testid=sorted]') - top('[data-testid=plain]')) <= 0.5, getComputedStyle(document.querySelector('.aura-pill--blocked')).backgroundColor]`);
+  check(JSON.stringify(x) === '[true,"rgb(254, 226, 226)"]', 'Sortable Th on the line; soft Blocked pill', x);
+
   /* 5.74 (#193): a PageHeader bar whose content is hidden goes, with its height. */
   await call('POST', S('/window/rect'), { width: 390, height: 844 });
   await go('aura-new-in-5-74-chamber-os-193--pay-bar-hides');

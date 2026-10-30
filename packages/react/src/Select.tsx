@@ -3,7 +3,18 @@ import { createPortal } from 'react-dom';
 import { FIELD_KEYS, Field, describedBy } from './Field.js';
 import { Icon } from './Icon.js';
 import { useDensity } from './locale.js';
-import { cx, devWarnOnce, omit, touchClass, uid, useIsoLayoutEffect, useMergedRef, useMounted } from './internal.js';
+import {
+  cx,
+  devWarnOnce,
+  useInputModality,
+  omit,
+  pointerModality,
+  touchClass,
+  uid,
+  useIsoLayoutEffect,
+  useMergedRef,
+  useMounted,
+} from './internal.js';
 import type { SelectOption, SelectProps } from './types.js';
 import { IconCheck, IconChevronDown } from './icons.js';
 
@@ -130,6 +141,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
    * a list box (multiple / size) ignores pointer and keys instead. */
   const ro = !!props.readOnly && !props.disabled;
   const mounted = useMounted();
+  useInputModality();
   /* A read-only list box's selection, taken before a pointer or focus can change it (touch picks on the tap). */
   const kept = React.useRef<string[] | null>(null);
   const current = ([] as unknown[])
@@ -634,6 +646,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           e.preventDefault();
         }}
         onPointerMove={function () {
+          pointerModality();
           if (!it.disabled && active !== it.index) activeState[1](it.index);
         }}
         onClick={function () {

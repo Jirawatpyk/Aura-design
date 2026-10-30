@@ -1,6 +1,16 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { cx, uid, useMaybeControlled, useMounted, useIsoLayoutEffect, useMergedRef, touchClass } from './internal.js';
+import {
+  cx,
+  uid,
+  useMaybeControlled,
+  useMounted,
+  useIsoLayoutEffect,
+  useMergedRef,
+  touchClass,
+  useInputModality,
+  pointerModality,
+} from './internal.js';
 import { useStrings } from './locale.js';
 import { Icon } from './Icon.js';
 import { Field } from './Field.js';
@@ -73,6 +83,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
     listRef = React.useRef<HTMLDivElement | null>(null),
     inputMerged = useMergedRef(ref, inputRef);
   const mounted = useMounted();
+  useInputModality();
 
   function nearest(v: string): number {
     const n = toMin(v);
@@ -256,6 +267,7 @@ export const TimePicker = React.forwardRef<HTMLInputElement, TimePickerProps>(fu
                       choose(i);
                     }}
                     onPointerMove={function () {
+                      pointerModality();
                       if (active !== i) setActive(i);
                     }}
                   >

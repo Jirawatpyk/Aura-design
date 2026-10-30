@@ -488,16 +488,46 @@ window.Aura = (() => {
       write
     };
   }
+  var modalityOn = false;
+  function setModality(m) {
+    const root = document.documentElement;
+    if (m === "pointer") {
+      if (root.getAttribute("data-aura-modality") !== "pointer") root.setAttribute("data-aura-modality", "pointer");
+    } else if (root.hasAttribute("data-aura-modality")) root.removeAttribute("data-aura-modality");
+  }
+  function useInputModality() {
+    React3.useEffect(function() {
+      if (modalityOn) return;
+      modalityOn = true;
+      document.addEventListener(
+        "keydown",
+        function() {
+          setModality("key");
+        },
+        true
+      );
+      document.addEventListener(
+        "pointerdown",
+        function() {
+          setModality("pointer");
+        },
+        true
+      );
+    }, []);
+  }
+  function pointerModality() {
+    setModality("pointer");
+  }
 
   // src/display.tsx
   var React4 = __toESM(require_react(), 1);
 
   // src/status.ts
   var TONE_WORDS = {
-    ready: ["ready", "done", "complete", "completed", "approved", "live", "passed"],
+    ready: ["ready", "done", "complete", "completed", "approved", "live", "passed", "active", "up", "online", "resolved"],
     progress: ["in progress", "in review", "review", "syncing", "running", "pending"],
     warning: ["warning", "problem", "degraded", "at risk"],
-    blocked: ["blocked", "failed", "error", "rejected", "on hold", "cancelled"]
+    blocked: ["blocked", "failed", "error", "rejected", "on hold", "cancelled", "down", "offline", "outage"]
   };
   function toneFor(status) {
     const s = String(status == null ? "" : status).trim().toLowerCase();
@@ -815,13 +845,19 @@ window.Aura = (() => {
   };
   function statusPillElement(props, ref) {
     const tone2 = props.tone || toneFor(props.children);
-    const rest = omit(props, ["tone", "className", "children", "wrap", "busy"]);
+    const rest = omit(props, ["tone", "className", "children", "wrap", "busy", "variant"]);
     return /* @__PURE__ */ React4.createElement(
       "span",
       {
         ...rest,
         ref,
-        className: cx("aura-pill", "aura-pill--" + tone2, props.wrap && "is-wrap", props.className)
+        className: cx(
+          "aura-pill",
+          "aura-pill--" + tone2,
+          props.variant === "solid" && "is-solid",
+          props.wrap && "is-wrap",
+          props.className
+        )
       },
       props.busy ? /* @__PURE__ */ React4.createElement(Icon, { name: h2(IconLoaderCircle), size: 12, className: "aura-spin" }) : /* @__PURE__ */ React4.createElement(Icon, { name: h2(PILL_ICON[tone2] || IconCircle), size: 12 }),
       props.wrap ? /* @__PURE__ */ React4.createElement("span", { className: "aura-pill__text" }, props.children) : props.children
@@ -2395,6 +2431,7 @@ window.Aura = (() => {
     const rest = omit(props, FIELD_KEYS.concat(["children", FILTER_KEY, "readOnly"]));
     const ro = !!props.readOnly && !props.disabled;
     const mounted = useMounted();
+    useInputModality();
     const kept = React16.useRef(null);
     const current2 = [].concat(props.value != null ? props.value : props.defaultValue != null ? props.defaultValue : []).map(String);
     const opts = (props.options || []).map(function(o) {
@@ -2807,6 +2844,7 @@ window.Aura = (() => {
             e.preventDefault();
           },
           onPointerMove: function() {
+            pointerModality();
             if (!it.disabled && active !== it.index) activeState[1](it.index);
           },
           onClick: function() {
@@ -4208,6 +4246,7 @@ window.Aura = (() => {
       const posState = React23.useState(null);
       const inputRef = React23.useRef(null), inputMerged = useMergedRef(ref, inputRef), boxRef = React23.useRef(null), listRef = React23.useRef(null);
       const mounted = useMounted();
+      useInputModality();
       const limit = props.limit || 200;
       const filter = props.filter || defaultFilter;
       let shown = props.onSearch || query == null ? options : options.filter(function(o) {
@@ -4391,6 +4430,7 @@ window.Aura = (() => {
               if (!blocked || isSel) choose(o);
             },
             onPointerMove: function() {
+              pointerModality();
               if (activeIdx !== i) setActive(i);
             }
           },
@@ -5527,7 +5567,7 @@ window.Aura = (() => {
           "aria-label": props.removeLabel || t.remove(name),
           onClick: props.onRemove
         },
-        /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconX, null), size: 14 })
+        /* @__PURE__ */ React31.createElement(Icon, { name: /* @__PURE__ */ React31.createElement(IconX, null), size: 16 })
       );
       return /* @__PURE__ */ React31.createElement(Tooltip, { content: fullText, open: fullText ? void 0 : false }, btn);
     }() : null);
@@ -9581,6 +9621,7 @@ window.Aura = (() => {
     const pos = React57.useState(null);
     const boxRef = React57.useRef(null), inputRef = React57.useRef(null), listRef = React57.useRef(null), inputMerged = useMergedRef(ref, inputRef);
     const mounted = useMounted();
+    useInputModality();
     function nearest(v) {
       const n3 = toMin(v);
       if (n3 == null) return 0;
@@ -9752,6 +9793,7 @@ window.Aura = (() => {
               choose(i);
             },
             onPointerMove: function() {
+              pointerModality();
               if (active !== i) setActive(i);
             }
           },
@@ -10347,7 +10389,7 @@ window.Aura = (() => {
     D["fg-accent"] = fit(b[300], darkGrounds, 4.5, 1);
     D["accent-violet"] = fit(b[400], darkGrounds, 3, 1);
     D["focus-ring"] = fit(b[400], darkGrounds, 3, 1);
-    D["bg-selected"] = mix(ZINC[900], b[500], 0.16);
+    D["bg-selected"] = mix(ZINC[900], b[500], 0.2);
     D["alert-info-bg"] = D["bg-selected"];
     D["alert-info-fg"] = fit(b[300], [D["alert-info-bg"]], 4.5, 1);
     D["alert-info-border"] = mix(ZINC[900], b[400], 0.4);
@@ -10368,6 +10410,7 @@ window.Aura = (() => {
     L["control-checked-fg"] = onFill(L["control-checked-bg"]);
     D["control-checked-bg"] = fit(b[300], darkGrounds, 3, 1);
     D["control-checked-fg"] = onFill(D["control-checked-bg"]);
+    D["nav-active-edge"] = D["control-checked-bg"];
     const shadowLight = INK, shadowDark = D["accent-violet"];
     if (o.primary === "brand") {
       L["button-primary-bg"] = fit(b[600], [ZINC[0]], 4.5, -1);
