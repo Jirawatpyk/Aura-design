@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.76.0 — 2026-10-30
+
+### Minor changes
+
+- ad5e3e3: Dialog: on a screen 30rem tall or less the dialog scrolls as one box, its footer at the end of the content, so a long form stays reachable at 400% zoom or on a phone on its side (Chamber-OS 194). Above that, as before.
+
 ## 5.75.0 — 2026-10-30
 
 ### Minor changes
