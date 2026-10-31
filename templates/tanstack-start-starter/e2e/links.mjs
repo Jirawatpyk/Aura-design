@@ -7,6 +7,9 @@ import { chromium } from 'playwright';
 
 const PORT = Number(process.env.PORT) || 3219;
 const base = 'http://127.0.0.1:' + PORT;
+/* Bind where the test connects. Left to itself, vite preview listens on "localhost", which on GitHub's Ubuntu runners
+ * can resolve to ::1 — 127.0.0.1 then gets no answer (the first 5.80 CI run). */
+const HOST = ['--host', '127.0.0.1'];
 /** @param {string} why */
 const bail = (why) => {
   console.error('Client-side links FAIL: ' + why);
@@ -21,7 +24,7 @@ if (
 )
   bail(`port ${PORT} is already in use — stop that server or set PORT`);
 /* Own process group, so the whole tree (npx → vite) stops at the end. */
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort', ...HOST], {
   stdio: 'ignore',
   detached: true,
 });
