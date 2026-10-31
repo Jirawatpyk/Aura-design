@@ -100,7 +100,69 @@ export function Providers({ children, locale }: { children: React.ReactNode; loc
 // app/layout.tsx (a Server Component): <body><Providers locale="th">{children}</Providers></body>
 ```
 
-`linkComponent` is used by Button `href`, Breadcrumb, Tabs and Menu items with `href`, BottomNav, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` has no provider to read: since 5.0 it is English and Gregorian unless you pass `locale`, the same function from the package root and from `@jirawatpyk/aura-react/server`. Values are always Gregorian ISO dates.
+`linkComponent` is used by Button `href`, Breadcrumb, Tabs and Menu items with `href`, BottomNav, Pagination `getHref` (page numbers and, since 4.17, the previous / next arrows), Stat and StatusTile `href`, Th `sortHref`, toast action `href`, SideNav and DataTable row/pager links. Each of them also takes its own `linkComponent`, which wins over the provider's. Pass `getHref` from a client component (it's a function too). The Next.js starter does all of this, and CI clicks every AURA link in it to check none triggers a full page load. Only `th` shows Buddhist-era years; `en` and `sv` are Gregorian (`sv` weeks start Monday). **Without a provider, components are English with Gregorian dates** — wrap Thai apps in `<AuraProvider locale="th">`. For dates in your own components use `useFormatDate()` — it follows the provider (`const fmt = useFormatDate(); fmt(iso, { format: 'long' })`). Plain `formatDate()` has no provider to read: since 5.0 it is English and Gregorian unless you pass `locale`, the same function from the package root and from `@jirawatpyk/aura-react/server`. Values are always Gregorian ISO dates.
+
+TanStack Start / TanStack Router (5.80): AURA gives `linkComponent` a plain `href`, so pass a small `<a>` that hands same-origin clicks to the router — not TanStack's `<Link>`, which adds `aria-current="page"` to every link its own matcher calls active (on `/members?page=3`, the page 1 link and the "All" tab as well), over AURA's own:
+
+```tsx
+// src/components/aura-link.tsx
+import * as React from 'react';
+import { useRouter } from '@tanstack/react-router';
+
+function routerHref(href?: string): string | null {
+  if (href == null || typeof window === 'undefined') return null;
+  let url: URL;
+  try {
+    url = new URL(href, window.location.href); // also '?page=2' and 'members'
+  } catch {
+    return null;
+  }
+  const here = window.location;
+  if (url.origin !== here.origin) return null; // other sites, mailto:, tel:
+  if (url.hash && url.pathname === here.pathname && url.search === here.search) return null; // #fragment here
+  return url.pathname + url.search + url.hash;
+}
+
+export const AuraLink = React.forwardRef<HTMLAnchorElement, React.AnchorHTMLAttributes<HTMLAnchorElement>>(
+  function AuraLink({ href, onClick, onMouseEnter, onFocus, ...rest }, ref) {
+    const router = useRouter();
+    const preload = () => {
+      const to = routerHref(href);
+      if (to) router.preloadRoute({ href: to } as Parameters<typeof router.preloadRoute>[0]).catch(() => undefined);
+    };
+    return (
+      <a ref={ref} href={href} {...rest}
+        onClick={(e) => {
+          onClick?.(e); // AURA's own handler first (a DataTable pager with onPageChange, a toast action)
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          const target = e.currentTarget.getAttribute('target');
+          if ((target && target !== '_self') || e.currentTarget.hasAttribute('download')) return;
+          const to = routerHref(href);
+          if (!to) return;
+          e.preventDefault();
+          void router.navigate({ href: to });
+        }}
+        onMouseEnter={(e) => { onMouseEnter?.(e); preload(); }}
+        onFocus={(e) => { onFocus?.(e); preload(); }}
+      />
+    );
+  },
+);
+
+// src/routes/__root.tsx — the provider inside the router (the root route's component), the document in shellComponent
+export const Route = createRootRoute({
+  head: () => ({ links: [{ rel: 'stylesheet', href: tokensCss }, { rel: 'stylesheet', href: auraCss }] }), // '…css?url' imports
+  shellComponent: RootDocument, // <html><head><HeadContent /><ColorSchemeScript /></head><body>{children}<Scripts /></body></html>
+  component: () => (
+    <AuraProvider locale="th" strings={th} linkComponent={AuraLink}>
+      <Outlet />
+      <Toaster />
+    </AuraProvider>
+  ),
+});
+```
+
+Write hrefs as URLs (`getHref={(p) => '/members?page=' + p}`) and read them back with the route's `validateSearch`. A client navigation passes the query through the router's search parser and serializer, so keep params single-valued (`?a=1&a=2` comes back as JSON, `?q=1e3` as `1000`) or set the router's `parseSearch` / `stringifySearch`. With a `basepath`, write hrefs with it; a same-origin href outside it goes to the router's not-found route. DataTable keyboard paging (PageDown / PageUp, arrows past the page) clicks the pager links, and since 5.80 the focus moves to the new page's row. The TanStack Start starter (`templates/tanstack-start-starter`) has all of this; CI builds it against the packed packages and clicks every AURA link in it — Button, Breadcrumb, link Tabs, DropdownMenu items, BottomNav, Pagination, Th `sortHref`, Stat, StatusTile, SideNav, DataTable rows and pager, toast actions — checking that none loads a full page, that `aria-current` is AURA's and that Ctrl/⌘-click still opens a tab.
 
 ## Compact density
 

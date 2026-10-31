@@ -1,0 +1,34 @@
+{
+  "name": "aura-tanstack-start-starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TanStack Start + AURA Design System starter.",
+  "scripts": {
+    "dev": "vite dev --port 3000",
+    "build": "vite build",
+    "start": "vite preview --port 3000",
+    "typecheck": "tsc --noEmit",
+    "theme": "aura-theme --brand \"#0ea5e9\" --out src/aura-theme.css",
+    "test:links": "node e2e/links.mjs"
+  },
+  "dependencies": {
+    "@jirawatpyk/aura-react": "^5.79.0",
+    "@jirawatpyk/aura-tokens": "^5.79.0",
+    "@tanstack/react-router": "1.170.46",
+    "@tanstack/react-start": "1.169.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "typescript": "^5.9.0",
+    "vite": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

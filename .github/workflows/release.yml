@@ -71,7 +71,7 @@ jobs:
           commit-message: 'Version Packages'
           pr-title: 'Version Packages'
 
-  # 5.1.1: publish only once CI (ci.yml: both React versions, Storybook + axe, pilots, starter) has passed on this
+  # 5.1.1: publish only once CI (ci.yml: both React versions, Storybook + axe, pilots, both starters) has passed on this
   # exact commit. Before, release ran beside CI, so a merge whose CI failed was still published.
   ci:
     needs: plan

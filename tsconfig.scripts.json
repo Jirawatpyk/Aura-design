@@ -31,6 +31,7 @@
     "packages/tokens/scripts/*.js",
     "packages/tokens/eslint-plugin-aura.js",
     "apps/storybook/scripts/telemetry.mts",
-    "templates/next-starter/e2e/*.mjs"
+    "templates/next-starter/e2e/*.mjs",
+    "templates/tanstack-start-starter/e2e/*.mjs"
   ]
 }

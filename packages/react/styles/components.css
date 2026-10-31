@@ -2153,6 +2153,11 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 .aura-filterbar--fill .aura-filterbar__controls > .aura-filterselect .aura-filterselect__chevron { margin-inline-start: auto; }
 /* Compact filters sit closer together than full fields. */
 .aura-filterbar__controls:has(> .aura-filterselect) { gap: var(--aura-space-2); }
+/* 5.80: on a phone 6px, so three filters and a Tag keep one 375px row with either font source — the self-hosted
+ * Inter (aura-fonts.local.css) measured 2.3px over at 8px. */
+@media (max-width: 639.98px) {
+  .aura-filterbar__controls:has(> .aura-filterselect) { gap: 6px; }
+}
 /* 5.42 (Chamber-OS 146): collapseBelow — below the breakpoint the controls fold into a "Filters" sheet; the button
  * shares a row with the search, at its end, as tall as the search (the count and actions wrap below). From the
  * breakpoint up the search and the hidden button sit in a display: contents box, so the bar lays out as before. */

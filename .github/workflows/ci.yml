@@ -159,12 +159,51 @@ jobs:
         env: { NEXT_TELEMETRY_DISABLED: '1' }
         run: node e2e/links.mjs
 
+  # 5.80: the TanStack Start starter, the same way — packed packages, a production build, every AURA link clicked.
+  tanstack-starter:
+    name: TanStack Start starter (vite build + every AURA link client-side against the packed packages)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Build and pack AURA
+        run: |
+          npm run build
+          mkdir -p "$RUNNER_TEMP/packs" && npm pack -w packages/tokens -w packages/react --pack-destination "$RUNNER_TEMP/packs"
+      - name: Install the starter with the packed AURA
+        working-directory: templates/tanstack-start-starter
+        run: |
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/packs/*.tgz
+          npm install --no-audit --no-fund
+          # One router: two copies of @tanstack/react-router would give AuraLink a router context of its own.
+          test "$(npm ls @tanstack/react-router --all --parseable | sort -u | wc -l)" -eq 1 || { npm ls @tanstack/react-router --all; exit 1; }
+      - name: vite build, then typecheck (the build writes routeTree.gen.ts)
+        working-directory: templates/tanstack-start-starter
+        run: |
+          npx vite build
+          npx tsc --noEmit
+      - name: The page renders on the server
+        working-directory: templates/tanstack-start-starter
+        run: |
+          npx vite preview --port 3101 --strictPort &
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:3101 && break; sleep 1; done
+          html=$(curl -fsS http://localhost:3101)
+          for want in 'ORD-1042' 'aura-table' 'aura-stat' 'aura-status-tile' 'data-aura-color-scheme' 'ข้อมูล ณ 24 กันยายน 2569'; do echo "$html" | grep -q "$want" || { echo "missing $want"; exit 1; }; done
+          echo "starter renders AURA on the server"
+      - name: Browser for the link test
+        run: npx playwright install --with-deps chromium
+      - name: Every AURA link navigates client-side (TanStack Router, no full page load, AURA's aria-current)
+        working-directory: templates/tanstack-start-starter
+        run: node e2e/links.mjs
+
   # Public Storybook on GitHub Pages — only from main, only after every Storybook test passed.
   # One-time setup: repository Settings → Pages → Source: GitHub Actions.
   pages:
     name: Deploy Storybook to GitHub Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [checks, pilots, storybook, starter]
+    needs: [checks, pilots, storybook, starter, tanstack-starter]
     runs-on: ubuntu-latest
     permissions:
       pages: write

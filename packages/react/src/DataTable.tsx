@@ -67,6 +67,11 @@ type PendingFocus = {
   c?: number | undefined;
   key?: string | null | undefined;
   menuBtn?: boolean | undefined;
+  /* 5.80: for link paging, the page the focus belongs to — it waits until the router has rendered that page. */
+  page?: number | undefined;
+  /* …and when it was asked for: a navigation that never lands (a blocker, a redirect) is dropped after 10s, so a
+   * later Back to that page doesn't pull the focus. */
+  at?: number | undefined;
 };
 type MenuState = {
   kind: 'col' | 'picker';
@@ -647,6 +652,9 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     if (next === page) return false;
     if (!quiet) emit(sort, next);
     if (linkPaging) {
+      /* 5.80: a client-side router (next/link, TanStack Router) renders the new page in this same table, so the
+       * focus follows it there instead of falling to <body> with the old page's rows. */
+      if (focus) pending.current = { ...focus, page: next, at: Date.now() };
       const a = next === page - 1 ? prevLink.current : next === page + 1 ? nextLink.current : null;
       if (a) a.click();
       else jumpState[1](next);
@@ -772,6 +780,11 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   React.useEffect(function () {
     const p = pending.current;
     if (!p || !gridRef.current) return;
+    if (p.at != null && Date.now() - p.at > 10000) {
+      pending.current = null;
+      return;
+    }
+    if (p.page != null && p.page !== page) return;
     let c = p.c;
     if (p.key) {
       let at = -1;

@@ -20,6 +20,12 @@ Living documentation: the AURA design-system artifact on claude.ai (tokens, comp
 npx degit Jirawatpyk/Aura-design/templates/next-starter my-app
 ```
 
+**TanStack Start?** The same, with a link adapter for TanStack Router (5.80):
+
+```bash
+npx degit Jirawatpyk/Aura-design/templates/tanstack-start-starter my-app
+```
+
 Works with **React 18 and 19**: CI runs every suite (SSR, hydration, pilots, Storybook) on both.
 
 Published to two registries with the same names and versions:

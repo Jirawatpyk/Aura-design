@@ -6548,6 +6548,7 @@ window.Aura = (() => {
       if (next === page) return false;
       if (!quiet) emit(sort, next);
       if (linkPaging) {
+        if (focus) pending.current = { ...focus, page: next, at: Date.now() };
         const a = next === page - 1 ? prevLink.current : next === page + 1 ? nextLink.current : null;
         if (a) a.click();
         else jumpState[1](next);
@@ -6646,6 +6647,11 @@ window.Aura = (() => {
     React34.useEffect(function() {
       const p = pending.current;
       if (!p || !gridRef.current) return;
+      if (p.at != null && Date.now() - p.at > 1e4) {
+        pending.current = null;
+        return;
+      }
+      if (p.page != null && p.page !== page) return;
       let c = p.c;
       if (p.key) {
         let at = -1;

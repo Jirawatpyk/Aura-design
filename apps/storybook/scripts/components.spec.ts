@@ -13021,3 +13021,68 @@ test.describe('5.79: visual audit set 3 — component by component', () => {
     expect(await page.evaluate(() => getComputedStyle(document.body).fontSize)).not.toBe('15px');
   });
 });
+
+test.describe('5.80: FilterBar compact filters on a phone', () => {
+  test('three FilterSelects and a Tag sit 6px apart below 640px (8px from 640px) and keep one 375px row', async ({
+    page,
+  }) => {
+    const gap = () =>
+      page
+        .locator('.aura-filterbar__controls:has(> .aura-filterselect)')
+        .first()
+        .evaluate((e) => getComputedStyle(e).columnGap);
+    await page.setViewportSize({ width: 375, height: 700 });
+    await story(page, 'aura-new-in-5-12--filter-selects');
+    expect(await gap()).toBe('6px');
+    const rows = await page
+      .locator('.aura-filterselect, .aura-tag')
+      .evaluateAll((els) => [...new Set(els.map((e) => Math.round(e.getBoundingClientRect().bottom)))].length);
+    expect(rows).toBe(1);
+    /* The row still has room to spare: the last control ends at least 2px inside the FilterBar. */
+    const room = await page
+      .locator('.aura-filterbar')
+      .first()
+      .evaluate((bar) => {
+        const kids = [...bar.querySelectorAll('.aura-filterselect, .aura-tag')];
+        return bar.getBoundingClientRect().right - Math.max(...kids.map((k) => k.getBoundingClientRect().right));
+      });
+    expect(room).toBeGreaterThanOrEqual(2);
+    await page.setViewportSize({ width: 1024, height: 700 });
+    expect(await gap()).toBe('8px');
+  });
+});
+
+test.describe('5.80: DataTable link paging under a client-side router', () => {
+  test('PageDown / PageUp follow the pager links and the focus moves to the new page, not to <body>', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-80-tanstack-start--link-paging-under-a-router');
+    const focused = () =>
+      page.evaluate(() => {
+        const a = document.activeElement as HTMLElement | null;
+        return a && a.closest('[role="row"]')
+          ? (a.closest('[role="row"]') as HTMLElement).textContent!.slice(0, 8)
+          : a && a.tagName;
+      });
+    await page.locator('[role="gridcell"]').first().focus();
+    expect(await focused()).toBe('INV-1001');
+    await page.keyboard.press('PageDown');
+    await expect(page.getByTestId('url')).toHaveText('?page=2');
+    await expect.poll(focused).toBe('INV-1003');
+    await page.keyboard.press('PageDown');
+    await expect(page.getByTestId('url')).toHaveText('?page=3');
+    await expect.poll(focused).toBe('INV-1005');
+    await page.keyboard.press('PageUp');
+    await expect(page.getByTestId('url')).toHaveText('?page=2');
+    await expect.poll(focused).toBe('INV-1003');
+    /* ArrowDown off the last row goes on to the next page's first row through the link too. */
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByTestId('url')).toHaveText('?page=3');
+    await expect.poll(focused).toBe('INV-1005');
+    /* ArrowUp off the first row goes back to the previous page's last row. */
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByTestId('url')).toHaveText('?page=2');
+    await expect.poll(focused).toBe('INV-1004');
+  });
+});

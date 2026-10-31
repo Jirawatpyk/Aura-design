@@ -1,0 +1,2 @@
+/* Page ground from AURA's tokens — no raw colours here. */
+html, body { margin: 0; background: var(--aura-bg-canvas); color: var(--aura-fg-primary); font-family: var(--font-sans); }
