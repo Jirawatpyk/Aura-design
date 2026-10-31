@@ -13086,3 +13086,52 @@ test.describe('5.80: DataTable link paging under a client-side router', () => {
     await expect.poll(focused).toBe('INV-1004');
   });
 });
+
+test.describe('5.81: DxT Monitor 24 — BottomNav hideOnScroll after a tap', () => {
+  const ID = 'aura-new-in-5-81-dxt-monitor-24--hide-after-tap';
+  const scrollTo = async (page: Page, y: number) => {
+    await page.evaluate((y) => window.scrollTo(0, y), y);
+    await page.waitForTimeout(350); // past the 250ms slide
+  };
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test('a tapped tab keeps focus but no longer pins the bar; keyboard focus in the bar still does', async ({
+    page,
+  }) => {
+    await story(page, ID);
+    const nav = page.locator('nav.aura-bottomnav');
+    const oncall = nav.getByRole('link', { name: 'On-call' });
+    await oncall.tap();
+    await expect(page.getByRole('heading', { name: 'On-call', level: 1 })).toBeVisible();
+    /* The case DxT measured: the tab holds focus after the tap (Chrome / Android). */
+    await expect(oncall).toBeFocused();
+    await scrollTo(page, 900);
+    await expect(nav).toHaveClass(/is-away/);
+    await scrollTo(page, 860);
+    await expect(nav).not.toHaveClass(/is-away/);
+    /* A click (desktop Chrome focuses a clicked link too) behaves the same. */
+    await nav.getByRole('link', { name: 'Alerts' }).click();
+    await expect(page.getByRole('heading', { name: 'Alerts', level: 1 })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Alerts' })).toBeFocused();
+    /* …and scrolling with keys from there (PageDown, Space) doesn't turn the click's focus into keyboard focus. */
+    for (let i = 0; i < 3; i++) await page.keyboard.press('PageDown');
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(600);
+    /* Let the smooth key scroll finish before the page is moved again. */
+    await expect
+      .poll(async () => {
+        const a = await page.evaluate(() => window.scrollY);
+        await page.waitForTimeout(150);
+        return (await page.evaluate(() => window.scrollY)) - a;
+      })
+      .toBe(0);
+    await expect(nav).toHaveClass(/is-away/);
+    /* Keyboard: Tab into the bar brings it back, and it stays while that focus is there. */
+    await scrollTo(page, 860);
+    await expect(nav).not.toHaveClass(/is-away/);
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(nav.getByRole('link', { name: 'Alerts' })).toBeFocused();
+    await scrollTo(page, 1400);
+    await expect(nav).not.toHaveClass(/is-away/);
+  });
+});

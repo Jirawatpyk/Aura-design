@@ -2,9 +2,18 @@ import * as React from 'react';
 
 /* 5.35 (DxT Monitor 13, 14): a bar that slides away while the page scrolls down and comes back on the way up. Hidden
  * only after the page has moved past `from` px and kept going down for 8px; back after 8px up, near the top, when the
- * media query stops matching, and while focus is inside the bar (a keyboard user never loses it). The page scrolls
- * the window (AppShell's main is not a scroller). */
+ * media query stops matching, and while keyboard focus is inside the bar (a keyboard user never loses it; 5.81: a
+ * tap's focus doesn't count). The page scrolls the window (AppShell's main is not a scroller). */
 const STEP = 8;
+
+/* 5.81 (DxT Monitor 24): focus in the bar holds it only when it came from the keyboard. A tap on a tab focuses its
+ * link (Chrome / Android) and, with client-side navigation, the bar stays mounted with that focus on the next page —
+ * it then never hid. The hook notes whether focus entered the bar right after a pointer press (`:focus-visible`
+ * can't tell: WebKit leaves it off links focused with Tab). A text field holds the bar however it was focused, and
+ * focus moved with the keyboard (Tab into or within the bar) counts as keyboard focus. Keys that only scroll the page
+ * (Space, PageDown) leave a tap's focus a tap's. */
+const TEXT_ENTRY =
+  'textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"], input:not([type]), input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="tel"], input[type="number"], input[type="password"]';
 
 export function useHideOnScroll(
   enabled: boolean,
@@ -15,6 +24,9 @@ export function useHideOnScroll(
   const st = React.useState(false),
     hidden = st[0],
     setHidden = st[1];
+  /* 5.81: when the last pointer press was (event time) and whether focus entered the bar from one — kept across
+   * re-runs of the effect (AppShell's `from` is the measured bar height, which changes). */
+  const tap = React.useRef({ pressedAt: -1e9, focus: false });
   React.useEffect(
     function () {
       if (!enabled || typeof window === 'undefined') {
@@ -29,6 +41,11 @@ export function useHideOnScroll(
       /* WebKit scrolls a focused control into view after focusin, not before (Chromium), and to a sticky bar's place in
        * the flow: catch that scroll too, for a moment after a Tab into the bar. */
       let restore: { y: number; until: number } | null = null;
+      function holdsBar(node: HTMLElement | null): boolean {
+        const a = document.activeElement;
+        if (!node || !a || !node.contains(a)) return false;
+        return !tap.current.focus || a.matches(TEXT_ENTRY);
+      }
       function update() {
         if (restore) {
           const r = restore;
@@ -44,11 +61,7 @@ export function useHideOnScroll(
           dy = y - last;
         last = y;
         const node = el.current;
-        if (
-          (mq && !mq.matches) ||
-          y <= from ||
-          (node && document.activeElement && node.contains(document.activeElement))
-        ) {
+        if ((mq && !mq.matches) || y <= from || holdsBar(node)) {
           run = 0;
           setHidden(false);
           return;
@@ -79,7 +92,13 @@ export function useHideOnScroll(
       function disarm() {
         restore = null;
       }
+      function onPress(e: PointerEvent) {
+        restore = null;
+        tap.current.pressedAt = e.timeStamp;
+      }
       function onKey(e: KeyboardEvent) {
+        /* A focus that follows a key (Tab, Enter on a control that moves focus) is keyboard focus. */
+        tap.current.pressedAt = -1e9;
         if (e.key !== 'Tab' && e.code !== 'Tab') {
           if (e.key !== 'Shift') restore = null;
           return;
@@ -89,7 +108,8 @@ export function useHideOnScroll(
           tabbing = false;
         });
       }
-      function reveal() {
+      function reveal(e: FocusEvent) {
+        tap.current.focus = e.timeStamp - tap.current.pressedAt < 1000;
         const n = el.current;
         if (n && n.classList.contains('is-away')) {
           n.classList.remove('is-away');
@@ -105,7 +125,7 @@ export function useHideOnScroll(
       document.addEventListener('keydown', onKey, true);
       window.addEventListener('wheel', disarm, { passive: true, capture: true });
       window.addEventListener('touchstart', disarm, { passive: true, capture: true });
-      window.addEventListener('pointerdown', disarm, true);
+      window.addEventListener('pointerdown', onPress, true);
       const node = el.current;
       if (node) node.addEventListener('focusin', reveal);
       if (mq && mq.addEventListener) mq.addEventListener('change', update);
@@ -115,7 +135,7 @@ export function useHideOnScroll(
         document.removeEventListener('keydown', onKey, true);
         window.removeEventListener('wheel', disarm, true);
         window.removeEventListener('touchstart', disarm, true);
-        window.removeEventListener('pointerdown', disarm, true);
+        window.removeEventListener('pointerdown', onPress, true);
         if (node) node.removeEventListener('focusin', reveal);
         if (mq && mq.removeEventListener) mq.removeEventListener('change', update);
       };

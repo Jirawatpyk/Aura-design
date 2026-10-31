@@ -8751,8 +8751,10 @@ window.Aura = (() => {
   // src/scrollHide.ts
   var React48 = __toESM(require_react(), 1);
   var STEP = 8;
+  var TEXT_ENTRY = 'textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"], input:not([type]), input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="tel"], input[type="number"], input[type="password"]';
   function useHideOnScroll(enabled, el, media, from) {
     const st = React48.useState(false), hidden = st[0], setHidden = st[1];
+    const tap = React48.useRef({ pressedAt: -1e9, focus: false });
     React48.useEffect(
       function() {
         if (!enabled || typeof window === "undefined") {
@@ -8762,6 +8764,11 @@ window.Aura = (() => {
         const mq = window.matchMedia ? window.matchMedia(media) : null;
         let last = window.scrollY, lastH = window.innerHeight, resizedAt = -1e9, run = 0;
         let restore = null;
+        function holdsBar(node2) {
+          const a = document.activeElement;
+          if (!node2 || !a || !node2.contains(a)) return false;
+          return !tap.current.focus || a.matches(TEXT_ENTRY);
+        }
         function update() {
           if (restore) {
             const r2 = restore;
@@ -8776,7 +8783,7 @@ window.Aura = (() => {
           const y = window.scrollY, dy = y - last;
           last = y;
           const node2 = el.current;
-          if (mq && !mq.matches || y <= from || node2 && document.activeElement && node2.contains(document.activeElement)) {
+          if (mq && !mq.matches || y <= from || holdsBar(node2)) {
             run = 0;
             setHidden(false);
             return;
@@ -8796,7 +8803,12 @@ window.Aura = (() => {
         function disarm() {
           restore = null;
         }
+        function onPress(e) {
+          restore = null;
+          tap.current.pressedAt = e.timeStamp;
+        }
         function onKey(e) {
+          tap.current.pressedAt = -1e9;
           if (e.key !== "Tab" && e.code !== "Tab") {
             if (e.key !== "Shift") restore = null;
             return;
@@ -8806,7 +8818,8 @@ window.Aura = (() => {
             tabbing = false;
           });
         }
-        function reveal() {
+        function reveal(e) {
+          tap.current.focus = e.timeStamp - tap.current.pressedAt < 1e3;
           const n3 = el.current;
           if (n3 && n3.classList.contains("is-away")) {
             n3.classList.remove("is-away");
@@ -8822,7 +8835,7 @@ window.Aura = (() => {
         document.addEventListener("keydown", onKey, true);
         window.addEventListener("wheel", disarm, { passive: true, capture: true });
         window.addEventListener("touchstart", disarm, { passive: true, capture: true });
-        window.addEventListener("pointerdown", disarm, true);
+        window.addEventListener("pointerdown", onPress, true);
         const node = el.current;
         if (node) node.addEventListener("focusin", reveal);
         if (mq && mq.addEventListener) mq.addEventListener("change", update);
@@ -8832,7 +8845,7 @@ window.Aura = (() => {
           document.removeEventListener("keydown", onKey, true);
           window.removeEventListener("wheel", disarm, true);
           window.removeEventListener("touchstart", disarm, true);
-          window.removeEventListener("pointerdown", disarm, true);
+          window.removeEventListener("pointerdown", onPress, true);
           if (node) node.removeEventListener("focusin", reveal);
           if (mq && mq.removeEventListener) mq.removeEventListener("change", update);
         };

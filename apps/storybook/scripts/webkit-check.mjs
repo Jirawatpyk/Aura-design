@@ -497,6 +497,23 @@ try {
     check(x[0] <= 0 && x[1] > 0, 'fields at a doubled root font stay on the page (' + id + ')', x);
   }
 
+  /* 5.81 (DxT 24): a clicked tab under client-side navigation doesn't pin the BottomNav; keyboard focus does. */
+  await go('aura-new-in-5-81-dxt-monitor-24--hide-after-tap');
+  const tabEl = await call('POST', S('/element'), { using: 'css selector', value: 'nav.aura-bottomnav a[href="#oncall"]' });
+  await call('POST', S('/element/' + Object.values(tabEl)[0] + '/click'), {});
+  await sleep(300);
+  const away = () => ex('return document.querySelector("nav.aura-bottomnav").classList.contains("is-away")');
+  await scrollSteps(40, 900, 40);
+  x = [await ex('return document.activeElement.tagName'), await away()];
+  check(x[1] === true, 'BottomNav hideOnScroll: after a click on a tab the bar hides scrolling down (focus: ' + x[0] + ')', x);
+  await scrollSteps(880, 820, -20);
+  await ex('document.querySelector("nav.aura-bottomnav a[href=\'#alerts\']").focus()');
+  await call('POST', S('/actions'), { actions: [{ type: 'key', id: 'kb', actions: [{ type: 'keyDown', value: '\uE008' }, { type: 'keyDown', value: '\uE004' }, { type: 'keyUp', value: '\uE004' }, { type: 'keyUp', value: '\uE008' }, { type: 'keyDown', value: '\uE004' }, { type: 'keyUp', value: '\uE004' }] }] });
+  await sleep(200);
+  await scrollSteps(840, 1400, 40);
+  x = [await ex('return document.activeElement.getAttribute("href")'), await away()];
+  check(x[0] === '#alerts' && x[1] === false, 'BottomNav hideOnScroll: keyboard focus in the bar keeps it while scrolling down', x);
+
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
   x = await ex(`const g = document.querySelector('[data-testid=gaps]'), r = g.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), g.querySelector('path').getAttribute('d').split('M').length - 1]`);
