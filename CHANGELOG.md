@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.81.0 — 2026-11-01
+
+### Minor changes
+
+- f626930: DxT Monitor 24: BottomNav `hideOnScroll` (and AppShell `headerHideOnScroll`) hide again after a tap under client-side navigation — focus in the bar holds it only when it came from the keyboard (or is in a text field), not when it entered right after a pointer press.
+
 ## 5.80.0 — 2026-10-31
 
 ### Minor changes
