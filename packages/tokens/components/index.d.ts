@@ -1719,6 +1719,9 @@ export interface BadgeProps extends React$1.HTMLAttributes<HTMLSpanElement> {
 	/** soft (default) · solid · outline */
 	variant?: "soft" | "solid" | "outline" | undefined;
 	icon?: IconInput | undefined;
+	/** 5.82 (DxT Monitor 25): `xs` — 16px high, weight 500, 6px inset: a mark under a value inside a `rowHeight="density"`
+	 * row. No icon at this size (a dev warning says so). Default `sm` (20px). */
+	size?: "xs" | "sm" | undefined;
 }
 export interface TagProps extends Omit<React$1.HTMLAttributes<HTMLElement>, "onClick"> {
 	children: React$1.ReactNode;

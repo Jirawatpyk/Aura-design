@@ -248,6 +248,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.82 — DxT Monitor 25 (Badge xs)
+
+- **Badge `size="xs"`**: 16px high (a larger default font grows it), weight 500, 6px inset — a mark under a cell's main value that keeps a `rowHeight="density"` row at 48px (a 12px line with line-height 12px, 4px gap, the badge; a 12px text at its normal line-height is about 18px and the row grows). Thai text stays 11px at this size — the one exception to the 5.30 rule that Thai labels are at least 12px, so stacked tone marks stay off the 16px outline. Every tone and variant; no icon at this size (a dev warning says so). Also from `@jirawatpyk/aura-react/server`. `<Badge size="xs" variant="outline">Confirm</Badge>`.
+
 ## 5.81 — DxT Monitor 24 (the tab bar hides after a tap)
 
 - **BottomNav `hideOnScroll` and AppShell `headerHideOnScroll` after a tap**: with client-side navigation the bar stays mounted, and on Chrome / Android a tap leaves focus on the tapped tab — the bar then never hid on the next page. Focus in the bar now holds it only when it came from the keyboard: focus that enters right after a pointer press doesn't count, and focus moved with the keyboard does (Tab into or within the bar brings it back and keeps it; keys that only scroll the page, such as Space or PageDown, don't). A text field in the bar holds it however it was focused. No new prop; drop any wrapper that blurs the tab on click.

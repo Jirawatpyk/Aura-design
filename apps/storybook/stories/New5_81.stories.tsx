@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Aura } from './aura';
 
-const meta: Meta = { title: 'AURA/New in 5.81 DxT Monitor 24', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'AURA/New in 5.81 DxT Monitor 24-25', parameters: { layout: 'fullscreen' } };
 export default meta;
 
 const TABS = [
@@ -59,4 +59,68 @@ export const HideAfterTap: StoryObj = {
       </Aura.AuraProvider>
     );
   },
+};
+
+const CHECKS = [
+  { time: '09:41:12', status: 'Down', confirm: true },
+  { time: '09:40:12', status: 'Down', confirm: false },
+  { time: '09:39:12', status: 'Up', confirm: false },
+];
+
+/* Request 25: Badge size="xs" — a 16px mark under a cell's main value that keeps a rowHeight="density" row at 48px
+ * (a 12px time, 4px, the badge). Same tones and variants as the 20px default. */
+export const BadgeXs: StoryObj = {
+  parameters: { layout: 'padded' },
+  render: () => (
+    <div style={{ display: 'grid', gap: 24, maxWidth: 560 }}>
+      <div data-testid="sizes" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <Aura.Badge data-testid="sm" variant="outline">
+          Confirm
+        </Aura.Badge>
+        <Aura.Badge data-testid="xs" size="xs" variant="outline">
+          Confirm
+        </Aura.Badge>
+        {(['neutral', 'accent', 'success', 'warning', 'danger'] as const).map((t) => (
+          <Aura.Badge key={t} size="xs" tone={t}>
+            {t}
+          </Aura.Badge>
+        ))}
+        <Aura.Badge size="xs" tone="danger" variant="solid">
+          3 overdue
+        </Aura.Badge>
+        <Aura.Badge data-testid="xs-th" lang="th" size="xs" variant="outline">
+          ยืนยันซ้ำ
+        </Aura.Badge>
+      </div>
+      <Aura.Table aria-label="Check log" rowHeight="density" data-testid="log">
+        <Aura.THead>
+          <Aura.Tr>
+            <Aura.Th>Time</Aura.Th>
+            <Aura.Th>Result</Aura.Th>
+          </Aura.Tr>
+        </Aura.THead>
+        <Aura.TBody>
+          {CHECKS.map((c) => (
+            <Aura.Tr key={c.time}>
+              <Aura.Td>
+                <div style={{ display: 'grid', gap: 4, justifyItems: 'start' }}>
+                  <span className="aura-mono" style={{ fontSize: 12, lineHeight: '12px' }}>
+                    {c.time}
+                  </span>
+                  {c.confirm ? (
+                    <Aura.Badge size="xs" variant="outline">
+                      Confirm
+                    </Aura.Badge>
+                  ) : null}
+                </div>
+              </Aura.Td>
+              <Aura.Td>
+                <Aura.StatusPill>{c.status}</Aura.StatusPill>
+              </Aura.Td>
+            </Aura.Tr>
+          ))}
+        </Aura.TBody>
+      </Aura.Table>
+    </div>
+  ),
 };

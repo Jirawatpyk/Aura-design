@@ -923,7 +923,10 @@ window.Aura = (() => {
     );
   }
   function badgeElement(props, ref) {
-    const rest = omit(props, ["tone", "variant", "icon", "className", "children"]);
+    const rest = omit(props, ["tone", "variant", "icon", "className", "children", "size"]);
+    const xs = props.size === "xs";
+    if (xs && props.icon)
+      devWarnOnce("badge-xs-icon", 'Badge size="xs" has no icon (16px leaves no room for one); the icon is not shown.');
     return /* @__PURE__ */ React4.createElement(
       "span",
       {
@@ -934,10 +937,11 @@ window.Aura = (() => {
           "aura-badge--" + tone(props.tone),
           props.variant === "solid" && "is-solid",
           props.variant === "outline" && "is-outline",
+          xs && "aura-badge--xs",
           props.className
         )
       },
-      props.icon ? /* @__PURE__ */ React4.createElement(Icon, { name: props.icon, size: 12 }) : null,
+      props.icon && !xs ? /* @__PURE__ */ React4.createElement(Icon, { name: props.icon, size: 12 }) : null,
       props.children
     );
   }

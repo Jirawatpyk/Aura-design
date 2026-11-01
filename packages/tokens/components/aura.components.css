@@ -1671,6 +1671,12 @@ a.aura-upload__name:focus-visible { outline: var(--aura-focus-ring-width) solid 
 .aura-badge--neutral.is-outline { border-color: var(--aura-border-control); }
 .aura-badge.is-solid { background: var(--aura-button-primary-bg); color: var(--aura-button-primary-fg); }
 .aura-badge--danger.is-solid { background: var(--aura-status-blocked-solid-bg); color: var(--aura-status-blocked-solid-fg); }
+/* 5.82 (DxT Monitor 25): xs — a mark under a cell's value in a density row (48px: a 12px line, 4px, this). 16px at the
+ * default font (min-, so a larger default font grows it), weight 500, 6px inset. Same tones and variants. */
+.aura-badge--xs { min-height: 16px; padding: 0 6px; font-weight: 500; }
+/* Thai keeps 11px at xs — the one exception to the 5.30 Thai 12px floor: at 12px with line-height 1 the stacked tone
+ * marks (ซ้ำ) touch the outline; 11px keeps them off the border. */
+.aura-badge.aura-badge--xs:lang(th) { font-size: max(11px, .6875rem); }
 
 /* ---------- Tag ---------- */
 .aura-tag {

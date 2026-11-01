@@ -789,6 +789,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
     }
+    /* 5.82 (DxT Monitor 25): Badge size="xs" is a class — no size attribute, no icon — from both entries. */
+    for (const B of [A.Badge, S.Badge]) {
+      const xs = m(e(B, { size: 'xs', variant: 'outline', icon: 'check', children: 'Confirm' }));
+      if (xs !== '<span class="aura-badge aura-badge--neutral is-outline aura-badge--xs">Confirm</span>') { console.log(label, 'Badge xs:', xs); fail++; }
+      const sm = m(e(B, { size: 'sm', children: '3' }));
+      if (sm !== '<span class="aura-badge aura-badge--neutral">3</span>') { console.log(label, 'Badge sm:', sm); fail++; }
+    }
     /* 5.34: StatusTile named from content in reading order (inline commas, no aria-label); TileGrid a ul of li with
      * column variables; Sparkline breaks at null, a lone point is a dot, failures off by default. */
     {

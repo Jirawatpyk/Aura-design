@@ -201,7 +201,10 @@ export function spinnerElement(props: SpinnerProps, ref: React.Ref<HTMLSpanEleme
 }
 
 export function badgeElement(props: BadgeProps, ref: React.Ref<HTMLSpanElement> | undefined): React.ReactElement {
-  const rest = omit(props, ['tone', 'variant', 'icon', 'className', 'children']);
+  const rest = omit(props, ['tone', 'variant', 'icon', 'className', 'children', 'size']);
+  const xs = props.size === 'xs';
+  if (xs && props.icon)
+    devWarnOnce('badge-xs-icon', 'Badge size="xs" has no icon (16px leaves no room for one); the icon is not shown.');
   return (
     <span
       {...rest}
@@ -211,10 +214,11 @@ export function badgeElement(props: BadgeProps, ref: React.Ref<HTMLSpanElement> 
         'aura-badge--' + badgeTone(props.tone),
         props.variant === 'solid' && 'is-solid',
         props.variant === 'outline' && 'is-outline',
+        xs && 'aura-badge--xs',
         props.className,
       )}
     >
-      {props.icon ? <Icon name={props.icon} size={12} /> : null}
+      {props.icon && !xs ? <Icon name={props.icon} size={12} /> : null}
       {props.children}
     </span>
   );

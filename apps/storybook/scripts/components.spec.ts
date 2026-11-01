@@ -13088,7 +13088,7 @@ test.describe('5.80: DataTable link paging under a client-side router', () => {
 });
 
 test.describe('5.81: DxT Monitor 24 — BottomNav hideOnScroll after a tap', () => {
-  const ID = 'aura-new-in-5-81-dxt-monitor-24--hide-after-tap';
+  const ID = 'aura-new-in-5-81-dxt-monitor-24-25--hide-after-tap';
   const scrollTo = async (page: Page, y: number) => {
     await page.evaluate((y) => window.scrollTo(0, y), y);
     await page.waitForTimeout(350); // past the 250ms slide
@@ -13133,5 +13133,32 @@ test.describe('5.81: DxT Monitor 24 — BottomNav hideOnScroll after a tap', () 
     await expect(nav.getByRole('link', { name: 'Alerts' })).toBeFocused();
     await scrollTo(page, 1400);
     await expect(nav).not.toHaveClass(/is-away/);
+  });
+});
+
+test.describe('5.82: DxT Monitor 25 — Badge size="xs"', () => {
+  test('xs is 16px high, weight 500, 6px inset, every tone and variant; a density row with a time and an xs badge stays 48px', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-81-dxt-monitor-24-25--badge-xs');
+    const box = (id: string) =>
+      page.getByTestId(id).evaluate((e) => {
+        const s = getComputedStyle(e);
+        return { h: Math.round(e.getBoundingClientRect().height), w: s.fontWeight, pad: s.paddingLeft, fs: s.fontSize };
+      });
+    expect(await box('sm')).toEqual({ h: 20, w: '600', pad: '8px', fs: '11px' });
+    expect(await box('xs')).toEqual({ h: 16, w: '500', pad: '6px', fs: '11px' });
+    const xsHeights = await page
+      .locator('[data-testid="sizes"] .aura-badge--xs')
+      .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+    expect(xsHeights).toEqual([16, 16, 16, 16, 16, 16, 16, 16]);
+    /* Thai keeps 11px at xs (the 12px Thai rule would fill the badge), so it is 16px too. */
+    expect(await box('xs-th')).toEqual({ h: 16, w: '500', pad: '6px', fs: '11px' });
+    const rows = await page
+      .getByTestId('log')
+      .locator('tbody tr')
+      .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+    expect(rows).toEqual([48, 48, 48]);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });

@@ -498,7 +498,7 @@ try {
   }
 
   /* 5.81 (DxT 24): a clicked tab under client-side navigation doesn't pin the BottomNav; keyboard focus does. */
-  await go('aura-new-in-5-81-dxt-monitor-24--hide-after-tap');
+  await go('aura-new-in-5-81-dxt-monitor-24-25--hide-after-tap');
   const tabEl = await call('POST', S('/element'), { using: 'css selector', value: 'nav.aura-bottomnav a[href="#oncall"]' });
   await call('POST', S('/element/' + Object.values(tabEl)[0] + '/click'), {});
   await sleep(300);
@@ -513,6 +513,12 @@ try {
   await scrollSteps(840, 1400, 40);
   x = [await ex('return document.activeElement.getAttribute("href")'), await away()];
   check(x[0] === '#alerts' && x[1] === false, 'BottomNav hideOnScroll: keyboard focus in the bar keeps it while scrolling down', x);
+
+  /* 5.82 (DxT 25): Badge xs is 16px (also in Thai); a density row with a time and an xs badge stays 48px. */
+  await go('aura-new-in-5-81-dxt-monitor-24-25--badge-xs');
+  x = await ex(`const h = (s) => Math.round(document.querySelector(s).getBoundingClientRect().height);
+    return [h('[data-testid=xs]'), h('[data-testid=xs-th]'), ...[...document.querySelectorAll('[data-testid=log] tbody tr')].map((r) => Math.round(r.getBoundingClientRect().height))]`);
+  check(JSON.stringify(x) === '[16,16,48,48,48]', 'Badge xs 16px (en, th); density rows 48px', x);
 
   /* Sparkline geometry. */
   await go('aura-new-in-5-34-status-tiles--sparklines');
