@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.82.0 — 2026-11-01
+
+### Minor changes
+
+- a313f83: DxT Monitor 25: Badge `size="xs"` — 16px high, weight 500, 6px inset, every tone and variant, no icon — a mark under a cell's value that keeps a `rowHeight="density"` row at 48px.
+
 ## 5.81.0 — 2026-11-01
 
 ### Minor changes

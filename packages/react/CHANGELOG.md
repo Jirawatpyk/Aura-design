@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.82.0
+
+### Minor Changes
+
+- a313f83: DxT Monitor 25: Badge `size="xs"` — 16px high, weight 500, 6px inset, every tone and variant, no icon — a mark under a cell's value that keeps a `rowHeight="density"` row at 48px.
+
 ## 5.81.0
 
 ### Minor Changes
