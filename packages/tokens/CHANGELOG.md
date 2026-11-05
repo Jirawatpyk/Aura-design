@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.84.0
+
+### Minor Changes
+
+- 8f21b2d: Chamber-OS 197: cursor Pagination takes `showPrevious` (default true); `false` leaves Previous out, for forward-only lists.
+
 ## 5.83.0
 
 ### Minor Changes
