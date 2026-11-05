@@ -1895,7 +1895,7 @@ test.describe('5.1.1: full-review fixes', () => {
     await page.getByRole('link', { name: 'Choose a province' }).click();
     await expect(page.getByRole('combobox', { name: 'Province' })).toBeFocused();
     await page.getByRole('combobox', { name: 'Province' }).fill('zzz');
-    await expect(page.getByText('No matches')).toBeVisible();
+    await expect(page.locator('.aura-combo__note').getByText('No matches')).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Province' })).toHaveAttribute('aria-expanded', 'false');
     expect(await axeScan(page, '.aura-field:has([role="combobox"])')).toEqual([]);
   });
@@ -4118,7 +4118,7 @@ test.describe('5.16: Chamber-OS addenda 15–16 (larger items)', () => {
     await expect(page.getByTestId('country')).toHaveText('Country: Finland');
     /* Past the limit, the note counts every option, grouped ones included. */
     await page.getByRole('combobox', { name: 'Country (first three)' }).click();
-    await expect(page.getByText('Keep typing to narrow 7 options')).toBeVisible();
+    await expect(page.locator('.aura-combo__note').getByText('Keep typing to narrow 7 options')).toBeVisible();
   });
 
   test('95: an action row in the AppShell phone drawer closes the drawer', async ({ page }) => {
@@ -13159,6 +13159,78 @@ test.describe('5.82: DxT Monitor 25 — Badge size="xs"', () => {
       .locator('tbody tr')
       .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
     expect(rows).toEqual([48, 48, 48]);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});
+
+test.describe('5.83: Chamber-OS 195–196', () => {
+  test('195: one status region while the list is open — the loading text, then the count or the empty text', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-83-chamber-os-195-196--server-search-announces');
+    const input = page.getByRole('combobox', { name: 'Event' });
+    const region = page.locator('.aura-combo__status');
+    /* The region is part of the field from the start; closed, it says nothing. */
+    await expect(region).toHaveCount(1);
+    await expect(region).toHaveText('');
+    await input.click();
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await expect(region).toHaveText(''); // opening says nothing
+    /* Record every text the region takes, and keep the node to compare after. */
+    await region.evaluate((el) => {
+      const w = window as unknown as { __said: string[]; __region: Element };
+      w.__said = [];
+      w.__region = el;
+      new MutationObserver(() => {
+        const t = el.textContent || '';
+        if (t && w.__said[w.__said.length - 1] !== t) w.__said.push(t);
+      }).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+    await input.pressSequentially('break', { delay: 30 });
+    await expect(region).toHaveText('2 results');
+    await input.fill('zzz');
+    await expect(region).toHaveText('No events match');
+    const said = await page.evaluate(() => (window as unknown as { __said: string[] }).__said);
+    expect(said).toEqual(['Searching events…', '2 results', 'Searching events…', 'No events match']);
+    expect(
+      await region.evaluate(
+        (el) => el === (window as unknown as { __region: Element }).__region && el.getAttribute('role'),
+      ),
+    ).toBe('status');
+    /* The visible note is the same as before and not read twice. */
+    await expect(page.locator('.aura-combo__note')).toHaveText('No events match');
+    await expect(page.locator('.aura-combo__popover [aria-hidden="true"] .aura-combo__note')).toHaveCount(1);
+    await expect(page.getByRole('status').filter({ hasText: 'No events match' })).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(region).toHaveText(''); // closed again: silent, same region
+    expect(await region.evaluate((el) => el === (window as unknown as { __region: Element }).__region)).toBe(true);
+  });
+
+  test('195: in a Dialog the region is inside the dialog; an empty server list says nothing until a search', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-83-chamber-os-195-196--server-search-in-dialog');
+    await page.getByRole('button', { name: 'Add invoice line' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Invoice line' });
+    const region = dialog.locator('.aura-combo__status');
+    await expect(region).toHaveCount(1);
+    const input = dialog.getByRole('combobox', { name: 'Event' });
+    await input.click();
+    await expect(page.locator('.aura-combo__popover')).toBeVisible();
+    await page.waitForTimeout(300);
+    await expect(region).toHaveText(''); // no "No events match" before any typing
+    await input.pressSequentially('gala', { delay: 30 });
+    await expect(region).toHaveText('1 result');
+    await input.fill('zzz');
+    await expect(region).toHaveText('No events match');
+  });
+
+  test('196: dismissLabel names the close button; without it the name is unchanged', async ({ page }) => {
+    await story(page, 'aura-new-in-5-83-chamber-os-195-196--alert-dismiss-label');
+    await expect(page.getByRole('button', { name: 'Dismiss starter warning for Monthly Newsletter' })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Dismiss', exact: true })).toHaveCount(1);
+    await page.getByRole('button', { name: 'Dismiss starter warning for Monthly Newsletter' }).click();
+    await expect(page.getByText('Monthly Newsletter still uses the starter content.')).toHaveCount(0);
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });

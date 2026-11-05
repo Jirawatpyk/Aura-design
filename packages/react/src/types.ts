@@ -852,6 +852,10 @@ export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
   action?: React.ReactNode | undefined;
   /** Adds a close button. */
   onDismiss?: (() => void) | undefined;
+  /** 5.83 (Chamber-OS 196): the close button's accessible name — say what is dismissed when a page has several
+   * notices or the notice is about a named thing ("Dismiss starter warning for Monthly Newsletter"). Default: the
+   * `dismiss` string ("Dismiss"). */
+  dismissLabel?: string | undefined;
   className?: string | undefined;
 }
 /** A button (or, with `href`, a link through AuraProvider's `linkComponent`) on a toast (5.6: `href`, `dismiss`). */
@@ -1169,6 +1173,8 @@ export interface ComboboxProps extends FieldProps {
   clearable?: boolean | undefined;
   /** Server-side search: called with the typed text; the component stops filtering and shows `options` as given. */
   onSearch?: ((query: string) => void) | undefined;
+  /** A search is running: the list shows `loadingText`. 5.83: with `onSearch`, the result count is announced when
+   * `loading` goes back to `false` after a search — pass `false`, not leave it out, once results arrive. */
   loading?: boolean | undefined;
   loadingText?: string | undefined;
   emptyText?: string | undefined;

@@ -789,6 +789,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
     }
+    /* 5.83 (Chamber-OS 196): dismissLabel names the close button and never reaches the Alert's element. */
+    {
+      const named = m(e(A.Alert, { onDismiss: () => {}, dismissLabel: 'Dismiss starter warning for Monthly Newsletter', children: 'x' }));
+      const plain = m(e(A.Alert, { onDismiss: () => {}, children: 'x' }));
+      if (!/aria-label="Dismiss starter warning for Monthly Newsletter"/.test(named) || /dismisslabel/i.test(named.replace(/aria-label="[^"]*"/g, ''))) { console.log(label, 'Alert dismissLabel:', named); fail++; }
+      if (!/aria-label="Dismiss"/.test(plain)) { console.log(label, 'Alert default dismiss name:', plain); fail++; }
+    }
     /* 5.82 (DxT Monitor 25): Badge size="xs" is a class — no size attribute, no icon — from both entries. */
     for (const B of [A.Badge, S.Badge]) {
       const xs = m(e(B, { size: 'xs', variant: 'outline', icon: 'check', children: 'Confirm' }));

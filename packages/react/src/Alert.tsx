@@ -16,7 +16,12 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert
     props,
     ref,
     props.onDismiss ? (
-      <IconButton icon={<IconX />} label={t.dismiss} className="aura-alert__close" onClick={props.onDismiss} />
+      <IconButton
+        icon={<IconX />}
+        label={props.dismissLabel || t.dismiss}
+        className="aura-alert__close"
+        onClick={props.onDismiss}
+      />
     ) : null,
     autoId,
   );

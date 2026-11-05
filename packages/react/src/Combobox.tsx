@@ -203,6 +203,27 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
 
     /* While a search is loading the old matches are hidden, so nothing in them can be chosen (5.1.1). */
     const live = props.loading ? [] : shown;
+    /* 5.83 (Chamber-OS 195): what the status region says. A region inserted already holding text is often not
+     * announced (NVDA, VoiceOver), so ONE region is part of the field for its whole life — inside a Dialog too, where
+     * the portaled list sits outside the modal — and only its text changes: empty while the list is closed, then the
+     * loading text, then the empty text or (with onSearch, once a search has come back: `loading` false after the
+     * person typed) the result count. Before any typing an onSearch field says nothing. Without onSearch: no matches,
+     * or "keep typing". */
+    const listShown = open && mounted && !!posState[0];
+    const searching = !!props.onSearch;
+    const statusText = !listShown
+      ? ''
+      : props.loading
+        ? props.loadingText || t.searching
+        : searching && query == null
+          ? ''
+          : !live.length
+            ? props.emptyText || t.noMatches
+            : more
+              ? t.keepTyping(options.length)
+              : searching && props.loading === false
+                ? t.results(live.length)
+                : '';
     function openList() {
       if (!open && !props.disabled && !props.readOnly) {
         setOpen(true);
@@ -412,7 +433,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
                 </ul>
               ) : null}
               {props.loading || !live.length || more ? (
-                <div className="aura-combo__list" role="status">
+                <div className="aura-combo__list" aria-hidden="true">
                   {props.loading ? (
                     <div className="aura-combo__note">
                       <Icon name={<IconLoaderCircle />} className="aura-spin" />
@@ -584,6 +605,10 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps | Combo
           >
             <Icon name={<IconChevronDown />} />
           </button>
+        </div>
+        {/* 5.83: the field's status region (see statusText); the list's visible note is hidden from screen readers. */}
+        <div role="status" className="aura-sr-only aura-combo__status">
+          {statusText}
         </div>
         {list}
       </Field>

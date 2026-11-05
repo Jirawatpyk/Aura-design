@@ -819,6 +819,7 @@ window.Aura = (() => {
       "children",
       "action",
       "onDismiss",
+      "dismissLabel",
       "className",
       "role",
       "icon"
@@ -4358,6 +4359,9 @@ window.Aura = (() => {
         [activeIdx, open]
       );
       const live = props.loading ? [] : shown;
+      const listShown = open && mounted && !!posState[0];
+      const searching = !!props.onSearch;
+      const statusText = !listShown ? "" : props.loading ? props.loadingText || t.searching : searching && query == null ? "" : !live.length ? props.emptyText || t.noMatches : more ? t.keepTyping(options.length) : searching && props.loading === false ? t.results(live.length) : "";
       function openList() {
         if (!open && !props.disabled && !props.readOnly) {
           setOpen(true);
@@ -4531,7 +4535,7 @@ window.Aura = (() => {
               })));
             })
           ) : null,
-          props.loading || !live.length || more ? /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__list", role: "status" }, props.loading ? /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__note" }, /* @__PURE__ */ React23.createElement(Icon, { name: /* @__PURE__ */ React23.createElement(IconLoaderCircle, null), className: "aura-spin" }), props.loadingText || t.searching) : !live.length ? /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__note" }, props.emptyText || t.noMatches) : /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__note" }, t.keepTyping(options.length))) : null
+          props.loading || !live.length || more ? /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__list", "aria-hidden": "true" }, props.loading ? /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__note" }, /* @__PURE__ */ React23.createElement(Icon, { name: /* @__PURE__ */ React23.createElement(IconLoaderCircle, null), className: "aura-spin" }), props.loadingText || t.searching) : !live.length ? /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__note" }, props.emptyText || t.noMatches) : /* @__PURE__ */ React23.createElement("div", { className: "aura-combo__note" }, t.keepTyping(options.length))) : null
         ),
         document.body
       ) : null;
@@ -4657,6 +4661,7 @@ window.Aura = (() => {
           },
           /* @__PURE__ */ React23.createElement(Icon, { name: /* @__PURE__ */ React23.createElement(IconChevronDown, null) })
         )),
+        /* @__PURE__ */ React23.createElement("div", { role: "status", className: "aura-sr-only aura-combo__status" }, statusText),
         list
       );
     }
@@ -4670,7 +4675,15 @@ window.Aura = (() => {
     return alertElement(
       props,
       ref,
-      props.onDismiss ? /* @__PURE__ */ React24.createElement(IconButton, { icon: /* @__PURE__ */ React24.createElement(IconX, null), label: t.dismiss, className: "aura-alert__close", onClick: props.onDismiss }) : null,
+      props.onDismiss ? /* @__PURE__ */ React24.createElement(
+        IconButton,
+        {
+          icon: /* @__PURE__ */ React24.createElement(IconX, null),
+          label: props.dismissLabel || t.dismiss,
+          className: "aura-alert__close",
+          onClick: props.onDismiss
+        }
+      ) : null,
       autoId
     );
   });

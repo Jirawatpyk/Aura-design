@@ -58,6 +58,7 @@ export function alertElement(
     'children',
     'action',
     'onDismiss',
+    'dismissLabel',
     'className',
     'role',
     'icon',
@@ -465,7 +466,7 @@ export function linkClass(
 }
 
 /* The server entry's versions: plain functions (a Server Component can't pass a ref) with the same markup. */
-export function ServerAlert(props: Omit<AlertProps, 'onDismiss'>): React.ReactElement {
+export function ServerAlert(props: Omit<AlertProps, 'onDismiss' | 'dismissLabel'>): React.ReactElement {
   return alertElement(props, undefined, null);
 }
 export function ServerCard(props: CardProps): React.ReactElement {
