@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.84.0 — 2026-11-05
+
+### Minor changes
+
+- 8f21b2d: Chamber-OS 197: cursor Pagination takes `showPrevious` (default true); `false` leaves Previous out, for forward-only lists.
+
 ## 5.83.0 — 2026-11-05
 
 ### Minor changes
