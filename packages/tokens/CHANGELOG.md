@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.83.0
+
+### Minor Changes
+
+- c8b8185: Chamber-OS 195–196: Combobox keeps one status region mounted while its list is open and announces the loading text, then the result count (after an `onSearch` search) or the empty text; Alert takes `dismissLabel` for its close button's accessible name.
+
 ## 5.82.0
 
 ### Minor Changes
