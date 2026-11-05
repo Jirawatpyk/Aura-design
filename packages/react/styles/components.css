@@ -2659,6 +2659,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @container aura-h1 (width < 9999.5px) { .aura-table { --aura-h1-on: 0; } .aura-table [data-hide='1'] { display: none; } }
 @container aura-h2 (width < 9999.5px) { .aura-table { --aura-h2-on: 0; } .aura-table [data-hide='2'] { display: none; } }
 @container aura-h3 (width < 9999.5px) { .aura-table { --aura-h3-on: 0; } .aura-table [data-hide='3'] { display: none; } }
+/* 5.85 (Chamber-OS 198): grid: false — in the cards only. Hidden while the table is at or above stackBelow (the grid);
+ * DataTable doesn't render such a column without stackBelow. */
+@container aura-stack (width >= 9999.5px) { .aura-table [data-grid='off'] { display: none; } }
 
 /* Below stackBelow the same grid lays out as cards: the first column is the title, the first other pill column sits
  * beside it, `actions` columns go top-right, the rest are label/value fields two to a line. Column headers stay for

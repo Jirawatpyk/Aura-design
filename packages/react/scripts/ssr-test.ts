@@ -789,6 +789,15 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
     }
+    /* 5.85 (Chamber-OS 198): grid: false columns render (marked data-grid="off") only with stackBelow. */
+    {
+      const cols = [{ key: 'a', label: 'A', width: 100 }, { key: 'b', label: 'B', grid: false, card: 'title' }];
+      const rows = [{ id: '1', a: 'x', b: 'card title' }];
+      const st = m(e(A.DataTable, { label: 'T', columns: cols, rows, rowKey: 'id', stackBelow: 640 }));
+      const no = m(e(A.DataTable, { label: 'T', columns: cols, rows, rowKey: 'id' }));
+      if ((st.match(/data-grid="off"/g) || []).length !== 2 || !/card title/.test(st)) { console.log(label, 'DataTable grid:false with cards:', st.slice(0, 400)); fail++; }
+      if (/data-grid=|card title/.test(no)) { console.log(label, 'DataTable grid:false without cards:', no.slice(0, 400)); fail++; }
+    }
     /* 5.84 (Chamber-OS 197): showPrevious={false} renders no Previous step and no stray attribute. */
     {
       const fwd = m(e(A.Pagination, { mode: 'cursor', showFirst: false, showPrevious: false, nextHref: '/n' }));

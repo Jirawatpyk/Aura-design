@@ -102,7 +102,7 @@ function below(w: number, threshold: number): boolean {
   return w < threshold * (1 - 0.5 / Q);
 }
 function hidePx(c: Col): number | undefined {
-  if (c.hideBelow == null) return undefined;
+  if (c.hideBelow == null || c.grid === false) return undefined; /* 5.85: a card-only column spends no level */
   const px = typeof c.hideBelow === 'number' ? c.hideBelow : BP[c.hideBelow];
   return px != null && px > 0 ? px : undefined;
 }
@@ -422,10 +422,18 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       return byKey[k];
     })
     .filter(function (c: Col) {
-      return !tooNarrow(c);
+      /* 5.85 (Chamber-OS 198): grid: false is for the cards; with no cards there is nowhere to show it. */
+      return !tooNarrow(c) && (c.grid !== false || !!props.stackBelow);
     });
+  /* 5.85: the grid's own columns — the last one can't be hidden (card-only columns don't count). */
+  const hasCardOnly = shown.some(function (c: Col) {
+    return c.grid === false;
+  });
+  const gridShown = shown.filter(function (c: Col) {
+    return c.grid !== false;
+  }).length;
   function isPinned(c: Col): boolean {
-    return pinnedKeys.indexOf(c.key) >= 0 && c.width != null;
+    return pinnedKeys.indexOf(c.key) >= 0 && c.width != null && c.grid !== false;
   }
   const vis = shown.filter(isPinned).concat(
     shown.filter(function (c: Col) {
@@ -489,6 +497,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       'data-card': part,
       'data-label': part === 'field' || part === 'wide' ? c.label || undefined : undefined,
       'data-hide': lv ? String(lv) : undefined,
+      'data-grid': c.grid === false ? 'off' : undefined,
     };
   }
   const hasFields = vis.some(function (c: Col, i: number) {
@@ -496,12 +505,16 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     return p === 'field' || p === 'wide';
   });
   const hasFlex = vis.some(function (c: Col) {
-    return widthOf(c) == null;
+    return widthOf(c) == null && c.grid !== false;
   });
+  /* The last column the grid shows: with no flexible column it takes the spare width (5.85: not a card-only one). */
+  let lastGridCol = vis.length - 1;
+  while (lastGridCol > 0 && vis[lastGridCol]!.grid === false) lastGridCol--;
   /* Minimum row width. A column that CSS may hide before hydration (hideBelow) counts only while it shows. */
   let fixedSum = 0,
     hideTerms = '';
   vis.forEach(function (c: Col) {
+    if (c.grid === false) return; /* 5.85: not in the grid, no width there */
     /* 5.51 (Chamber-OS 159): a flexible column counts its own minimum, the same value its cells use. */
     const w = widthOf(c) != null ? widthOf(c)! : c.minWidth || FLEX_MIN,
       lv = hideLevel(c);
@@ -542,7 +555,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       s['--aura-cell-flex'] = g + ' 1 0';
       s['--aura-cell-min'] = (c.minWidth || FLEX_MIN) + 'px';
     } else {
-      s['--aura-cell-flex'] = !hasFlex && i === vis.length - 1 ? '1 0 auto' : 'none';
+      s['--aura-cell-flex'] = !hasFlex && i === lastGridCol ? '1 0 auto' : 'none';
       s['--aura-cell-w'] = w + 'px';
     }
     if (isPinned(c)) s['--aura-cell-left'] = 'calc(var(--aura-space-6)' + selW + ' + ' + pinOffsets[c.key] + ')';
@@ -742,7 +755,15 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   const cardHidden: boolean[] = [];
   for (let ci = 0; ci < nCols; ci++) {
     const col = colAt(ci);
-    cardHidden.push(stacked && (col ? cardPart(col, vis.indexOf(col)) === 'hide' : noCardSel));
+    /* 5.85: in the grid, the card-only columns (grid: false) are the ones left out. */
+    cardHidden.push(
+      stacked
+        ? col
+          ? cardPart(col, vis.indexOf(col)) === 'hide'
+          : noCardSel
+        : /* before the first measure the layout is CSS's: the DOM check below decides */
+          boxWidth[0] != null && !!col && col.grid === false,
+    );
   }
   function nearestShown(c: number, dir: number, ok: (cc: number) => boolean): number {
     if (ok(c)) return c;
@@ -813,7 +834,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     /* A cell the layout hides (a blank totals cell in the card layout; 5.13: a column or the selection box a card
      * leaves out) is skipped for the nearest shown one in the row (5.2), so the grid never parks its tab stop on
      * something invisible. */
-    if (gridRef.current && ((r === T && hasTotal) || stacked)) {
+    if (gridRef.current && ((r === T && hasTotal) || stacked || hasCardOnly)) {
       const shown = function (cc: number) {
         if (cardHidden[cc]) return false;
         const e = gridRef.current!.querySelector<HTMLElement>('[data-rc="' + r + ':' + cc + '"]');
@@ -955,9 +976,10 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
 
   /* reorder / pin / hide */
   function moveCol(key: string, delta: number): boolean {
+    if (byKey[key] && byKey[key].grid === false) return false; /* 5.85: a card-only column has no place in the grid */
     const c = byKey[key],
       group = vis.filter(function (x: Col) {
-        return isPinned(x) === isPinned(c);
+        return isPinned(x) === isPinned(c) && x.grid !== false; /* 5.85: card-only columns aren't neighbours */
       });
     const gi = group.indexOf(c),
       target = group[gi + delta];
@@ -1029,7 +1051,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
 
   function columnMenuItems(c: Col): MenuItem[] {
     const group = vis.filter(function (x: Col) {
-        return isPinned(x) === isPinned(c);
+        return isPinned(x) === isPinned(c) && x.grid !== false;
       }),
       gi = group.indexOf(c);
     const items: MenuItem[] = [];
@@ -1083,7 +1105,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
       {
         label: t.hideColumn,
         icon: <IconEyeOff />,
-        disabled: shown.length <= 1,
+        disabled: gridShown <= 1,
         onSelect: function () {
           setHidden(c.key, true);
         },
@@ -1093,6 +1115,9 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
   }
   function pickerItems(): MenuItem[] {
     return order
+      .filter(function (k: string) {
+        return byKey[k].grid !== false; /* 5.85: card-only columns aren't the grid's to show or hide */
+      })
       .map(function (k: string): MenuItem {
         const c = byKey[k],
           on = hidden.indexOf(k) < 0;
@@ -1100,7 +1125,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
           label: c.label || (c.actions ? t.actions : c.key),
           checked: on,
           keepOpen: true,
-          disabled: on && shown.length <= 1,
+          disabled: on && gridShown <= 1,
           onSelect: function () {
             setHidden(k, on);
           },
@@ -1268,6 +1293,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         style={cellStyle(c, i)}
         data-hide={hideLevel(c) ? String(hideLevel(c)) : undefined}
         data-card={cardPart(c, i) === 'hide' ? 'hide' : undefined}
+        data-grid={c.grid === false ? 'off' : undefined}
         tabIndex={tabFor(0, ci)}
         data-rc={'0:' + ci}
         className={cx(

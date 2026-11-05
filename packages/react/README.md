@@ -248,6 +248,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.85 — Chamber-OS 198 (DataTable columns for the cards only)
+
+- **DataTable column `grid: false`** (#198): the column shows only in the stacked cards (below `stackBelow`), never in the grid — the reverse of `card: 'hide'`. Its place in the card still follows `card` (`'title'`, `'pill'`, a field…), so a grid that puts the status under the number can give the phone card its own title and pill. It spends no width-query level (any `hideBelow` on it is ignored), takes no width in the grid, isn't pinned, isn't in the columns button and is skipped by the arrow keys there. Without `stackBelow` it isn't rendered. Replaces the `hideBelow: 100_000` workaround.
+
 ## 5.84 — Chamber-OS 197 (cursor Pagination without Previous)
 
 - **Pagination `mode="cursor"` `showPrevious`** (#197): default `true`; `false` leaves Previous out entirely, as `showFirst={false}` does First — for a list that only goes forward (keyset, newest first), where a disabled Previous could never become live. The nav then holds Next (and First when shown) and the `status`.

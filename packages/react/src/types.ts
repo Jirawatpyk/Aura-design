@@ -129,6 +129,12 @@ export interface DataTableColumn<Row extends Record<string, any> = Record<string
    * after the half-width fields (in column order; `cardOrder` doesn't move it), its label above and its text wrapping —
    * a reason with its evidence. Default: today's rule. The grid is unchanged by any of them. */
   card?: 'hide' | 'field' | 'title' | 'pill' | 'footer' | 'wide' | undefined;
+  /** 5.85 (Chamber-OS 198): `false` — the column shows only in stacked cards (below `stackBelow`), never in the grid,
+   * the reverse of `card: 'hide'`. Its place in the card still follows `card`. It spends no width-query level, takes no
+   * width in the grid, isn't pinned and isn't in the columns button; `hideBelow` is ignored. Needs `stackBelow` (without
+   * it the column isn't rendered). Its header isn't in the grid, so it can't be sorted, moved or hidden from the UI —
+   * sort by it through `sort`; a controlled `hidden` that lists it hides it in the cards too. Default true. */
+  grid?: boolean | undefined;
   /** How many text lines its loading skeleton draws (5.29, Chamber-OS 134) — 2 for a cell that shows two lines (a
    * reason and its evidence), so the skeleton row is as tall as the real one with `rowHeight="auto"`. Default 1, at
    * most 10; ignored on a `pill` column. */

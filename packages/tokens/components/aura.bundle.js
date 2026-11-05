@@ -6135,7 +6135,7 @@ window.Aura = (() => {
     return w < threshold * (1 - 0.5 / Q);
   }
   function hidePx(c) {
-    if (c.hideBelow == null) return void 0;
+    if (c.hideBelow == null || c.grid === false) return void 0;
     const px = typeof c.hideBelow === "number" ? c.hideBelow : BP[c.hideBelow];
     return px != null && px > 0 ? px : void 0;
   }
@@ -6390,10 +6390,16 @@ window.Aura = (() => {
     }).map(function(k) {
       return byKey[k];
     }).filter(function(c) {
-      return !tooNarrow(c);
+      return !tooNarrow(c) && (c.grid !== false || !!props.stackBelow);
     });
+    const hasCardOnly = shown.some(function(c) {
+      return c.grid === false;
+    });
+    const gridShown = shown.filter(function(c) {
+      return c.grid !== false;
+    }).length;
     function isPinned(c) {
-      return pinnedKeys.indexOf(c.key) >= 0 && c.width != null;
+      return pinnedKeys.indexOf(c.key) >= 0 && c.width != null && c.grid !== false;
     }
     const vis = shown.filter(isPinned).concat(
       shown.filter(function(c) {
@@ -6441,7 +6447,8 @@ window.Aura = (() => {
       return {
         "data-card": part,
         "data-label": part === "field" || part === "wide" ? c.label || void 0 : void 0,
-        "data-hide": lv ? String(lv) : void 0
+        "data-hide": lv ? String(lv) : void 0,
+        "data-grid": c.grid === false ? "off" : void 0
       };
     }
     const hasFields = vis.some(function(c, i) {
@@ -6449,10 +6456,13 @@ window.Aura = (() => {
       return p === "field" || p === "wide";
     });
     const hasFlex = vis.some(function(c) {
-      return widthOf2(c) == null;
+      return widthOf2(c) == null && c.grid !== false;
     });
+    let lastGridCol = vis.length - 1;
+    while (lastGridCol > 0 && vis[lastGridCol].grid === false) lastGridCol--;
     let fixedSum = 0, hideTerms = "";
     vis.forEach(function(c) {
+      if (c.grid === false) return;
       const w = widthOf2(c) != null ? widthOf2(c) : c.minWidth || FLEX_MIN, lv = hideLevel(c);
       if (lv && boxWidth[0] == null) hideTerms += " + " + w + "px * var(--aura-h" + lv + "-on, 1)";
       else fixedSum += w;
@@ -6482,7 +6492,7 @@ window.Aura = (() => {
         s["--aura-cell-flex"] = g + " 1 0";
         s["--aura-cell-min"] = (c.minWidth || FLEX_MIN) + "px";
       } else {
-        s["--aura-cell-flex"] = !hasFlex && i === vis.length - 1 ? "1 0 auto" : "none";
+        s["--aura-cell-flex"] = !hasFlex && i === lastGridCol ? "1 0 auto" : "none";
         s["--aura-cell-w"] = w + "px";
       }
       if (isPinned(c)) s["--aura-cell-left"] = "calc(var(--aura-space-6)" + selW + " + " + pinOffsets[c.key] + ")";
@@ -6631,7 +6641,12 @@ window.Aura = (() => {
     const cardHidden = [];
     for (let ci = 0; ci < nCols; ci++) {
       const col = colAt(ci);
-      cardHidden.push(stacked && (col ? cardPart(col, vis.indexOf(col)) === "hide" : noCardSel));
+      cardHidden.push(
+        stacked ? col ? cardPart(col, vis.indexOf(col)) === "hide" : noCardSel : (
+          /* before the first measure the layout is CSS's: the DOM check below decides */
+          boxWidth[0] != null && !!col && col.grid === false
+        )
+      );
     }
     function nearestShown(c, dir, ok) {
       if (ok(c)) return c;
@@ -6692,7 +6707,7 @@ window.Aura = (() => {
       r2 = Math.max(0, Math.min(r2, lastR));
       c = Math.max(0, Math.min(c, nCols - 1));
       if (stacked && r2 === 0 && nRows > 0 && (!(selectable && c === 0) || noCardSel)) r2 = 1;
-      if (gridRef.current && (r2 === T && hasTotal || stacked)) {
+      if (gridRef.current && (r2 === T && hasTotal || stacked || hasCardOnly)) {
         const shown2 = function(cc) {
           if (cardHidden[cc]) return false;
           const e = gridRef.current.querySelector('[data-rc="' + r2 + ":" + cc + '"]');
@@ -6819,8 +6834,9 @@ window.Aura = (() => {
       window.addEventListener("pointerup", up2);
     }
     function moveCol(key, delta) {
+      if (byKey[key] && byKey[key].grid === false) return false;
       const c = byKey[key], group = vis.filter(function(x) {
-        return isPinned(x) === isPinned(c);
+        return isPinned(x) === isPinned(c) && x.grid !== false;
       });
       const gi = group.indexOf(c), target = group[gi + delta];
       if (!target) return false;
@@ -6879,7 +6895,7 @@ window.Aura = (() => {
     }
     function columnMenuItems(c) {
       const group = vis.filter(function(x) {
-        return isPinned(x) === isPinned(c);
+        return isPinned(x) === isPinned(c) && x.grid !== false;
       }), gi = group.indexOf(c);
       const items2 = [];
       if (c.sortable)
@@ -6932,7 +6948,7 @@ window.Aura = (() => {
         {
           label: t.hideColumn,
           icon: /* @__PURE__ */ React34.createElement(IconEyeOff, null),
-          disabled: shown.length <= 1,
+          disabled: gridShown <= 1,
           onSelect: function() {
             setHidden(c.key, true);
           }
@@ -6941,13 +6957,15 @@ window.Aura = (() => {
       return items2;
     }
     function pickerItems() {
-      return order.map(function(k) {
+      return order.filter(function(k) {
+        return byKey[k].grid !== false;
+      }).map(function(k) {
         const c = byKey[k], on = hidden.indexOf(k) < 0;
         return {
           label: c.label || (c.actions ? t.actions : c.key),
           checked: on,
           keepOpen: true,
-          disabled: on && shown.length <= 1,
+          disabled: on && gridShown <= 1,
           onSelect: function() {
             setHidden(k, on);
           }
@@ -7079,6 +7097,7 @@ window.Aura = (() => {
             style: cellStyle(c, i),
             "data-hide": hideLevel(c) ? String(hideLevel(c)) : void 0,
             "data-card": cardPart(c, i) === "hide" ? "hide" : void 0,
+            "data-grid": c.grid === false ? "off" : void 0,
             tabIndex: tabFor(0, ci),
             "data-rc": "0:" + ci,
             className: cx(

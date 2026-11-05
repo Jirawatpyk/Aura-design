@@ -13255,3 +13255,68 @@ test.describe('5.84: Chamber-OS 197 — cursor Pagination showPrevious', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.85: Chamber-OS 198 — DataTable grid: false (card-only columns)', () => {
+  const ID = 'aura-new-in-5-85-chamber-os-198--card-only-columns';
+  const shownCells = (page: Page, sel: string) =>
+    page.locator(sel).evaluateAll((els) => els.filter((e) => e.getClientRects().length > 0).length);
+
+  test('in the grid the card-only columns take no space, no tab stop and no picker entry', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    const t = page.getByTestId('invoices');
+    expect(await shownCells(page, '[data-testid="invoices"] [data-grid="off"]')).toBe(0);
+    expect(await shownCells(page, '[data-testid="invoices"] .aura-table__td[data-card="hide"]')).toBe(3);
+    /* The grid's columns fill the row as if the card-only ones weren't there: no sideways scroll at 1280. */
+    expect(await t.locator('.aura-table__scroll').evaluate((e) => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(
+      1,
+    );
+    /* Arrow keys walk the four grid columns and stop at Due. */
+    await t.locator('[role="gridcell"]').first().focus();
+    for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowRight');
+    await expect(t.locator('[role="gridcell"]:focus')).toHaveText('2026-10-01');
+    /* The columns button lists the grid's columns only. */
+    await t.getByRole('button', { name: 'Columns' }).click();
+    await expect(page.getByRole('menuitemcheckbox')).toHaveText(['Invoice', 'Member', 'Amount', 'Due']);
+    await page.keyboard.press('Escape');
+    /* The column menu ignores card-only neighbours: Due is the last grid column (Move right disabled), Amount moves
+     * past Due, and with one grid column left Hide is disabled. */
+    const menuFor = async (n: number) => {
+      await t.locator('.aura-table__head .aura-table__menu-btn').nth(n).click();
+      await expect(page.getByRole('menu')).toBeVisible();
+    };
+    await menuFor(3);
+    await expect(page.getByRole('menuitem', { name: 'Move right' })).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await menuFor(2);
+    await page.getByRole('menuitem', { name: 'Move right' }).click();
+    await expect(t.getByRole('columnheader').filter({ visible: true })).toHaveText([
+      /Invoice/,
+      /Member/,
+      /Due/,
+      /Amount/,
+    ]);
+    /* Without stackBelow there are no cards, so the card-only columns aren't rendered. */
+    await expect(page.locator('[data-testid="no-stack"] [data-grid="off"]')).toHaveCount(0);
+    await expect(page.getByTestId('no-stack').getByRole('columnheader')).toHaveCount(4);
+  });
+
+  test('in the cards the card-only columns are the title and the pill; the grid-only column is left out', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID);
+    const row = page.locator('[data-testid="invoices"] .aura-table__row').first();
+    await expect(row.locator('.aura-table__td[data-card="title"]')).toHaveText('INV-1001');
+    await expect(row.locator('.aura-table__td[data-card="title"]')).toBeVisible();
+    await expect(row.locator('.aura-table__td[data-card="pill"]')).toHaveText('Paid');
+    await expect(row.locator('.aura-table__td[data-card="pill"]')).toBeVisible();
+    await expect(row.locator('.aura-table__td[data-card="hide"]')).toBeHidden();
+    const [title, pill] = await Promise.all([
+      row.locator('[data-card="title"]').boundingBox(),
+      row.locator('[data-card="pill"]').boundingBox(),
+    ]);
+    expect(Math.abs(title!.y - pill!.y)).toBeLessThanOrEqual(4); // the pill sits beside the title
+    expect(await axeScan(page, '[data-testid="invoices"]')).toEqual([]);
+  });
+});
