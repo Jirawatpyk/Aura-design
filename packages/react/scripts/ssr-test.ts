@@ -789,6 +789,13 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
     }
+    /* 5.84 (Chamber-OS 197): showPrevious={false} renders no Previous step and no stray attribute. */
+    {
+      const fwd = m(e(A.Pagination, { mode: 'cursor', showFirst: false, showPrevious: false, nextHref: '/n' }));
+      if (/rel="prev"|Previous page|showprevious/i.test(fwd) || (fwd.match(/aura-page--step/g) || []).length !== 1) { console.log(label, 'cursor showPrevious:', fwd); fail++; }
+      const dflt = m(e(A.Pagination, { mode: 'cursor', nextHref: '/n' }));
+      if (!/Previous page/.test(dflt)) { console.log(label, 'cursor default Previous:', dflt); fail++; }
+    }
     /* 5.83 (Chamber-OS 196): dismissLabel names the close button and never reaches the Alert's element. */
     {
       const named = m(e(A.Alert, { onDismiss: () => {}, dismissLabel: 'Dismiss starter warning for Monthly Newsletter', children: 'x' }));

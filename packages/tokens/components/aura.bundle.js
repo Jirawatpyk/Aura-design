@@ -10948,7 +10948,7 @@ window.Aura = (() => {
         "aria-label": props.label || t.pagination
       },
       props.status != null && props.status !== false && props.status !== "" ? /* @__PURE__ */ React65.createElement("span", { className: "aura-pagination__status" }, props.status) : null,
-      /* @__PURE__ */ React65.createElement("span", { className: "aura-pagination__steps" }, props.showFirst === false ? null : step("first", props.firstHref, props.onFirst, props.hasFirst, t.firstPage, void 0, null, false), step(
+      /* @__PURE__ */ React65.createElement("span", { className: "aura-pagination__steps" }, props.showFirst === false ? null : step("first", props.firstHref, props.onFirst, props.hasFirst, t.firstPage, void 0, null, false), props.showPrevious === false ? null : step(
         "prev",
         props.previousHref,
         props.onPrevious,

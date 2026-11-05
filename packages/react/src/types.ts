@@ -1935,6 +1935,9 @@ export interface CursorPaginationProps {
   hasNext?: boolean | undefined;
   /** Default true. `false` leaves the First link out (a list that only goes forward). */
   showFirst?: boolean | undefined;
+  /** 5.84 (Chamber-OS 197): default true. `false` leaves Previous out entirely — for a list that only goes forward
+   * (keyset, newest first), where a disabled Previous could never become live. */
+  showPrevious?: boolean | undefined;
   /** A line at the start, e.g. "Showing 50 of 1,240". Not a live region. */
   status?: React.ReactNode | undefined;
   /** Name of the nav. Default "Pagination". */

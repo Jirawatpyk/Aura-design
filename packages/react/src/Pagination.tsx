@@ -104,16 +104,18 @@ function cursorNav(
         {props.showFirst === false
           ? null
           : step('first', props.firstHref, props.onFirst, props.hasFirst, t.firstPage, undefined, null, false)}
-        {step(
-          'prev',
-          props.previousHref,
-          props.onPrevious,
-          props.hasPrevious,
-          t.prevPage,
-          'prev',
-          <IconChevronLeft />,
-          false,
-        )}
+        {props.showPrevious === false
+          ? null
+          : step(
+              'prev',
+              props.previousHref,
+              props.onPrevious,
+              props.hasPrevious,
+              t.prevPage,
+              'prev',
+              <IconChevronLeft />,
+              false,
+            )}
         {step('next', props.nextHref, props.onNext, props.hasNext, t.nextPage, 'next', <IconChevronRight />, true)}
       </span>
     </nav>

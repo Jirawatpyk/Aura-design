@@ -13234,3 +13234,24 @@ test.describe('5.83: Chamber-OS 195–196', () => {
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
   });
 });
+
+test.describe('5.84: Chamber-OS 197 — cursor Pagination showPrevious', () => {
+  test('showPrevious={false} leaves Previous out; the default still draws a disabled Previous', async ({ page }) => {
+    await story(page, 'aura-new-in-5-84-chamber-os-197--forward-only');
+    const forward = page.getByRole('navigation', { name: 'E-Blast queue pages' });
+    await expect(forward).toMatchAriaSnapshot(`
+      - navigation "E-Blast queue pages":
+        - text: Showing batch 1
+        - button "Next page"
+    `);
+    await expect(forward.locator('.aura-page--step')).toHaveCount(1);
+    await forward.getByRole('button', { name: 'Next page' }).click();
+    await expect(forward.getByText('Showing batch 2')).toBeVisible();
+    const firstOnly = page.getByRole('navigation', { name: 'Renewal tasks pages' });
+    await expect(firstOnly.getByRole('link')).toHaveText(['First page', 'Next page']);
+    await expect(firstOnly.getByText('Previous page')).toHaveCount(0);
+    const dflt = page.getByRole('navigation', { name: 'Change requests pages' });
+    await expect(dflt.locator('[aria-disabled="true"]')).toHaveText(['First page', 'Previous page']);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

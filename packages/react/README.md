@@ -248,6 +248,10 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.84 — Chamber-OS 197 (cursor Pagination without Previous)
+
+- **Pagination `mode="cursor"` `showPrevious`** (#197): default `true`; `false` leaves Previous out entirely, as `showFirst={false}` does First — for a list that only goes forward (keyset, newest first), where a disabled Previous could never become live. The nav then holds Next (and First when shown) and the `status`.
+
 ## 5.83 — Chamber-OS 195–196 (Combobox announcements, Alert dismissLabel)
 
 - **Combobox status region** (#195): one `role="status"` region is part of the field for its whole life (beside the input, so inside a Dialog too, where the portaled list sits outside the modal) and only its text changes. Closed: empty. Open: the loading text, then the empty text or — with `onSearch`, once a search has come back (`loading` back to `false` after the person typed) — the result count ("12 results", the `results` string in EN, TH, SV). The count needs a managed `loading` prop. An `onSearch` field says nothing before the person types (an empty server list doesn't say "No matches" on open). Without `onSearch`, "no matches" and "keep typing" are the same words as before, now announced reliably. A region inserted already holding text is often not announced (NVDA, VoiceOver), which is why the old line was mostly silent. The visible note is unchanged and hidden from screen readers, which hear the region. A test that finds the note by its words (`getByText('No matches')`) now matches the region too: scope it to `.aura-combo__note`, or use `getByRole('status')`.
