@@ -12729,17 +12729,20 @@ test.describe('5.78: visual audit set 2 — phones', () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 600 });
     await story(page, 'aura-new-in-4-3--time-picker-story');
-    const r = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLInputElement>('.aura-time .aura-input__control')].map((i) => {
-        const cs = getComputedStyle(i);
-        const avail = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-        const c = document.createElement('canvas').getContext('2d')!;
-        c.font = cs.font;
-        return avail >= c.measureText(i.placeholder).width;
-      }),
-    );
-    expect(r.length).toBeGreaterThan(0);
-    expect(r.every(Boolean)).toBe(true);
+    /* Measured until it settles (a web font swapping in, the clear button's room after hydration): the first read in
+     * CI could come before the layout did. Each entry: the room the placeholder has, and the width it needs. */
+    const fit = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll<HTMLInputElement>('.aura-time .aura-input__control')].map((i) => {
+          const cs = getComputedStyle(i);
+          const avail = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+          const c = document.createElement('canvas').getContext('2d')!;
+          c.font = cs.font;
+          return { avail: Math.floor(avail), needs: Math.ceil(c.measureText(i.placeholder).width) };
+        }),
+      );
+    expect((await fit()).length).toBeGreaterThan(0);
+    await expect.poll(async () => (await fit()).filter((f) => f.avail < f.needs)).toEqual([]);
   });
 
   test('item 9 (320, sv): long labels take a row each in the edge strip; no button leaves the screen or clips its label', async ({
