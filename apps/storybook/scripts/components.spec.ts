@@ -12735,7 +12735,14 @@ test.describe('5.78: visual audit set 2 — phones', () => {
       page.evaluate(() =>
         [...document.querySelectorAll<HTMLInputElement>('.aura-time .aura-input__control')].map((i) => {
           const cs = getComputedStyle(i);
-          const avail = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+          /* The room is the input's laid-out width less its padding and borders. Not clientWidth: Chrome 158 reports a
+           * text input's clientWidth without its padding (81 for a 157px box), where Chrome 141 included it. */
+          const avail =
+            i.getBoundingClientRect().width -
+            parseFloat(cs.paddingLeft) -
+            parseFloat(cs.paddingRight) -
+            parseFloat(cs.borderLeftWidth) -
+            parseFloat(cs.borderRightWidth);
           const c = document.createElement('canvas').getContext('2d')!;
           c.font = cs.font;
           const box = i.closest('.aura-time')!,
