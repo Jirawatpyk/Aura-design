@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.86.0
+
+### Minor Changes
+
+- 6a339ce: Chamber-OS 199–202: a titled Card puts `aria-labelledby` on its root only when the root takes a name; DataTable leaves `grid: false` columns out of `aria-colcount` / `aria-colindex` in the grid; EmptyState takes `icon={false}`, and `tone="danger"` defaults to `triangle-alert`.
+
 ## 5.85.0
 
 ### Minor Changes
