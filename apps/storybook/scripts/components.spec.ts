@@ -372,8 +372,8 @@ test.describe('Responsive', () => {
     const wrap = () => rows.first().evaluate((r) => getComputedStyle(r).flexWrap);
     expect(await wrap()).toBe('wrap');
     await expect(page.getByRole('grid')).toHaveCount(1);
-    await expect(page.getByRole('columnheader', { name: /NAME/ })).toBeAttached();
-    /* Field labels are generated content with empty alt text: seen, not read twice. */
+    /* 5.87 (Chamber-OS 205): the headers leave the accessibility tree while stacked; each field reads its label. */
+    await expect(page.getByRole('columnheader', { name: /NAME/ })).toHaveCount(0);
     const label = await rows
       .first()
       .locator('[data-label]')
@@ -1678,7 +1678,7 @@ test.describe('5.0.1: review fixes', () => {
     await expect.poll(() => rows(page).count()).toBeLessThan(60);
   });
 
-  test('cards: ArrowUp stays on the cards (no hidden header cell), headers still name every field', async ({
+  test('cards: ArrowUp stays on the cards (no hidden header cell), every field reads its label (5.87)', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 900 });
@@ -1691,11 +1691,16 @@ test.describe('5.0.1: review fixes', () => {
     expect(role).toBe('gridcell');
     await page.keyboard.press('Control+Home');
     expect(await page.evaluate(() => document.activeElement!.getAttribute('role'))).not.toBe('columnheader');
-    /* MEMBER (hideBelow 900) keeps its column header for screen readers in the card layout. */
-    await expect(page.getByRole('columnheader', { name: /MEMBER/ })).toBeAttached();
-    expect(await page.locator('.aura-table__th[data-hide]').evaluate((e) => getComputedStyle(e).display)).not.toBe(
-      'none',
-    );
+    /* 5.87 (Chamber-OS 205): no column headers while stacked; a field (here hideBelow 900, shown in the card) names
+     * itself with its label. Only the select-all header stays. */
+    await expect(page.getByRole('columnheader', { name: /MEMBER/ })).toHaveCount(0);
+    expect(await page.getByRole('columnheader').count()).toBeLessThanOrEqual(1);
+    expect(
+      await page
+        .locator('.aura-table__td[data-hide][data-label]')
+        .first()
+        .evaluate((e) => getComputedStyle(e, '::before').content),
+    ).not.toMatch(/\/ ""$/);
   });
 
   test('toasts clear the BottomNav on a tablet too', async ({ page }) => {
@@ -3270,8 +3275,10 @@ test.describe('5.13: Chamber-OS addendum 13', () => {
     /* Cards: no country, no ⋯, no boxes, no select-all line; fields in cardOrder, each with its label. */
     expect(await shown(cards.locator('.aura-table__row').getByRole('checkbox'))).toBe(0);
     expect(await shown(cards.getByRole('button', { name: /^More for/ }))).toBe(0);
-    expect(await shown(cards.locator('.aura-table__head'))).toBe(1); /* still there for screen readers… */
-    expect((await cards.locator('.aura-table__head').boundingBox())!.height).toBeLessThanOrEqual(1); /* …not seen */
+    expect(await shown(cards.locator('.aura-table__head'))).toBe(
+      0,
+    ); /* 5.87 (#205): out of the accessibility tree too */
+    await expect(cards.getByRole('columnheader')).toHaveCount(0);
     const fields = await cards
       .locator('[role=row]')
       .nth(1)
@@ -4749,7 +4756,7 @@ test.describe('5.23: Chamber-OS addenda 23–25', () => {
     }) => {
       await page.setViewportSize({ width: 390, height: 1400 });
       await story(page, 'aura-new-in-5-23--wide-field');
-      const row = page.getByTestId(kind).getByRole('row').nth(1);
+      const row = page.getByTestId(kind).locator('.aura-table__row').first(); /* 5.87: no header row while stacked */
       const wide = row.locator('[data-card="wide"]');
       const w = await box(wide);
       const inner = await row.evaluate((e) => {
@@ -9535,8 +9542,9 @@ test.describe('5.51: Chamber-OS 157–160 — sort shown by the page, row minimu
       await page.setViewportSize({ width: w, height: 900 });
       await story(page, S('tab-keys', lang));
       const want = await tabbables(page, 'tab');
-      /* select-all, Member's sort button, then per row: checkbox, subject link, Approve, Reject. */
-      expect(want.length).toBe(2 + 3 * 4);
+      /* select-all, Member's sort button, then per row: checkbox, subject link, Approve, Reject. 5.87 (#205): the cards
+       * have no column headers, so no sort button at 390. */
+      expect(want.length).toBe((w === 390 ? 1 : 2) + 3 * 4);
       await page.getByTestId('before').focus();
       const got: string[] = [];
       for (let i = 0; i < want.length; i++) {
@@ -9554,8 +9562,10 @@ test.describe('5.51: Chamber-OS 157–160 — sort shown by the page, row minimu
         back.push((await here(page)).html);
       }
       expect(back).toEqual([...want].reverse());
-      /* Headers are still announced as headers. */
-      expect(await page.locator('[data-testid=tab] [role=columnheader]').count()).toBeGreaterThan(0);
+      /* Headers are still announced as headers (in the grid; 5.87: only the select-all one in the cards). */
+      const heads = await page.getByTestId('tab').getByRole('columnheader').count();
+      if (w === 390) expect(heads).toBe(1);
+      else expect(heads).toBeGreaterThan(1);
     });
   }
 
@@ -12651,7 +12661,7 @@ test.describe('5.78: visual audit set 2 — phones', () => {
     }
   });
 
-  test('item 11: in PageHeader full-width mode on a phone a button that wraps is a rounded box (radius-md), not a lozenge', async ({
+  test('item 11 / 5.87 (#203): in PageHeader full-width mode on a phone a button that wraps is a rounded box (22px corners), not a lozenge', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -12661,7 +12671,7 @@ test.describe('5.78: visual audit set 2 — phones', () => {
       return [
         getComputedStyle(b).borderTopLeftRadius,
         getComputedStyle(document.querySelector('.aura-page-header__actions .aura-icon-btn')!).borderTopLeftRadius,
-        getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim(),
+        '22px',
       ];
     });
     expect(r[0]).toBe(r[2]);
@@ -12799,13 +12809,13 @@ test.describe('5.78: visual audit set 2 — phones', () => {
     expect(r).toEqual([true, true]);
   });
 
-  test('item 11 with actionsBar (5.71 pay bar): the header own full-width actions are radius-md, the strip Pay now a pill', async ({
+  test('item 11 with actionsBar (5.71 pay bar): the header own full-width actions have the full-width shape (5.87), the strip Pay now a pill', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await story(page, 'aura-new-in-5-71-chamber-os-191--pay-bar');
     const r = await page.evaluate(() => {
-      const md = getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim();
+      const md = '22px';
       const own = [...document.querySelectorAll('.aura-page-header__actions.is-split > .aura-btn')].map(
         (b) => getComputedStyle(b).borderTopLeftRadius === md,
       );
@@ -13021,13 +13031,13 @@ test.describe('5.79: visual audit set 3 — component by component', () => {
     expect(r).toEqual(['th', '13px', null]);
   });
 
-  test('5.78 carry-over: between the bar and full-width breakpoints every button in the row is radius-md', async ({
+  test('5.78 carry-over: between the bar and full-width breakpoints every button in the row has the full-width shape (5.87: 22px)', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 700, height: 700 });
     await story(page, ID('mixed-radius'));
     const r = await page.evaluate(() => {
-      const md = getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim();
+      const md = '22px';
       return [...document.querySelectorAll('.aura-page-header__actions .aura-btn')].map(
         (b) => getComputedStyle(b).borderTopLeftRadius === md,
       );
@@ -13413,5 +13423,179 @@ test.describe('5.86: Chamber-OS 199 — Card names its root only where a name is
     await expect(page.getByRole('group', { name: 'Reminders' })).toHaveCount(1);
     await expect(page.getByRole('article', { name: 'Notice' })).toHaveCount(1);
     expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});
+
+test.describe('5.87: Chamber-OS 203–204', () => {
+  test('203: every full-width button is one shape — a lozenge on one line, a 22px-cornered box when it wraps', async ({
+    page,
+  }) => {
+    const ID = 'aura-new-in-5-87-chamber-os-203-205--full-width-shapes';
+    const shape = (id: string) =>
+      page.getByTestId(id).evaluate((b) => {
+        const s = getComputedStyle(b);
+        return { r: s.borderTopLeftRadius, h: Math.round(b.getBoundingClientRect().height) };
+      });
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID);
+    for (const id of ['header-btn', 'alert-btn', 'card-btn', 'below-sm-btn']) {
+      expect(await shape(id), id).toEqual({ r: '22px', h: 44 });
+    }
+    for (const id of ['header-wrap-btn', 'card-wrap-btn']) {
+      const s = await shape(id);
+      expect(s.r, id).toBe('22px');
+      expect(s.h, id).toBeGreaterThan(50);
+    }
+    // A stacked card's footer Button fills the row as a lozenge (one line).
+    const foot = await page
+      .getByTestId('card-footer')
+      .locator('[data-card="footer"] .aura-btn')
+      .evaluate((b) => {
+        const r = b.getBoundingClientRect(),
+          cell = b.closest('[data-card="footer"]')!.getBoundingClientRect();
+        return {
+          lozenge: parseFloat(getComputedStyle(b).borderTopLeftRadius) >= r.height / 2,
+          fills: r.width > cell.width - 2,
+        };
+      });
+    expect(foot).toEqual({ lozenge: true, fills: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    // Above the breakpoint a header action and fullWidth="below-sm" are ordinary pills again.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect.poll(async () => (await shape('header-btn')).r).toBe('9999px');
+    expect((await shape('below-sm-btn')).r).toBe('9999px');
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+
+  test('203: a phone sheet footer — one-line Keep is the lozenge, the wrapping label a 22px-cornered box', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, 'aura-new-in-5-87-chamber-os-203-205--dialog-footer');
+    const shape = (id: string) =>
+      page.getByTestId(id).evaluate((b) => ({
+        r: getComputedStyle(b).borderTopLeftRadius,
+        h: Math.round(b.getBoundingClientRect().height),
+        w: Math.round(b.getBoundingClientRect().width),
+      }));
+    const keep = await shape('dlg-keep'),
+      long = await shape('dlg-long');
+    expect([keep.r, keep.h, long.r]).toEqual(['22px', 44, '22px']);
+    expect(long.h).toBeGreaterThan(50);
+    expect(long.w).toBe(keep.w);
+  });
+
+  test('204: stackStyle="list" stacks rows as one list divided by rules in the Card; cards and the grid unchanged', async ({
+    page,
+  }) => {
+    const ID = 'aura-new-in-5-87-chamber-os-203-205--stacked-list';
+    const rows = (card: string) =>
+      page
+        .getByTestId(card)
+        .locator('.aura-table__scroll > .aura-table__row')
+        .evaluateAll((els) =>
+          els.map((r) => {
+            const s = getComputedStyle(r);
+            return [
+              s.borderTopWidth,
+              s.borderBottomWidth,
+              s.borderLeftWidth,
+              s.borderTopLeftRadius,
+              s.marginBottom,
+            ].join(' ');
+          }),
+        );
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID);
+    await expect
+      .poll(() => rows('list-card'))
+      .toEqual(['0px 0px 0px 0px 0px', '1px 0px 0px 0px 0px', '1px 0px 0px 0px 0px']);
+    for (const r of await rows('cards-card')) expect(r).toMatch(/^1px 1px 1px [1-9]\d*px 8px$/);
+    const geo = await page.getByTestId('list-card').evaluate((c) => {
+      const title = c.querySelector('.aura-card__title')!.getBoundingClientRect();
+      const row = c.querySelector('.aura-table__row')!.getBoundingClientRect();
+      const cell = c.querySelector('.aura-table__row [data-card="title"]')!.getBoundingClientRect();
+      const t = getComputedStyle(c.querySelector('.aura-table')!);
+      return {
+        rowL: Math.round(row.left - title.left),
+        cellL: Math.round(cell.left - title.left),
+        frame: t.borderTopWidth,
+      };
+    });
+    expect(geo).toEqual({ rowL: 0, cellL: 0, frame: '0px' });
+    // Title, pill and the fields keep the stacked layout.
+    const first = page.getByTestId('list-card').locator('.aura-table__row').first();
+    await expect(first.locator('[data-card="title"]')).toHaveText('INV-1001');
+    await expect(first.locator('[data-label="Amount"]')).toBeVisible();
+    // The pager follows the last row's rule: a rule above it, no frame of its own.
+    const foot = await page
+      .getByTestId('paged-card')
+      .locator('.aura-table__foot')
+      .evaluate((f) => {
+        const s = getComputedStyle(f);
+        return [s.borderTopWidth, s.borderLeftWidth, s.borderBottomWidth, s.borderTopLeftRadius, s.marginTop].join(' ');
+      });
+    expect(foot).toBe('1px 0px 0px 0px 0px');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    // In the grid the two tables are the same.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const grid = (card: string) =>
+      page
+        .getByTestId(card)
+        .locator('.aura-table')
+        .evaluate((t) => {
+          const r = t.querySelector('.aura-table__row')!;
+          const s = getComputedStyle(r),
+            ts = getComputedStyle(t);
+          return [
+            ts.borderTopWidth,
+            s.borderBottomWidth,
+            s.borderTopWidth,
+            Math.round(r.getBoundingClientRect().height),
+          ].join(' ');
+        });
+    await expect.poll(() => grid('list-card')).toBe(await grid('cards-card'));
+  });
+});
+
+test.describe('5.87: Chamber-OS 205', () => {
+  test('205: stacked cards leave the column headers out of the accessibility tree; an empty label is no header name', async ({
+    page,
+  }) => {
+    const ID = 'aura-new-in-5-87-chamber-os-203-205--stacked-headers';
+    const grid = page.getByRole('grid', { name: 'CSV imports' });
+    await page.setViewportSize({ width: 390, height: 900 });
+    await story(page, ID);
+    await expect(grid.locator('.aura-table__row').first()).toBeVisible();
+    await expect(grid.getByRole('columnheader')).toHaveCount(0);
+    const snap = await grid.ariaSnapshot();
+    expect(snap).not.toMatch(/columnheader|cardSummary/);
+    // Each field reads its label with its value.
+    await expect(grid.getByRole('gridcell', { name: 'Imported 2026-11-01' }).first()).toBeVisible();
+    // With selection, only the select-all line stays.
+    const sel = page.getByRole('grid', { name: 'Selectable imports' });
+    await expect(sel.getByRole('columnheader')).toHaveCount(1);
+    await expect(sel.getByRole('checkbox', { name: /select all/i })).toBeVisible();
+    // Tab reaches the first card even if the tab stop was on a header in the grid.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(grid.getByRole('columnheader')).toHaveCount(4);
+    await grid.getByRole('columnheader', { name: 'File' }).focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.setViewportSize({ width: 390, height: 900 });
+    await expect(grid.getByRole('columnheader')).toHaveCount(0);
+    await page.keyboard.press('Tab');
+    const focused = await page.evaluate(() => {
+      const a = document.activeElement as HTMLElement;
+      return { rc: a.getAttribute('data-rc'), shown: a.getClientRects().length > 0 };
+    });
+    expect(focused.shown).toBe(true);
+    expect(focused.rc!.startsWith('1:')).toBe(true);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    // In the grid an empty label gives a header with no name, not the key.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(grid.getByRole('columnheader')).toHaveCount(4);
+    const names = await grid.getByRole('columnheader').evaluateAll((hs) => hs.map((h) => (h.textContent || '').trim()));
+    expect(names).toEqual(['File', 'Outcome', 'Imported', '']);
   });
 });

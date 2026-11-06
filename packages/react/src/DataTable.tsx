@@ -801,10 +801,13 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
     },
     [stacked],
   );
+  /* 5.87: while the cards show, the column headers are display: none — a tab stop left on one (the table narrowed
+   * into cards with focus elsewhere) moves to the first card, as focusCell does. */
+  const tabR = stacked && ar === 0 && nRows > 0 && (!(selectable && acShown === 0) || noCardSel) ? 1 : ar;
   function tabFor(r: number, c: number): number {
     if (tabMode) return -1;
     if (!activeRendered) return r === 0 && c === ac ? 0 : -1;
-    return r === ar && c === acShown ? 0 : -1;
+    return r === tabR && c === acShown ? 0 : -1;
   }
 
   React.useEffect(function () {
@@ -1363,7 +1366,8 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             </button>
           ) : (
             <span className={cx('aura-table__th-label', !c.label && 'aura-sr-only')}>
-              {c.label || (c.actions ? t.actions : c.key)}
+              {/* 5.87 (Chamber-OS 205): an empty label names nothing — never the key. */}
+              {c.label || (c.actions ? t.actions : null)}
             </span>
           )}
           {pin ? <Icon name={<IconPin />} size={12} className="aura-table__pin-icon" label={t.pinned} /> : null}
@@ -1785,6 +1789,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         props.bordered === false && 'aura-table--borderless',
         stacked && 'aura-table--stacked',
         noCardSel && 'aura-table--cards-nosel',
+        props.stackStyle === 'list' && 'aura-table--stack-list',
         scrolledX[0] && 'is-scrolled-x',
         edgeState[0] && !stacked && 'has-more-x',
         refreshing && 'is-refreshing',

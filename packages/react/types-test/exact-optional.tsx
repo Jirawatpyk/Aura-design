@@ -214,6 +214,7 @@ export function Addendum13({ o, flag }: { o: number | undefined; flag: boolean |
         label="Members"
         rows={rows}
         hideSelectionInCards={flag}
+        stackStyle={flag ? 'list' : undefined}
         columns={[
           { key: 'company', label: 'COMPANY', card: 'title' },
           { key: 'id', label: 'NO.', card: undefined, cardOrder: o },

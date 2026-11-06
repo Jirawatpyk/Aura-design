@@ -28,16 +28,19 @@
 .aura-btn:active { transform: scale(0.98); }
 .aura-btn:disabled, a.aura-btn[aria-disabled='true'] { opacity: var(--aura-disabled-opacity); pointer-events: none; }
 a.aura-btn { text-decoration: none; }
-/* fullWidth: fills the row and wraps a long label (Thai and Swedish run ~30% longer) instead of overflowing. */
+/* fullWidth: fills the row and wraps a long label (Thai and Swedish run ~30% longer) instead of overflowing.
+ * 5.87 (Chamber-OS 203): one shape wherever it sits — corners at most half the 44px button, so one line is the lozenge
+ * and a wrapped label is a rounded box (22px corners), not a stretched pill. */
 .aura-btn--full {
   width: 100%; height: auto; min-height: var(--aura-button-height); white-space: normal; flex-shrink: 1;
   padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere;
+  border-radius: min(var(--aura-button-radius), 22px);
 }
 /* 5.53 (Chamber-OS 165): fullWidth="below-md" — the same, only below 768px, and at least 44px tall there, touchHeight
  * or not (hence the doubled class); its natural width above. "below-sm" is with the phone rules (max-width 639.98px). */
 @media (max-width: 767.98px) {
   .aura-btn.aura-btn.aura-btn--full-below-md { width: 100%; height: auto; min-height: var(--aura-touch-target); white-space: normal; flex-shrink: 1;
-    padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+    padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; border-radius: min(var(--aura-button-radius), 22px); }
 }
 .aura-btn.is-loading { cursor: progress; }
 /* 5.14: a button gated with aria-disabled looks unavailable but stays focusable (no pointer-events: none, so the
@@ -1358,8 +1361,8 @@ summary.aura-link::-webkit-details-marker { display: none; }
  * span as wide as its text and the page scrolled sideways. :where keeps the selector's weight as before. */
 @media (max-width: 639.98px) {
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
-  .aura-page-header--actions-full-below-sm:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11): a label that wraps to two lines is a rounded box, not a lozenge */
-  .aura-page-header--actions-full-below-sm:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
+  .aura-page-header--actions-full-below-sm:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.87 (Chamber-OS 203): a lozenge on one line, a rounded box when the label wraps — as every full-width button */
+  .aura-page-header--actions-full-below-sm:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions > .aura-page-header__bar > :where(:not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; } /* 5.71: actionsBar in the row, as the actions (5.61) */
@@ -1370,14 +1373,14 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
-  .aura-page-header--actions-full-below-sm:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11) */
-  .aura-page-header--actions-full-below-sm:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+  .aura-page-header--actions-full-below-sm:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.78 (visual audit 11) */
+  .aura-page-header--actions-full-below-sm:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); }
   .aura-page-header--actions-full-below-sm > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 @media (max-width: 767.98px) {
   .aura-page-header--actions-full-below-md > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
-  .aura-page-header--actions-full-below-md:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11): a label that wraps to two lines is a rounded box, not a lozenge */
-  .aura-page-header--actions-full-below-md:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
+  .aura-page-header--actions-full-below-md:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.87 (Chamber-OS 203): a lozenge on one line, a rounded box when the label wraps — as every full-width button */
+  .aura-page-header--actions-full-below-md:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions > .aura-page-header__bar > :where(:not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; } /* 5.71: actionsBar in the row, as the actions (5.61) */
@@ -1387,14 +1390,14 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
-  .aura-page-header--actions-full-below-md:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11) */
-  .aura-page-header--actions-full-below-md:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+  .aura-page-header--actions-full-below-md:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.78 (visual audit 11) */
+  .aura-page-header--actions-full-below-md:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); }
   .aura-page-header--actions-full-below-md > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 @media (max-width: 1023.98px) {
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions { flex: 1 1 100%; gap: var(--aura-space-3); }
-  .aura-page-header--actions-full-below-lg:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11): a label that wraps to two lines is a rounded box, not a lozenge */
-  .aura-page-header--actions-full-below-lg:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
+  .aura-page-header--actions-full-below-lg:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.87 (Chamber-OS 203): a lozenge on one line, a rounded box when the label wraps — as every full-width button */
+  .aura-page-header--actions-full-below-lg:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.78: actionsBar's split — the header's own actions, not the strip */
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :where(:not(.sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > :is(.aura-dropdown, .aura-tooltip-anchor, .aura-popover-anchor) > * { flex: 1 1 auto; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions > .aura-page-header__bar > :where(:not(.aura-page-header__status, .sr-only, .aura-sr-only, .visually-hidden, .screen-reader-text, [hidden], [style*="position: absolute"], [style*="position:absolute"])) { flex: 1 1 0; min-width: max-content; } /* 5.71: actionsBar in the row, as the actions (5.61) */
@@ -1404,8 +1407,8 @@ summary.aura-link::-webkit-details-marker { display: none; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) { flex-wrap: nowrap; align-items: stretch; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > * { min-width: 0; }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { height: auto; min-height: var(--aura-button-height); white-space: normal; padding: var(--aura-space-2) var(--aura-space-3); line-height: 1.35; text-align: center; overflow-wrap: anywhere; hyphens: auto; border-radius: min(var(--aura-button-radius), 22px); }
-  .aura-page-header--actions-full-below-lg:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); } /* 5.78 (visual audit 11) */
-  .aura-page-header--actions-full-below-lg:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+  .aura-page-header--actions-full-below-lg:not(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, * > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); } /* 5.78 (visual audit 11) */
+  .aura-page-header--actions-full-below-lg:is(.aura-page-header--actions-bar-below-sm, .aura-page-header--actions-bar-below-md) > .aura-page-header__actions.is-split:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-btn, :not(.aura-page-header__bar) > .aura-btn):not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); }
   .aura-page-header--actions-full-below-lg > .aura-page-header__actions:has(> .aura-icon-btn, > :not(.aura-page-header__bar) > .aura-icon-btn) > :is(.aura-icon-btn, :has(> .aura-icon-btn)) { align-self: center; } /* 5.45 (Chamber-OS addendum 52): centred on a taller button */
 }
 /* 5.48 (Chamber-OS 154): only on a screen taller than 30rem (5.49: 480px at the default text size) — on a short one (400% zoom, a phone held sideways) the
@@ -1995,7 +1998,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-dialog__foot > .aura-btn, .aura-dialog__foot > * > .aura-btn:only-child,
   .aura-drawer__foot > .aura-btn, .aura-drawer__foot > * > .aura-btn:only-child, .aura-btn.aura-btn.aura-btn--full-below-sm {
     height: auto; min-height: var(--aura-touch-target); white-space: normal; flex-shrink: 1;
-    padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+    padding-block: var(--aura-space-2); line-height: 1.35; text-align: center; overflow-wrap: anywhere; border-radius: min(var(--aura-button-radius), 22px); }
   .aura-dialog__foot > * > .aura-btn:only-child, .aura-btn.aura-btn.aura-btn--full-below-sm { width: 100%; }
   .aura-drawer__foot > * { max-width: 100%; }
   .aura-drawer:not(.aura-drawer--nav) { max-width: none; }
@@ -2421,15 +2424,15 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   :root:has(.aura-actionbar--edge:not(.is-idle)):not(:has(.aura-shell__content)) body { padding-bottom: var(--aura-actionbar-space); }
 }
 /* 5.79 (5.78 carry-over): where actionsFullWidthBelow reaches wider than actionsBarBelow, the bar isn't pinned between
- * the two breakpoints and its buttons sit in the same full-width row — every button there is radius-md, not some. */
+ * the two breakpoints and its buttons sit in the same full-width row — every button there has the full-width shape (5.87). */
 @media (min-width: 640px) and (max-width: 767.98px) {
-  .aura-page-header--actions-full-below-md.aura-page-header--actions-bar-below-sm > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+  .aura-page-header--actions-full-below-md.aura-page-header--actions-bar-below-sm > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); }
 }
 @media (min-width: 640px) and (max-width: 1023.98px) {
-  .aura-page-header--actions-full-below-lg.aura-page-header--actions-bar-below-sm > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+  .aura-page-header--actions-full-below-lg.aura-page-header--actions-bar-below-sm > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); }
 }
 @media (min-width: 768px) and (max-width: 1023.98px) {
-  .aura-page-header--actions-full-below-lg.aura-page-header--actions-bar-below-md > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: var(--aura-radius-md); }
+  .aura-page-header--actions-full-below-lg.aura-page-header--actions-bar-below-md > .aura-page-header__actions .aura-btn:not(.aura-icon-btn) { border-radius: min(var(--aura-button-radius), 22px); }
 }
 /* 5.79 (visual audit 10): in an AppShell on a desktop the edge strip starts where the content does — after the
  * sidebar (its rail width when collapsed; the right edge in RTL) — and its contents line up with the content's 32px
@@ -2664,8 +2667,9 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
 @container aura-stack (width >= 9999.5px) { .aura-table [data-grid='off'] { display: none; } }
 
 /* Below stackBelow the same grid lays out as cards: the first column is the title, the first other pill column sits
- * beside it, `actions` columns go top-right, the rest are label/value fields two to a line. Column headers stay for
- * screen readers; the labels are generated content with empty alt text, so they aren't read twice. */
+ * beside it, `actions` columns go top-right, the rest are label/value fields two to a line.
+ * 5.87 (Chamber-OS 205): the column headers leave the accessibility tree while the cards show (only the select-all
+ * line stays); each field's label is generated content that is read with its value. */
 @container aura-stack (width < 9999.5px) {
   .aura-table { background: transparent; border: 0; border-radius: 0; overflow: visible; }
   /* 5.26: stacked cards inside a framed Card keep its padding (0 where the Card is flush). */
@@ -2678,10 +2682,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     position: static; height: auto; min-width: 0; padding: 0 0 var(--aura-space-3); border: 0; background: none;
     font-family: var(--font-sans); font-size: max(13px, .8125rem);
   }
-  .aura-table__head > .aura-table__th {
-    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-  }
-  .aura-table__head:not(.has-select-all) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); }
+  .aura-table__head > .aura-table__th, .aura-table__head:not(.has-select-all) { display: none; }
   .aura-table__head > .aura-table__sel { position: static; width: auto; gap: var(--aura-space-3); padding: 0 var(--aura-space-4); }
   .aura-table__sel-text { display: inline; color: var(--aura-fg-secondary); }
   .aura-table__gutter, .aura-table__gutter--end.has-picker { display: none; } /* 5.78 (audit 20): the column picker's slot too, which squeezed the card's title */
@@ -2697,7 +2698,7 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
     margin-bottom: var(--aura-space-1);
     padding: 0; line-height: normal;
   }
-  .aura-table__td[data-hide], .aura-table__head > .aura-table__th[data-hide] { display: block; }
+  .aura-table__td[data-hide] { display: block; }
   /* 5.13 (Chamber-OS 80): card: 'hide' leaves a column out of the card; cardOrder orders the fields. */
   .aura-table__td[data-card='hide'], .aura-table__head > .aura-table__th[data-card='hide'],
   .aura-table__row--skeleton .aura-table__td[data-card='hide'] { display: none; }
@@ -2707,14 +2708,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__row--skeleton .aura-table__td.is-end { justify-content: flex-start; }
   /* hideSelectionInCards: no row boxes, no select-all line. */
   .aura-table--cards-nosel .aura-table__row > .aura-table__sel { display: none; }
-  .aura-table--cards-nosel .aura-table__head { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); }
+  .aura-table--cards-nosel .aura-table__head { display: none; }
   .aura-table--cards-nosel .aura-table__head > .aura-table__sel { display: none; }
   /* 5.11: rowHeight="auto" leaves cards as they are. */
   .aura-table__td--auto { display: block; white-space: nowrap; }
   .aura-table__td--auto .aura-table__cell > .aura-badge, .aura-table__td--auto .aura-table__cell > .aura-pill { margin: 0; }
   .aura-table__spacer { display: none; }
   .aura-table__td[data-label]::before {
-    content: attr(data-label); content: attr(data-label) / '';
+    content: attr(data-label);
     display: block; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start;
     font-family: var(--font-mono); font-size: max(11px, .6875rem); line-height: normal; font-weight: 400; color: var(--aura-fg-secondary);
   }
@@ -2758,6 +2759,16 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table__total > .is-blank { display: none; }
   .aura-table__foot { border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); margin-top: var(--aura-space-2); background: var(--aura-bg-surface); }
   .aura-table__empty { background: var(--aura-bg-surface); border: 1px solid var(--aura-border-default); border-radius: var(--aura-radius-lg); }
+  /* 5.87 (Chamber-OS 204): stackStyle="list" — the same stacked layout as one list divided by rules: no frame, radius
+   * or gap per row, so it sits in a framed Card. A rule above every row after the first (the virtual spacers and the
+   * header aren't rows); the totals row and the pager follow the last rule, unshaded and unframed. */
+  .aura-table--stack-list .aura-table__row, .aura-table--stack-list .aura-table__row:last-child { margin-bottom: 0; padding-inline: 0; border-width: 0; border-radius: 0; }
+  .aura-table--stack-list .aura-table__row ~ .aura-table__row { border-top-width: 1px; }
+  .aura-table--stack-list .aura-table__head > .aura-table__sel { padding-inline: 0; }
+  .aura-table--stack-list .aura-table__head.has-select-all + .aura-table__row { border-top-width: 1px; } /* under the select-all line */
+  .aura-table--stack-list .aura-table__total { background: none; }
+  .aura-table--stack-list .aura-table__foot { margin-top: 0; padding-inline: 0; border-width: 1px 0 0; border-radius: 0; background: none; }
+  .aura-table--stack-list .aura-table__empty { border: 0; border-radius: 0; background: none; }
 }
 
 /* ---------- 5.1.1: Windows High Contrast / forced colours ---------- */

@@ -6724,10 +6724,11 @@ window.Aura = (() => {
       },
       [stacked]
     );
+    const tabR = stacked && ar === 0 && nRows > 0 && (!(selectable && acShown === 0) || noCardSel) ? 1 : ar;
     function tabFor(r2, c) {
       if (tabMode) return -1;
       if (!activeRendered) return r2 === 0 && c === ac ? 0 : -1;
-      return r2 === ar && c === acShown ? 0 : -1;
+      return r2 === tabR && c === acShown ? 0 : -1;
     }
     React34.useEffect(function() {
       const p = pending.current;
@@ -7211,7 +7212,7 @@ window.Aura = (() => {
                 size: 12
               }
             )
-          ) : /* @__PURE__ */ React34.createElement("span", { className: cx("aura-table__th-label", !c.label && "aura-sr-only") }, c.label || (c.actions ? t.actions : c.key)), pin ? /* @__PURE__ */ React34.createElement(Icon, { name: /* @__PURE__ */ React34.createElement(IconPin, null), size: 12, className: "aura-table__pin-icon", label: t.pinned }) : null, controls ? /* @__PURE__ */ React34.createElement(
+          ) : /* @__PURE__ */ React34.createElement("span", { className: cx("aura-table__th-label", !c.label && "aura-sr-only") }, c.label || (c.actions ? t.actions : null)), pin ? /* @__PURE__ */ React34.createElement(Icon, { name: /* @__PURE__ */ React34.createElement(IconPin, null), size: 12, className: "aura-table__pin-icon", label: t.pinned }) : null, controls ? /* @__PURE__ */ React34.createElement(
             "button",
             {
               type: "button",
@@ -7587,6 +7588,7 @@ window.Aura = (() => {
           props.bordered === false && "aura-table--borderless",
           stacked && "aura-table--stacked",
           noCardSel && "aura-table--cards-nosel",
+          props.stackStyle === "list" && "aura-table--stack-list",
           scrolledX[0] && "is-scrolled-x",
           edgeState[0] && !stacked && "has-more-x",
           refreshing && "is-refreshing",

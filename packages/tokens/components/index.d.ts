@@ -255,6 +255,11 @@ export interface DataTableProps<Row extends Record<string, any> = Record<string,
 	/** Stacked cards (`stackBelow`) without the row checkboxes and the select-all box (5.13). The grid keeps them and
 	 * the selection is kept; Space doesn't change it while the cards show. */
 	hideSelectionInCards?: boolean | undefined;
+	/** How the rows look below `stackBelow` (5.87, Chamber-OS 204): `cards` (default) — each row its own framed card,
+	 * 8px apart; `list` — the same layout (title, pill and actions on the first line, fields two to a line) as one list
+	 * divided by `--aura-border-default` rules, with no frame, radius or gap per row, so it sits inside a framed `Card`.
+	 * The grid above `stackBelow` is unchanged. */
+	stackStyle?: "cards" | "list" | undefined;
 	/** `'auto'` (5.11): rows grow to fit content that wraps (two badges, a long name); cells stay vertically centred and
 	 * rows keep at least the density's row height. Needs every row in the DOM, so it is ignored with `height`
 	 * (virtualized rows are one fixed height). Default: one fixed-height line per row, long text ends in an ellipsis. */

@@ -675,7 +675,10 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       columns: [{ key: 'co', label: 'CO' }, { key: 'flag', label: 'F', width: 60, card: 'hide' }, { key: 'plan', label: 'P', width: 80, cardOrder: 2 }, { key: 'no', label: 'NO', width: 80, cardOrder: 1 }] }));
     if (!/aura-table--cards-nosel/.test(dt) || (dt.match(/data-card="hide"/g) || []).length !== 2 || !/--aura-card-order:6[^>]*data-card="field" data-label="P"/.test(dt) || !/--aura-card-order:5[^>]*data-card="field" data-label="NO"/.test(dt)) { console.log(label, 'DataTable card options:', dt); fail++; }
     const dt0 = renderToString(React.createElement(A.DataTable, { label: 'M', rows, selectable: true, stackBelow: 640, columns: [{ key: 'co', label: 'CO' }, { key: 'plan', label: 'P', width: 80 }] }));
-    if (/cards-nosel|--aura-card-order|data-card="hide"/.test(dt0)) { console.log(label, 'default DataTable changed:', dt0); fail++; }
+    if (/cards-nosel|--aura-card-order|data-card="hide"|stack-list/.test(dt0)) { console.log(label, 'default DataTable changed:', dt0); fail++; }
+    /* 5.87 (Chamber-OS 204): stackStyle="list" is a class on the table, so the server HTML already draws the list. */
+    const dtList = renderToString(React.createElement(A.DataTable, { label: 'M', rows, stackBelow: 640, stackStyle: 'list', columns: [{ key: 'co', label: 'CO' }] }));
+    if (!/class="aura-table( [^"]*)? aura-table--stack-list[ "]/.test(dtList)) { console.log(label, 'DataTable stackStyle list:', dtList); fail++; }
     const cells = (card?: string) => [React.createElement(A.Td, { card: card, key: 'a' }, 'Acme'), React.createElement(A.Td, { key: 'b' }, 'x')];
     const head = React.createElement(A.THead, null, React.createElement(A.Tr, null, React.createElement(A.Th, null, 'Member'), React.createElement(A.Th, null, 'Type')));
     const tbl = (p: Record<string, unknown>, card?: string) => renderToString(React.createElement(A.Table, Object.assign({ caption: 'Q' }, p), head, React.createElement(A.TBody, null, React.createElement(A.Tr, null, cells(card)))));
