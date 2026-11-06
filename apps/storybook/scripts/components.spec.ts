@@ -12738,11 +12738,26 @@ test.describe('5.78: visual audit set 2 — phones', () => {
           const avail = i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
           const c = document.createElement('canvas').getContext('2d')!;
           c.font = cs.font;
-          return { avail: Math.floor(avail), needs: Math.ceil(c.measureText(i.placeholder).width) };
+          const box = i.closest('.aura-time')!,
+            field = i.closest('.aura-field')!;
+          return {
+            avail: Math.floor(avail),
+            needs: Math.ceil(c.measureText(i.placeholder).width),
+            /* What the room is made of, for a failure in a browser we can't run locally. */
+            input: [i.clientWidth, cs.width, cs.paddingLeft, cs.paddingRight, cs.boxSizing, cs.minWidth, cs.flex].join(
+              ' ',
+            ),
+            box: [Math.round(box.getBoundingClientRect().width), getComputedStyle(box).display].join(' '),
+            field: Math.round(field.getBoundingClientRect().width),
+            kids: [...box.children]
+              .map((k) => k.className + ':' + Math.round(k.getBoundingClientRect().width))
+              .join(', '),
+            ua: navigator.userAgent.replace(/.*(Chrome\/[\d.]+).*/, '$1'),
+          };
         }),
       );
     expect((await fit()).length).toBeGreaterThan(0);
-    await expect.poll(async () => (await fit()).filter((f) => f.avail < f.needs)).toEqual([]);
+    await expect.poll(async () => (await fit()).filter((f) => f.avail < f.needs), { timeout: 5000 }).toEqual([]);
   });
 
   test('item 9 (320, sv): long labels take a row each in the edge strip; no button leaves the screen or clips its label', async ({
