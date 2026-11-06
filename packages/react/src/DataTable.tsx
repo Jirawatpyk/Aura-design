@@ -738,6 +738,15 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
 
   /* grid geometry: r 0 = header, 1..N = rows; c 0.. = [select?] + vis */
   const nCols = vis.length + (selectable ? 1 : 0);
+  /* 5.86 (Chamber-OS 200): ARIA numbers the columns the layout shows. In the grid (and before the first measure, when
+   * the grid is what JavaScript assumes) card-only columns (grid: false) are left out of aria-colcount and the
+   * aria-colindex numbering; in the cards every column counts. */
+  const ariaIdx: Array<number | undefined> = [];
+  let ariaColCount = 0;
+  for (let ci = 0; ci < nCols; ci++) {
+    const col = selectable ? (ci === 0 ? null : vis[ci - 1]) : vis[ci];
+    ariaIdx.push(!stacked && col && col.grid === false ? undefined : ++ariaColCount);
+  }
   const nRows = loading ? 0 : pageRows.length;
   /* The totals row is grid row nRows + 1 (5.2): arrow keys reach it, so screen readers in grid mode hear it. */
   const hasTotal = !!(props.footer && rows.length && !loading),
@@ -1289,7 +1298,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         key={c.key}
         role="columnheader"
         aria-sort={ariaSort}
-        aria-colindex={ci + 1}
+        aria-colindex={ariaIdx[ci]}
         style={cellStyle(c, i)}
         data-hide={hideLevel(c) ? String(hideLevel(c)) : undefined}
         data-card={cardPart(c, i) === 'hide' ? 'hide' : undefined}
@@ -1462,7 +1471,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
         <span
           key={c.key}
           role="gridcell"
-          aria-colindex={ci + 1}
+          aria-colindex={ariaIdx[ci]}
           tabIndex={tabFor(ri, ci)}
           data-rc={ri + ':' + ci}
           className={cx(
@@ -1727,7 +1736,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             <span
               key={c.key}
               role="gridcell"
-              aria-colindex={j + (selectable ? 2 : 1)}
+              aria-colindex={ariaIdx[j + (selectable ? 1 : 0)]}
               tabIndex={tabFor(T, ci)}
               data-rc={T + ':' + ci}
               onFocus={function () {
@@ -1829,7 +1838,7 @@ const DataTableImpl = React.forwardRef<HTMLDivElement, DataTableProps>(function 
             ? -1 /* total unknown (5.1.1) */
             : shownTotal + 1 + (totalRow ? 1 : 0)
         }
-        aria-colcount={nCols}
+        aria-colcount={ariaColCount}
         aria-multiselectable={selectable || undefined}
         onKeyDown={onGridKey}
         onScroll={function (e: React.UIEvent<HTMLDivElement>) {

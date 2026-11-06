@@ -95,6 +95,48 @@ export function alertElement(
   );
 }
 
+/* Elements whose role takes an author name (ARIA 1.2); generic ones (div, span) and roles that prohibit a name don't. */
+const NAMED_ROOTS = [
+  'section',
+  'article',
+  'aside',
+  'nav',
+  'main',
+  'search',
+  'form',
+  'fieldset',
+  'details',
+  'dialog',
+  'figure',
+  'li',
+  'ul',
+  'ol',
+  'menu',
+];
+const NAMELESS_ROLES = [
+  'generic',
+  'none',
+  'presentation',
+  'paragraph',
+  'caption',
+  'code',
+  'deletion',
+  'emphasis',
+  'insertion',
+  'strong',
+  'subscript',
+  'superscript',
+  'term',
+  'time',
+  'mark',
+];
+function cardTakesName(as: string, role: string | undefined): boolean {
+  /* A role list ("none presentation") falls back left to right: the first token is the one in effect. */
+  const first = role ? role.trim().split(/\s+/)[0]!.toLowerCase() : '';
+  if (first) return NAMELESS_ROLES.indexOf(first) < 0;
+  return NAMED_ROOTS.indexOf(as) >= 0;
+}
+
 export function cardElement(props: CardProps, ref: React.Ref<HTMLElement> | undefined): React.ReactElement {
   const creative = props.variant === 'creative';
   const rest = omit(props, [
@@ -124,8 +166,13 @@ export function cardElement(props: CardProps, ref: React.Ref<HTMLElement> | unde
         props.flushBelow && 'aura-card--flush-below-' + props.flushBelow,
         props.className,
       ),
-      /* A titled card is labelled by its title; otherwise the caller's aria-labelledby stays (5.8). */
-      'aria-labelledby': !head && props.title && props.titleId ? props.titleId : props['aria-labelledby'],
+      /* A titled card is labelled by its title; otherwise the caller's aria-labelledby stays (5.8). 5.86 (Chamber-OS
+       * 199): only where a name is allowed — a root that takes one (section, article…) or one with a role; a plain
+       * div is generic, where ARIA 1.2 prohibits a name. The title keeps its id either way. */
+      'aria-labelledby':
+        !head && props.title && props.titleId && cardTakesName(props.as || 'section', props.role)
+          ? props.titleId
+          : props['aria-labelledby'],
     }),
     head || props.title || props.actions ? (
       <div className="aura-card__head">
@@ -256,9 +303,15 @@ export function emptyStateElement(
         props.className,
       )}
     >
-      <span className="aura-empty__icon" aria-hidden={true}>
-        <Icon name={props.icon || <IconInbox />} size={props.size === 'sm' ? 'md' : 'lg'} />
-      </span>
+      {/* 5.86: icon={false} (Chamber-OS 201) draws no icon or circle; tone="danger" defaults to triangle-alert (202). */}
+      {props.icon === false ? null : (
+        <span className="aura-empty__icon" aria-hidden={true}>
+          <Icon
+            name={props.icon || (props.tone === 'danger' ? <IconTriangleAlert /> : <IconInbox />)}
+            size={props.size === 'sm' ? 'md' : 'lg'}
+          />
+        </span>
+      )}
       <HT className="aura-empty__title">{props.title}</HT>
       {props.description ? <p className="aura-empty__text">{props.description}</p> : null}
       {props.action ? <div className="aura-empty__action">{props.action}</div> : null}

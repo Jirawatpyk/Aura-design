@@ -843,6 +843,45 @@ window.Aura = (() => {
       close
     );
   }
+  var NAMED_ROOTS = [
+    "section",
+    "article",
+    "aside",
+    "nav",
+    "main",
+    "search",
+    "form",
+    "fieldset",
+    "details",
+    "dialog",
+    "figure",
+    "li",
+    "ul",
+    "ol",
+    "menu"
+  ];
+  var NAMELESS_ROLES = [
+    "generic",
+    "none",
+    "presentation",
+    "paragraph",
+    "caption",
+    "code",
+    "deletion",
+    "emphasis",
+    "insertion",
+    "strong",
+    "subscript",
+    "superscript",
+    "term",
+    "time",
+    "mark"
+  ];
+  function cardTakesName(as, role) {
+    const first = role ? role.trim().split(/\s+/)[0].toLowerCase() : "";
+    if (first) return NAMELESS_ROLES.indexOf(first) < 0;
+    return NAMED_ROOTS.indexOf(as) >= 0;
+  }
   function cardElement(props, ref) {
     const creative = props.variant === "creative";
     const rest = omit(props, [
@@ -872,8 +911,10 @@ window.Aura = (() => {
           props.flushBelow && "aura-card--flush-below-" + props.flushBelow,
           props.className
         ),
-        /* A titled card is labelled by its title; otherwise the caller's aria-labelledby stays (5.8). */
-        "aria-labelledby": !head && props.title && props.titleId ? props.titleId : props["aria-labelledby"]
+        /* A titled card is labelled by its title; otherwise the caller's aria-labelledby stays (5.8). 5.86 (Chamber-OS
+         * 199): only where a name is allowed — a root that takes one (section, article…) or one with a role; a plain
+         * div is generic, where ARIA 1.2 prohibits a name. The title keeps its id either way. */
+        "aria-labelledby": !head && props.title && props.titleId && cardTakesName(props.as || "section", props.role) ? props.titleId : props["aria-labelledby"]
       }),
       head || props.title || props.actions ? /* @__PURE__ */ React4.createElement("div", { className: "aura-card__head" }, /* @__PURE__ */ React4.createElement("div", { className: "aura-card__heading" }, head ? props.header : null, !head && props.title ? h2("h" + (props.headingLevel || 3), { className: "aura-card__title", id: props.titleId }, props.title) : null, !head && props.description ? /* @__PURE__ */ React4.createElement("p", { className: "aura-card__desc" }, props.description) : null), props.actions ? /* @__PURE__ */ React4.createElement("div", { className: "aura-card__actions" }, props.actions) : null) : null,
       props.children ? /* @__PURE__ */ React4.createElement("div", { className: "aura-card__body" }, props.children) : null,
@@ -973,7 +1014,13 @@ window.Aura = (() => {
           props.className
         )
       },
-      /* @__PURE__ */ React4.createElement("span", { className: "aura-empty__icon", "aria-hidden": true }, /* @__PURE__ */ React4.createElement(Icon, { name: props.icon || /* @__PURE__ */ React4.createElement(IconInbox, null), size: props.size === "sm" ? "md" : "lg" })),
+      props.icon === false ? null : /* @__PURE__ */ React4.createElement("span", { className: "aura-empty__icon", "aria-hidden": true }, /* @__PURE__ */ React4.createElement(
+        Icon,
+        {
+          name: props.icon || (props.tone === "danger" ? /* @__PURE__ */ React4.createElement(IconTriangleAlert, null) : /* @__PURE__ */ React4.createElement(IconInbox, null)),
+          size: props.size === "sm" ? "md" : "lg"
+        }
+      )),
       /* @__PURE__ */ React4.createElement(HT, { className: "aura-empty__title" }, props.title),
       props.description ? /* @__PURE__ */ React4.createElement("p", { className: "aura-empty__text" }, props.description) : null,
       props.action ? /* @__PURE__ */ React4.createElement("div", { className: "aura-empty__action" }, props.action) : null
@@ -6630,6 +6677,12 @@ window.Aura = (() => {
     }
     const visibleRows = Math.max(1, Math.floor(bodyH / ROW_H));
     const nCols = vis.length + (selectable ? 1 : 0);
+    const ariaIdx = [];
+    let ariaColCount = 0;
+    for (let ci = 0; ci < nCols; ci++) {
+      const col = selectable ? ci === 0 ? null : vis[ci - 1] : vis[ci];
+      ariaIdx.push(!stacked && col && col.grid === false ? void 0 : ++ariaColCount);
+    }
     const nRows = loading ? 0 : pageRows.length;
     const hasTotal = !!(props.footer && rows.length && !loading), T = nRows + 1, lastR = nRows + (hasTotal ? 1 : 0);
     const active = activeState[0];
@@ -7093,7 +7146,7 @@ window.Aura = (() => {
             key: c.key,
             role: "columnheader",
             "aria-sort": ariaSort,
-            "aria-colindex": ci + 1,
+            "aria-colindex": ariaIdx[ci],
             style: cellStyle(c, i),
             "data-hide": hideLevel(c) ? String(hideLevel(c)) : void 0,
             "data-card": cardPart(c, i) === "hide" ? "hide" : void 0,
@@ -7256,7 +7309,7 @@ window.Aura = (() => {
             {
               key: c.key,
               role: "gridcell",
-              "aria-colindex": ci + 1,
+              "aria-colindex": ariaIdx[ci],
               tabIndex: tabFor(ri, ci),
               "data-rc": ri + ":" + ci,
               className: cx(
@@ -7484,7 +7537,7 @@ window.Aura = (() => {
           {
             key: c.key,
             role: "gridcell",
-            "aria-colindex": j + (selectable ? 2 : 1),
+            "aria-colindex": ariaIdx[j + (selectable ? 1 : 0)],
             tabIndex: tabFor(T, ci),
             "data-rc": T + ":" + ci,
             onFocus: function() {
@@ -7579,7 +7632,7 @@ window.Aura = (() => {
           "aria-label": props.label,
           "aria-busy": busy || void 0,
           "aria-rowcount": loading || manual && props.totalRows == null && pageSize && rows.length >= pageSize ? -1 : shownTotal + 1 + (totalRow ? 1 : 0),
-          "aria-colcount": nCols,
+          "aria-colcount": ariaColCount,
           "aria-multiselectable": selectable || void 0,
           onKeyDown: onGridKey,
           onScroll: function(e) {

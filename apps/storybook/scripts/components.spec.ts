@@ -13345,3 +13345,73 @@ test.describe('5.85: Chamber-OS 198 — DataTable grid: false (card-only columns
     expect(await axeScan(page, '[data-testid="invoices"]')).toEqual([]);
   });
 });
+
+test.describe('5.86: Chamber-OS 200–202', () => {
+  test('200: card-only columns (grid: false) are left out of aria-colcount / aria-colindex in the grid, counted in cards', async ({
+    page,
+  }) => {
+    const ID = 'aura-new-in-5-85-chamber-os-198--card-only-columns';
+    const aria = () =>
+      page.locator('[data-testid="invoices"] [role="grid"]').evaluate((g) => ({
+        count: g.getAttribute('aria-colcount'),
+        head: [...g.querySelectorAll('[role="columnheader"]')]
+          .filter((h) => h.getClientRects().length > 0)
+          .map((h) => h.getAttribute('aria-colindex')),
+        hidden: [...g.querySelectorAll('[data-grid="off"]')].filter((c) => c.hasAttribute('aria-colindex')).length,
+      }));
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await story(page, ID);
+    expect(await aria()).toEqual({ count: '4', head: ['1', '2', '3', '4'], hidden: 0 });
+    await page.setViewportSize({ width: 390, height: 900 });
+    await expect.poll(async () => (await aria()).count).toBe('6');
+    const cells = await page
+      .locator('[data-testid="invoices"] .aura-table__row')
+      .first()
+      .locator('[role="gridcell"]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('aria-colindex')));
+    expect(cells).toEqual(['1', '2', '3', '4', '5', '6']);
+  });
+
+  test('201–202: icon={false} draws no icon circle; tone="danger" defaults to triangle-alert; an own icon wins', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-86-chamber-os-199-202--empty-state-icons');
+    await expect(page.getByTestId('no-icon').locator('.aura-empty__icon')).toHaveCount(0);
+    await expect(page.getByTestId('no-icon').getByText('No lapsed members')).toBeVisible();
+    const glyph = (id: string) =>
+      page
+        .getByTestId(id)
+        .locator('.aura-empty__icon svg')
+        .evaluate((s) => s.innerHTML.replace(/\s+/g, ' ').slice(0, 60));
+    const [danger, dflt, own] = await Promise.all([glyph('danger'), glyph('default'), glyph('danger-own')]);
+    expect(danger).not.toBe(dflt);
+    expect(own).not.toBe(danger);
+    expect(danger).toBe(
+      await page
+        .getByTestId('ref-triangle')
+        .locator('svg')
+        .evaluate((s) => s.innerHTML.replace(/\s+/g, ' ').slice(0, 60)),
+    );
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});
+
+test.describe('5.86: Chamber-OS 199 — Card names its root only where a name is allowed', () => {
+  test('as="div" keeps the titled heading and id, no aria-labelledby; section, article and a role are labelled', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-86-chamber-os-199-202--card-names');
+    const step = page.getByTestId('step-1');
+    await expect(step).not.toHaveAttribute('aria-labelledby');
+    await expect(step.getByRole('heading', { name: 'Choose the plan', level: 3 })).toHaveAttribute(
+      'id',
+      'step-title-1',
+    );
+    await expect(page.getByTestId('section')).toHaveAttribute('aria-labelledby', 'schedule-title');
+    await expect(page.getByRole('region', { name: 'Renewal schedule' })).toHaveCount(1);
+    await expect(page.getByTestId('group')).toHaveAttribute('aria-labelledby', 'reminders-title');
+    await expect(page.getByRole('group', { name: 'Reminders' })).toHaveCount(1);
+    await expect(page.getByRole('article', { name: 'Notice' })).toHaveCount(1);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+  });
+});

@@ -878,7 +878,10 @@ export interface CardProps extends Omit<React$1.HTMLAttributes<HTMLElement>, "ti
 	interactive?: boolean | undefined;
 	as?: keyof React$1.JSX.IntrinsicElements | undefined;
 	className?: string | undefined;
-	/** id for the title element; the card is then labelled by it (aria-labelledby). */
+	/** id for the title element; the card is then labelled by it (aria-labelledby) — when its root takes a name: the
+	 * default `section`, `article`, `aside`, `nav`, `form`, `fieldset`… or any root with a `role` (5.86, Chamber-OS 199).
+	 * With `as="div"` and no role the title keeps its id but the root stays unlabelled (ARIA 1.2 prohibits a name on a
+	 * generic element). */
 	titleId?: string | undefined;
 	/** Free head content in place of `title` and `description` (5.15, Chamber-OS 87): skeleton bars while the card
 	 * loads, a status pill above a title you mark up yourself. No heading is added; `actions` still sit top-right. */
@@ -1795,7 +1798,9 @@ export interface SkeletonProps {
 export interface EmptyStateProps extends Omit<React$1.HTMLAttributes<HTMLDivElement>, "title" | "children"> {
 	title: React$1.ReactNode;
 	description?: React$1.ReactNode | undefined;
-	icon?: IconInput | undefined;
+	/** Default `inbox`, or `triangle-alert` with `tone="danger"` (5.86, Chamber-OS 202). `false` (5.86, Chamber-OS 201)
+	 * draws no icon and no circle — a short placeholder in a table cell or a small panel. */
+	icon?: IconInput | false | undefined;
 	/** One or two buttons. */
 	action?: React$1.ReactNode | undefined;
 	size?: "sm" | "md" | undefined;

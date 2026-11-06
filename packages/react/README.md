@@ -248,6 +248,12 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.86 — Chamber-OS 199–202 (Card names, DataTable column numbering, EmptyState icons)
+
+- **Card `titleId`** (#199): a titled Card labels its root by its title (`aria-labelledby`) only where the root takes a name — the default `section`, `article`, `aside`, `nav`, `main`, `search`, `form`, `fieldset`, `details`, `dialog`, `figure`, `li`, `ul`, `ol`, `menu`, or any root with a `role` (the first token of a role list; except `generic`, `none`, `presentation` and the other roles that prohibit a name). With `as="div"` and no role the heading keeps its `id` and the root stays unlabelled; before, it carried an `aria-labelledby` that ARIA 1.2 prohibits (axe `aria-prohibited-attr`) and screen readers ignored. A step card in a list of steps can now use `title`. Same from `/server`.
+- **DataTable `aria-colcount` / `aria-colindex` with `grid: false`** (#200, a 5.85 gap): in the grid (and before the first measure) card-only columns are left out of the count and the numbering, so the visible columns read 1…N of N; in the stacked cards every column counts. The hidden cells carry no `aria-colindex`.
+- **EmptyState `icon={false}`** (#201): no icon and no icon circle, for a short placeholder in a table cell or a small panel. **`tone="danger"` defaults to `triangle-alert`** (#202) instead of the inbox, so a failed read doesn't look like "nothing here"; a passed `icon` still wins.
+
 ## 5.85 — Chamber-OS 198 (DataTable columns for the cards only)
 
 - **DataTable column `grid: false`** (#198): the column shows only in the stacked cards (below `stackBelow`), never in the grid — the reverse of `card: 'hide'`. Its place in the card still follows `card` (`'title'`, `'pill'`, a field…), so a grid that puts the status under the number can give the phone card its own title and pill. It spends no width-query level (any `hideBelow` on it is ignored), takes no width in the grid, isn't pinned, isn't in the columns button and is skipped by the arrow keys there. Without `stackBelow` it isn't rendered. Replaces the `hideBelow: 100_000` workaround.

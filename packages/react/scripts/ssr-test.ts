@@ -789,6 +789,24 @@ for (const [label, A] of [['esm', await import('../dist/esm/index.js')], ['cjs',
       const a = m(e(A[n], p)), b = m(e(S[n], p));
       if (a !== b) { console.log(label, n, '/server markup differs:\n  root  ', a, '\n  server', b); fail++; }
     }
+    /* 5.86 (Chamber-OS 201–202): EmptyState icon={false} and the danger default, from both entries. */
+    for (const E of [A.EmptyState, S.EmptyState]) {
+      const none = m(e(E, { icon: false, title: 'No lapsed members' }));
+      const danger = m(e(E, { tone: 'danger', title: 'Failed' }));
+      const tri = m(e(A.Icon, { name: 'triangle-alert', size: 'lg' }));
+      if (/aura-empty__icon/.test(none)) { console.log(label, 'EmptyState icon=false:', none); fail++; }
+      const svg = (h: string) => (h.match(/<svg[^]*?<\/svg>/) || [''])[0].replace(/ class="[^"]*"/g, '');
+      if (svg(danger) !== svg(tri)) { console.log(label, 'EmptyState danger icon:', danger, '\n  want', tri); fail++; }
+    }
+    /* 5.86 (Chamber-OS 199): a Card names its root only where a name is allowed, from both entries. */
+    for (const C of [A.Card, S.Card]) {
+      const div = m(e(C, { as: 'div', title: 'Step', titleId: 't1', children: 'x' }));
+      const sec = m(e(C, { title: 'Step', titleId: 't2', children: 'x' }));
+      const role = m(e(C, { as: 'div', role: 'group', title: 'Step', titleId: 't3', children: 'x' }));
+      if (/^<div[^>]*aria-labelledby/.test(div) || !/<h3 class="aura-card__title" id="t1">/.test(div)) { console.log(label, 'Card as=div:', div); fail++; }
+      if (!/^<section[^>]*aria-labelledby="t2"/.test(sec)) { console.log(label, 'Card section:', sec); fail++; }
+      if (!/^<div[^>]*aria-labelledby="t3"/.test(role)) { console.log(label, 'Card div role=group:', role); fail++; }
+    }
     /* 5.85 (Chamber-OS 198): grid: false columns render (marked data-grid="off") only with stackBelow. */
     {
       const cols = [{ key: 'a', label: 'A', width: 100 }, { key: 'b', label: 'B', grid: false, card: 'title' }];
