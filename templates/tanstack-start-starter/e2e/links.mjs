@@ -197,14 +197,29 @@ try {
     },
     '/members',
   );
-  /* ⌘/Ctrl-click stays with the browser: a new tab opens and this page stays where it is. */
-  const popup = context.waitForEvent('page', { timeout: 5000 }).catch(() => null);
+  /* ⌘/Ctrl-click stays with the browser: the adapter must not take the click (no preventDefault, no router
+   * navigation), so the browser opens its new tab and this page stays where it is. What is checked is the adapter's
+   * part — the event reaches the window not default-prevented. Whether headless Chrome then opens the tab within a
+   * few seconds varies on a loaded CI runner (one run saw none in 5s), so a missing tab is not a failure. */
+  await page.evaluate(() => {
+    window.addEventListener(
+      'click',
+      (e) => {
+        /** @type {any} */ (window).__ctrlPrevented = e.defaultPrevented;
+      },
+      { once: true },
+    );
+  });
+  const popup = context.waitForEvent('page', { timeout: 15000 }).catch(() => null);
   await nav('มุมมองสมาชิก')
     .getByRole('link', { name: 'รอต่ออายุ' })
     .click({ modifiers: ['ControlOrMeta'] });
+  const prevented = await page.evaluate(() => /** @type {any} */ (window).__ctrlPrevented);
+  if (prevented !== false) fails.push('Ctrl/⌘-click: the click was ' + (prevented ? 'default-prevented' : 'not seen'));
   const tab = await popup;
-  if (!tab) fails.push('Ctrl/⌘-click: no new tab');
-  else await tab.close();
+  if (tab) await tab.close();
+  else if (prevented === false)
+    console.log('note: Ctrl/⌘-click opened no tab within 15s here (the click was left to the browser)');
   if (page.url() !== base + '/members')
     fails.push('Ctrl/⌘-click: this page navigated to ' + page.url().replace(base, ''));
   /* A direct load of a deep link renders on the server, then hydrates without errors. */
@@ -224,6 +239,6 @@ if (fails.length) {
   process.exit(1);
 }
 console.log(
-  "Client-side links OK — Button, Pagination (pages, previous, next), link Tabs, Th sortHref, SideNav, Stat, Breadcrumb, StatusTile, BottomNav, DataTable pager (click and PageDown / PageUp) and rows, DropdownMenu and toast action links navigate through TanStack Router with no full page load; aria-current is AURA's; Ctrl/⌘-click opens a tab.",
+  "Client-side links OK — Button, Pagination (pages, previous, next), link Tabs, Th sortHref, SideNav, Stat, Breadcrumb, StatusTile, BottomNav, DataTable pager (click and PageDown / PageUp) and rows, DropdownMenu and toast action links navigate through TanStack Router with no full page load; aria-current is AURA's; Ctrl/⌘-click is left to the browser.",
 );
 process.exit(0);
