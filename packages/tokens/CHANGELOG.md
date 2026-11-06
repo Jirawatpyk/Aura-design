@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.85.0
+
+### Minor Changes
+
+- d050b6d: Chamber-OS 198: DataTable columns take `grid: false` — shown only in the stacked cards (with their `card` role), never in the grid, spending no width level.
+
 ## 5.84.0
 
 ### Minor Changes
