@@ -94,13 +94,31 @@ setTimeout(() => { window.__hydrated = true; }, 600);
   });
   fs.writeFileSync(
     path.join(dir, name + '.html'),
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div id="root">${html}</div><script src="${name}.js"></script></body></html>`,
+    /* 5.87: the first paint waits for the whole server page (render-blocking expect link). Otherwise the browser may
+     * paint it half-parsed — a card row whose pill (order: 2) isn't parsed yet puts a field on its first line — and
+     * that shift, ~1 run in 4 on a slow machine, failed the check at random. Chromium 124+ only (this test launches
+     * Chromium); the test is about hydration, not paint order while a slow page streams in. */
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="expect" href="#aura-end" blocking="render"><style>${css}</style></head><body style="margin:0"><div id="root">${html}</div><div id="aura-end"></div><script src="${name}.js"></script></body></html>`,
   );
 }
 await makePage('shell', APP);
 await makePage('table', APP2);
 await makePage('virtual', APP3);
 await makePage('pinned', APP4);
+/* Negative control: a block that appears above the content after hydration must count, or the observer is blind. */
+await makePage(
+  'shift',
+  `
+export function App(A, React) {
+  const h = React.createElement;
+  function Moves() {
+    const [on, setOn] = React.useState(false);
+    React.useEffect(() => { const t = setTimeout(() => setOn(true), 150); return () => clearTimeout(t); }, []);
+    return h('div', null, on ? h('div', { style: { height: 120 } }) : null, h(A.Card, { title: 'Moves' }, 'Pushed down after hydration.'));
+  }
+  return h(Moves);
+}`,
+);
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const fails: string[] = [];
@@ -248,6 +266,12 @@ for (const js of [false, true]) {
   await checkVirtual(js);
   await checkPinned(js);
 }
+{
+  const { ctx, p } = await open('shift', 390, 844, true);
+  const cls = await p.evaluate(() => window.__cls || 0);
+  if (!(cls > 0.01)) fails.push(`negative control: a 120px block added after hydration gave CLS ${cls.toFixed(4)} — the shift observer misses it`);
+  await ctx.close();
+}
 if (Math.abs((pinnedLeft.on ?? 0) - (pinnedLeft.off ?? 0)) > 1) fails.push(`pinned ID cell moves on hydration: ${pinnedLeft.off} → ${pinnedLeft.on}`);
 await browser.close();
 if (fails.length) {
@@ -255,5 +279,5 @@ if (fails.length) {
   process.exit(1);
 }
 console.log(
-  `Layout before hydration OK (React ${React.version}) — AppShell with a BottomNav and ActionBar, and a stackBelow DataTable, are right at 320, 390 and 1280px; a stackBelow={700} table with a hideBelow={900} column is cards / grid without it / grid with it at 390–1100px, each row once in the HTML. JavaScript off and hydrated, CLS 0.`,
+  `Layout before hydration OK (React ${React.version}) — AppShell with a BottomNav and ActionBar, and a stackBelow DataTable, are right at 320, 390 and 1280px; a stackBelow={700} table with a hideBelow={900} column is cards / grid without it / grid with it at 390–1100px, each row once in the HTML. JavaScript off and hydrated, CLS 0 (a shift added after hydration is caught).`,
 );

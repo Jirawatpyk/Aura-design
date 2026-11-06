@@ -12794,22 +12794,21 @@ test.describe('5.78: visual audit set 2 — phones', () => {
     }
   });
 
-  test('item 22 (320): a document number longer than a line still breaks — no sideways scroll; item 11: the strip keeps pills', async ({
+  test('item 22 (320): a document number longer than a line still breaks — no sideways scroll; item 11: the strip keeps one-line lozenges', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 320, height: 700 });
     await story(page, 'aura-new-in-5-78-visual-audit-set-2--long-number-and-strip');
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
     const r = await page.evaluate(() => {
-      const md = getComputedStyle(document.documentElement).getPropertyValue('--aura-radius-md').trim();
       return [...document.querySelectorAll('.aura-page-header__actions .aura-btn')].map(
-        (b) => getComputedStyle(b).borderTopLeftRadius !== md,
+        (b) => parseFloat(getComputedStyle(b).borderTopLeftRadius) >= b.getBoundingClientRect().height / 2,
       );
     });
     expect(r).toEqual([true, true]);
   });
 
-  test('item 11 with actionsBar (5.71 pay bar): the header own full-width actions have the full-width shape (5.87), the strip Pay now a pill', async ({
+  test('item 11 with actionsBar (5.71 pay bar): the header own full-width actions have the full-width shape (5.87), the strip Pay now a one-line lozenge', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -12819,10 +12818,12 @@ test.describe('5.78: visual audit set 2 — phones', () => {
       const own = [...document.querySelectorAll('.aura-page-header__actions.is-split > .aura-btn')].map(
         (b) => getComputedStyle(b).borderTopLeftRadius === md,
       );
+      /* 5.87: the strip's buttons have the full-width shape too — on one line that is the lozenge (corners ≥ half the
+       * height); only a label that wraps becomes a box. */
       const bar = [...document.querySelectorAll('.aura-page-header__bar .aura-btn')].map(
-        (b) => getComputedStyle(b).borderTopLeftRadius === md,
+        (b) => parseFloat(getComputedStyle(b).borderTopLeftRadius) >= b.getBoundingClientRect().height / 2,
       );
-      return [own.length > 0 && own.every(Boolean), bar.length > 0 && !bar.some(Boolean)];
+      return [own.length > 0 && own.every(Boolean), bar.length > 0 && bar.every(Boolean)];
     });
     expect(r).toEqual([true, true]);
   });
@@ -13597,5 +13598,59 @@ test.describe('5.87: Chamber-OS 205', () => {
     await expect(grid.getByRole('columnheader')).toHaveCount(4);
     const names = await grid.getByRole('columnheader').evaluateAll((hs) => hs.map((h) => (h.textContent || '').trim()));
     expect(names).toEqual(['File', 'Outcome', 'Imported', '']);
+  });
+});
+
+test.describe('5.87: long action labels wrap instead of pushing the page sideways', () => {
+  const S = (s: string) => 'aura-new-in-5-87-long-action-labels--' + s;
+  const geo = (page: Page, id: string) =>
+    page.getByTestId(id).evaluate((b) => {
+      const r = b.getBoundingClientRect();
+      return {
+        l: Math.round(r.left),
+        t: Math.round(r.top),
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+        r: getComputedStyle(b).borderTopLeftRadius,
+      };
+    });
+  test('PageHeader full-width actions: short labels share a row, a too-long one wraps in its own (390, th)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, S('long-action-labels'));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    const [a, b, long] = await Promise.all([geo(page, 'short-a'), geo(page, 'short-b'), geo(page, 'long')]);
+    expect([a.t, a.h, b.h]).toEqual([b.t, 44, 44]);
+    expect(long.t).toBeGreaterThan(a.t + a.h);
+    expect(long.h).toBeGreaterThan(50);
+    expect(long.l + long.w).toBeLessThanOrEqual(390 - 16);
+    expect([a.r, long.r]).toEqual(['22px', '22px']);
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    // Above the breakpoint: natural pills on one line.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect.poll(async () => (await geo(page, 'long')).r).toBe('9999px');
+    expect((await geo(page, 'long')).h).toBe(44);
+  });
+
+  test('pinned strips: PageHeader actionsBarBelow and ActionBar edge wrap a too-long label (390, th)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, S('long-strip-label'));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    const strip = await geo(page, 'strip-long');
+    expect(strip.h).toBeGreaterThan(50);
+    expect(strip.l + strip.w).toBeLessThanOrEqual(390);
+    expect(strip.r).toBe('22px');
+    await story(page, S('long-edge-label'));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    const [long, short] = await Promise.all([geo(page, 'bar-long'), geo(page, 'bar-short')]);
+    expect(long.h).toBeGreaterThan(50);
+    expect(long.l + long.w).toBeLessThanOrEqual(390);
+    expect(short.h).toBe(44);
+    expect(parseFloat(short.r)).toBeGreaterThanOrEqual(short.h / 2); // one line: still the lozenge
+    // Compact density, no touchHeight, a size="sm" one too: still 44px on a phone (5.54/5.55).
+    expect((await geo(page, 'bar-sm')).h).toBe(44);
   });
 });
