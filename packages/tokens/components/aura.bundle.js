@@ -5213,6 +5213,87 @@ window.Aura = (() => {
       if (locks === 0) body.style.overflow = savedOverflow;
     };
   }
+  var KEEP_LIVE = '.aura-toaster, [data-aura-modal-keep], [aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], next-route-announcer';
+  var NOT_CONTENT = {
+    SCRIPT: true,
+    STYLE: true,
+    LINK: true,
+    META: true,
+    TEMPLATE: true,
+    NOSCRIPT: true
+  };
+  var inertBy = /* @__PURE__ */ new Map();
+  var renderSeq = 0;
+  var openModals = [];
+  function topOf(el) {
+    let top = el;
+    while (top.parentElement && top.parentElement !== document.body) top = top.parentElement;
+    return top.parentElement === document.body ? top : null;
+  }
+  function inertOthers(el, later) {
+    const body = document.body;
+    const modal = topOf(el);
+    if (!modal) return function() {
+    };
+    const keep = /* @__PURE__ */ new Set([modal]), path = /* @__PURE__ */ new Set();
+    const addKeep = function(k) {
+      keep.add(k);
+      for (let p = k.parentElement; p && p !== body && !path.has(p); p = p.parentElement) path.add(p);
+    };
+    const scanLive = function(root) {
+      const live = root.querySelectorAll(KEEP_LIVE);
+      for (let i = 0; i < live.length; i++) if (!modal.contains(live[i])) addKeep(live[i]);
+    };
+    scanLive(body);
+    for (let i = 0; i < later.length; i++) if (later[i].parentElement === body) addKeep(later[i]);
+    const marked = [];
+    const mo = typeof MutationObserver === "undefined" ? null : new MutationObserver(function(records) {
+      for (let r2 = 0; r2 < records.length; r2++) {
+        const added = records[r2].addedNodes;
+        for (let i = 0; i < added.length; i++) {
+          const c = added[i];
+          if (c.nodeType !== 1 || !c.isConnected) continue;
+          if (c.matches(KEEP_LIVE)) addKeep(c);
+          scanLive(c);
+          mark(c);
+        }
+      }
+    });
+    const mark = function(c) {
+      if (NOT_CONTENT[c.tagName] || keep.has(c)) return;
+      if (c.tagName === "NEXT-ROUTE-ANNOUNCER" || c.tagName === "NEXTJS-PORTAL") return;
+      if (c.shadowRoot && c.shadowRoot.querySelector(KEEP_LIVE)) return;
+      if (path.has(c)) return walk(c);
+      if (marked.indexOf(c) >= 0) return;
+      const n3 = inertBy.get(c) || 0;
+      if (n3 === 0) {
+        if (c.hasAttribute("inert")) return;
+        c.setAttribute("inert", "");
+      }
+      inertBy.set(c, n3 + 1);
+      marked.push(c);
+    };
+    const walk = function(parent) {
+      if (parent !== body && mo) mo.observe(parent, { childList: true });
+      const kids = parent.children;
+      for (let i = 0; i < kids.length; i++) mark(kids[i]);
+    };
+    walk(body);
+    let done = false;
+    return function() {
+      if (done) return;
+      done = true;
+      if (mo) mo.disconnect();
+      for (let i = 0; i < marked.length; i++) {
+        const c = marked[i], n3 = (inertBy.get(c) || 1) - 1;
+        if (n3 > 0) inertBy.set(c, n3);
+        else {
+          inertBy.delete(c);
+          c.removeAttribute("inert");
+        }
+      }
+    };
+  }
   function tabbable(el) {
     const all = Array.prototype.filter.call(el.querySelectorAll(TAB_STOPS), function(c) {
       return c.tabIndex >= 0 && !inClosedDetails(c);
@@ -5224,6 +5305,12 @@ window.Aura = (() => {
   }
   function useModal(open, ref, opts) {
     const mounted = useMounted();
+    const order = React28.useMemo(
+      function() {
+        return open ? ++renderSeq : 0;
+      },
+      [open]
+    );
     const prev = React28.useRef(null);
     const o = opts || {};
     const latest = React28.useRef(o);
@@ -5234,6 +5321,21 @@ window.Aura = (() => {
         prev.current = document.activeElement;
         const unlock = lockScroll();
         const el = ref.current;
+        let release = function() {
+        };
+        const w = window;
+        const entry = { el, layer: el ? topOf(el) : null, order };
+        if (el) openModals.push(entry);
+        const apply2 = function() {
+          if (!el || !el.isConnected) return;
+          const later = [];
+          for (let i = 0; i < openModals.length; i++) {
+            const m = openModals[i];
+            if (m !== entry && m.order > entry.order) later.push(m.layer || m.el);
+          }
+          release = inertOthers(el, later);
+        };
+        const idle = w.requestIdleCallback ? w.requestIdleCallback(apply2, { timeout: 200 }) : 0, timer2 = w.requestIdleCallback ? 0 : window.setTimeout(apply2, 50);
         let raf = 0;
         const inPart = function(scope) {
           if (!scope || !el) return [];
@@ -5260,6 +5362,10 @@ window.Aura = (() => {
         return function() {
           cancelAnimationFrame(raf);
           unlock();
+          if (idle && w.cancelIdleCallback) w.cancelIdleCallback(idle);
+          clearTimeout(timer2);
+          if (openModals.indexOf(entry) >= 0) openModals.splice(openModals.indexOf(entry), 1);
+          release();
           const l = latest.current;
           const ff = l.finalFocus;
           const to = ff ? typeof ff === "function" ? ff() : ff.current : null;

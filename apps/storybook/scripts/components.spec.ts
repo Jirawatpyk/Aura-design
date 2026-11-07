@@ -13524,6 +13524,16 @@ test.describe('5.87: Chamber-OS 203–204', () => {
       };
     });
     expect(geo).toEqual({ rowL: 0, cellL: 0, frame: '0px' });
+    /* 5.88 (#207): the ⋯ stays inside the row; the list doesn't scroll sideways. */
+    for (const card of ['list-card', 'paged-card']) {
+      const fit = await page.getByTestId(card).evaluate((c) => {
+        const sc = c.querySelector('.aura-table__scroll')!,
+          row = c.querySelector('.aura-table__row')!.getBoundingClientRect(),
+          act = c.querySelector('.aura-table__row [data-card="actions"]')!.getBoundingClientRect();
+        return { scroll: sc.scrollWidth - sc.clientWidth, inside: act.right <= row.right + 0.5 };
+      });
+      expect(fit, card).toEqual({ scroll: 0, inside: true });
+    }
     // Title, pill and the fields keep the stacked layout.
     const first = page.getByTestId('list-card').locator('.aura-table__row').first();
     await expect(first.locator('[data-card="title"]')).toHaveText('INV-1001');
@@ -13652,5 +13662,152 @@ test.describe('5.87: long action labels wrap instead of pushing the page sideway
     expect(parseFloat(short.r)).toBeGreaterThanOrEqual(short.h / 2); // one line: still the lozenge
     // Compact density, no touchHeight, a size="sm" one too: still 44px on a phone (5.54/5.55).
     expect((await geo(page, 'bar-sm')).h).toBe(44);
+  });
+});
+
+test.describe('5.88: Chamber-OS 207', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  test('207: list-style row actions stay inside the row on a touch screen too (44px hit area, 32px button)', async ({
+    page,
+  }) => {
+    await story(page, 'aura-new-in-5-87-chamber-os-203-205--stacked-list');
+    for (const card of ['list-card', 'paged-card']) {
+      const fit = await page.getByTestId(card).evaluate((c) => {
+        const sc = c.querySelector('.aura-table__scroll')!,
+          row = c.querySelector('.aura-table__row')!.getBoundingClientRect(),
+          btn = c.querySelector('.aura-table__row [data-card="actions"] .aura-icon-btn')!;
+        const hit = getComputedStyle(btn, '::after');
+        return {
+          coarse: matchMedia('(pointer: coarse)').matches,
+          scroll: sc.scrollWidth - sc.clientWidth,
+          inside: btn.getBoundingClientRect().right <= row.right + 0.5,
+          hit: hit.width,
+        };
+      });
+      expect(fit, card).toEqual({ coarse: true, scroll: 0, inside: true, hit: '44px' });
+    }
+  });
+});
+
+test.describe('5.88: Chamber-OS 206', () => {
+  const ID = 'aura-new-in-5-88-chamber-os-206--inert-behind';
+  const state = (page: Page) =>
+    page.evaluate(() => {
+      const inert = (sel: string) => {
+        const e = document.querySelector(sel);
+        return e ? !!e.closest('[inert]') : null;
+      };
+      return {
+        page: inert('[data-testid=open]'),
+        row: inert('.aura-table__row .aura-btn'),
+        bar: inert('[data-testid=bar-btn]'),
+        status: inert('.aura-actionbar__status'),
+        ownInert: document.querySelector('[data-testid=own-inert]')!.hasAttribute('inert'),
+        count: document.querySelectorAll('[inert]').length,
+      };
+    });
+  test('206: a modal dialog makes the page inert except live regions; restored on close, focus back on the opener', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, ID);
+    const before = await state(page);
+    expect(before).toMatchObject({ page: false, row: false, bar: false, ownInert: true, count: 1 });
+    await page.getByTestId('open').click();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await expect
+      .poll(() => state(page))
+      .toMatchObject({ page: true, row: true, bar: true, status: false, ownInert: true });
+    // React replaces a block behind the open dialog: the new one is inert too, a live region in it is kept.
+    await expect(page.getByTestId('late')).toHaveText('Loaded 1');
+    expect(await page.getByTestId('late').evaluate((b) => !!b.closest('[inert]'))).toBe(true);
+    expect(await page.getByTestId('late-status').evaluate((b) => !!b.closest('[inert]'))).toBe(false);
+    // The dialog itself is live; a toast fired from it is too.
+    await expect(page.getByRole('alertdialog').locator('[inert]')).toHaveCount(0);
+    await page.getByTestId('toast').click();
+    const toast = page.getByText('Approved 3 E-Blasts');
+    await expect(toast).toBeVisible();
+    expect(await toast.evaluate((t) => !!t.closest('[inert]'))).toBe(false);
+    // The whole page passes axe with the dialog open (WCAG 2.2 AA: target-size behind the scrim is no longer counted).
+    const { violations } = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(violations.map((v) => v.id)).toEqual([]);
+    // Stacked: the second dialog makes the first inert; closing it gives the first back, the page stays inert.
+    await page.getByTestId('more').click();
+    await expect(page.getByRole('dialog', { name: 'Details' })).toBeVisible();
+    await expect.poll(() => page.getByRole('alertdialog').evaluate((d) => !!d.closest('[inert]'))).toBe(true);
+    await page.getByTestId('close-second').click();
+    await expect(page.getByRole('dialog', { name: 'Details' })).toHaveCount(0);
+    expect(await page.getByTestId('cancel').evaluate((d) => !!d.closest('[inert]'))).toBe(false);
+    expect((await state(page)).page).toBe(true);
+    await expect(page.getByTestId('more')).toBeFocused();
+    // Close: everything back as it was, the app's own inert kept, focus on the opener.
+    await page.getByTestId('cancel').click();
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+    expect(await state(page)).toMatchObject({ page: false, row: false, bar: false, ownInert: true, count: 1 });
+    await expect(page.getByTestId('open')).toBeFocused();
+  });
+
+  test('206: a dialog opened from a dialog before its idle walk ran stays live and keeps focus', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, ID);
+    await page.evaluate(() => {
+      // The second dialog opens the moment the first one's button exists (a MutationObserver callback, a microtask),
+      // long before the first one's idle walk.
+      return new Promise<void>((done) => {
+        const mo = new MutationObserver(() => {
+          const more = document.querySelector<HTMLElement>('[data-testid=more]');
+          if (!more) return;
+          mo.disconnect();
+          more.click();
+          done();
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+        (document.querySelector('[data-testid=open]') as HTMLElement).click();
+      });
+    });
+    const second = page.getByRole('dialog', { name: 'Details' });
+    await expect(second).toBeVisible();
+    await page.waitForTimeout(400); // both idle walks have run
+    expect(await second.evaluate((d) => !!d.closest('[inert]'))).toBe(false);
+    expect(await page.getByRole('alertdialog').evaluate((d) => !!d.closest('[inert]'))).toBe(true);
+    expect((await state(page)).page).toBe(true);
+    expect(
+      await page.evaluate(() => !!document.activeElement && !!document.activeElement.closest('[role=dialog]')),
+    ).toBe(true);
+    await page.getByTestId('close-second').click();
+    await expect(second).toHaveCount(0);
+    expect(await page.getByRole('alertdialog').evaluate((d) => !!d.closest('[inert]'))).toBe(false);
+    await page.getByTestId('cancel').click();
+    await expect.poll(() => state(page)).toMatchObject({ page: false, count: 1 });
+  });
+
+  test('206: a dialog and a nested one open in the same first render — the inner one stays live', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, 'aura-new-in-5-88-chamber-os-206--nested-on-load');
+    const inner = page.getByRole('dialog', { name: 'Send reminder' }),
+      outer = page.getByRole('dialog', { name: 'Invoice SC-2026-900001' });
+    await expect(inner).toBeVisible();
+    await page.waitForTimeout(400);
+    const inertOf = (l: import('@playwright/test').Locator) => l.evaluate((d) => !!d.closest('[inert]'));
+    expect([await inertOf(inner), await inertOf(outer)]).toEqual([false, true]);
+    expect(await page.getByTestId('behind').evaluate((b) => !!b.closest('[inert]'))).toBe(true);
+    await page.getByTestId('inner-close').click();
+    await expect(inner).toHaveCount(0);
+    expect(await inertOf(outer)).toBe(false);
+    expect(await page.getByTestId('behind').evaluate((b) => !!b.closest('[inert]'))).toBe(true);
+  });
+
+  test('206: a Drawer does the same; Escape restores', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await story(page, ID);
+    await page.getByTestId('open-drawer').click();
+    await expect(page.getByRole('dialog', { name: 'Filters' })).toBeVisible();
+    await expect.poll(() => state(page)).toMatchObject({ page: true, bar: true, status: false });
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Filters' })).toHaveCount(0);
+    expect(await state(page)).toMatchObject({ page: false, bar: false, count: 1 });
+    await expect(page.getByTestId('open-drawer')).toBeFocused();
   });
 });

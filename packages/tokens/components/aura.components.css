@@ -2800,6 +2800,14 @@ button.aura-stepper__step:hover .aura-stepper__label { text-decoration: underlin
   .aura-table--stack-list .aura-table__total { background: none; }
   .aura-table--stack-list .aura-table__foot { margin-top: 0; padding-inline: 0; border-width: 1px 0 0; border-radius: 0; background: none; }
   .aura-table--stack-list .aura-table__empty { border: 0; border-radius: 0; background: none; }
+  /* 5.88 (Chamber-OS 207): the actions cell's negative side margin reaches into a card's padding; a list row has none,
+   * so the ⋯ hung 8px past the table and the table scrolled sideways. */
+  .aura-table--stack-list .aura-table__td[data-card='actions'] { margin-inline: 0; }
+  /* …and on a touch screen a 32px button's 44px hit area grows from its end edge, not its centre, so it stays inside
+   * the row too. */
+  @media (pointer: coarse) {
+    .aura-table--stack-list .aura-table__td[data-card='actions'] :is(.aura-icon-btn, .aura-btn--sm)::after { left: auto; right: auto; inset-inline-end: 0; transform: translateY(-50%); }
+  }
 }
 
 /* ---------- 5.1.1: Windows High Contrast / forced colours ---------- */

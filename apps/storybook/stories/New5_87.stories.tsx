@@ -105,6 +105,14 @@ const COLS: DataTableColumn[] = [
   { key: 'status', label: 'Status', width: 120, pill: true, card: 'pill' },
   { key: 'amount', label: 'Amount', width: 160, align: 'end' },
   { key: 'due', label: 'Due', width: 120 },
+  /* 5.88 (#207): a row action — in the list style it stays inside the row. */
+  {
+    key: 'act',
+    label: 'Actions',
+    actions: true,
+    width: 64,
+    render: (r) => <Aura.IconButton icon="ellipsis" label={'More for ' + r.id} />,
+  },
 ];
 
 /* #204: stackStyle="list" — below stackBelow the rows are one list divided by rules inside the framed Card, with no
