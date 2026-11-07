@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.88.0
+
+### Minor Changes
+
+- cfcdd07: Chamber-OS 206–207: while a modal Dialog, alert dialog, Drawer or Command is open, everything outside it is `inert` (live regions such as the Toaster, `aria-live`, `role="status" | "alert" | "log"` and `data-aura-modal-keep` excepted), and restored on close; in DataTable's `stackStyle="list"` the row actions no longer hang 8px past the table.
+
 ## 5.87.0
 
 ### Minor Changes
