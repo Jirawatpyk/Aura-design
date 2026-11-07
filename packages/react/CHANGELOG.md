@@ -2,6 +2,16 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.87.0
+
+### Minor Changes
+
+- 4953bfa: Chamber-OS 203–205: every full-width button has one shape — a lozenge on one line, a rounded box (22px corners) when its label wraps — in PageHeader's full-width actions, `fullWidth` Buttons (Alert, Card, a stacked card's footer), phone sheet and drawer footers; DataTable takes `stackStyle: 'list'`, the stacked rows as one list divided by rules with no card per row, to sit in a framed Card; while the cards show, the grid's column headers leave the accessibility tree and each field reads its label, and an empty column `label` no longer falls back to the key.
+
+### Patch Changes
+
+- b662d51: A label longer than the phone's row wraps inside its button in PageHeader's full-width actions, its pinned strip and ActionBar's edge strip, instead of pushing the page sideways; the layout-before-hydration test holds its first paint until the server page is parsed, with a negative control.
+
 ## 5.86.0
 
 ### Minor Changes
