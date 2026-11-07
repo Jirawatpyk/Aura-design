@@ -27,7 +27,12 @@ export const InertBehind: StoryObj = {
         <Aura.Toaster />
         <div data-testid="page">
           <h1 style={{ margin: '0 0 12px' }}>Review queue</h1>
-          <div data-testid="own-inert" ref={(e) => e && e.setAttribute('inert', '')}>
+          <div
+            data-testid="own-inert"
+            ref={(e) => {
+              if (e) e.setAttribute('inert', '');
+            }}
+          >
             <Aura.Button variant="secondary">Locked by the app</Aura.Button>
           </div>
           <div style={{ display: 'flex', gap: 8, margin: '12px 0' }}>
