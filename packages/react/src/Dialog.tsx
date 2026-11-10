@@ -46,6 +46,7 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
   const modal = useModal(open, own, {
     autoFocus: props.autoFocus,
     onEscape: close,
+    keepOutside: props.keepOutside,
     bodySelector: '.aura-dialog__body',
     footSelector: '.aura-dialog__foot',
     /* With a trigger, focus goes back to it even where a click doesn't focus buttons (Safari). */
@@ -93,6 +94,7 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(function Dia
     'onOpen',
     'finalFocus',
     'onCloseComplete',
+    'keepOutside',
     'aria-labelledby',
     'aria-describedby',
     'aria-modal',
@@ -168,6 +170,7 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
   const modal = useModal(props.open, own, {
     autoFocus: props.autoFocus,
     onEscape: close,
+    keepOutside: props.keepOutside,
     bodySelector: '.aura-drawer__body',
     footSelector: '.aura-drawer__foot',
     finalFocus: props.finalFocus,
@@ -196,6 +199,7 @@ export const Drawer = React.forwardRef<HTMLDivElement, DrawerProps>(function Dra
     'closeProps',
     'finalFocus',
     'onCloseComplete',
+    'keepOutside',
   ]);
   const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
   return createPortal(

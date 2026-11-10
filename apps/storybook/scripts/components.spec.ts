@@ -13811,3 +13811,42 @@ test.describe('5.88: Chamber-OS 206', () => {
     await expect(page.getByTestId('open-drawer')).toBeFocused();
   });
 });
+
+test.describe('5.89: Chamber-OS 209 (addendum 109)', () => {
+  const ID = 'aura-new-in-5-89-chamber-os-209--third-party-overlays';
+  const inertOf = (page: Page) =>
+    page.evaluate(() => {
+      const i = (id: string) => {
+        const e = document.getElementById(id);
+        return e ? !!e.closest('[inert]') : null;
+      };
+      return {
+        page: i('storybook-root'),
+        pre: i('tp-pre'),
+        provider: i('tp-provider'),
+        stripe: i('tp-stripe'),
+        late: i('tp-late'),
+      };
+    });
+  test('third-party overlays: appended after open, known challenge frames and keepOutside stay live', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, ID);
+    await page.getByTestId('open-plain').click();
+    await expect(page.getByRole('dialog', { name: 'Pay invoice' })).toBeVisible();
+    await expect.poll(() => inertOf(page)).toMatchObject({ page: true, pre: true, provider: false, stripe: false });
+    // The challenge appended to <body> after the drawer opened is clickable.
+    await expect(page.getByTestId('tp-late')).toBeAttached();
+    expect((await inertOf(page)).late).toBe(false);
+    await page.getByRole('button', { name: 'Complete authentication' }).click({ timeout: 2000 });
+    await page.getByTestId('close').click();
+    await expect.poll(() => inertOf(page)).toMatchObject({ page: false, pre: false, provider: false, stripe: false });
+    // keepOutside on the drawer keeps a widget already in the page live too.
+    await page.getByTestId('open-keep').click();
+    await expect(page.getByRole('dialog', { name: 'Pay invoice' })).toBeVisible();
+    await page.waitForTimeout(300);
+    expect(await inertOf(page)).toMatchObject({ page: true, pre: false, provider: false, stripe: false });
+    await page.getByRole('button', { name: 'Pre-existing widget' }).click({ timeout: 2000 });
+  });
+});

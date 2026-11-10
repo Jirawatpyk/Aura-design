@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { focusFirst, inClosedDetails, TAB_STOPS, useMounted } from './internal.js';
+import { devWarnOnce, focusFirst, inClosedDetails, TAB_STOPS, useMounted } from './internal.js';
+import { useModalKeepOutside } from './locale.js';
 
 /* Shared modal behaviour for Dialog and Drawer: mount after hydration, move focus in, lock page scroll,
  * trap Tab, close on Escape, and hand focus back to whatever opened it. */
@@ -14,6 +15,8 @@ export interface ModalOptions {
   finalFocus?: React.RefObject<HTMLElement | null> | (() => HTMLElement | null) | undefined;
   /** Once the modal has closed and left the page (5.16). */
   onCloseComplete?: (() => void) | undefined;
+  /** 5.89: a selector for nodes outside the modal that stay live (with AuraProvider's modalKeepOutside). */
+  keepOutside?: string | undefined;
 }
 /* 5.1.1: one page-scroll lock shared by every open modal. Each modal used to save and restore body overflow on its
  * own, so two dialogs closing out of order left the page locked. */
@@ -41,6 +44,12 @@ function lockScroll(): () => void {
  * popover or toast opened while the modal is open is added after this ran, so it stays live. */
 const KEEP_LIVE =
   '.aura-toaster, [data-aura-modal-keep], [aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], next-route-announcer';
+/* 5.89 (Chamber-OS addendum 109): third-party challenge frames that may already sit in the page when a modal opens
+ * (Stripe's 3-D Secure and Elements frames, reCAPTCHA, hCaptcha, Cloudflare Turnstile) are never made inert — a
+ * payment or a sign-in started from the modal must be finishable. Nodes appended to <body> after the modal opened
+ * are already left live (<body> isn't watched). Apps add their own with keepOutside / modalKeepOutside. */
+const KEEP_THIRD_PARTY =
+  'iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com"], iframe[src*="hooks.stripe.com"], iframe[src*="/recaptcha/"], iframe[src*="hcaptcha.com"], iframe[src*="challenges.cloudflare.com"]';
 const NOT_CONTENT: Record<string, true> = {
   SCRIPT: true,
   STYLE: true,
@@ -61,7 +70,7 @@ function topOf(el: Element): Element | null {
   while (top.parentElement && top.parentElement !== document.body) top = top.parentElement;
   return top.parentElement === document.body ? top : null;
 }
-function inertOthers(el: HTMLElement, later: Element[]): () => void {
+function inertOthers(el: HTMLElement, later: Element[], extra: string | null): () => void {
   const body = document.body;
   const modal = topOf(el);
   if (!modal) return function () {};
@@ -72,8 +81,20 @@ function inertOthers(el: HTMLElement, later: Element[]): () => void {
     keep.add(k);
     for (let p = k.parentElement; p && p !== body && !path.has(p); p = p.parentElement) path.add(p);
   };
+  let sel = KEEP_LIVE + ', ' + KEEP_THIRD_PARTY;
+  if (extra) {
+    try {
+      document.createDocumentFragment().querySelector(extra); // syntax only, no page walk
+      sel += ', ' + extra;
+    } catch (e) {
+      devWarnOnce(
+        'modal-keep-outside',
+        'keepOutside / modalKeepOutside "' + extra + '" is not a valid selector; ignored.',
+      );
+    }
+  }
   const scanLive = function (root: Element) {
-    const live = root.querySelectorAll(KEEP_LIVE);
+    const live = root.querySelectorAll(sel);
     for (let i = 0; i < live.length; i++) if (!modal.contains(live[i])) addKeep(live[i]);
   };
   scanLive(body);
@@ -92,7 +113,7 @@ function inertOthers(el: HTMLElement, later: Element[]): () => void {
             for (let i = 0; i < added.length; i++) {
               const c = added[i];
               if (c.nodeType !== 1 || !(c as Element).isConnected) continue;
-              if ((c as Element).matches(KEEP_LIVE)) addKeep(c as Element);
+              if ((c as Element).matches(sel)) addKeep(c as Element);
               scanLive(c as Element);
               mark(c as Element);
             }
@@ -103,7 +124,7 @@ function inertOthers(el: HTMLElement, later: Element[]): () => void {
     /* Next.js's route announcer and dev overlay, and any element whose open shadow root holds a live region the scan
      * can't see, are kept whole; another web component is made inert as usual. */
     if (c.tagName === 'NEXT-ROUTE-ANNOUNCER' || c.tagName === 'NEXTJS-PORTAL') return;
-    if (c.shadowRoot && c.shadowRoot.querySelector(KEEP_LIVE)) return;
+    if (c.shadowRoot && c.shadowRoot.querySelector(sel)) return;
     if (path.has(c)) return walk(c);
     if (marked.indexOf(c) >= 0) return;
     const n = inertBy.get(c) || 0;
@@ -154,6 +175,9 @@ export function useModal(
   opts?: ModalOptions,
 ): { ready: boolean; onKeyDown: (e: React.KeyboardEvent) => void } {
   const mounted = useMounted();
+  const providerKeep = useModalKeepOutside();
+  const keepRef = React.useRef<string | null>(null);
+  keepRef.current = [opts && opts.keepOutside, providerKeep].filter(Boolean).join(', ') || null;
   const order = React.useMemo(
     function () {
       return open ? ++renderSeq : 0;
@@ -188,7 +212,7 @@ export function useModal(
           const m = openModals[i];
           if (m !== entry && m.order > entry.order) later.push(m.layer || m.el);
         }
-        release = inertOthers(el, later);
+        release = inertOthers(el, later, keepRef.current);
       };
       const idle = w.requestIdleCallback ? w.requestIdleCallback(apply, { timeout: 200 }) : 0,
         timer = w.requestIdleCallback ? 0 : window.setTimeout(apply, 50); // Safari before 18.2

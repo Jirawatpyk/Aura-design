@@ -18,6 +18,8 @@ export interface AuraLocaleValue {
   density?: 'comfortable' | 'compact' | null | undefined;
   /** The time zone set on the nearest AuraProvider that sets one (4.19). */
   timeZone?: string | null | undefined;
+  /** 5.89: nodes outside an open modal that stay live (AuraProvider's modalKeepOutside, joined with outer ones). */
+  modalKeepOutside?: string | null | undefined;
 }
 const LocaleContext = React.createContext<AuraLocaleValue | null>(null);
 
@@ -46,6 +48,7 @@ export function AuraProvider(props: AuraProviderProps): React.ReactElement {
     );
   const density = props.density || (outer && outer.density) || null;
   const timeZone = props.timeZone || (outer && outer.timeZone) || null;
+  const modalKeepOutside = [outer && outer.modalKeepOutside, props.modalKeepOutside].filter(Boolean).join(', ') || null;
   /* 5.1.1: a nested provider (say, one that only sets density) inherits what it doesn't set — locale, calendar,
    * strings and the router link — instead of resetting them to English. A new locale brings its own strings and
    * calendar. */
@@ -60,9 +63,10 @@ export function AuraProvider(props: AuraProviderProps): React.ReactElement {
         linkComponent: props.linkComponent || (outer && outer.linkComponent) || null,
         density: density,
         timeZone: timeZone,
+        modalKeepOutside: modalKeepOutside,
       };
     },
-    [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone, outer],
+    [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone, modalKeepOutside, outer],
   );
   /* density adds one wrapper (display: contents, so layout is unchanged) carrying data-density for the CSS;
    * Dialog, Drawer, Popover and Command read the context and set it on their portal layer too. */
@@ -86,6 +90,11 @@ export function useAuraLocale(): AuraLocaleValue {
 export function useLinkComponent(own?: React.ElementType | null): React.ElementType {
   const ctx = React.useContext(LocaleContext);
   return own || (ctx && ctx.linkComponent) || 'a';
+}
+/** 5.89: the provider's modalKeepOutside selector, if any. */
+export function useModalKeepOutside(): string | null {
+  const ctx = React.useContext(LocaleContext);
+  return (ctx && ctx.modalKeepOutside) || null;
 }
 /** The provider's density, for portals that render outside its wrapper. */
 export function useDensity(): 'comfortable' | 'compact' | undefined {

@@ -327,6 +327,9 @@ export interface AuraProviderProps {
 	/** Override individual strings, or pass a whole locale pack (`strings={th}` from `@jirawatpyk/aura-react/locales/th`, 5.9). */
 	strings?: Partial<Record<string, string | ((...args: any[]) => string)>> | undefined;
 	/** IANA time zone for "today" in DatePicker, DateRangePicker and Calendar, e.g. `Asia/Bangkok` (4.19). Default: the browser's. */
+	/** 5.89 (Chamber-OS addendum 109): a CSS selector for nodes outside any open modal (Dialog, Drawer, Command) that
+	 * must stay live — a third-party overlay already in the page. Inherited by nested providers. */
+	modalKeepOutside?: string | undefined;
 	timeZone?: string | undefined;
 	/** `compact`: 36px fields and buttons, 40px table rows — dense admin screens. Touch screens keep 44px. Default: comfortable (or an ancestor's `data-density`). */
 	density?: "comfortable" | "compact" | undefined;
@@ -610,6 +613,8 @@ export interface CommandItem {
 /** A command palette: a modal search over commands and pages, grouped, fully keyboard-driven. */
 export interface CommandProps {
 	open: boolean;
+	/** As Dialog's (5.89): a selector for nodes outside the palette that stay live while it is open. */
+	keepOutside?: string | undefined;
 	onOpenChange: (open: boolean) => void;
 	items: CommandItem[];
 	/** Also called with the chosen item (after its own onSelect). */
@@ -849,6 +854,11 @@ export interface DialogProps extends Pick<React$1.HTMLAttributes<HTMLDivElement>
 	finalFocus?: React$1.RefObject<HTMLElement | null> | (() => HTMLElement | null) | undefined;
 	/** Runs once after it has closed and its panel has left the page (5.16) — reset a selection there. */
 	onCloseComplete?: (() => void) | undefined;
+	/** 5.89 (Chamber-OS addendum 109): a CSS selector for nodes outside this modal that must stay live while it is open —
+	 * a third-party overlay already in the page (a payment or identity challenge, a chat widget). Matched elements and
+	 * their ancestors are never made inert; added to AuraProvider's `modalKeepOutside` and the built-in list (Stripe,
+	 * reCAPTCHA, hCaptcha and Turnstile frames). Nodes appended to <body> after the modal opened are never made inert. */
+	keepOutside?: string | undefined;
 	title: React$1.ReactNode;
 	description?: React$1.ReactNode | undefined;
 	children?: React$1.ReactNode | undefined;
@@ -1320,6 +1330,8 @@ export interface DrawerProps extends Pick<React$1.HTMLAttributes<HTMLDivElement>
 	finalFocus?: React$1.RefObject<HTMLElement | null> | (() => HTMLElement | null) | undefined;
 	/** As Dialog's (5.16): runs once after it has closed and left the page. */
 	onCloseComplete?: (() => void) | undefined;
+	/** As Dialog's (5.89): a selector for nodes outside the drawer that stay live while it is open. */
+	keepOutside?: string | undefined;
 	/** Default `right`. */
 	side?: "right" | "left" | undefined;
 	/** sm 360 · md 480 (default) · lg 640 · nav = SideNav width. Full width below 640px. */
@@ -2459,6 +2471,8 @@ export interface AuraLocaleValue {
 	density?: "comfortable" | "compact" | null | undefined;
 	/** The time zone set on the nearest AuraProvider that sets one (4.19). */
 	timeZone?: string | null | undefined;
+	/** 5.89: nodes outside an open modal that stay live (AuraProvider's modalKeepOutside, joined with outer ones). */
+	modalKeepOutside?: string | null | undefined;
 }
 /** Sets the language of built-in labels (and the default date locale) for everything inside. */
 export declare function AuraProvider(props: AuraProviderProps): React$1.ReactElement;

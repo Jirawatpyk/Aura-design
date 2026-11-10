@@ -248,6 +248,17 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.89 — Chamber-OS addendum 109 (third-party overlays and an open modal)
+
+- **Third-party overlays stay usable while a modal is open** (#209, a 5.88 follow-up). A node a library appends to `<body>` after the modal opened — Stripe's 3-D Secure challenge from `confirmPayment` in a pay Drawer, a captcha, a chat panel — was already left live (5.88 doesn't watch `<body>`). What 5.88 did make inert was a library's node that was already in the page when the modal opened, and one a library mounts inside your app root when that root holds a live region (the walk goes into it and watches it). Now:
+  - known challenge frames are never made inert — Stripe (`iframe[name^="__privateStripeFrame"]`, `js.stripe.com`, `hooks.stripe.com`), reCAPTCHA, hCaptcha and Cloudflare Turnstile — with the elements around them on the way up (a Stripe card field in the page behind the modal is then reachable in a screen reader's browse mode; the scrim and the Tab trap still keep pointer and keyboard out);
+  - `keepOutside` on Dialog, Drawer and Command, and `modalKeepOutside` on AuraProvider (inherited, joined with outer providers'), take a CSS selector for anything else outside the modal that must stay live. An invalid selector is ignored with a development warning.
+
+  ```tsx
+  <AuraProvider modalKeepOutside="#intercom-container, .my-id-widget">…</AuraProvider>
+  <Drawer open={paying} onClose={close} title="Pay invoice" keepOutside="#sumsub-frame">…</Drawer>
+  ```
+
 ## 5.88 — Chamber-OS 206–207 (the page behind a modal is inert; list-style row actions)
 
 - **Modal Dialog, alert dialog, Drawer and Command** (#206): while one is open, everything outside it is `inert` — out of the accessibility tree and unclickable — so screen readers that ignore `aria-modal` in browse mode, and axe, no longer reach the page behind the scrim (axe's `target-size` on a row button covered by the page's ActionBar, for one). Live regions outside it keep announcing: the Toaster, `aria-live` (not `off`), `role="status" | "alert" | "log"`, and any element you mark `data-aura-modal-keep` — the walk makes the siblings around them inert instead. A menu, popover or toast opened while the modal is open stays live, and content React swaps in behind it while it is open is made inert too (a live region in it kept). Next.js's route announcer, and a web component whose shadow root holds a live region, are kept whole; mark another framework's announcer `data-aura-modal-keep`. A kept `role="alert"` region's own buttons stay reachable in a screen reader's browse mode (it can't be inert and still announce). Applied at the next idle moment after opening (≤ 200ms; a page still hydrating would otherwise warn about `inert` on server HTML), restored on close (before focus goes back to the opener); stacked modals closing in any order restore only what each set; an element your app made `inert` itself is left as it is (don't toggle `inert` on the page while an AURA modal is open). Needs `inert` (Chrome 102, Safari 15.5, Firefox 112); older browsers keep `aria-modal` and the Tab trap as before.

@@ -1574,6 +1574,7 @@ window.Aura = (() => {
       );
     const density = props.density || outer && outer.density || null;
     const timeZone = props.timeZone || outer && outer.timeZone || null;
+    const modalKeepOutside = [outer && outer.modalKeepOutside, props.modalKeepOutside].filter(Boolean).join(", ") || null;
     const value = React5.useMemo(
       function() {
         const own = !!props.locale || !outer || !outer.locale;
@@ -1584,10 +1585,11 @@ window.Aura = (() => {
           strings: props.strings ? Object.assign({}, base, props.strings) : base,
           linkComponent: props.linkComponent || outer && outer.linkComponent || null,
           density,
-          timeZone
+          timeZone,
+          modalKeepOutside
         };
       },
-      [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone, outer]
+      [props.locale, props.calendar, props.strings, props.linkComponent, density, timeZone, modalKeepOutside, outer]
     );
     return /* @__PURE__ */ React5.createElement(LocaleContext.Provider, { value }, props.density ? /* @__PURE__ */ React5.createElement("div", { className: "aura-density", "data-density": props.density }, props.children) : props.children);
   }
@@ -1597,6 +1599,10 @@ window.Aura = (() => {
   function useLinkComponent(own) {
     const ctx = React5.useContext(LocaleContext);
     return own || ctx && ctx.linkComponent || "a";
+  }
+  function useModalKeepOutside() {
+    const ctx = React5.useContext(LocaleContext);
+    return ctx && ctx.modalKeepOutside || null;
   }
   function useDensity() {
     const ctx = React5.useContext(LocaleContext);
@@ -5214,6 +5220,7 @@ window.Aura = (() => {
     };
   }
   var KEEP_LIVE = '.aura-toaster, [data-aura-modal-keep], [aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], next-route-announcer';
+  var KEEP_THIRD_PARTY = 'iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com"], iframe[src*="hooks.stripe.com"], iframe[src*="/recaptcha/"], iframe[src*="hcaptcha.com"], iframe[src*="challenges.cloudflare.com"]';
   var NOT_CONTENT = {
     SCRIPT: true,
     STYLE: true,
@@ -5230,7 +5237,7 @@ window.Aura = (() => {
     while (top.parentElement && top.parentElement !== document.body) top = top.parentElement;
     return top.parentElement === document.body ? top : null;
   }
-  function inertOthers(el, later) {
+  function inertOthers(el, later, extra) {
     const body = document.body;
     const modal = topOf(el);
     if (!modal) return function() {
@@ -5240,8 +5247,20 @@ window.Aura = (() => {
       keep.add(k);
       for (let p = k.parentElement; p && p !== body && !path.has(p); p = p.parentElement) path.add(p);
     };
+    let sel = KEEP_LIVE + ", " + KEEP_THIRD_PARTY;
+    if (extra) {
+      try {
+        document.createDocumentFragment().querySelector(extra);
+        sel += ", " + extra;
+      } catch (e) {
+        devWarnOnce(
+          "modal-keep-outside",
+          'keepOutside / modalKeepOutside "' + extra + '" is not a valid selector; ignored.'
+        );
+      }
+    }
     const scanLive = function(root) {
-      const live = root.querySelectorAll(KEEP_LIVE);
+      const live = root.querySelectorAll(sel);
       for (let i = 0; i < live.length; i++) if (!modal.contains(live[i])) addKeep(live[i]);
     };
     scanLive(body);
@@ -5253,7 +5272,7 @@ window.Aura = (() => {
         for (let i = 0; i < added.length; i++) {
           const c = added[i];
           if (c.nodeType !== 1 || !c.isConnected) continue;
-          if (c.matches(KEEP_LIVE)) addKeep(c);
+          if (c.matches(sel)) addKeep(c);
           scanLive(c);
           mark(c);
         }
@@ -5262,7 +5281,7 @@ window.Aura = (() => {
     const mark = function(c) {
       if (NOT_CONTENT[c.tagName] || keep.has(c)) return;
       if (c.tagName === "NEXT-ROUTE-ANNOUNCER" || c.tagName === "NEXTJS-PORTAL") return;
-      if (c.shadowRoot && c.shadowRoot.querySelector(KEEP_LIVE)) return;
+      if (c.shadowRoot && c.shadowRoot.querySelector(sel)) return;
       if (path.has(c)) return walk(c);
       if (marked.indexOf(c) >= 0) return;
       const n3 = inertBy.get(c) || 0;
@@ -5305,6 +5324,9 @@ window.Aura = (() => {
   }
   function useModal(open, ref, opts) {
     const mounted = useMounted();
+    const providerKeep = useModalKeepOutside();
+    const keepRef = React28.useRef(null);
+    keepRef.current = [opts && opts.keepOutside, providerKeep].filter(Boolean).join(", ") || null;
     const order = React28.useMemo(
       function() {
         return open ? ++renderSeq : 0;
@@ -5333,7 +5355,7 @@ window.Aura = (() => {
             const m = openModals[i];
             if (m !== entry && m.order > entry.order) later.push(m.layer || m.el);
           }
-          release = inertOthers(el, later);
+          release = inertOthers(el, later, keepRef.current);
         };
         const idle = w.requestIdleCallback ? w.requestIdleCallback(apply2, { timeout: 200 }) : 0, timer2 = w.requestIdleCallback ? 0 : window.setTimeout(apply2, 50);
         let raf = 0;
@@ -5427,6 +5449,7 @@ window.Aura = (() => {
     const modal = useModal(open, own, {
       autoFocus: props.autoFocus,
       onEscape: close,
+      keepOutside: props.keepOutside,
       bodySelector: ".aura-dialog__body",
       footSelector: ".aura-dialog__foot",
       /* With a trigger, focus goes back to it even where a click doesn't focus buttons (Safari). */
@@ -5468,6 +5491,7 @@ window.Aura = (() => {
       "onOpen",
       "finalFocus",
       "onCloseComplete",
+      "keepOutside",
       "aria-labelledby",
       "aria-describedby",
       "aria-modal"
@@ -5513,6 +5537,7 @@ window.Aura = (() => {
     const modal = useModal(props.open, own, {
       autoFocus: props.autoFocus,
       onEscape: close,
+      keepOutside: props.keepOutside,
       bodySelector: ".aura-drawer__body",
       footSelector: ".aura-drawer__foot",
       finalFocus: props.finalFocus,
@@ -5539,7 +5564,8 @@ window.Aura = (() => {
       "closeLabel",
       "closeProps",
       "finalFocus",
-      "onCloseComplete"
+      "onCloseComplete",
+      "keepOutside"
     ]);
     const drawerScrimCloses = props.dismissible !== false && props.dismissOnScrim !== false;
     return (0, import_react_dom7.createPortal)(
@@ -6049,7 +6075,7 @@ window.Aura = (() => {
     const close = function() {
       props.onOpenChange(false);
     };
-    const modal = useModal(props.open, box, { onEscape: close });
+    const modal = useModal(props.open, box, { onEscape: close, keepOutside: props.keepOutside });
     React33.useEffect(
       function() {
         if (props.hotkey === false) return;

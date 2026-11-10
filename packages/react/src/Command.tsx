@@ -35,7 +35,7 @@ export function Command(props: CommandProps): React.ReactElement | null {
   const close = function () {
     props.onOpenChange(false);
   };
-  const modal = useModal(props.open, box, { onEscape: close });
+  const modal = useModal(props.open, box, { onEscape: close, keepOutside: props.keepOutside });
 
   /* ⌘K / Ctrl+K from anywhere toggles it. */
   React.useEffect(

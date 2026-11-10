@@ -117,7 +117,7 @@ export function Prep60() {
   return (
     <Aura.AuraProvider locale="th" strings={th}>
       {/* 5.8's override with an untyped parameter still compiles (no implicit any). */}
-      <Aura.AuraProvider strings={{ pageN: (n) => 'p' + n }} />
+      <Aura.AuraProvider strings={{ pageN: (n) => 'p' + n }} modalKeepOutside={undefined} />
       <Button icon={<IconPlus />}>New</Button>
       <IconUsers size="md" label="Members" />
       <Aura.Icon name={<Mine />} />
@@ -337,6 +337,7 @@ export function Addendum16({
         data-testid="d"
         finalFocus={ref}
         onCloseComplete={undefined}
+        keepOutside={undefined}
       >
         x
       </Aura.Dialog>
