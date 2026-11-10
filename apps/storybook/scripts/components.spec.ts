@@ -13826,6 +13826,7 @@ test.describe('5.89: Chamber-OS 209 (addendum 109)', () => {
         provider: i('tp-provider'),
         stripe: i('tp-stripe'),
         late: i('tp-late'),
+        ra: i('tp-ra'),
       };
     });
   test('third-party overlays: appended after open, known challenge frames and keepOutside stay live', async ({
@@ -13835,7 +13836,9 @@ test.describe('5.89: Chamber-OS 209 (addendum 109)', () => {
     await story(page, ID);
     await page.getByTestId('open-plain').click();
     await expect(page.getByRole('dialog', { name: 'Pay invoice' })).toBeVisible();
-    await expect.poll(() => inertOf(page)).toMatchObject({ page: true, pre: true, provider: false, stripe: false });
+    await expect
+      .poll(() => inertOf(page))
+      .toMatchObject({ page: true, pre: true, provider: false, stripe: false, ra: false });
     // The challenge appended to <body> after the drawer opened is clickable.
     await expect(page.getByTestId('tp-late')).toBeAttached();
     expect((await inertOf(page)).late).toBe(false);
@@ -13848,5 +13851,28 @@ test.describe('5.89: Chamber-OS 209 (addendum 109)', () => {
     await page.waitForTimeout(300);
     expect(await inertOf(page)).toMatchObject({ page: true, pre: false, provider: false, stripe: false });
     await page.getByRole('button', { name: 'Pre-existing widget' }).click({ timeout: 2000 });
+  });
+});
+
+test.describe('5.90: Chamber-OS 210', () => {
+  const ID = 'aura-new-in-5-90-chamber-os-210--compact-page-status';
+  test('210: "Page 2 of 4" is read on a phone (the list is hidden there); from 640px the list speaks, once', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 700 });
+    await story(page, ID);
+    const nav = page.getByRole('navigation', { name: 'Invoices pages' });
+    await expect(nav.getByText('Page 2 of 4')).toBeVisible();
+    expect(await nav.ariaSnapshot()).toContain('Page 2 of 4');
+    await expect(nav.getByRole('listitem')).toHaveCount(0);
+    await nav.getByRole('button', { name: /next/i }).click();
+    await expect(nav.getByText('Page 3 of 4')).toBeVisible();
+    expect(await axeScan(page, '#storybook-root')).toEqual([]);
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await expect(nav.getByText('Page 3 of 4')).toBeHidden();
+    const snap = await nav.ariaSnapshot();
+    expect(snap).not.toContain('Page 3 of 4');
+    expect(snap).toMatch(/3/);
+    await expect(nav.locator('[aria-current="page"]')).toHaveText('3');
   });
 });

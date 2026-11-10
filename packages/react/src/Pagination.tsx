@@ -215,9 +215,9 @@ export const Pagination = React.forwardRef<HTMLElement, AnyPaginationProps>(func
           );
         })}
       </ol>
-      <span className="aura-pagination__compact" aria-hidden={true}>
-        {t.page(page, count)}
-      </span>
+      {/* 5.90 (Chamber-OS 210): read by screen readers too — it is the only page status below 640px, where the list
+       * is display: none; from 640px it is display: none itself, so the list and aria-current speak instead. */}
+      <span className="aura-pagination__compact">{t.page(page, count)}</span>
       {arrow(page + 1, <IconChevronRight />, t.nextPage, 'next', page >= count)}
     </nav>
   );

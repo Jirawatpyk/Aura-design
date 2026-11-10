@@ -45,11 +45,12 @@ function lockScroll(): () => void {
 const KEEP_LIVE =
   '.aura-toaster, [data-aura-modal-keep], [aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], next-route-announcer';
 /* 5.89 (Chamber-OS addendum 109): third-party challenge frames that may already sit in the page when a modal opens
- * (Stripe's 3-D Secure and Elements frames, reCAPTCHA, hCaptcha, Cloudflare Turnstile) are never made inert — a
+ * (Stripe's 3-D Secure and Elements frames, reCAPTCHA, hCaptcha, Cloudflare Turnstile; 5.90, Chamber-OS 210: React Aria's
+ * top layer, which Chamber-OS measured on Stripe's 3-D Secure layer) are never made inert — a
  * payment or a sign-in started from the modal must be finishable. Nodes appended to <body> after the modal opened
  * are already left live (<body> isn't watched). Apps add their own with keepOutside / modalKeepOutside. */
 const KEEP_THIRD_PARTY =
-  'iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com"], iframe[src*="hooks.stripe.com"], iframe[src*="/recaptcha/"], iframe[src*="hcaptcha.com"], iframe[src*="challenges.cloudflare.com"]';
+  '[data-react-aria-top-layer], iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com"], iframe[src*="hooks.stripe.com"], iframe[src*="/recaptcha/"], iframe[src*="hcaptcha.com"], iframe[src*="challenges.cloudflare.com"]';
 const NOT_CONTENT: Record<string, true> = {
   SCRIPT: true,
   STYLE: true,

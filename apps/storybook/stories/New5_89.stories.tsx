@@ -14,7 +14,7 @@ function addToBody(id: string, inner: string, tag = 'div') {
   el.setAttribute('data-testid', id);
   el.innerHTML = inner;
   // As a real challenge overlay: fixed, above everything (Stripe uses the maximum z-index).
-  const slot = { 'tp-pre': 0, 'tp-provider': 1, 'tp-stripe': 2, 'tp-late': 3 }[id] || 0;
+  const slot = { 'tp-pre': 0, 'tp-provider': 1, 'tp-stripe': 2, 'tp-late': 3, 'tp-ra': 4 }[id] || 0;
   el.style.cssText = 'position: fixed; z-index: 2147483647; left: 8px; bottom: ' + (8 + slot * 60) + 'px;';
   document.body.appendChild(el);
   return el;
@@ -32,6 +32,10 @@ export const ThirdPartyOverlays: StoryObj = {
           '<iframe name="__privateStripeFrame5551" title="Stripe challenge" src="about:blank"></iframe>',
         ),
       ];
+      // 5.90 (#210): a React Aria top layer already in the page (Stripe's 3-D Secure layer carries the attribute).
+      const ra = addToBody('tp-ra', '<button type="button">Top-layer widget</button>');
+      ra.setAttribute('data-react-aria-top-layer', '');
+      made.push(ra);
       return () => made.forEach((m) => m.remove());
     }, []);
     React.useEffect(() => {

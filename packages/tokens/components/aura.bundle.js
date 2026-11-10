@@ -5220,7 +5220,7 @@ window.Aura = (() => {
     };
   }
   var KEEP_LIVE = '.aura-toaster, [data-aura-modal-keep], [aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"], next-route-announcer';
-  var KEEP_THIRD_PARTY = 'iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com"], iframe[src*="hooks.stripe.com"], iframe[src*="/recaptcha/"], iframe[src*="hcaptcha.com"], iframe[src*="challenges.cloudflare.com"]';
+  var KEEP_THIRD_PARTY = '[data-react-aria-top-layer], iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com"], iframe[src*="hooks.stripe.com"], iframe[src*="/recaptcha/"], iframe[src*="hcaptcha.com"], iframe[src*="challenges.cloudflare.com"]';
   var NOT_CONTENT = {
     SCRIPT: true,
     STYLE: true,
@@ -11246,7 +11246,7 @@ window.Aura = (() => {
     }
     return /* @__PURE__ */ React65.createElement("nav", { ref, className: cx("aura-pagination", props.className), "aria-label": props.label || t.pagination }, arrow(page - 1, /* @__PURE__ */ React65.createElement(IconChevronLeft, null), t.prevPage, "prev", page <= 1), /* @__PURE__ */ React65.createElement("ol", { className: "aura-pagination__list" }, pageList(page, count, props.siblingCount == null ? 1 : props.siblingCount).map(function(p) {
       return typeof p === "number" ? /* @__PURE__ */ React65.createElement("li", { key: p }, item(p, p)) : /* @__PURE__ */ React65.createElement("li", { key: p, className: "aura-pagination__gap", "aria-hidden": true }, "\u2026");
-    })), /* @__PURE__ */ React65.createElement("span", { className: "aura-pagination__compact", "aria-hidden": true }, t.page(page, count)), arrow(page + 1, /* @__PURE__ */ React65.createElement(IconChevronRight, null), t.nextPage, "next", page >= count));
+    })), /* @__PURE__ */ React65.createElement("span", { className: "aura-pagination__compact" }, t.page(page, count)), arrow(page + 1, /* @__PURE__ */ React65.createElement(IconChevronRight, null), t.nextPage, "next", page >= count));
   });
 
   // src/Spinner.tsx

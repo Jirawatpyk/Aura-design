@@ -248,6 +248,11 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.90 — Chamber-OS 210 (compact page status read; React Aria top layer kept)
+
+- **Pagination's compact "Page X of Y"** (#210, addendum 110): below 640px (and at 400% zoom) the page list is hidden and the compact "Page 2 of 4" is the only page status — but it was `aria-hidden`, so a screen reader on a phone couldn't tell the page. It is read now; from 640px it is `display: none` and the list with its `aria-current` page speaks instead, so it is never read twice.
+- **Modal keep list** (Chamber-OS, on our 5.89 offer): `[data-react-aria-top-layer]` is kept live by default while a modal is open — Chamber-OS measured it on Stripe's 3-D Secure layer (test card 4000 0027 6000 3184), so Stripe consumers need no `keepOutside` for it.
+
 ## 5.89 — Chamber-OS addendum 109 (third-party overlays and an open modal)
 
 - **Third-party overlays stay usable while a modal is open** (#209, a 5.88 follow-up). A node a library appends to `<body>` after the modal opened — Stripe's 3-D Secure challenge from `confirmPayment` in a pay Drawer, a captcha, a chat panel — was already left live (5.88 doesn't watch `<body>`). What 5.88 did make inert was a library's node that was already in the page when the modal opened, and one a library mounts inside your app root when that root holds a live region (the walk goes into it and watches it). Now:
