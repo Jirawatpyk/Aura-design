@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.89.0 — 2026-11-10
+
+### Minor changes
+
+- 49306ae: Chamber-OS addendum 109: while a modal is open, known third-party challenge frames already in the page (Stripe, reCAPTCHA, hCaptcha, Turnstile) are never made inert, and `keepOutside` (Dialog, Drawer, Command) / `modalKeepOutside` (AuraProvider) keep any other selector live.
+
 ## 5.88.0 — 2026-11-07
 
 ### Minor changes
