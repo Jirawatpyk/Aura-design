@@ -2,6 +2,12 @@
 
 Earlier releases (1.0 – 4.5.1), with more detail: [CHANGELOG.md](../../CHANGELOG.md) at the repository root.
 
+## 5.90.0
+
+### Minor Changes
+
+- b04a6db: Chamber-OS 210: Pagination's compact "Page X of Y" (the only page status below 640px) is read by screen readers; `[data-react-aria-top-layer]` (Stripe's 3-D Secure layer) is kept live by default while a modal is open.
+
 ## 5.89.0
 
 ### Minor Changes
