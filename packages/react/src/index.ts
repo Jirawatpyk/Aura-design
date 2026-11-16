@@ -22,7 +22,7 @@ export { Alert } from './Alert.js';
 export { Toaster, toast } from './Toaster.js';
 export { PasswordField } from './PasswordField.js';
 export { FormErrorSummary } from './FormErrorSummary.js';
-export { FilterBar } from './FilterBar.js';
+export { FilterBar, useFilterBarSheet } from './FilterBar.js';
 export { Command } from './Command.js';
 export { Tooltip } from './Tooltip.js';
 export { Dialog, Drawer, useDialogClose } from './Dialog.js';

@@ -248,6 +248,16 @@ DataTable with sort and page in the URL (4.17): `onStateChange={({ sort, page })
 - **Time zone**: `timeZone` on AuraProvider, DatePicker, DateRangePicker and Calendar decides "today" (the marker, `min`/`max="today"`, the first month shown); or pass `today` as an ISO date. `todayIn('Asia/Bangkok')` is exported from the root and `/server`.
 - **Toasts** queue past three instead of dropping: six in a row all show, in order, three at a time.
 
+## 5.91 — Chamber-OS 211 (focus stays in a modal when its focused control goes)
+
+- **Focus never drops behind a modal** (#211, addendum 111): when the focused control inside an open Dialog, Drawer, Command or FilterBar's "Filters" sheet leaves the page — an app's own Clear that goes with what it cleared — focus moves to the modal's `[data-aura-focus-fallback]` element, else its panel, instead of falling to `<body>` behind it. The Filters sheet marks its Done. Mark your own fallback in a Dialog with `data-aura-focus-fallback` (looked up inside the modal's panel only). Not covered: a control removed while focus is in a portal opened from it (a popover), when that portal then closes onto it.
+- **`useFilterBarSheet()`**: inside the Filters sheet returns `{ inSheet: true, focusDone }` — call `focusDone()` before a control unmounts to put focus on Done yourself; outside it `{ inSheet: false }` and `focusDone()` does nothing. The returned object is the same on every render, so it is safe in an effect's dependencies. No more `closest('.aura-filterbar__sheet')`.
+
+  ```tsx
+  const sheet = useFilterBarSheet();
+  <Button variant="ghost" onClick={() => { sheet.focusDone(); clear(); }}>Clear</Button>
+  ```
+
 ## 5.90 — Chamber-OS 210 (compact page status read; React Aria top layer kept)
 
 - **Pagination's compact "Page X of Y"** (#210, addendum 110): below 640px (and at 400% zoom) the page list is hidden and the compact "Page 2 of 4" is the only page status — but it was `aria-hidden`, so a screen reader on a phone couldn't tell the page. It is read now; from 640px it is `display: none` and the list with its `aria-current` page speaks instead, so it is never read twice.

@@ -2173,6 +2173,14 @@ export interface ToasterProps {
 export declare function Toaster(props?: ToasterProps): React$1.ReactElement | null;
 export declare const PasswordField: React$1.ForwardRefExoticComponent<PasswordFieldProps & React$1.RefAttributes<HTMLInputElement>>;
 export declare const FormErrorSummary: React$1.ForwardRefExoticComponent<FormErrorSummaryProps & React$1.RefAttributes<HTMLDivElement>>;
+/** Inside FilterBar's phone "Filters" sheet (5.91): `inSheet` is true and `focusDone()` focuses the sheet's Done button —
+ * call it from a control that is about to leave the page (a Clear that goes with what it cleared). Outside the sheet
+ * `inSheet` is false and `focusDone()` does nothing. The sheet also does this itself when a focused control inside it
+ * unmounts. */
+export declare function useFilterBarSheet(): {
+	inSheet: boolean;
+	focusDone: () => void;
+};
 export declare const FilterBar: React$1.ForwardRefExoticComponent<FilterBarProps & React$1.RefAttributes<HTMLDivElement>>;
 export declare function Command(props: CommandProps): React$1.ReactElement | null;
 export declare const Tooltip: React$1.ForwardRefExoticComponent<TooltipProps & React$1.RefAttributes<HTMLSpanElement>>;

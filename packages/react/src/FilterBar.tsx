@@ -10,6 +10,20 @@ import { useStrings } from './locale.js';
 import type { ActiveFilter, FilterBarProps } from './types.js';
 import { IconSearch, IconSlidersHorizontal, IconX } from './icons.js';
 
+/* 5.91 (Chamber-OS 211): inside the Filters sheet, an app control can hand focus to Done (useFilterBarSheet). */
+const OUTSIDE_SHEET = {
+  inSheet: false,
+  focusDone: function () {},
+};
+const FilterSheetApi = React.createContext<{ inSheet: boolean; focusDone: () => void }>(OUTSIDE_SHEET);
+/** Inside FilterBar's phone "Filters" sheet (5.91): `inSheet` is true and `focusDone()` focuses the sheet's Done button —
+ * call it from a control that is about to leave the page (a Clear that goes with what it cleared). Outside the sheet
+ * `inSheet` is false and `focusDone()` does nothing. The sheet also does this itself when a focused control inside it
+ * unmounts. */
+export function useFilterBarSheet(): { inSheet: boolean; focusDone: () => void } {
+  return React.useContext(FilterSheetApi); // the same object every render, safe in an effect's deps
+}
+
 /* FilterBar — the row above a list or table: search, filter controls, applied-filter chips, result count and
  * actions. State stays with the page (URL search params in server mode); the bar only reports changes. */
 export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(function FilterBar(props, ref) {
@@ -67,6 +81,14 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
     moreRef = React.useRef<HTMLButtonElement | null>(null),
     own = React.useRef<HTMLDivElement | null>(null),
     rootRef = useMergedRef(ref, own);
+  const sheetApi = React.useMemo(function () {
+    return {
+      inSheet: true,
+      focusDone: function () {
+        if (doneRef.current) doneRef.current.focus();
+      },
+    };
+  }, []);
   /* Children remount when they move between bar and sheet: one holding its own state would reset. */
   if (collapse)
     React.Children.forEach(props.children, function (c) {
@@ -267,6 +289,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
               ) : null}
               <Button
                 ref={doneRef}
+                data-aura-focus-fallback=""
                 touchHeight
                 onClick={function () {
                   sheet[1](false);
@@ -278,7 +301,9 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
           }
         >
           <FilterSheet.Provider value={true}>
-            <div className="aura-filterbar aura-filterbar--sheet is-touch-always">{props.children}</div>
+            <FilterSheetApi.Provider value={sheetApi}>
+              <div className="aura-filterbar aura-filterbar--sheet is-touch-always">{props.children}</div>
+            </FilterSheetApi.Provider>
           </FilterSheet.Provider>
         </Dialog>
       ) : null}

@@ -13876,3 +13876,46 @@ test.describe('5.90: Chamber-OS 210', () => {
     await expect(nav.locator('[aria-current="page"]')).toHaveText('3');
   });
 });
+
+test.describe('5.91: Chamber-OS 211', () => {
+  const ID = 'aura-new-in-5-91-chamber-os-211--sheet-focus';
+  test('211: a control that unmounts in the Filters sheet hands focus to Done — via useFilterBarSheet or by itself', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await story(page, ID);
+    await page.getByRole('button', { name: /^Filters/ }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await expect(sheet).toBeVisible();
+    const done = sheet.getByRole('button', { name: 'Done' });
+    await expect(sheet.getByTestId('clear-hand')).toHaveAttribute('data-in-sheet', 'true');
+    // With the hook: focusDone() before the state change.
+    await sheet.getByTestId('clear-hand').click();
+    await expect(sheet.getByTestId('clear-hand')).toHaveCount(0);
+    await expect(done).toBeFocused();
+    // Without: the sheet catches the lost focus itself.
+    await sheet.getByTestId('clear-auto').focus();
+    await page.keyboard.press('Enter');
+    await expect(sheet.getByTestId('clear-auto')).toHaveCount(0);
+    await expect(done).toBeFocused();
+    await expect(sheet).toBeVisible();
+    // Outside the sheet (wide), the hook reports false and does nothing.
+    await page.keyboard.press('Escape');
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, ID);
+    await expect(page.getByTestId('clear-hand')).toHaveAttribute('data-in-sheet', 'false');
+  });
+
+  test('211: a plain Dialog without a fallback mark keeps focus on its panel when the focused control goes', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await story(page, 'aura-new-in-5-88-chamber-os-206--inert-behind');
+    await page.getByTestId('open').click();
+    const dlg = page.getByRole('alertdialog');
+    await expect(dlg).toBeVisible();
+    await page.getByTestId('more').focus();
+    await page.evaluate(() => document.querySelector('[data-testid=more]')!.remove());
+    await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('alertdialog');
+  });
+});

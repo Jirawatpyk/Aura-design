@@ -148,6 +148,7 @@ window.Aura = (() => {
     useColorScheme: () => useColorScheme,
     useDensity: () => useDensity,
     useDialogClose: () => useDialogClose,
+    useFilterBarSheet: () => useFilterBarSheet,
     useFormatDate: () => useFormatDate,
     useResponsive: () => useResponsive
   });
@@ -5346,6 +5347,22 @@ window.Aura = (() => {
         let release = function() {
         };
         const w = window;
+        let lastIn = null;
+        const onFocusIn = function(e) {
+          lastIn = e.target;
+        };
+        let lost = null;
+        if (el && typeof MutationObserver !== "undefined") {
+          el.addEventListener("focusin", onFocusIn);
+          lost = new MutationObserver(function() {
+            const a = document.activeElement;
+            if (!lastIn || lastIn.isConnected || a && a !== document.body) return;
+            lastIn = null;
+            const to = el.querySelector("[data-aura-focus-fallback]");
+            (to && to.getClientRects().length ? to : el).focus();
+          });
+          lost.observe(el, { childList: true, subtree: true });
+        }
         const entry = { el, layer: el ? topOf(el) : null, order };
         if (el) openModals.push(entry);
         const apply2 = function() {
@@ -5383,6 +5400,8 @@ window.Aura = (() => {
         }
         return function() {
           cancelAnimationFrame(raf);
+          if (lost) lost.disconnect();
+          if (el) el.removeEventListener("focusin", onFocusIn);
           unlock();
           if (idle && w.cancelIdleCallback) w.cancelIdleCallback(idle);
           clearTimeout(timer2);
@@ -5848,6 +5867,15 @@ window.Aura = (() => {
   };
 
   // src/FilterBar.tsx
+  var OUTSIDE_SHEET = {
+    inSheet: false,
+    focusDone: function() {
+    }
+  };
+  var FilterSheetApi = React32.createContext(OUTSIDE_SHEET);
+  function useFilterBarSheet() {
+    return React32.useContext(FilterSheetApi);
+  }
   var FilterBar = React32.forwardRef(function FilterBar2(props, ref) {
     const t = useStrings();
     const id = uid();
@@ -5894,6 +5922,14 @@ window.Aura = (() => {
     const sheet = React32.useState(false), open = !!collapse && sheet[0];
     const sheetId = id + "-filters";
     const doneRef = React32.useRef(null), moreRef = React32.useRef(null), own = React32.useRef(null), rootRef = useMergedRef(ref, own);
+    const sheetApi = React32.useMemo(function() {
+      return {
+        inSheet: true,
+        focusDone: function() {
+          if (doneRef.current) doneRef.current.focus();
+        }
+      };
+    }, []);
     if (collapse)
       React32.Children.forEach(props.children, function(c) {
         if (!React32.isValidElement(c) || c.type === Button || c.type === IconButton) return;
@@ -6039,6 +6075,7 @@ window.Aura = (() => {
             Button,
             {
               ref: doneRef,
+              "data-aura-focus-fallback": "",
               touchHeight: true,
               onClick: function() {
                 sheet[1](false);
@@ -6047,7 +6084,7 @@ window.Aura = (() => {
             t.done
           ))
         },
-        /* @__PURE__ */ React32.createElement(FilterSheet.Provider, { value: true }, /* @__PURE__ */ React32.createElement("div", { className: "aura-filterbar aura-filterbar--sheet is-touch-always" }, props.children))
+        /* @__PURE__ */ React32.createElement(FilterSheet.Provider, { value: true }, /* @__PURE__ */ React32.createElement(FilterSheetApi.Provider, { value: sheetApi }, /* @__PURE__ */ React32.createElement("div", { className: "aura-filterbar aura-filterbar--sheet is-touch-always" }, props.children)))
       ) : null
     );
   });

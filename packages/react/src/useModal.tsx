@@ -204,6 +204,25 @@ export function useModal(
         requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
         cancelIdleCallback?: (h: number) => void;
       };
+      /* 5.91 (Chamber-OS 211): when the focused control inside the modal leaves the page (a Clear button that goes
+       * with what it cleared), focus would drop to <body> behind the modal. It moves instead to the modal's
+       * [data-aura-focus-fallback] element (the Filters sheet marks its Done), else the panel itself. */
+      let lastIn: Element | null = null;
+      const onFocusIn = function (e: FocusEvent) {
+        lastIn = e.target as Element;
+      };
+      let lost: MutationObserver | null = null;
+      if (el && typeof MutationObserver !== 'undefined') {
+        el.addEventListener('focusin', onFocusIn);
+        lost = new MutationObserver(function () {
+          const a = document.activeElement;
+          if (!lastIn || lastIn.isConnected || (a && a !== document.body)) return;
+          lastIn = null;
+          const to = el.querySelector<HTMLElement>('[data-aura-focus-fallback]');
+          (to && to.getClientRects().length ? to : el).focus();
+        });
+        lost.observe(el, { childList: true, subtree: true });
+      }
       const entry = { el: el as HTMLElement, layer: el ? topOf(el) : null, order: order };
       if (el) openModals.push(entry);
       const apply = function () {
@@ -266,6 +285,8 @@ export function useModal(
       }
       return function () {
         cancelAnimationFrame(raf);
+        if (lost) lost.disconnect();
+        if (el) el.removeEventListener('focusin', onFocusIn);
         unlock();
         if (idle && w.cancelIdleCallback) w.cancelIdleCallback(idle);
         clearTimeout(timer);
