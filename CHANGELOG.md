@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.91.0 — 2026-11-16
+
+### Minor changes
+
+- dc181e1: Chamber-OS 211: when the focused control inside an open modal (Dialog, Drawer, Command, FilterBar's Filters sheet) unmounts, focus moves to its `[data-aura-focus-fallback]` (the sheet's Done) or its panel instead of `<body>`; `useFilterBarSheet()` returns `{ inSheet, focusDone }`.
+
 ## 5.90.0 — 2026-11-10
 
 ### Minor changes
